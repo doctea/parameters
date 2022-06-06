@@ -1,3 +1,6 @@
+#ifndef ANALOGPARAMETERINPUT__INCLUDED
+#define ANALOGPARAMETERINPUT__INCLUDED
+
 #include "ParameterInput.h"
 
 template<class TargetClass, class DataType>
@@ -95,3 +98,5 @@ class AnalogParameterInput : public ParameterInput<TargetClass> {
       }
     }
 };
+
+#endif

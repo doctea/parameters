@@ -1,17 +1,24 @@
+#ifndef PARAMETER_INPUT__INCLUDED
+#define PARAMETER_INPUT__INCLUDED
 
 #include <Arduino.h>
 
 #include "Parameter.h"
 
-char NEXT_PARAMETER_NAME = 'W';
+class BaseParameterInput {
+  public:
+    BaseParameter *target = nullptr;
+
+    virtual void loop();
+};
 
 template<class TargetClass>
-class ParameterInput {
+class ParameterInput : public BaseParameterInput {
   public:
-    int inputPin;
-    TargetClass *target_parameter;
-    char name;
-    bool debug = true;
+    int inputPin = 0;
+    TargetClass *target_parameter = nullptr;
+    char name = "#";
+    bool debug = false;
 
     ParameterInput() {
       name = NEXT_PARAMETER_NAME++;
@@ -27,3 +34,4 @@ class ParameterInput {
     }
 };
 
+#endif

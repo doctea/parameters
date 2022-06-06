@@ -60,12 +60,13 @@ class ADSParameterInput : public AnalogParameterInput<TargetClass, DataType> {
       //int currentValue = analogRead(inputPin);
       int intermediate = ads->readADC(channel);
       DataType currentValue = this->ads->toVoltage(intermediate);
-      //Serial.printf("ADSParameterInput->read() got intermediate %i, voltage ", intermediate);
-      Serial.print(this->ads->toVoltage(intermediate));
-      Serial.printf(", final %i", currentValue*1000.0);
-      Serial.println();
-      //final %i\n", intermediate, currentValue*1000.0);
-      //if (abs(currentValue - this->lastValue) > sensitivity) {
+      if (this->debug) {
+        Serial.printf("ADSParameterInput->read() got intermediate %i, voltage ", intermediate);
+        Serial.print(this->ads->toVoltage(intermediate));
+        Serial.printf(", final %i", currentValue*1000.0);
+        Serial.println();
+      }
+      
       if (this->is_significant_change(currentValue, lastValue)) {
         lastValue = currentValue;
         DataType normal = this->get_normal_value(currentValue);

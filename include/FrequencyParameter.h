@@ -20,8 +20,10 @@ class FrequencyParameter : public Parameter<TargetClass, DataType> {
             this->last_value = this->current_value;
             this->current_value = freq;
 
-            Serial.printf("FrequencyParameter setParamValue(): calling setter func with frequency (%i) from input value ", freq);
-            Serial.println(value * 5.0);
+            if (this->debug) {
+                Serial.printf("FrequencyParameter#setParamValue(): calling setter func with frequency (%i) from input value ", freq);
+                Serial.println(value * 5.0);
+            }
             //Serial.println();
 
             //((this->target)->(*this->setter_func))(freq);

@@ -1,11 +1,24 @@
 #ifndef PARAMETER__INCLUDED
 #define PARAMETER__INCLUDED
 
+extern char NEXT_PARAMETER_NAME;
+
 #include <Arduino.h>
+
+class BaseParameter {
+    public:
+        double minimum_value = 0.0f;
+        double maximum_value = 1.0f;
+
+        BaseParameter() {};
+        virtual void setParamValue(double value);
+        virtual double getCurrentValue();
+        virtual double getLastValue();
+};
 
 // an object that can be targeted by a ParameterInput, calls setter method on final target object
 template<class TargetClass, class DataType>
-class Parameter {
+class Parameter : public BaseParameter {
     public:
         DataType current_value;
         DataType last_value;
@@ -28,9 +41,11 @@ class Parameter {
             last_value = current_value;
             current_value = value;
             //this->func(value);
-            Serial.print("Calling setter func for value (");
-            Serial.print(value);
-            Serial.println(")");
+            if (this->debug) {
+                Serial.print("Calling setter func for value (");
+                Serial.print(value);
+                Serial.println(")");
+            }
             (target->*setter_func)(value);
         }
         /*void setParamValue(float value) {
