@@ -49,9 +49,15 @@ class AnalogParameterInput : public ParameterInput<TargetClass> {
         return (float)value / 1023.0f;
     }
 
+    virtual bool is_significant_change(DataType currentValue, DataType lastValue) {
+      return abs(currentValue - this->lastValue) > this->sensitivity;
+    }
+
     virtual void read() override {
+      Serial.printf("read() in AnalogParameterInput.."); 
       DataType currentValue = analogRead(inputPin);
-      if (abs(currentValue - this->lastValue) > this->sensitivity) {
+      if (is_significant_change(currentValue, lastValue)) {
+      //if (abs(currentValue - this->lastValue) > this->sensitivity) {
         lastValue = currentValue;
         float normal = get_normal_value(currentValue);
         if (callback != NULL) {
@@ -63,7 +69,7 @@ class AnalogParameterInput : public ParameterInput<TargetClass> {
           }      
           callback(normal);
         }
-        if (this->target) {
+        if (this->target_parameter!=nullptr) {
           if (this->debug) {
             Serial.print(this->name);
             Serial.print(F(": calling target setParamValueA("));
@@ -72,7 +78,7 @@ class AnalogParameterInput : public ParameterInput<TargetClass> {
             if (inverted) Serial.print(F(" - inverted"));
             Serial.println();
           }
-          this->target->setParamValue(normal);
+          this->target_parameter->setParamValue(normal);
         }
         //if (Parameter_number!=0xff)
           //Parameters[Parameter_number]->setParamValueA(get_normal_value(currentValue));

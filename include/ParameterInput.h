@@ -9,9 +9,9 @@ template<class TargetClass>
 class ParameterInput {
   public:
     int inputPin;
-    TargetClass *target;
+    TargetClass *target_parameter;
     char name;
-    bool debug = false;
+    bool debug = true;
 
     ParameterInput() {
       name = NEXT_PARAMETER_NAME++;

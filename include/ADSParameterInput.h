@@ -27,9 +27,10 @@ class ADSParameterInput : public AnalogParameterInput<TargetClass, DataType> {
       this->ads = ads;
       this->channel = 0;
     }
-    ADSParameterInput(ADClass *ads, int channel) {
+    ADSParameterInput(ADClass *ads, int channel, TargetClass *target_parameter) {
       this->ads = ads;
       this->channel = channel;
+      this->target_parameter = target_parameter;
     }
 
     /*ADSParameterInput(ADClass *ads, int channel, TargetClass *target_parameter) { //}, TargetClass *target_parameter) { //TargetType *in_target, DataType minimum_value, DataType maximum_value, int in_sensitivity = 3) {
@@ -53,12 +54,14 @@ class ADSParameterInput : public AnalogParameterInput<TargetClass, DataType> {
 
     virtual void read() override {
       //int currentValue = analogRead(inputPin);
-      DataType currentValue = this->ads->toVoltage(ads->readADC(channel));
-
-      if (abs(currentValue - this->lastValue) > sensitivity) {
+      int intermediate = ads->readADC(channel);
+      DataType currentValue = this->ads->toVoltage(intermediate);
+      Serial.printf("ADSParameterInput->read() got intermediate %i, final %i\n", intermediate, currentValue*1000.0);
+      //if (abs(currentValue - this->lastValue) > sensitivity) {
+      if (this->is_significant_change(currentValue, lastValue)) {
         lastValue = currentValue;
-        float normal = get_normal_value(currentValue);
-        if (callback != NULL) {
+        float normal = this->get_normal_value(currentValue);
+        if (callback != nullptr) {
           if (this->debug) {
             Serial.print(this->name);
             Serial.print(F(": calling callback("));
@@ -67,10 +70,10 @@ class ADSParameterInput : public AnalogParameterInput<TargetClass, DataType> {
           }      
           callback(normal);
         }
-        if (this->target!=nullptr) {
+        if (this->target_parameter!=nullptr) {
           if (this->debug) {
             Serial.print(this->name);
-            Serial.print(F(": calling target setParamValueA("));
+            Serial.print(F(": calling target setParamValue("));
             Serial.print(normal);
             Serial.print(F(")"));
             if (inverted) Serial.print(F(" - inverted"));

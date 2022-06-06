@@ -1,9 +1,12 @@
+#ifndef PARAMETER__INCLUDED
+#define PARAMETER__INCLUDED
+
 #include <Arduino.h>
 
 // an object that can be targeted by a ParameterInput, calls setter method on final target object
-template<class TargetClass, class DataType = double>
+template<class TargetClass, class DataType>
 class Parameter {
-    private:
+    public:
         DataType current_value;
         DataType last_value;
 
@@ -14,7 +17,6 @@ class Parameter {
         void (test::*func)(float);
         void (test::*func)(int);*/
 
-    public:
         bool debug = false;
 
         Parameter(TargetClass *target, void(TargetClass::*setter_func)(DataType)) {
@@ -22,11 +24,12 @@ class Parameter {
             this->setter_func = setter_func;
         }
 
-        void setParamValue(DataType value) {
+        virtual void setParamValue(DataType value) {
             last_value = current_value;
             current_value = value;
             //this->func(value);
             (target->*setter_func)(value);
+            Serial.printf("Calling setter func for value (%i)\n", value);
         }
         /*void setParamValue(float value) {
             last_value = current_value;
@@ -43,18 +46,19 @@ class Parameter {
             this->setter_func = setter_func;
         }*/
 
-        DataType getCurrentValue() {
+        virtual DataType getCurrentValue() {
             return current_value;
         }
-        DataType getLastValue() {
+        virtual DataType getLastValue() {
             return last_value;
         }
 
-        void set_target_object(TargetClass *target) {
+        virtual void set_target_object(TargetClass *target) {
             this->target = target;
         }
-        void set_target_func(void(TargetClass::*fp)(DataType)) {
+        virtual void set_target_func(void(TargetClass::*fp)(DataType)) {
             this->setter_func = fp;
         }
 };
 
+#endif
