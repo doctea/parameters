@@ -15,6 +15,9 @@ class FrequencyParameter : public Parameter<TargetClass, DataType> {
         //TODO: check quantisation / pitch is accurate
 
         virtual void setParamValue(DataType value) override {
+            //if (inverted)
+                //value = octave_range - (octave_range*value);
+
             double freq = get_frequency_for_voltage(value * octave_range); //read_voltage(0));
 
             this->last_value = this->current_value;

@@ -42,6 +42,7 @@ class AnalogParameterInput : public ParameterInput<TargetClass> {
 
     virtual void setInverted(bool invert = true) {
       inverted = invert;
+      Serial.println("SET INVERTED on an AnalogParameterInput!");
     }
 
     virtual void loop () override {
@@ -55,9 +56,13 @@ class AnalogParameterInput : public ParameterInput<TargetClass> {
         return (float)value / 1023.0f;
     }*/
     virtual DataType get_normal_value(DataType value) {
-      if (inverted)
+      if (inverted) {
+        /*Serial.print("in AnalogParameterInput#get_normal_value(): Inverting ");
+        Serial.print(value);
+        Serial.print(" to ");
+        Serial.println(1.0f - ((float)value / this->max_input_value));*/
         return 1.0f - ((float)value / this->max_input_value);
-      else 
+      } else 
         return (float)value / max_input_value;
     }
 

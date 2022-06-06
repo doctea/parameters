@@ -6,7 +6,7 @@ template<class ADClass, class TargetClass, class DataType = double>
 class ADSParameterInput : public AnalogParameterInput<TargetClass, DataType> {
   int inputPin;
   DataType lastValue = 0;
-  DataType value = 0;
+  DataType currentValue = 0;
   DataType minimum_value;
   DataType maximum_value;
 
@@ -17,7 +17,6 @@ class ADSParameterInput : public AnalogParameterInput<TargetClass, DataType> {
     using Callback = void (*)(DataType);
     Callback callback;
 
-    bool inverted = false;
     int sensitivity = 4;
 
     int channel = 0;
@@ -53,6 +52,13 @@ class ADSParameterInput : public AnalogParameterInput<TargetClass, DataType> {
     }
 
     virtual DataType get_normal_value(double voltage_value) {
+      if (this->inverted) {
+        /*Serial.print("in ADSParameterInput#get_normal_value(): Inverting ");
+        Serial.print(voltage_value);
+        Serial.print(" to ");
+        Serial.println(5.0f - ((float)voltage_value / 5.0f));*/
+        return 1.0f - (voltage_value / 5.0f);
+      } else
         return voltage_value / 5.0f;
     }
 
@@ -87,7 +93,7 @@ class ADSParameterInput : public AnalogParameterInput<TargetClass, DataType> {
             Serial.print(F(")"));
             Serial.print(" from currentValue ");
             Serial.print(currentValue);
-            if (inverted) Serial.print(F(" - inverted"));
+            if (this->inverted) Serial.print(F(" - inverted"));
             Serial.println();
           }
           //target->setParamValueA(normal);
