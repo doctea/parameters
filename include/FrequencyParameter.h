@@ -8,7 +8,7 @@ class FrequencyParameter : public Parameter<TargetClass, DataType> {
         DataType octave_range = 5.0;
 
         FrequencyParameter(TargetClass *target, void(TargetClass::*setter_func)(DataType), DataType octave_range = 5.0) : Parameter<TargetClass,DataType>(target, setter_func) {
-            this->octage_range = octave_range;
+            this->octave_range = octave_range;
         };
 
         //TODO: move helper functions from ads.cpp ie get_frequencey_for_voltage etc to here
