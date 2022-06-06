@@ -52,15 +52,23 @@ class ADSParameterInput : public AnalogParameterInput<TargetClass, DataType> {
       this->read();
     }
 
+    virtual DataType get_normal_value(double voltage_value) {
+        return voltage_value / 5.0f;
+    }
+
     virtual void read() override {
       //int currentValue = analogRead(inputPin);
       int intermediate = ads->readADC(channel);
       DataType currentValue = this->ads->toVoltage(intermediate);
-      Serial.printf("ADSParameterInput->read() got intermediate %i, final %i\n", intermediate, currentValue*1000.0);
+      //Serial.printf("ADSParameterInput->read() got intermediate %i, voltage ", intermediate);
+      Serial.print(this->ads->toVoltage(intermediate));
+      Serial.printf(", final %i", currentValue*1000.0);
+      Serial.println();
+      //final %i\n", intermediate, currentValue*1000.0);
       //if (abs(currentValue - this->lastValue) > sensitivity) {
       if (this->is_significant_change(currentValue, lastValue)) {
         lastValue = currentValue;
-        float normal = this->get_normal_value(currentValue);
+        DataType normal = this->get_normal_value(currentValue);
         if (callback != nullptr) {
           if (this->debug) {
             Serial.print(this->name);
@@ -73,9 +81,11 @@ class ADSParameterInput : public AnalogParameterInput<TargetClass, DataType> {
         if (this->target_parameter!=nullptr) {
           if (this->debug) {
             Serial.print(this->name);
-            Serial.print(F(": calling target setParamValue("));
+            Serial.print(F(": calling target from normal setParamValue("));
             Serial.print(normal);
             Serial.print(F(")"));
+            Serial.print(" from currentValue ");
+            Serial.print(currentValue);
             if (inverted) Serial.print(F(" - inverted"));
             Serial.println();
           }

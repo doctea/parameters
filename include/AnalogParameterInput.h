@@ -7,12 +7,15 @@ class AnalogParameterInput : public ParameterInput<TargetClass> {
   DataType lastValue = 0;
   byte Parameter_number = 0xff;
 
+  DataType min_input_value = 0.0d;
+  DataType max_input_value = 1023.0d;
+
   public:
     using Callback = void (*)(float);
     Callback callback;
 
     bool inverted = false;
-    int sensitivity = 4;
+    DataType sensitivity = 0.01;
       
     /*AnalogParameterInput(int in_inputPin, Callback in_callback, int in_sensitivity = 3) : ParameterInput() {
       inputPin = in_inputPin;
@@ -21,7 +24,7 @@ class AnalogParameterInput : public ParameterInput<TargetClass> {
       pinMode(inputPin, INPUT);
     }*/
     AnalogParameterInput() {};
-    AnalogParameterInput(int in_inputPin, TargetClass &in_target, int in_sensitivity = 3) { //}: ParameterInput() {
+    AnalogParameterInput(int in_inputPin, TargetClass &in_target, DataType in_sensitivity = 0.01) { //}: ParameterInput() {
       this->inputPin = in_inputPin;
       this->target = &in_target;
       this->sensitivity = in_sensitivity;
@@ -42,15 +45,21 @@ class AnalogParameterInput : public ParameterInput<TargetClass> {
       read();
     }
 
-    virtual float get_normal_value(int value) {
+    /*virtual DataType get_normal_value(int value) {
       if (inverted)
         return 1.0f - ((float)value / 1023.0f);
       else 
         return (float)value / 1023.0f;
+    }*/
+    virtual DataType get_normal_value(DataType value) {
+      if (inverted)
+        return 1.0f - ((float)value / this->max_input_value);
+      else 
+        return (float)value / max_input_value;
     }
 
     virtual bool is_significant_change(DataType currentValue, DataType lastValue) {
-      return abs(currentValue - this->lastValue) > this->sensitivity;
+      return abs(currentValue - this->lastValue) >= this->sensitivity;
     }
 
     virtual void read() override {

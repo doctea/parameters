@@ -28,8 +28,10 @@ class Parameter {
             last_value = current_value;
             current_value = value;
             //this->func(value);
+            Serial.print("Calling setter func for value (");
+            Serial.print(value);
+            Serial.println(")");
             (target->*setter_func)(value);
-            Serial.printf("Calling setter func for value (%i)\n", value);
         }
         /*void setParamValue(float value) {
             last_value = current_value;
