@@ -22,7 +22,7 @@ class DigitalParameterInput : public BaseParameterInput {
     }
     DigitalParameterInput(int in_inputPin, BaseParameter &in_target) : BaseParameterInput() {
       inputPin = in_inputPin;
-      target = &in_target;
+      target_parameter = &in_target;
     }
   
     void read() {
@@ -31,8 +31,8 @@ class DigitalParameterInput : public BaseParameterInput {
       if (currentValue != lastValue) {
         /*if (callback != NULL)
           callback(currentValue);*/
-        if (target)
-          target->setParamValue(currentValue);
+        if (target_parameter)
+          target_parameter->setParamValue(currentValue);
         lastValue = currentValue;
         //return currentValue;
       }

@@ -29,7 +29,7 @@ class AnalogParameterInput : public ParameterInput<TargetClass> {
     AnalogParameterInput() {};
     AnalogParameterInput(int in_inputPin, TargetClass &in_target, DataType in_sensitivity = 0.01) { //}: ParameterInput() {
       this->inputPin = in_inputPin;
-      this->target = &in_target;
+      this->target_parameter = &in_target;
       this->sensitivity = in_sensitivity;
       pinMode(inputPin, INPUT);
     }

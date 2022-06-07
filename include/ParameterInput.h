@@ -7,7 +7,11 @@
 
 class BaseParameterInput {
   public:
-    BaseParameter *target = nullptr;
+    BaseParameter *target_parameter = nullptr;
+
+    virtual void setTarget(BaseParameter *target) {
+      this->target_parameter = target;
+    }
 
     virtual void loop();
 };
@@ -16,7 +20,7 @@ template<class TargetClass>
 class ParameterInput : public BaseParameterInput {
   public:
     int inputPin = 0;
-    TargetClass *target_parameter = nullptr;
+    //TargetClass *target_parameter = nullptr;
     char name = "#";
     bool debug = false;
 

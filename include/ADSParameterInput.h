@@ -11,7 +11,7 @@ class ADSParameterInput : public AnalogParameterInput<TargetClass, DataType> {
   DataType maximum_value;
 
   ADClass *ads;
-  TargetClass *target_parameter;
+  //TargetClass *target_parameter;
 
   public:
     using Callback = void (*)(DataType);
@@ -97,7 +97,7 @@ class ADSParameterInput : public AnalogParameterInput<TargetClass, DataType> {
             Serial.println();
           }
           //target->setParamValueA(normal);
-          target_parameter->setParamValue(normal);
+          this->target_parameter->setParamValue(normal);
         }
         //if (Parameter_number!=0xff)
           //Parameters[Parameter_number]->setParamValueA(get_normal_value(currentValue));

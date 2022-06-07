@@ -10,10 +10,14 @@ class BaseParameter {
         double minimum_value = 0.0f;
         double maximum_value = 1.0f;
 
-        BaseParameter() {};
-        virtual void setParamValue(double value);
-        virtual double getCurrentValue();
-        virtual double getLastValue();
+        char label[20];
+
+        BaseParameter(char *label) {
+            strcpy(this->label, label);
+        };
+        virtual void setParamValue(double value) {};
+        virtual double getCurrentValue() {};
+        virtual double getLastValue() {};
 };
 
 // an object that can be targeted by a ParameterInput, calls setter method on final target object
@@ -32,7 +36,7 @@ class Parameter : public BaseParameter {
 
         bool debug = false;
 
-        Parameter(TargetClass *target, void(TargetClass::*setter_func)(DataType)) {
+        Parameter(char *label, TargetClass *target, void(TargetClass::*setter_func)(DataType)) : BaseParameter(label) {
             this->target = target;
             this->setter_func = setter_func;
         }

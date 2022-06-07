@@ -7,7 +7,9 @@ class FrequencyParameter : public Parameter<TargetClass, DataType> {
 
         DataType octave_range = 5.0;
 
-        FrequencyParameter(TargetClass *target, void(TargetClass::*setter_func)(DataType), DataType octave_range = 5.0) : Parameter<TargetClass,DataType>(target, setter_func) {
+        FrequencyParameter(char *label, TargetClass *target, void(TargetClass::*setter_func)(DataType), DataType octave_range = 5.0) 
+            : Parameter<TargetClass,DataType>(label, target, setter_func) 
+            {
             this->octave_range = octave_range;
         };
 
