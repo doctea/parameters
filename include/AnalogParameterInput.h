@@ -71,10 +71,11 @@ class AnalogParameterInput : public ParameterInput<TargetClass> {
       return abs(currentValue - this->lastValue) >= this->sensitivity;
     }
 
-    virtual char* getFormattedValue() {
-      char fmt[20];
+    virtual const char* getFormattedValue() {
+      return this->target_parameter->getFormattedValue();
+      /*char fmt[20];
       sprintf(fmt, "%2.2f", get_normal_value(this->currentValue));
-      return fmt;
+      return fmt;*/
     }
 
     virtual void read() override {

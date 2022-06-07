@@ -13,7 +13,7 @@ class BaseParameterInput {
       this->target_parameter = target;
     }
 
-    virtual char* getFormattedValue() {
+    virtual const char* getFormattedValue() {
       return target_parameter->getFormattedValue();
     }
 

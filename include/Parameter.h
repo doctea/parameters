@@ -20,7 +20,7 @@ class BaseParameter {
         virtual void setParamValue(double value) {};
         virtual double getCurrentValue() {};
         virtual double getLastValue() {};
-        virtual char* getFormattedValue(); // {};
+        virtual const char* getFormattedValue(); // {};
 };
 
 // an object that can be targeted by a ParameterInput, calls setter method on final target object
@@ -69,24 +69,16 @@ class Parameter : public BaseParameter {
             this->target = target;
             this->setter_func = setter_func;
         }*/
-        virtual char* getFormattedValue() {
-            char fmt[20]= "              ";
-            /*if (std::is_floating_point<DataType>) {
-                sprintf(fmt, "%2.2.f", this->getCurrentValue());
-            } else if (std::is_signed<DataType>) {
-                sprintf(fmt, "%i", this->getCurrentValue());
-            } else {
-                sprintf(fmt, "%u", this->getCurrentValue());
-            }*/
-            //template<DataType T>
+        virtual const char* getFormattedValue() {
+            static char fmt[20] = "              ";
             if constexpr (std::is_floating_point<DataType>::value) {
-                sprintf(fmt, "float: %2.2f", this->currentValue); //->getCurrentValue());
+                sprintf(fmt, "%3i%% (float)",      (int32_t)(100.0*this->getCurrentValue())); //->getCurrentValue());
             } else if constexpr (std::is_unsigned<DataType>::value) {
-                sprintf(fmt, "unsigned: %u", this->currentValue); //getCurrentValue());
+                sprintf(fmt, "%5u (unsigned)",    (int32_t)this->getCurrentValue()); //getCurrentValue());
             } else {
-                sprintf(fmt, "signed: %i", this->currentValue); //getCurrentValue());
+                sprintf(fmt, "%5i (signed)",      (uint32_t)this->getCurrentValue()); //getCurrentValue());
             }
-            Serial.printf("getFormattedValue: '%s'\n", fmt);
+            //Serial.printf("getFormattedValue: '%s'\n", fmt);
             return fmt;
         };
 
