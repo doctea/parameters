@@ -41,7 +41,7 @@ class FrequencyParameter : public Parameter<TargetClass, DataType> {
             double freq = get_frequency_for_voltage(this->currentValue * octave_range); //read_voltage(0));
 
             //if constexpr (std::is_floating_point<DataType>::value) {
-                sprintf(fmt, "%5i%hz",      (uint32_t)freq); //->getCurrentValue());
+                sprintf(fmt, "%5i hz",      (uint32_t)freq); //->getCurrentValue());
             /*} else if constexpr (std::is_unsigned<DataType>::value) {
                 sprintf(fmt, "%5u (unsigned)",    (int32_t)this->getCurrentValue()); //getCurrentValue());
             } else {

@@ -32,6 +32,13 @@ class ADSParameterInput : public AnalogParameterInput<TargetClass, DataType> {
       this->target_parameter = target_parameter;
     }
 
+    virtual const char* getInputInfo() {
+      static char input_info[20] = "                ";
+
+      sprintf(input_info, "ADS %i@%p %s", this->channel, this->ads, (this->inverted?"inv":""));
+      return input_info;
+    }
+
     /*ADSParameterInput(ADClass *ads, int channel, TargetClass *target_parameter) { //}, TargetClass *target_parameter) { //TargetType *in_target, DataType minimum_value, DataType maximum_value, int in_sensitivity = 3) {
         this->channel = channel;
         this->ads = ads;

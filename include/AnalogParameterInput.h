@@ -78,6 +78,13 @@ class AnalogParameterInput : public ParameterInput<TargetClass> {
       return fmt;*/
     }
 
+    virtual const char* getInputInfo() {
+      static char input_info[20] = "                ";
+
+      sprintf(input_info, "Anlg %i %s", inputPin, (inverted?"inv":""));
+      return input_info;
+    }
+
     virtual void read() override {
       Serial.printf("read() in AnalogParameterInput.."); 
       DataType currentValue = analogRead(inputPin);

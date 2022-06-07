@@ -17,6 +17,10 @@ class BaseParameterInput {
       return target_parameter->getFormattedValue();
     }
 
+    virtual const char* getInputInfo() {
+      return "BaseParameterInput";
+    }
+
     virtual void loop();
 };
 
