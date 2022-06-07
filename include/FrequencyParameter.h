@@ -22,8 +22,8 @@ class FrequencyParameter : public Parameter<TargetClass, DataType> {
 
             double freq = get_frequency_for_voltage(value * octave_range); //read_voltage(0));
 
-            this->last_value = this->current_value;
-            this->current_value = freq;
+            this->lastValue = this->currentValue;
+            this->currentValue= freq;
 
             if (this->debug) {
                 Serial.printf("FrequencyParameter#setParamValue(): calling setter func with frequency (%i) from input value ", freq);

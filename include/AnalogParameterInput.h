@@ -5,15 +5,16 @@
 
 template<class TargetClass, class DataType>
 class AnalogParameterInput : public ParameterInput<TargetClass> {
-  int inputPin;
-
-  DataType lastValue = 0;
-  byte Parameter_number = 0xff;
-
-  DataType min_input_value = 0.0d;
-  DataType max_input_value = 1023.0d;
+  int inputPin; // todo: split this out into a separate derived class to support the built-in analogRead() functions
+  //byte Parameter_number = 0xff;
 
   public:
+    DataType lastValue = 0;
+    DataType currentValue = 0;
+
+    DataType min_input_value = 0.0d;
+    DataType max_input_value = 1023.0d;
+
     using Callback = void (*)(float);
     Callback callback;
 
@@ -68,6 +69,12 @@ class AnalogParameterInput : public ParameterInput<TargetClass> {
 
     virtual bool is_significant_change(DataType currentValue, DataType lastValue) {
       return abs(currentValue - this->lastValue) >= this->sensitivity;
+    }
+
+    virtual char* getFormattedValue() {
+      char fmt[20];
+      sprintf(fmt, "%2.2f", get_normal_value(this->currentValue));
+      return fmt;
     }
 
     virtual void read() override {

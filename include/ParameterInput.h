@@ -13,6 +13,10 @@ class BaseParameterInput {
       this->target_parameter = target;
     }
 
+    virtual char* getFormattedValue() {
+      return target_parameter->getFormattedValue();
+    }
+
     virtual void loop();
 };
 

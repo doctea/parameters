@@ -5,10 +5,10 @@
 template<class ADClass, class TargetClass, class DataType = double>
 class ADSParameterInput : public AnalogParameterInput<TargetClass, DataType> {
   int inputPin;
-  DataType lastValue = 0;
+  /*DataType lastValue = 0;
   DataType currentValue = 0;
   DataType minimum_value;
-  DataType maximum_value;
+  DataType maximum_value;*/
 
   ADClass *ads;
   //TargetClass *target_parameter;
@@ -43,9 +43,9 @@ class ADSParameterInput : public AnalogParameterInput<TargetClass, DataType> {
         this->target_parameter = target_parameter;
     }*/
 
-    void setTarget(TargetClass *target_parameter) {
+    /*void setTarget(TargetClass *target_parameter) {
       this->target_parameter = target_parameter;
-    }
+    }*/
 
     virtual void loop() override {
       this->read();
@@ -73,8 +73,8 @@ class ADSParameterInput : public AnalogParameterInput<TargetClass, DataType> {
         Serial.println();
       }
       
-      if (this->is_significant_change(currentValue, lastValue)) {
-        lastValue = currentValue;
+      if (this->is_significant_change(currentValue, this->lastValue)) {
+        this->lastValue = currentValue;
         DataType normal = this->get_normal_value(currentValue);
         if (callback != nullptr) {
           if (this->debug) {

@@ -1,6 +1,8 @@
 #ifndef PARAMETER__INCLUDED
 #define PARAMETER__INCLUDED
 
+#include <ArxTypeTraits.h>
+
 extern char NEXT_PARAMETER_NAME;
 
 #include <Arduino.h>
@@ -18,14 +20,15 @@ class BaseParameter {
         virtual void setParamValue(double value) {};
         virtual double getCurrentValue() {};
         virtual double getLastValue() {};
+        virtual char* getFormattedValue(); // {};
 };
 
 // an object that can be targeted by a ParameterInput, calls setter method on final target object
 template<class TargetClass, class DataType>
 class Parameter : public BaseParameter {
     public:
-        DataType current_value;
-        DataType last_value;
+        DataType currentValue;
+        DataType lastValue;
 
         TargetClass *target;
         void(TargetClass::*setter_func)(DataType value);// setter_func;
@@ -42,8 +45,8 @@ class Parameter : public BaseParameter {
         }
 
         virtual void setParamValue(DataType value) {
-            last_value = current_value;
-            current_value = value;
+            lastValue = currentValue;
+            currentValue = value;
             //this->func(value);
             if (this->debug) {
                 Serial.print("Calling setter func for value (");
@@ -53,25 +56,46 @@ class Parameter : public BaseParameter {
             (target->*setter_func)(value);
         }
         /*void setParamValue(float value) {
-            last_value = current_value;
-            current_value = value;
+            lastValue = currentValue;
+            currentValue = value;
             this->func(value);
         }
         void setParamValue(int value) {
-            last_value = current_value;
-            current_value = value;
+            lastValue = currentValue;
+            currentValue = value;
             this->func(value);
         }*/
         /*Targetable(TargetClass *target, TargetClass::*setter_func) {
             this->target = target;
             this->setter_func = setter_func;
         }*/
+        virtual char* getFormattedValue() {
+            char fmt[20]= "              ";
+            /*if (std::is_floating_point<DataType>) {
+                sprintf(fmt, "%2.2.f", this->getCurrentValue());
+            } else if (std::is_signed<DataType>) {
+                sprintf(fmt, "%i", this->getCurrentValue());
+            } else {
+                sprintf(fmt, "%u", this->getCurrentValue());
+            }*/
+            //template<DataType T>
+            if constexpr (std::is_floating_point<DataType>::value) {
+                sprintf(fmt, "float: %2.2f", this->currentValue); //->getCurrentValue());
+            } else if constexpr (std::is_unsigned<DataType>::value) {
+                sprintf(fmt, "unsigned: %u", this->currentValue); //getCurrentValue());
+            } else {
+                sprintf(fmt, "signed: %i", this->currentValue); //getCurrentValue());
+            }
+            Serial.printf("getFormattedValue: '%s'\n", fmt);
+            return fmt;
+        };
+
 
         virtual DataType getCurrentValue() {
-            return current_value;
+            return this->currentValue;
         }
         virtual DataType getLastValue() {
-            return last_value;
+            return this->lastValue;
         }
 
         virtual void set_target_object(TargetClass *target) {
