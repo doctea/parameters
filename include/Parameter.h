@@ -20,7 +20,10 @@ class BaseParameter {
         virtual void setParamValue(double value) {};
         virtual double getCurrentValue() {};
         virtual double getLastValue() {};
-        virtual const char* getFormattedValue() {};
+        virtual const char* getFormattedValue() {
+            //static char noval = "[none]";
+            return "[none]";
+        };
 };
 
 // an object that can be targeted by a ParameterInput, calls setter method on final target object
