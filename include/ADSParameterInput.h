@@ -69,6 +69,22 @@ class ADSParameterInput : public AnalogParameterInput<TargetClass, DataType> {
         return voltage_value / 5.0f;
     }
 
+    DataType reads[5];
+
+    void add_average(DataType value) {
+      static byte index = 0;
+      reads[index++] = value;
+      if (index>=5) index = 0;
+    }
+
+    DataType get_average() {
+      DataType count = 0.0;
+      for (int i = 0 ; i < 5 ; i++) {
+        count += reads[i];
+      }
+      return count / (DataType)5;
+    }
+
     virtual void read() override {
       //int currentValue = analogRead(inputPin);
       int intermediate = ads->readADC(channel);
@@ -79,6 +95,9 @@ class ADSParameterInput : public AnalogParameterInput<TargetClass, DataType> {
         Serial.printf(", final %i", currentValue*1000.0);
         Serial.println();
       }
+
+      add_average(currentValue);
+      currentValue = get_average();
       
       if (this->is_significant_change(currentValue, this->lastValue)) {
         this->lastValue = currentValue;
