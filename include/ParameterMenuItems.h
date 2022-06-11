@@ -13,26 +13,63 @@
 class ParameterMenuItem : public DirectNumberControl {
     BaseParameter *parameter = nullptr;
 
-    double internal_value;
+    //double internal_value;
+    int internal_value = 0;
     
-    int minimum_value = 0; //Parameter->minimum_value;
-    int maximum_value = 100; //Parameter->maximum_value;
+    //int minimum_value = 0; //Parameter->minimum_value;
+    //int maximum_value = 100; //Parameter->maximum_value;
+    //double step = 1;
 
     public:
-        ParameterMenuItem(char*in_label, BaseParameter*parameter) : DirectNumberControl(label) {
+        ParameterMenuItem(char *in_label, BaseParameter *parameter) : DirectNumberControl(label) {
             strcpy(label, in_label);
             this->parameter = parameter;
             internal_value = parameter->getCurrentValue();
+            this->minimum_value = 0;
+            this->maximum_value = 100;
+            //this->minimum_value = parameter->minimum_value;
+            //this->maximum_value = parameter->maximum_value;
+            //this->step = 0.01;
         }
 
         virtual int get_current_value() override {
-            return parameter->getCurrentValue() * 100.0;    // turn into percentage
+            if (this->parameter==nullptr)
+                return;
+            return (int) (parameter->getCurrentValue() * 100.0);    // turn into percentage
         }
 
-        virtual void set_current_value(double value) { 
-            if (!this->readOnly)
-                parameter->setParamValue(value / 100.0);    // turn into percentage
+        virtual void set_current_value(int value) override { 
+            Serial.printf("set_current_value(%i) on %s\n", value, this->label); Serial.flush();
+            if (this->parameter==nullptr)
+                return;
+            if (this->readOnly)
+                return;
+            Serial.printf("\tCalling setParamValue %i/100.0 on Parameter %s\n", value, this->parameter->label); Serial.flush();
+            parameter->setParamValue((double)(value / 100.0));    // turn into percentage
         }
+
+        /*virtual void increase_value() {
+            this->internal_value -= this->step;
+            if (this->internal_value < this->minimum_value)
+                this->internal_value = this->minimum_value; // = NUM_LOOPS_PER_PROJECT-1;
+            //project.select_loop_number(ui_selected_loop_number);
+        }
+        virtual void decrease_value() {
+            this->internal_value += this->step;
+            if (this->internal_value >= this->maximum_value)
+                this->internal_value = this->maximum_value;
+        }*/
+
+        /*virtual void change_value(int new_value) {
+            if (readOnly) 
+                return;
+            int last_value = get_current_value();
+            set_current_value(new_value);
+            if (this->on_change_handler!=nullptr) {
+                Serial.println("calling on_change_handler"); Serial.flush();
+                this->on_change_handler(last_value, internal_value);
+            }
+        }*/
 
 };
 
