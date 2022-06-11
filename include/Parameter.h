@@ -59,7 +59,7 @@ class Parameter : public BaseParameter {
             currentValue = value;
             //this->func(value);
             if (this->debug) {
-                Serial.print("Calling setter func for value (");
+                Serial.printf("%s: Calling setter func for value (", this->label);
                 Serial.print(value);
                 Serial.println(")");
             }

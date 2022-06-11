@@ -19,6 +19,7 @@ class AnalogParameterInput : public ParameterInput<TargetClass> {
     Callback callback;
 
     bool inverted = false;
+    bool map_unipolar = false;
     DataType sensitivity = 0.01;
       
     /*AnalogParameterInput(int in_inputPin, Callback in_callback, int in_sensitivity = 3) : ParameterInput() {
@@ -43,7 +44,7 @@ class AnalogParameterInput : public ParameterInput<TargetClass> {
 
     virtual void setInverted(bool invert = true) {
       inverted = invert;
-      Serial.println("SET INVERTED on an AnalogParameterInput!");
+      Serial.printf("%s: SET INVERTED on an AnalogParameterInput!", this->name);
     }
 
     virtual void loop () override {
@@ -62,9 +63,14 @@ class AnalogParameterInput : public ParameterInput<TargetClass> {
         Serial.print(value);
         Serial.print(" to ");
         Serial.println(1.0f - ((float)value / this->max_input_value));*/
-        return 1.0f - ((float)value / this->max_input_value);
+        value = 1.0f - ((float)value / this->max_input_value);
       } else 
-        return (float)value / max_input_value;
+        value = (float)value / max_input_value;
+
+      if (map_unipolar)
+        value = -1.0 + (value*2.0);
+
+      return value;
     }
 
     virtual bool is_significant_change(DataType currentValue, DataType lastValue) {
@@ -81,12 +87,12 @@ class AnalogParameterInput : public ParameterInput<TargetClass> {
     virtual const char* getInputInfo() {
       static char input_info[20] = "                ";
 
-      sprintf(input_info, "Anlg %i %s", inputPin, (inverted?"inv":""));
+      sprintf(input_info, "Anlg %i %s%s", inputPin, (inverted?"I":""), (map_unipolar?"U":""));
       return input_info;
     }
 
     virtual void read() override {
-      if (this->debug) Serial.printf("read() in AnalogParameterInput.."); 
+      if (this->debug) Serial.printf("%s: read() in AnalogParameterInput..", this->name); 
       DataType currentValue = analogRead(inputPin);
       if (is_significant_change(currentValue, lastValue)) {
       //if (abs(currentValue - this->lastValue) > this->sensitivity) {

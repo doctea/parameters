@@ -1,6 +1,8 @@
 #include "ads.h"
 #include "Parameter.h"
 
+#include "midi_helpers.h"
+
 template<class TargetClass, class DataType = double>
 class FrequencyParameter : public Parameter<TargetClass, DataType> {
     public:
@@ -38,15 +40,15 @@ class FrequencyParameter : public Parameter<TargetClass, DataType> {
         virtual const char* getFormattedValue() {
             static char fmt[20] = "              ";
 
-            double freq = get_frequency_for_voltage(this->currentValue * octave_range); //read_voltage(0));
+            double voltage = this->currentValue * octave_range;
 
-            //if constexpr (std::is_floating_point<DataType>::value) {
-                sprintf(fmt, "%5i hz",      (uint32_t)freq); //->getCurrentValue());
-            /*} else if constexpr (std::is_unsigned<DataType>::value) {
-                sprintf(fmt, "%5u (unsigned)",    (int32_t)this->getCurrentValue()); //getCurrentValue());
-            } else {
-                sprintf(fmt, "%5i (signed)",      (uint32_t)this->getCurrentValue()); //getCurrentValue());
-            }*/
+            double freq = get_frequency_for_voltage(voltage); //read_voltage(0));
+            int pitch   = get_midi_pitch_for_voltage(voltage);
+
+            //Serial.printf("%s: getFormattedValue got pitch %i: %s\n", this->label, pitch, get_note_namec(pitch));
+            uint16_t ifreq = (uint16_t) freq;
+            sprintf(fmt, "%4uhz [%s]", ifreq, get_note_namec(pitch)); //->getCurrentValue());
+
             //Serial.printf("getFormattedValue: '%s'\n", fmt);
             return fmt;
         };

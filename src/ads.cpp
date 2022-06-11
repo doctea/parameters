@@ -39,11 +39,6 @@ float read_voltage(int channel) {
   return v;
 }
 
-int get_midi_pitch_for_voltage(float voltageFromAdc, int pitch_offset = 24) {
-  int pitch = pitch_offset + (scaler * voltageFromAdc * 12.0);
-  return pitch;
-}
-
 double get_corrected_voltage (float voltageFromAdc) {
   // TODO: what is the maths behind this?  make configurable, etc 
   // from empirical measuring of received voltage and asked wolfram alpha to figure it out:-
@@ -55,7 +50,12 @@ double get_corrected_voltage (float voltageFromAdc) {
   return (voltageFromAdc * 0.976937) + 0.0123321;
 };
 
-double get_frequency_for_voltage(float voltageFromAdc, int pitch_offset = 36) {
+int get_midi_pitch_for_voltage(float voltageFromAdc, int pitch_offset = 24) {
+  int pitch = pitch_offset + round(/*scaler **/get_corrected_voltage(voltageFromAdc) * 12.0);
+  return pitch;
+}
+
+double get_frequency_for_voltage(float voltageFromAdc, int pitch_offset) { // was 36
   // get the tuning root -- Keystep is C1=1.0v, so start on C
   // TODO: configurable tuning from different note / 1.0v = A mode
   double base_freq = get_frequency_for_pitch(pitch_offset);
@@ -96,10 +96,10 @@ double get_frequency_for_voltage(float voltageFromAdc, int pitch_offset = 36) {
   return voltage;
 }*/
 
-double get_frequency_for_pitch(int pitch) {
+double get_frequency_for_pitch(int pitch, int base_pitch = MIDI_NOTE_A440) {
   //double freq = mtof.toFrequency((double)pitch);
   // tune from 440hz
-  float freq = 440 * pow(2.0, ((pitch - 69) / 12.0));
+  double freq = 440.0 * pow(2.0, ((double)(pitch - base_pitch) / 12.0));
   //Serial.printf("get_frequency_for_pitch(%u) return freq %u\n", pitch, (freq));
   return freq;
 }

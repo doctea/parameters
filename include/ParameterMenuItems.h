@@ -131,11 +131,11 @@ class ParameterSelectorControl : public SelectorControl {
             // not selected, so just show the current value
             colours(false, C_WHITE, BLACK);
 
-            tft->printf((char*)"Inp: %s\n", (char*)parameter_input->getInputInfo()); //i @ %p")
-            tft->printf((char*)"Tgt: %s\n", (char*)get_label_for_index(actual_value_index));
+            tft->printf((char*)"Inp: %-15s\n", (char*)parameter_input->getInputInfo()); //i @ %p")
+            tft->printf((char*)"Tgt: %-15s\n", (char*)get_label_for_index(actual_value_index));
             //tft->println((char*)"");
             //tft->printf("%i%\n", 100 * parameter_input->target_parameter->getCurrentValue());
-            tft->printf((char*)"Val: %s",   (char*)parameter_input->getFormattedValue());
+            tft->printf((char*)"Val: %-15s",   (char*)parameter_input->getFormattedValue());
             //Serial.printf("get currentvalue: %i\n", parameter_input->target_parameter->getCurrentValue());
             //Serial.printf("got formatted value in selector display: %s\n", parameter_input->getFormattedValue());
         } else {
