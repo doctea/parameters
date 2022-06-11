@@ -21,10 +21,17 @@ class ADSParameterInput : public AnalogParameterInput<TargetClass, DataType> {
 
     int channel = 0;
 
+    //bool debug = true;
+
     ADSParameterInput() {};
     ADSParameterInput(ADClass *ads) {
       this->ads = ads;
       this->channel = 0;
+    }
+    ADSParameterInput(ADClass *ads, int channel) {
+      this->ads = ads;
+      this->channel = channel;
+      this->target_parameter = nullptr;
     }
     ADSParameterInput(ADClass *ads, int channel, TargetClass *target_parameter) {
       this->ads = ads;
@@ -89,17 +96,18 @@ class ADSParameterInput : public AnalogParameterInput<TargetClass, DataType> {
       //int currentValue = analogRead(inputPin);
       int intermediate = ads->readADC(channel);
       DataType currentValue = this->ads->toVoltage(intermediate);
-      if (this->debug) {
-        Serial.printf("ADSParameterInput->read() got intermediate %i, voltage ", intermediate);
-        Serial.print(this->ads->toVoltage(intermediate));
-        Serial.printf(", final %i", currentValue*1000.0);
-        Serial.println();
-      }
+
 
       add_average(currentValue);
       currentValue = get_average();
       
       if (this->is_significant_change(currentValue, this->lastValue)) {
+        if (this->debug) {
+          Serial.printf("ADSParameterInput->read() got intermediate %i, voltage ", intermediate);
+          Serial.print((uint32_t) this->ads->toVoltage(intermediate));
+          Serial.printf(", final %i", (uint32_t) currentValue*1000.0);
+          Serial.println();
+        }
         this->lastValue = currentValue;
         DataType normal = this->get_normal_value(currentValue);
         if (callback != nullptr) {

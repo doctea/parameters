@@ -7,6 +7,10 @@ extern char NEXT_PARAMETER_NAME;
 
 #include <Arduino.h>
 
+//#include "ParameterInput.h"
+
+class BaseParameterInput;
+
 class BaseParameter {
     public:
         double minimum_value = 0.0f;
@@ -24,6 +28,9 @@ class BaseParameter {
             //static char noval = "[none]";
             return "[none]";
         };
+
+        // called when a BaseParameterInput that was targetting this item release control of this parameter
+        virtual void on_unbound(BaseParameterInput *input);
 };
 
 // an object that can be targeted by a ParameterInput, calls setter method on final target object
@@ -75,11 +82,11 @@ class Parameter : public BaseParameter {
         virtual const char* getFormattedValue() {
             static char fmt[20] = "              ";
             if constexpr (std::is_floating_point<DataType>::value) {
-                sprintf(fmt, "%3i%% (float)",      (int32_t)(100.0*this->getCurrentValue())); //->getCurrentValue());
+                sprintf(fmt, "%3i%% (float)",     (int)(100.0*this->getCurrentValue())); //->getCurrentValue());
             } else if constexpr (std::is_unsigned<DataType>::value) {
-                sprintf(fmt, "%5u (unsigned)",    (int32_t)this->getCurrentValue()); //getCurrentValue());
+                sprintf(fmt, "%5u (unsigned)",    (unsigned int)this->getCurrentValue()); //getCurrentValue());
             } else {
-                sprintf(fmt, "%5i (signed)",      (uint32_t)this->getCurrentValue()); //getCurrentValue());
+                sprintf(fmt, "%5i (signed)",      (int)this->getCurrentValue()); //getCurrentValue());
             }
             //Serial.printf("getFormattedValue: '%s'\n", fmt);
             return fmt;

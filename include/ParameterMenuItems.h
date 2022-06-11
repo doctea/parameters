@@ -62,9 +62,13 @@ class ParameterSelectorControl : public SelectorControl {
         this->parameter_input = parameter_input;
         //this->setter_func = setter_func;
         this->initial_selected_parameter = this->parameter_input->target_parameter;
-        Serial.printf("ParameterSelectorControl configured control labelled '%s' with initial_selected_parameter '%s'@%p from parameter_input @ %p\n", label, initial_selected_parameter->label, initial_selected_parameter, parameter_input);
-        //Serial.printf("%u and %u\n", this->initial_selected_parameter, this->setter_func);
-        actual_value_index = this->find_parameter_index_for_label(initial_selected_parameter->label);
+        if (this->initial_selected_parameter!=nullptr) {
+            Serial.printf("ParameterSelectorControl configured control labelled '%s' with initial_selected_parameter '%s'@%p from parameter_input @ %p\n", label, initial_selected_parameter->label, initial_selected_parameter, parameter_input);
+            //Serial.printf("%u and %u\n", this->initial_selected_parameter, this->setter_func);
+            actual_value_index = this->find_parameter_index_for_label(initial_selected_parameter->label);
+        } else {
+            actual_value_index = this->find_parameter_index_for_label("None");
+        }
     }
 
     virtual int find_parameter_index_for_label(char *label) {
@@ -73,7 +77,7 @@ class ParameterSelectorControl : public SelectorControl {
             if (!strcmp(available_parameters->get(i)->label, label))
                 return i;
         }
-        Serial.printf("WARNING: find_parameter_index_for_label: didn't find one for %s?\n", label);
+        Serial.printf("WARNING: find_parameter_index_for_label: didn't find one for '%s'?\n", label);
         return -1;
     }
 
@@ -88,6 +92,8 @@ class ParameterSelectorControl : public SelectorControl {
     }
 
     virtual const char* get_label_for_index(int index) {
+        if (index<0)
+            return "None";
         /*char label[20];
         strcpy(available_parameters.get(index)->label, label);
         return label;*/
@@ -153,8 +159,8 @@ class ParameterSelectorControl : public SelectorControl {
             } else {
                 //Serial.printf("\n| keeping start_value to %i for selected_value_index %i: ", start_value, selected_value_index);
             }
-            Serial.printf("%s :: ", (char*)get_label_for_index(selected_value_index));
-            Serial.print("\n");
+            /*Serial.printf("%s :: ", (char*)get_label_for_index(selected_value_index));
+            Serial.print("\n");*/
 
             int actual_count = 0;
             for (int i = start_value ; i < num_values ; i++) {

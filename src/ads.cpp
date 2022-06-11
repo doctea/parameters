@@ -55,10 +55,10 @@ double get_corrected_voltage (float voltageFromAdc) {
   return (voltageFromAdc * 0.976937) + 0.0123321;
 };
 
-double get_frequency_for_voltage(float voltageFromAdc, int pitch_offset = 24) {
+double get_frequency_for_voltage(float voltageFromAdc, int pitch_offset = 36) {
   // get the tuning root -- Keystep is C1=1.0v, so start on C
   // TODO: configurable tuning from different note / 1.0v = A mode
-  double base_freq = get_frequency_for_pitch(36);
+  double base_freq = get_frequency_for_pitch(pitch_offset);
  
   double adjusted_voltage = get_corrected_voltage(voltageFromAdc);
   //Serial.printf("base freq: %u\t", (uint16_t)base_freq);
@@ -68,10 +68,38 @@ double get_frequency_for_voltage(float voltageFromAdc, int pitch_offset = 24) {
   return freq;
 }
 
+/*double get_voltage_for_frequency(double frequency, int pitch_offset = 36) {
+  double base_freq = get_frequency_for_pitch(pitch_offset);
+  
+  //double freq = base_freq * (pow(2.0, adjusted_voltage));
+  // distance = speed * time aka frequency = base * pow_voltage
+  // speed = distance / time aka base = frequency / pow_voltage
+  // time = distance / speed aka pow_voltage = frequency / base
+  // 
+
+  //To get the frequency a semitone up from A4 we multiply 440 Hz by the twelfth root of two to give us ~466.2 Hz, 
+
+  double v = log(2.0);
+  //double voltage = base_freq / v;
+
+  double powed = frequency / base_freq;
+  double unpowed = log(2.0) * powed;
+
+  double voltage = unpowed;
+
+  Serial.println("get_voltage_for_frequency(frequency) returning ");
+  Serial.print((uint32_t) (1000.0*voltage));
+  Serial.print(" for frequency ");
+  Serial.print((uint32_t) (1000.0*frequency));
+  Serial.println();
+
+  return voltage;
+}*/
+
 double get_frequency_for_pitch(int pitch) {
   //double freq = mtof.toFrequency((double)pitch);
   // tune from 440hz
-  float freq =  440 * pow(2.0, ((pitch - 69) / 12.0));
+  float freq = 440 * pow(2.0, ((pitch - 69) / 12.0));
   //Serial.printf("get_frequency_for_pitch(%u) return freq %u\n", pitch, (freq));
   return freq;
 }
