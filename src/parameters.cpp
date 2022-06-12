@@ -16,5 +16,6 @@ char NEXT_PARAMETER_NAME = 'W';
 #include "ToggleMenuItems.h"
 
 MenuItem *DataParameter::makeControl() {
+    Serial.printf("DataParameter#makeControl for %s\n", this->label);
     return new ParameterMenuItem(this->label, this);
 }

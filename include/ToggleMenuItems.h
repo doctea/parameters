@@ -10,9 +10,9 @@ class ToggleControl : public ParameterMenuItem {
 
     ToggleControl(char *label, DataParameter *parameter) : ParameterMenuItem(label, parameter) {}
 
-    virtual bool button_select() override {
-        Serial.println("ToggleControl#button_select");
-        if (parameter->getCurrentValue()>=0.5) {
+    virtual bool action_opened() override {
+        Serial.println("ToggleControl#action_opened");
+        if (parameter->getCurrentValue()<0.5) {
             Serial.println("sending value_on");
             parameter->setParamValue(value_on);
         } else {
@@ -20,7 +20,7 @@ class ToggleControl : public ParameterMenuItem {
             parameter->setParamValue(value_off);
         }
         //this->parameter->setParamValue(((DataParameter*)parameter)->getCurrentValue() < 0.5);
-        return true;
+        return false;   // don't 'open'
     }
 
 };

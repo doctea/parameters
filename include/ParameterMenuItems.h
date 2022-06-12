@@ -37,9 +37,18 @@ class ParameterMenuItem : public DirectNumberControl {
         virtual int get_current_value() override {
             if (this->parameter==nullptr)
                 return;
-            Serial.printf("ParameterMenuItem for %s (parameter %s) has currentValue ", this->label, this->parameter->label);
-            Serial.println(parameter->getCurrentValue());
+            /*if (this->debug) {
+                Serial.printf("ParameterMenuItem for %s (parameter %s) has currentValue ", this->label, this->parameter->label);
+                Serial.println(parameter->getCurrentValue());
+            }*/
             return (int) parameter->getCurrentValue() * this->maximum_value;    // turn into percentage
+        }
+
+        virtual const char *getFormattedValue() override {
+            return this->parameter->getFormattedValue();
+            /*char fmt[20] = "      ";
+            sprintf(fmt, "%i", get_current_value());
+            return fmt;*/
         }
 
         virtual void set_current_value(int value) override { 

@@ -66,12 +66,14 @@ class ToggleParameter : public Parameter<TargetClass,DataType> {
     }
 
     virtual const char* getFormattedValue() {
-        static char fmt[20] = "              ";
-        sprintf(fmt, "%s", this->currentValue?'On':'Off');
-        return fmt;
+        static const char *on = "On";
+        static const char *off = "Off";
+        return this->currentValue ? on : off;
     }
 
-    virtual MenuItem *makeControl() {
+    virtual MenuItem *makeControl() override {
+        Serial.println("ToggleParameter#makeControl()! ############");
+        Serial.printf("ToggleParameter#makeControl for %s\n", this->label);
         return new ToggleControl(this->label, this);
     }
 
