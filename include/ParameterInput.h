@@ -7,9 +7,9 @@
 
 class BaseParameterInput {
   public:
-    BaseParameter *target_parameter = nullptr;
+    DataParameter *target_parameter = nullptr;
 
-    virtual void setTarget(BaseParameter *target) {
+    virtual void setTarget(DataParameter *target) {
       if (this->target_parameter!=nullptr) {
         // already assigned to a target; notify the target that its been unbound, in case we need to set parameter back to zero
         this->target_parameter->on_unbound(this);

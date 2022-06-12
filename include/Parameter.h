@@ -10,60 +10,103 @@ extern char NEXT_PARAMETER_NAME;
 //#include "ParameterInput.h"
 
 class BaseParameterInput;
+class MenuItem;
+class ParameterMenuItem;
 
-class BaseParameter {
+/*class AbstractBaseParameter {
     public:
-        double minimum_value = 0.0f;
-        double maximum_value = 1.0f;
+    char label[20];
+    AbstractBaseParameter(char *label) {
+        strcpy(this->label, label);
+    };
+};
+
+template<class DataType>*/
+class BaseParameter { //: public AbstractBaseParameter {
+    public:
+        //DataType minimum_value = 0.0f;
+        //DataType maximum_value = 1.0f;
+
+        bool debug = false;
 
         char label[20];
 
         BaseParameter(char *label) {
             strcpy(this->label, label);
         };
-        virtual void setParamValue(double value) {};
-        virtual double getCurrentValue() {};
-        virtual double getLastValue() {};
+        /*virtual void setParamValue(DataType value) {};
+        virtual DataType getCurrentValue() {};
+        virtual DataType getLastValue() {};*/
         virtual const char* getFormattedValue() {
             //static char noval = "[none]";
             return "[none]";
         };
 
         // called when a BaseParameterInput that was targetting this item release control of this parameter
-        virtual void on_unbound(BaseParameterInput *input);
 };
+
+//template<class DataType>
+class DataParameter : public BaseParameter {
+    public: 
+    
+    double currentValue;
+    double lastValue;
+
+    DataParameter(char *label) : BaseParameter(label) {}
+
+    virtual double getCurrentValue() {
+        return this->currentValue;
+    }
+    virtual double getLastValue() {
+        return this->lastValue;
+    }
+
+    virtual void setParamValue(double value) {};
+    virtual void on_unbound(BaseParameterInput *input) {
+        this->setParamValue(0.0f);
+    }
+
+    virtual MenuItem *makeControl();
+};
+
 
 // an object that can be targeted by a ParameterInput, calls setter method on final target object
 template<class TargetClass, class DataType>
-class Parameter : public BaseParameter {
+class Parameter : public DataParameter {
     public:
-        DataType currentValue;
-        DataType lastValue;
+
+        DataType minimum_value = 0;
+        DataType maximum_value = 100;
 
         TargetClass *target;
-        void(TargetClass::*setter_func)(DataType value);// setter_func;
+        void(TargetClass::*setter_func)(DataType value) = nullptr;// setter_func;
 
         /*void (test::*func)(DataType);
         void (test::*func)(float);
         void (test::*func)(int);*/
 
-        bool debug = false;
-
-        Parameter(char *label, TargetClass *target, void(TargetClass::*setter_func)(DataType)) : BaseParameter(label) {
+        Parameter(char *label, TargetClass *target, void(TargetClass::*setter_func)(DataType)) : DataParameter(label) {
             this->target = target;
             this->setter_func = setter_func;
         }
 
-        virtual void setParamValue(DataType value) {
-            lastValue = currentValue;
-            currentValue = value;
+        virtual void setParamValue(double value) override {
+            if (this->currentValue==value) return;
+            if (this->debug) Serial.println("Parameter#setParamValue()"); Serial.flush();
+            this->lastValue = this->currentValue;
+            this->currentValue = value;
             //this->func(value);
             if (this->debug) {
+                Serial.println("Parameter#setParamValue()"); Serial.flush();
                 Serial.printf("%s: Calling setter func for value (", this->label);
                 Serial.print(value);
                 Serial.println(")");
             }
-            (target->*setter_func)(value);
+            if (this->target!=nullptr && this->setter_func!=nullptr) {
+                (this->target->*setter_func)((DataType)value);
+            } else {
+                Serial.printf("WARNING: no target / no setter_func in %s!\n", this->label);
+            }
         }
         /*void setParamValue(float value) {
             lastValue = currentValue;
@@ -79,26 +122,20 @@ class Parameter : public BaseParameter {
             this->target = target;
             this->setter_func = setter_func;
         }*/
-        virtual const char* getFormattedValue() {
+        virtual const char* getFormattedValue() override {
             static char fmt[20] = "              ";
-            if constexpr (std::is_floating_point<DataType>::value) {
+            if constexpr (std::is_integral<DataType>::value && std::is_same<DataType, bool>::value) {
+                sprintf(fmt, "%s", this->getCurrentValue()?'On' : 'Off');
+            } else if constexpr (std::is_floating_point<DataType>::value) {
                 sprintf(fmt, "%3i%% (float)",     (int)(100.0*this->getCurrentValue())); //->getCurrentValue());
             } else if constexpr (std::is_unsigned<DataType>::value) {
-                sprintf(fmt, "%5u (unsigned)",    (unsigned int)this->getCurrentValue()); //getCurrentValue());
+                sprintf(fmt, "%5u (unsigned)",    (unsigned int)(this->maximum_value*this->getCurrentValue())); //getCurrentValue());
             } else {
-                sprintf(fmt, "%5i (signed)",      (int)this->getCurrentValue()); //getCurrentValue());
+                sprintf(fmt, "%5i (signed)",      (int)(this->maximum_value*this->getCurrentValue())); //getCurrentValue());
             }
             //Serial.printf("getFormattedValue: '%s'\n", fmt);
             return fmt;
         };
-
-
-        virtual DataType getCurrentValue() {
-            return this->currentValue;
-        }
-        virtual DataType getLastValue() {
-            return this->lastValue;
-        }
 
         virtual void set_target_object(TargetClass *target) {
             this->target = target;
@@ -107,5 +144,7 @@ class Parameter : public BaseParameter {
             this->setter_func = fp;
         }
 };
+
+
 
 #endif

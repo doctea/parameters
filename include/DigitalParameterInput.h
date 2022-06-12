@@ -32,7 +32,7 @@ class DigitalParameterInput : public BaseParameterInput {
         /*if (callback != NULL)
           callback(currentValue);*/
         if (target_parameter)
-          target_parameter->setParamValue(currentValue);
+          this->target_parameter->setParamValue(currentValue);
         lastValue = currentValue;
         //return currentValue;
       }

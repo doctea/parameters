@@ -10,9 +10,8 @@
 #include <LinkedList.h>
 
 // direct control over a Parameter from menu
+//template<class DataType>
 class ParameterMenuItem : public DirectNumberControl {
-    BaseParameter *parameter = nullptr;
-
     //double internal_value;
     int internal_value = 0;
     
@@ -21,7 +20,10 @@ class ParameterMenuItem : public DirectNumberControl {
     //double step = 1;
 
     public:
-        ParameterMenuItem(char *in_label, BaseParameter *parameter) : DirectNumberControl(label) {
+        //DataParameter<DataType> *parameter = nullptr;
+        DataParameter *parameter = nullptr;
+
+        ParameterMenuItem(char *in_label, DataParameter *parameter) : DirectNumberControl(label) {
             strcpy(label, in_label);
             this->parameter = parameter;
             internal_value = parameter->getCurrentValue();
@@ -35,7 +37,9 @@ class ParameterMenuItem : public DirectNumberControl {
         virtual int get_current_value() override {
             if (this->parameter==nullptr)
                 return;
-            return (int) (parameter->getCurrentValue() * 100.0);    // turn into percentage
+            Serial.printf("ParameterMenuItem for %s (parameter %s) has currentValue ", this->label, this->parameter->label);
+            Serial.println(parameter->getCurrentValue());
+            return (int) parameter->getCurrentValue() * this->maximum_value;    // turn into percentage
         }
 
         virtual void set_current_value(int value) override { 
@@ -44,8 +48,14 @@ class ParameterMenuItem : public DirectNumberControl {
                 return;
             if (this->readOnly)
                 return;
-            Serial.printf("\tCalling setParamValue %i/100.0 on Parameter %s\n", value, this->parameter->label); Serial.flush();
-            parameter->setParamValue((double)(value / 100.0));    // turn into percentage
+            
+            if (this->parameter!=nullptr) {
+                Serial.printf("\tCalling setParamValue %i/%i on Parameter %s\n", value, this->maximum_value, this->parameter->label); Serial.flush();
+                double v = (double)((double)value / (double)this->maximum_value);
+                Serial.print("got v to pass..");
+                Serial.println(v);
+                this->parameter->setParamValue(v);    // turn into percentage
+            } 
         }
 
         /*virtual void increase_value() {
@@ -81,9 +91,9 @@ class ParameterSelectorControl : public SelectorControl {
     //void (*setter_func)(BaseParameter *midi_output);
     BaseParameterInput *parameter_input = nullptr;
     //void(BaseParameterInput::*setter_func)(BaseParameter *target_parameter);
-    BaseParameter *initial_selected_parameter;
+    DataParameter *initial_selected_parameter;
 
-    LinkedList<BaseParameter*> *available_parameters;
+    LinkedList<DataParameter*> *available_parameters;
 
     public:
 
@@ -94,7 +104,7 @@ class ParameterSelectorControl : public SelectorControl {
         //this->initial_selected_parameter = initial_selected_parameter;
     }*/
 
-    virtual void configure (BaseParameterInput *parameter_input, LinkedList<BaseParameter*> *available_parameters) { //}, void (*setter_func)(BaseParameter*)) {
+    virtual void configure (BaseParameterInput *parameter_input, LinkedList<DataParameter*> *available_parameters) { //}, void (*setter_func)(BaseParameter*)) {
         this->available_parameters = available_parameters;
         this->parameter_input = parameter_input;
         //this->setter_func = setter_func;
@@ -217,7 +227,7 @@ class ParameterSelectorControl : public SelectorControl {
         return tft->getCursorY();
     }
 
-    virtual bool button_select() {
+    virtual bool button_select() override {
         //Serial.printf("button_select with selected_value_index %i\n", selected_value_index);
         //Serial.printf("that is available_values[%i] of %i\n", selected_value_index, available_values[selected_value_index]);
         this->setter(selected_value_index);
