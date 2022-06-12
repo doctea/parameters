@@ -28,6 +28,10 @@ class BaseParameterInput {
       return "BaseParameterInput";
     }
 
+    virtual const char *getInputValue() {
+      return "?Base?";
+    }
+
     virtual void loop();
 };
 

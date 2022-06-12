@@ -47,7 +47,7 @@ class FrequencyParameter : public Parameter<TargetClass, DataType> {
 
             //Serial.printf("%s: getFormattedValue got pitch %i: %s\n", this->label, pitch, get_note_namec(pitch));
             uint16_t ifreq = (uint16_t) freq;
-            sprintf(fmt, "%4uhz [%s]", ifreq, get_note_namec(pitch)); //->getCurrentValue());
+            sprintf(fmt, "%4uhz [%3s]", ifreq, get_note_namec(pitch)); //->getCurrentValue());
 
             //Serial.printf("getFormattedValue: '%s'\n", fmt);
             return fmt;

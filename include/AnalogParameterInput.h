@@ -76,7 +76,6 @@ class AnalogParameterInput : public ParameterInput<TargetClass> {
     virtual bool is_significant_change(DataType currentValue, DataType lastValue) {
       return abs(currentValue - this->lastValue) >= this->sensitivity;
     }
-
     /*virtual const char* getFormattedValue() {
       if (this->target_parameter!=nullptr)
         return this->target_parameter->getFormattedValue();
@@ -91,12 +90,19 @@ class AnalogParameterInput : public ParameterInput<TargetClass> {
       return input_info;
     }
 
+    virtual const char* getInputValue() override {
+      static char fmt[20] = "          ";
+      sprintf(fmt, "[%-3i%%]", (int)(this->get_normal_value(this->currentValue)*100.0));
+      return fmt;
+    }
+
     virtual void read() override {
       if (this->debug) Serial.printf("%s: read() in AnalogParameterInput..", this->name); 
       DataType currentValue = analogRead(inputPin);
-      if (is_significant_change(currentValue, lastValue)) {
+      if (is_significant_change(currentValue, this->lastValue)) {
       //if (abs(currentValue - this->lastValue) > this->sensitivity) {
-        lastValue = currentValue;
+        this->currentValue = currentValue;
+        this->lastValue = currentValue;
         float normal = get_normal_value(currentValue);
         if (callback != NULL) {
           if (this->debug) {

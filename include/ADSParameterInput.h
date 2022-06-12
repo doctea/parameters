@@ -110,6 +110,7 @@ class ADSParameterInput : public AnalogParameterInput<TargetClass, DataType> {
       currentValue = get_average();
       
       if (this->is_significant_change(currentValue, this->lastValue)) {
+        this->currentValue = currentValue;
         if (this->debug) {
           Serial.printf("%s: ADSParameterInput->read() got intermediate %i, voltage ", this->name, intermediate);
           Serial.print((uint32_t) this->ads->toVoltage(intermediate));
