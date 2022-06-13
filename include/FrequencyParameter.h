@@ -14,6 +14,16 @@ class FrequencyParameter : public Parameter<TargetClass, DataType> {
             {
             this->octave_range = octave_range;
         };
+        FrequencyParameter(char *label, TargetClass *target, double initial_value, void(TargetClass::*setter_func)(DataType), DataType octave_range = 5.0) 
+            : Parameter<TargetClass,DataType>(label, target, initial_value, setter_func) {
+                this->octave_range = octave_range;
+            };
+
+        FrequencyParameter(char *label, TargetClass *target, void(TargetClass::*setter_func)(DataType), void(TargetClass::*getter_func)(DataType), DataType octave_range = 5.0) 
+            : Parameter<TargetClass,DataType>(label, target, setter_func, getter_func) 
+            {
+            this->octave_range = octave_range;
+        };
 
         //TODO: move helper functions from ads.cpp ie get_frequencey_for_voltage etc to here
         //TODO: check quantisation / pitch is accurate

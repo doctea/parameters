@@ -66,7 +66,7 @@ class DataParameter : public BaseParameter {
 
     virtual void setParamValue(double value) {};
     virtual void on_unbound(BaseParameterInput *input) {
-        this->setParamValue(this->initial_value);
+        this->setParamValue(this->initial_value * this->maximum_value);
         //this->setParamValue(0.0f);
     }
 
@@ -84,6 +84,7 @@ class Parameter : public DataParameter {
 
         TargetClass *target;
         void(TargetClass::*setter_func)(DataType value) = nullptr;// setter_func;
+        double(TargetClass::*getter_func)() = nullptr;// setter_func;
 
         /*void (test::*func)(DataType);
         void (test::*func)(float);
@@ -92,6 +93,47 @@ class Parameter : public DataParameter {
         Parameter(char *label, TargetClass *target, void(TargetClass::*setter_func)(DataType)) : DataParameter(label) {
             this->target = target;
             this->setter_func = setter_func;
+        }
+        Parameter(char *label, TargetClass *target, void(TargetClass::*setter_func)(DataType), double(TargetClass::*getter_func)()) : Parameter(label, target, setter_func) {
+            this->getter_func = getter_func;
+            //if (getter_func!=nullptr)
+            //    this->setInitialValue();
+        }
+        Parameter(char *label, TargetClass *target, double initial_value_normal, void(TargetClass::*setter_func)(DataType)) : Parameter(label, target, setter_func) {
+            this->initial_value = initial_value_normal;
+            //this->setInitialValueFromNormal(initial_value_normal);
+        }
+
+        /*virtual DataParameter* setMinimumValue(double minimum_value) {
+            this->minimum_value = minimum_value;
+            return this;
+        }
+        virtual DataParameter* setMaximumValue(double minimum_value) {
+            this->minimum_value = minimum_value;
+            return this;
+        }*/
+        virtual DataParameter* initialise_values(double current_value_normal = NULL, double minimum_value = 0.0, double maximum_value = 100.0) {
+            if (current_value_normal==NULL && this->getter_func!=nullptr) 
+                current_value_normal = (this->target->*getter_func)() / maximum_value;
+            this->minimum_value = minimum_value;
+            this->maximum_value = maximum_value;
+            this->setParamValue(current_value_normal * maximum_value);
+            return this;
+        }
+
+
+        // setInitialValue in target value ie as a double to be multiplied by maximum_value
+        virtual void setInitialValueFromNormal(double value) {
+            this->currentValue = value * this->maximum_value;
+        }
+
+        virtual void setInitialValue() {
+            if (this->getter_func!=nullptr)
+                this->setInitialValueFromNormal((this->target->*getter_func)() / this->maximum_value);
+            //this->currentValue = value;
+            /*if (getter_func!=nullptr) {
+                this->currentValue = 
+            }*/
         }
 
         virtual void setParamValue(double value) override {

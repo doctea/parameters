@@ -13,13 +13,13 @@
 //template<class DataType>
 class ParameterMenuItem : public DirectNumberControl {
     //double internal_value;
-    int internal_value = 0;
-    
     //int minimum_value = 0; //Parameter->minimum_value;
     //int maximum_value = 100; //Parameter->maximum_value;
     //double step = 1;
 
     public:
+        //int internal_value = 0;
+
         //DataParameter<DataType> *parameter = nullptr;
         DataParameter *parameter = nullptr;
 
