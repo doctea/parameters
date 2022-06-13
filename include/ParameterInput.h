@@ -7,7 +7,17 @@
 
 class BaseParameterInput {
   public:
+
+    char name = 'A';
+
     DataParameter *target_parameter = nullptr;
+
+    bool inverted = false;
+    bool map_unipolar = false;
+
+    BaseParameterInput() {
+      this->name = ++NEXT_PARAMETER_NAME;
+    }
 
     virtual void setTarget(DataParameter *target) {
       if (this->target_parameter!=nullptr) {
@@ -40,11 +50,10 @@ class ParameterInput : public BaseParameterInput {
   public:
     int inputPin = 0;
     //TargetClass *target_parameter = nullptr;
-    char name = "#";
     bool debug = false;
 
     ParameterInput() {
-      name = NEXT_PARAMETER_NAME++;
+      this->name = ++NEXT_PARAMETER_NAME;
     }
 
     void setDebug() {

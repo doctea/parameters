@@ -18,8 +18,6 @@ class AnalogParameterInput : public ParameterInput<TargetClass> {
     using Callback = void (*)(float);
     Callback callback;
 
-    bool inverted = false;
-    bool map_unipolar = false;
     DataType sensitivity = 0.01;
       
     /*AnalogParameterInput(int in_inputPin, Callback in_callback, int in_sensitivity = 3) : ParameterInput() {
@@ -30,6 +28,7 @@ class AnalogParameterInput : public ParameterInput<TargetClass> {
     }*/
     AnalogParameterInput() {};
     AnalogParameterInput(int in_inputPin, TargetClass &in_target, DataType in_sensitivity = 0.01) { //}: ParameterInput() {
+      this->name = ++NEXT_PARAMETER_NAME;
       this->inputPin = in_inputPin;
       this->target_parameter = &in_target;
       this->sensitivity = in_sensitivity;
@@ -43,7 +42,7 @@ class AnalogParameterInput : public ParameterInput<TargetClass> {
     }*/
 
     virtual void setInverted(bool invert = true) {
-      inverted = invert;
+      this->inverted = invert;
       Serial.printf("%s: SET INVERTED on an AnalogParameterInput!", this->name);
     }
 
@@ -58,7 +57,7 @@ class AnalogParameterInput : public ParameterInput<TargetClass> {
         return (float)value / 1023.0f;
     }*/
     virtual DataType get_normal_value(DataType value) {
-      if (inverted) {
+      if (this->inverted) {
         /*Serial.print("in AnalogParameterInput#get_normal_value(): Inverting ");
         Serial.print(value);
         Serial.print(" to ");
@@ -67,7 +66,7 @@ class AnalogParameterInput : public ParameterInput<TargetClass> {
       } else 
         value = (float)value / max_input_value;
 
-      if (map_unipolar)
+      if (this->map_unipolar)
         value = -1.0 + (value*2.0);
 
       return value;
@@ -86,7 +85,7 @@ class AnalogParameterInput : public ParameterInput<TargetClass> {
     virtual const char* getInputInfo() {
       static char input_info[20] = "                ";
 
-      sprintf(input_info, "Anlg %i %s%s", inputPin, (inverted?"I":""), (map_unipolar?"U":""));
+      sprintf(input_info, "Anlg %i %s%s", inputPin, (this->inverted?"I":""), (this->map_unipolar?"U":""));
       return input_info;
     }
 
@@ -119,7 +118,7 @@ class AnalogParameterInput : public ParameterInput<TargetClass> {
             Serial.print(F(": calling target setParamValueA("));
             Serial.print(normal);
             Serial.print(F(")"));
-            if (inverted) Serial.print(F(" - inverted"));
+            if (this->inverted) Serial.print(F(" - inverted"));
             Serial.println();
           }
           this->target_parameter->setParamValue(normal);

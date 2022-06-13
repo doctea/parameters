@@ -1,6 +1,6 @@
 #include "Parameter.h"
 
-char NEXT_PARAMETER_NAME = 'W';
+char NEXT_PARAMETER_NAME = 'A';
 
 #include "ParameterInput.h"
 

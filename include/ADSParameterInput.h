@@ -23,18 +23,21 @@ class ADSParameterInput : public AnalogParameterInput<TargetClass, DataType> {
 
     //bool debug = true;
 
-    ADSParameterInput() {};
+    //ADSParameterInput() : AnalogParameterInput() {};
     ADSParameterInput(ADClass *ads) {
+      this->name = ++NEXT_PARAMETER_NAME;
       this->ads = ads;
       this->channel = 0;
     }
     ADSParameterInput(ADClass *ads, int channel) {
+      this->name = ++NEXT_PARAMETER_NAME;
       this->ads = ads;
       this->channel = channel;
       this->target_parameter = nullptr;
       this->max_input_value = 5.0;
     }
     ADSParameterInput(ADClass *ads, int channel, TargetClass *target_parameter) {
+      this->name = ++NEXT_PARAMETER_NAME;
       this->ads = ads;
       this->channel = channel;
       this->target_parameter = target_parameter;
