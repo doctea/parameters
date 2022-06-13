@@ -27,8 +27,8 @@ class ParameterMenuItem : public DirectNumberControl {
             strcpy(label, in_label);
             this->parameter = parameter;
             internal_value = parameter->getCurrentValue();
-            this->minimum_value = 0;
-            this->maximum_value = 100;
+            this->minimum_value = parameter->minimum_value;
+            this->maximum_value = parameter->maximum_value;
             //this->minimum_value = parameter->minimum_value;
             //this->maximum_value = parameter->maximum_value;
             //this->step = 0.01;
@@ -57,11 +57,12 @@ class ParameterMenuItem : public DirectNumberControl {
                 return;
             if (this->readOnly)
                 return;
-            
+           
             if (this->parameter!=nullptr) {
                 Serial.printf("\tCalling setParamValue %i/%i on Parameter %s\n", value, this->maximum_value, this->parameter->label); Serial.flush();
-                double v = (double)((double)value / (double)this->maximum_value);
-                Serial.print("got v to pass..");
+                //double v = (double)((double)value / (double)this->maximum_value);
+                double v = (double)(((double)value/100.0)); // / (double)this->maximum_value); // * (double)this->maximum_value);
+                Serial.print("got v to pass: ");
                 Serial.println(v);
                 this->parameter->setParamValue(v);    // turn into percentage
             } 

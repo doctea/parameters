@@ -51,6 +51,9 @@ class DataParameter : public BaseParameter {
     
     double currentValue;
     double lastValue;
+    double minimum_value = 0.0;
+    double maximum_value = 100.0;
+    double initial_value = 0.0;
 
     DataParameter(char *label) : BaseParameter(label) {}
 
@@ -63,7 +66,8 @@ class DataParameter : public BaseParameter {
 
     virtual void setParamValue(double value) {};
     virtual void on_unbound(BaseParameterInput *input) {
-        this->setParamValue(0.0f);
+        this->setParamValue(this->initial_value);
+        //this->setParamValue(0.0f);
     }
 
     virtual MenuItem *makeControl();
@@ -75,8 +79,8 @@ template<class TargetClass, class DataType>
 class Parameter : public DataParameter {
     public:
 
-        DataType minimum_value = 0;
-        DataType maximum_value = 100;
+        //DataType minimum_value = 0.0;
+        //DataType maximum_value = 100.0;
 
         TargetClass *target;
         void(TargetClass::*setter_func)(DataType value) = nullptr;// setter_func;
@@ -91,8 +95,11 @@ class Parameter : public DataParameter {
         }
 
         virtual void setParamValue(double value) override {
-            if (this->currentValue==value) return;
-            if (this->debug) Serial.println("Parameter#setParamValue()"); Serial.flush();
+            if (this->currentValue==value) 
+                return;
+            if (this->debug) { 
+                Serial.println("Parameter#setParamValue()"); Serial.flush(); 
+            }
             this->lastValue = this->currentValue;
             this->currentValue = value;
             //this->func(value);
@@ -125,7 +132,7 @@ class Parameter : public DataParameter {
         virtual const char* getFormattedValue() override {
             static char fmt[20] = "              ";
             if constexpr (std::is_integral<DataType>::value && std::is_same<DataType, bool>::value) {
-                sprintf(fmt, "%s", this->getCurrentValue()?'On' : 'Off');
+                sprintf(fmt, "%s", this->getCurrentValue()?"On" : "Off");
             } else if constexpr (std::is_floating_point<DataType>::value) {
                 sprintf(fmt, "%3i%% (float)",     (int)(100.0*this->getCurrentValue())); //->getCurrentValue());
             } else if constexpr (std::is_unsigned<DataType>::value) {
