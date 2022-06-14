@@ -34,13 +34,14 @@ class BaseParameter { //: public AbstractBaseParameter {
         BaseParameter(char *label) {
             strcpy(this->label, label);
         };
-        /*virtual void setParamValue(DataType value) {};
-        virtual DataType getCurrentValue() {};
+        virtual void setParamValue(double value) {};
+        /*virtual DataType getCurrentValue() {};
         virtual DataType getLastValue() {};*/
         virtual const char* getFormattedValue() {
             //static char noval = "[none]";
             return "[none]";
         };
+        virtual void on_unbound(BaseParameterInput*) {}
 
         // called when a BaseParameterInput that was targetting this item release control of this parameter
 };

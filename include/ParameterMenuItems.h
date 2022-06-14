@@ -101,7 +101,7 @@ class ParameterSelectorControl : public SelectorControl {
     //void (*setter_func)(BaseParameter *midi_output);
     BaseParameterInput *parameter_input = nullptr;
     //void(BaseParameterInput::*setter_func)(BaseParameter *target_parameter);
-    DataParameter *initial_selected_parameter;
+    BaseParameter *initial_selected_parameter;
 
     LinkedList<DataParameter*> *available_parameters;
 

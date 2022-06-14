@@ -10,7 +10,7 @@ class BaseParameterInput {
 
     char name = 'A';
 
-    DataParameter *target_parameter = nullptr;
+    BaseParameter *target_parameter = nullptr;
 
     bool inverted = false;
     bool map_unipolar = false;
@@ -19,7 +19,7 @@ class BaseParameterInput {
       this->name = ++NEXT_PARAMETER_NAME;
     }
 
-    virtual void setTarget(DataParameter *target) {
+    virtual void setTarget(BaseParameter *target) {
       if (this->target_parameter!=nullptr) {
         // already assigned to a target; notify the target that its been unbound, in case we need to set parameter back to zero
         this->target_parameter->on_unbound(this);
