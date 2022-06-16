@@ -13,6 +13,7 @@ int16_t ads_values[4] = { 0, 0, 0, 0 };
 void setup_ads() {
   Serial.println(F("initiating ADS_OBJECT..")); Serial.flush();
   ADS_OBJECT.begin();
+  Serial.println(F("\tfinished begin()")); Serial.flush();
   ADS_OBJECT.setGain(0);
 
   //ADS_OBJECT.requestADC(0);    // start continuous reads ?

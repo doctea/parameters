@@ -52,18 +52,20 @@ class ParameterMenuItem : public DirectNumberControl {
         }
 
         virtual void set_current_value(int value) override { 
-            Serial.printf("set_current_value(%i) on %s\n", value, this->label); Serial.flush();
+            if (this->debug) Serial.printf("set_current_value(%i) on %s\n", value, this->label); Serial.flush();
             if (this->parameter==nullptr)
                 return;
             if (this->readOnly)
                 return;
            
             if (this->parameter!=nullptr) {
-                Serial.printf("\tCalling setParamValue %i/%i on Parameter %s\n", value, this->maximum_value, this->parameter->label); Serial.flush();
+                if (this->debug) Serial.printf("\tCalling setParamValue %i/%i on Parameter %s\n", value, this->maximum_value, this->parameter->label); Serial.flush();
                 //double v = (double)((double)value / (double)this->maximum_value);
                 double v = (double)(((double)value/100.0)); // / (double)this->maximum_value); // * (double)this->maximum_value);
-                Serial.print("got v to pass: ");
-                Serial.println(v);
+                if (this->debug) {
+                    Serial.print("got v to pass: ");
+                    Serial.println(v);
+                }
                 this->parameter->setParamValue(v);    // turn into percentage
             } 
         }
@@ -120,7 +122,7 @@ class ParameterSelectorControl : public SelectorControl {
         //this->setter_func = setter_func;
         this->initial_selected_parameter = this->parameter_input->target_parameter;
         if (this->initial_selected_parameter!=nullptr) {
-            Serial.printf("ParameterSelectorControl configured control labelled '%s' with initial_selected_parameter '%s'@%p from parameter_input @ %p\n", label, initial_selected_parameter->label, initial_selected_parameter, parameter_input);
+            if (this->debug) Serial.printf("ParameterSelectorControl configured control labelled '%s' with initial_selected_parameter '%s'@%p from parameter_input @ %p\n", label, initial_selected_parameter->label, initial_selected_parameter, parameter_input);
             //Serial.printf("%u and %u\n", this->initial_selected_parameter, this->setter_func);
             actual_value_index = this->find_parameter_index_for_label(initial_selected_parameter->label);
         } else {
@@ -140,9 +142,11 @@ class ParameterSelectorControl : public SelectorControl {
 
     virtual void on_add() {
         actual_value_index = -1;
-        Serial.println("on_add()");
-        Serial.printf("\tParameterSelectorControl@ %u...\n", initial_selected_parameter);
-        Serial.printf("\tParameterSelectorControl looking for '%s' at %p...\n", initial_selected_parameter->label, initial_selected_parameter);
+        if (this->debug) {
+            Serial.println("on_add()");
+            Serial.printf("\tParameterSelectorControl@ %u...\n", initial_selected_parameter);
+            Serial.printf("\tParameterSelectorControl looking for '%s' at %p...\n", initial_selected_parameter->label, initial_selected_parameter);
+        }
 
         this->actual_value_index = this->find_parameter_index_for_label(initial_selected_parameter->label);
         this->selected_value_index = this->actual_value_index;
@@ -158,7 +162,7 @@ class ParameterSelectorControl : public SelectorControl {
     }
 
     virtual void setter (int new_value) {
-        Serial.printf("ParameterSelectorControl changing from %i to %i\n", this->actual_value_index, new_value);
+        if (this->debug) Serial.printf("ParameterSelectorControl changing from %i to %i\n", this->actual_value_index, new_value);
         actual_value_index = new_value;
         selected_value_index = actual_value_index;
         if (this->parameter_input!=nullptr) {
