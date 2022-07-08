@@ -24,24 +24,25 @@ class ADSParameterInput : public AnalogParameterInput<TargetClass, DataType> {
     //bool debug = true;
 
     //ADSParameterInput() : AnalogParameterInput() {};
-    ADSParameterInput(ADClass *ads) {
-      this->name = ++NEXT_PARAMETER_NAME;
+    ADSParameterInput(char name, ADClass *ads) {
+      this->name = name; //++NEXT_PARAMETER_NAME;
       this->ads = ads;
       this->channel = 0;
+      this->max_input_value = 5.0;
     }
-    ADSParameterInput(ADClass *ads, int channel) {
-      this->name = ++NEXT_PARAMETER_NAME;
-      this->ads = ads;
+    ADSParameterInput(char name, ADClass *ads, int channel) : ADSParameterInput(name, ads) {
+      //this->name = ++NEXT_PARAMETER_NAME;
+      //this->ads = ads;
       this->channel = channel;
       this->target_parameter = nullptr;
       this->max_input_value = 5.0;
     }
-    ADSParameterInput(ADClass *ads, int channel, TargetClass *target_parameter) {
-      this->name = ++NEXT_PARAMETER_NAME;
+    ADSParameterInput(char name, ADClass *ads, int channel, TargetClass *target_parameter) : ADSParameterInput(name, ads, channel) {
+      /*this->name = ++NEXT_PARAMETER_NAME;
       this->ads = ads;
-      this->channel = channel;
+      this->channel = channel;*/
       this->target_parameter = target_parameter;
-      this->max_input_value = 5.0;
+      //this->max_input_value = 5.0;
     }
 
     virtual const char* getInputInfo() {
@@ -103,11 +104,14 @@ class ADSParameterInput : public AnalogParameterInput<TargetClass, DataType> {
       //int currentValue = analogRead(inputPin);
 
       // don't do anything if we haven't got a target to send the value to
-      if (this->target_parameter==nullptr && this->callback==nullptr)
-        return;
+      //if (this->target_parameter==nullptr && this->callback==nullptr)
+      //  return;
 
-      int intermediate = ads->readADC(channel);
-      DataType currentValue = this->ads->toVoltage(intermediate);
+      //int intermediate = ads->readADC(channel);
+      int intermediate = ads_values[channel];
+      //DataType currentValue = this->ads->toVoltage(intermediate);
+
+      DataType currentValue = current_adc_voltage[channel];
 
       add_average(currentValue);
       currentValue = get_average();

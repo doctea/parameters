@@ -36,7 +36,7 @@ class ParameterMenuItem : public DirectNumberControl {
 
         virtual int get_current_value() override {
             if (this->parameter==nullptr)
-                return;
+                return 0;
             /*if (this->debug) {
                 Serial.printf("ParameterMenuItem for %s (parameter %s) has currentValue ", this->label, this->parameter->label);
                 Serial.println(parameter->getCurrentValue());
@@ -73,7 +73,7 @@ class ParameterMenuItem : public DirectNumberControl {
         /*virtual void increase_value() {
             this->internal_value -= this->step;
             if (this->internal_value < this->minimum_value)
-                this->internal_value = this->minimum_value; // = NUM_LOOPS_PER_PROJECT-1;
+                this->internal_value = this->minimum_value; // = NUM_LOOP_SLOTS_PER_PROJECT-1;
             //project.select_loop_number(ui_selected_loop_number);
         }
         virtual void decrease_value() {

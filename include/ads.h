@@ -7,6 +7,7 @@
 
 extern ADS1115 ADS_OBJECT;
 extern int ads_values[4];
+extern double current_adc_voltage[4];
 
 void setup_ads();
 
@@ -17,5 +18,6 @@ int get_midi_pitch_for_voltage(float voltageFromAdc, int pitch_offset = 24);
 double get_frequency_for_voltage(float voltageFromAdc, int pitch_offset = 24);
 //double get_voltage_for_frequency(double frequency, int pitch_offset = 36);
 
+void read_adc_voltages();
 
 #endif

@@ -8,7 +8,7 @@
 class BaseParameterInput {
   public:
 
-    char name = 'A';
+    char name = 'Z';
 
     BaseParameter *target_parameter = nullptr;
 
@@ -16,7 +16,7 @@ class BaseParameterInput {
     bool map_unipolar = false;
 
     BaseParameterInput() {
-      this->name = ++NEXT_PARAMETER_NAME;
+      //this->name = ++NEXT_PARAMETER_NAME;
     }
 
     virtual void setTarget(BaseParameter *target) {
