@@ -39,7 +39,10 @@ class FrequencyParameter : public Parameter<TargetClass, DataType> {
 
             if (this->debug) {
                 Serial.printf("FrequencyParameter#setParamValue(): calling setter func with frequency (%i) from input value ", (uint32_t) freq);
-                Serial.println((value * 5.0));
+                //Serial.println((value * this->octave_range));
+                Serial.print(value);
+                Serial.print(" * octave_range ");
+                Serial.println(this->octave_range);
             }
             //Serial.println();
 

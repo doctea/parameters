@@ -1,17 +1,12 @@
-#include "AnalogParameterInput.h"
+/*#include "AnalogParameterInput.h"
 
 #include "ads.h"
 
 template<class ADClass, class TargetClass, class DataType = double>
 class ADSParameterInput : public AnalogParameterInput<TargetClass, DataType> {
   int inputPin;
-  /*DataType lastValue = 0;
-  DataType currentValue = 0;
-  DataType minimum_value;
-  DataType maximum_value;*/
 
   ADClass *ads;
-  //TargetClass *target_parameter;
 
   public:
     using Callback = void (*)(DataType);
@@ -30,19 +25,15 @@ class ADSParameterInput : public AnalogParameterInput<TargetClass, DataType> {
       this->channel = 0;
       this->max_input_value = 5.0;
     }
-    ADSParameterInput(char name, ADClass *ads, int channel) : ADSParameterInput(name, ads) {
+    ADSParameterInput(char name, ADClass *ads, int channel, float max_input_value) : ADSParameterInput(name, ads) {
       //this->name = ++NEXT_PARAMETER_NAME;
       //this->ads = ads;
       this->channel = channel;
       this->target_parameter = nullptr;
-      this->max_input_value = 5.0;
+      this->max_input_value = max_input_value;
     }
-    ADSParameterInput(char name, ADClass *ads, int channel, TargetClass *target_parameter) : ADSParameterInput(name, ads, channel) {
-      /*this->name = ++NEXT_PARAMETER_NAME;
-      this->ads = ads;
-      this->channel = channel;*/
+    ADSParameterInput(char name, ADClass *ads, int channel, float max_input_value, TargetClass *target_parameter) : ADSParameterInput(name, ads, max_input_value, channel) {
       this->target_parameter = target_parameter;
-      //this->max_input_value = 5.0;
     }
 
     virtual const char* getInputInfo() {
@@ -52,35 +43,9 @@ class ADSParameterInput : public AnalogParameterInput<TargetClass, DataType> {
       return input_info;
     }
 
-    /*ADSParameterInput(ADClass *ads, int channel, TargetClass *target_parameter) { //}, TargetClass *target_parameter) { //TargetType *in_target, DataType minimum_value, DataType maximum_value, int in_sensitivity = 3) {
-        this->channel = channel;
-        this->ads = ads;
-        //callback = in_callback;
-        this->sensitivity = in_sensitivity;
-        //pinMode(inputPin, INPUT);
-        //this->minimum_value = minimum_value;
-        //this->maximum_value = maximum_value;
-        this->target_parameter = target_parameter;
-    }*/
-
-    /*void setTarget(TargetClass *target_parameter) {
-      this->target_parameter = target_parameter;
-    }*/
-
     virtual void loop() override {
       this->read();
     }
-
-    /*virtual DataType get_normal_value(double voltage_value) {
-      if (this->inverted) {
-        //Serial.print("in ADSParameterInput#get_normal_value(): Inverting ");
-        //Serial.print(voltage_value);
-        //Serial.print(" to ");
-        //Serial.println(5.0f - ((float)voltage_value / 5.0f));
-        return 1.0f - (voltage_value / 5.0f);
-      } else
-        return voltage_value / 5.0f;
-    }*/
 
     #define NUM_AVERAGE_READS 3
 
@@ -155,4 +120,4 @@ class ADSParameterInput : public AnalogParameterInput<TargetClass, DataType> {
       }
     }
 
-};
+};*/
