@@ -8,20 +8,32 @@ class ToggleParameter : public Parameter<TargetClass,DataType> {
     public:
 
     //TargetClass *target = nullptr;
-    void(TargetClass::*setter_func_on)(bool) = nullptr;
-    void(TargetClass::*setter_func_off)(bool) = nullptr;
+    void(TargetClass::*setter_func)(bool) = nullptr;
+    void(TargetClass::*setter_func_on)() = nullptr;
+    void(TargetClass::*setter_func_off)() = nullptr;
 
     ToggleParameter(
         char *label, 
         TargetClass *target, 
         bool initial_value, 
-        void(TargetClass::*setter_func_on)(bool), 
-        void(TargetClass::*setter_func_off)(bool)
+        void(TargetClass::*setter_func_on)(), 
+        void(TargetClass::*setter_func_off)()
     ) : Parameter<TargetClass,DataType>(label, target, nullptr) {
         this->currentValue = initial_value;
         this->target = target;
         this->setter_func_on = setter_func_on;
         this->setter_func_off = setter_func_off;
+    }
+
+    ToggleParameter(
+        char *label, 
+        TargetClass *target, 
+        bool initial_value, 
+        void(TargetClass::*setter_func)(bool)
+    ) : Parameter<TargetClass,DataType>(label, target, nullptr) {
+        this->currentValue = initial_value;
+        this->target = target;
+        this->setter_func = setter_func;
     }
 
     virtual void setParamValue(double value) override {
@@ -56,7 +68,17 @@ class ToggleParameter : public Parameter<TargetClass,DataType> {
             Serial.print(value);
             Serial.println(")");
         }
-        if (this->currentValue) {
+        
+        if (this->setter_func_off!=nullptr) { // if a second setter_func_off is specifed, call the individual functions without passing state as a parameter
+            if (this->currentValue) {
+                (this->target->*setter_func_on)();
+            } else {
+                (this->target->*setter_func_off)();
+            }
+        } else {        // no specified setter_func_off passed, so pass state as parameter
+            (this->target->*setter_func)(this->currentValue);
+        }
+        /*if (this->currentValue) {
             if (this->setter_func_on!=nullptr) {
                 if (this->debug) { Serial.println("ToggleParameter#setParamValue calling setter_func_on!"); Serial.flush(); }
                 (this->target->*setter_func_on)(true);
@@ -66,11 +88,11 @@ class ToggleParameter : public Parameter<TargetClass,DataType> {
         } else {
             if (this->setter_func_off!=nullptr) {
                 if (this->debug) { Serial.println("ToggleParameter#setParamValue calling setter_func_off!"); Serial.flush(); } 
-                (this->target->*setter_func_off)(true);
+                (this->target->*setter_func_off)(false);
             } else {
                 Serial.println("ToggleParameter#setParamValue has no setter_func_off!"); Serial.flush();
             }
-        }
+        }*/
     }
 
     virtual const char* getFormattedValue() {
