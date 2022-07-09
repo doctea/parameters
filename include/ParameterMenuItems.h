@@ -192,10 +192,10 @@ class ParameterSelectorControl : public SelectorControl {
             // not selected, so just show the current value
             colours(false, C_WHITE, BLACK);
 
-            tft->printf((char*)"Inp: %-15s\n", (char*)parameter_input->getInputInfo()); //i @ %p")
-            tft->printf((char*)"Read: %-8s\n", (char*)parameter_input->getInputValue());
+            tft->printf((char*)"Inp: %-15s\n", (char*)this->parameter_input->getInputInfo()); //i @ %p")
+            tft->printf((char*)"Read: %-8s\n", (char*)this->parameter_input->getInputValue());
             tft->printf((char*)"Tgt: %-15s\n", (char*)get_label_for_index(actual_value_index));
-            tft->printf((char*)"Val: %-7s\n",  (char*)parameter_input->getFormattedValue());
+            tft->printf((char*)"Val: %-7s\n",  (char*)this->parameter_input->getFormattedValue());
 
             //tft->println((char*)"");
             //tft->printf("%i%\n", 100 * parameter_input->target_parameter->getCurrentValue());

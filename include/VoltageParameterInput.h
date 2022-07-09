@@ -19,6 +19,8 @@ class VoltageParameterInput : public AnalogParameterInput<TargetClass, DataType>
             DataType currentValue = this->voltage_source->get_voltage_normal();
             if (this->is_significant_change(currentValue, this->lastValue)) {
                 this->lastValue = currentValue;
+                //Serial.printf("%c: Setting this->currentValue to ", this->name);
+                //Serial.println(currentValue);
                 this->currentValue = currentValue;
                 if (this->debug) {
                     /*Serial.printf("%s: VoltageParameterInput->read() got intermediate %i, voltage ", this->name, intermediate);

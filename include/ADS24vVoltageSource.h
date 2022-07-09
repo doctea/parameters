@@ -10,11 +10,6 @@ class ADS24vVoltageSource : public VoltageSourceBase {
         float correction_value_1 = 1188.0;
         float correction_value_2 = 0.041;
 
-        double current_value = 0.0;
-        double last_value = 0.0;
-
-        double maximum_input_voltage = 10.0;
-
         ADS24vVoltageSource(ADS1X15Type *ads_source, byte channel, float maximum_input_voltage = 10.0) {
             this->ads_source = ads_source;
             this->channel = channel;

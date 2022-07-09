@@ -82,7 +82,7 @@ class AnalogParameterInput : public ParameterInput<TargetClass> {
         return "[none]";
     }*/
 
-    virtual const char* getInputInfo() {
+    virtual const char *getInputInfo() {
       static char input_info[20] = "                ";
 
       sprintf(input_info, "Anlg %i %s%s", inputPin, (this->inverted?"I":""), (this->map_unipolar?"U":""));
@@ -90,8 +90,13 @@ class AnalogParameterInput : public ParameterInput<TargetClass> {
     }
 
     virtual const char *getInputValue() override {
+      /*Serial.printf("%c: getInputValue() working on this->currentValue ", this->name);
+      Serial.println(this->currentValue);
+      Serial.printf("%c: normal_value is ", this->name);
+      Serial.println(this->currentValue * 100); //get_normal_value((double)this->currentValue));*/
       static char fmt[20] = "          ";
-      sprintf(fmt, "[%-3i%%]", (int)(this->get_normal_value(this->currentValue)*100.0));
+      //sprintf(fmt, "[%-3i%%]", (int)(this->get_normal_value((double)this->currentValue)*100.0));
+      sprintf(fmt, "[%-3i%%]", (int)(this->currentValue*100.0));
       return fmt;
     }
 
