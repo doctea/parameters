@@ -19,6 +19,7 @@ class VoltageParameterInput : public AnalogParameterInput<TargetClass, DataType>
             DataType currentValue = this->voltage_source->get_voltage_normal();
             if (this->is_significant_change(currentValue, this->lastValue)) {
                 this->lastValue = currentValue;
+                this->currentValue = currentValue;
                 if (this->debug) {
                     /*Serial.printf("%s: VoltageParameterInput->read() got intermediate %i, voltage ", this->name, intermediate);
                     Serial.print((uint32_t) this->ads->toVoltage(intermediate));
@@ -30,10 +31,12 @@ class VoltageParameterInput : public AnalogParameterInput<TargetClass, DataType>
 
                 //DataType normal = this->get_normal_value(currentValue);
                 DataType normal = currentValue;
-                Serial.printf("VoltageParameterInput#read() for '%c': got currentValue ", this->name);
-                Serial.print(currentValue);
-                Serial.print(" converted to normal ");
-                Serial.println(normal);
+                if (this->debug) {
+                    Serial.printf("VoltageParameterInput#read() for '%c': got currentValue ", this->name); Serial.flush();
+                    Serial.print(currentValue); Serial.flush();
+                    Serial.print(" converted to normal "); Serial.flush();
+                    Serial.println(normal); Serial.flush();
+                }
 
                 if (this->callback != nullptr) {
                     if (this->debug) {
@@ -41,23 +44,26 @@ class VoltageParameterInput : public AnalogParameterInput<TargetClass, DataType>
                         Serial.print(F(": calling callback("));
                         Serial.print(normal);
                         Serial.println(F(")"));
+                        Serial.flush();
                     }      
                     callback(normal);
                 }
                 if (this->target_parameter!=nullptr) {
                     if (this->debug) {
-                        Serial.print(this->name);
-                        Serial.print(F(": calling target from normal setParamValue("));
-                        Serial.print(normal);
-                        Serial.print(F(")"));
-                        Serial.print(" from currentValue ");
-                        Serial.print(currentValue);
-                        if (this->inverted) Serial.print(F(" - inverted"));
-                        Serial.println();
+                        Serial.println("Calling on target_parameter.."); Serial.flush();
+                        Serial.print(this->name); Serial.flush();
+                        Serial.print(F(": calling target from normal setParamValue(")); Serial.flush();
+                        Serial.print(normal); Serial.flush();
+                        Serial.print(F(")")); Serial.flush();
+                        Serial.print(" from currentValue "); Serial.flush();
+                        Serial.print(currentValue); Serial.flush();
+                        if (this->inverted) Serial.print(F(" - inverted")); Serial.flush();
+                        Serial.println(); Serial.flush();
                     }
                     //target->setParamValueA(normal);
                     this->target_parameter->setParamValue(normal);
                 }
+                Serial.println("Finishing read()"); Serial.flush();
             }
         }
 };

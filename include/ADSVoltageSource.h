@@ -21,16 +21,11 @@ class ADSVoltageSource : public VoltageSourceBase {
         // ask the ADC for its current voltage
         virtual double fetch_current_voltage() {
             int16_t value = ads_source->readADC(channel);
-            /*float f = ((float)value/correction_value_1) - 1.0;
-            f = f / correction_value_2;*/
             double voltageFromAdc = ads_source->toVoltage(value);
-            //double voltageFromAdc = get_voltage(currentValue);
             if ((int)voltageFromAdc==ADS1X15_INVALID_VOLTAGE)
                 return 0.0;
             
-            //return (voltageFromAdc * 0.976937) + 0.0123321;
             return this->get_corrected_voltage(voltageFromAdc);
-            //return f;
         }
 
         // correct for non-linearity

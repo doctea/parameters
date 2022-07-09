@@ -125,9 +125,9 @@ class ParameterSelectorControl : public SelectorControl {
             if (this->debug) Serial.printf("ParameterSelectorControl configured control labelled '%s' with initial_selected_parameter '%s'@%p from parameter_input @ %p\n", label, initial_selected_parameter->label, initial_selected_parameter, parameter_input);
             //Serial.printf("%u and %u\n", this->initial_selected_parameter, this->setter_func);
             actual_value_index = this->find_parameter_index_for_label(initial_selected_parameter->label);
-        } else {
-            actual_value_index = this->find_parameter_index_for_label("None");
+            if (actual_value_index>=0) return;
         }
+        actual_value_index = this->find_parameter_index_for_label("None");
     }
 
     virtual int find_parameter_index_for_label(char *label) {

@@ -5,7 +5,7 @@
 
 template<class TargetClass, class DataType>
 class AnalogParameterInput : public ParameterInput<TargetClass> {
-  int inputPin; // todo: split this out into a separate derived class to support the built-in analogRead() functions
+  int inputPin = 0; // todo: split this out into a separate derived class to support the built-in analogRead() functions
   //byte Parameter_number = 0xff;
 
   public:
@@ -16,7 +16,7 @@ class AnalogParameterInput : public ParameterInput<TargetClass> {
     DataType max_input_value = 1023.0d;
 
     using Callback = void (*)(float);
-    Callback callback;
+    Callback callback = nullptr;
 
     DataType sensitivity = 0.01;
       
@@ -89,7 +89,7 @@ class AnalogParameterInput : public ParameterInput<TargetClass> {
       return input_info;
     }
 
-    virtual const char* getInputValue() override {
+    virtual const char *getInputValue() override {
       static char fmt[20] = "          ";
       sprintf(fmt, "[%-3i%%]", (int)(this->get_normal_value(this->currentValue)*100.0));
       return fmt;
