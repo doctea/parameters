@@ -18,7 +18,7 @@ class AnalogParameterInput : public ParameterInput<TargetClass> {
     using Callback = void (*)(float);
     Callback callback = nullptr;
 
-    DataType sensitivity = 0.01;
+    DataType sensitivity = 0.005;
       
     /*AnalogParameterInput(int in_inputPin, Callback in_callback, int in_sensitivity = 3) : ParameterInput() {
       inputPin = in_inputPin;
@@ -27,7 +27,7 @@ class AnalogParameterInput : public ParameterInput<TargetClass> {
       pinMode(inputPin, INPUT);
     }*/
     AnalogParameterInput() {};
-    AnalogParameterInput(int in_inputPin, TargetClass &in_target, DataType in_sensitivity = 0.01) { //}: ParameterInput() {
+    AnalogParameterInput(int in_inputPin, TargetClass &in_target, DataType in_sensitivity = 0.005) { //}: ParameterInput() {
       this->name = ++NEXT_PARAMETER_NAME;
       this->inputPin = in_inputPin;
       this->target_parameter = &in_target;

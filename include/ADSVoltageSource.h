@@ -20,7 +20,13 @@ class ADSVoltageSource : public VoltageSourceBase {
 
         // ask the ADC for its current voltage
         virtual double fetch_current_voltage() {
-            int16_t value = ads_source->readADC(channel);
+            //int16_t value = ads_source->readADC(channel);
+            int16_t value1 = ads_source->readADC(channel);
+            int16_t value2 = ads_source->readADC(channel);
+            int16_t value3 = ads_source->readADC(channel);
+
+            int value = (value1+value2+value3) / 3;
+
             double voltageFromAdc = ads_source->toVoltage(value);
             if ((int)voltageFromAdc==ADS1X15_INVALID_VOLTAGE)
                 return 0.0;

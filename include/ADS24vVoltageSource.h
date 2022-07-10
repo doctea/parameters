@@ -17,7 +17,12 @@ class ADS24vVoltageSource : public VoltageSourceBase {
         }
 
         virtual double fetch_current_voltage() {
-            int16_t value = ads_source->readADC(channel);
+            //int16_t value = ads_source->readADC(channel);
+            int16_t value1 = ads_source->readADC(channel);
+            int16_t value2 = ads_source->readADC(channel);
+            int16_t value3 = ads_source->readADC(channel);
+
+            int value = (value1+value2+value3) / 3;
 
             float f = ((float)value/correction_value_1) - 1.0;
             f = f / correction_value_2;
