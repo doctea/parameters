@@ -34,7 +34,7 @@ class BaseParameter { //: public AbstractBaseParameter {
         BaseParameter(char *label) {
             strcpy(this->label, label);
         };
-        virtual void setParamValue(double value) {};
+        virtual void setParamValue(double value, double range = 1.0) {};
         /*virtual DataType getCurrentValue() {};
         virtual DataType getLastValue() {};*/
         virtual const char* getFormattedValue() {
@@ -65,7 +65,7 @@ class DataParameter : public BaseParameter {
         return this->lastValue;
     }
 
-    virtual void setParamValue(double value) {};
+    virtual void setParamValue(double value, double range = 1.0) {};
     virtual void on_unbound(BaseParameterInput *input) {
         this->setParamValue(this->initial_value * this->maximum_value);
         //this->setParamValue(0.0f);
@@ -137,7 +137,7 @@ class Parameter : public DataParameter {
             }*/
         }
 
-        virtual void setParamValue(double value) override {
+        virtual void setParamValue(double value, double range=1.0) override {
             if (this->currentValue==value) 
                 return;
             if (this->debug) { 

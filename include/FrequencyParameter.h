@@ -28,11 +28,13 @@ class FrequencyParameter : public Parameter<TargetClass, DataType> {
         //TODO: move helper functions from ads.cpp ie get_frequencey_for_voltage etc to here
         //TODO: check quantisation / pitch is accurate
 
-        virtual void setParamValue(DataType value) override {
+        virtual void setParamValue(DataType value, DataType octave_range) override {
             //if (inverted)
                 //value = octave_range - (octave_range*value);
 
-            double freq = get_frequency_for_voltage(value * octave_range); //read_voltage(0));
+            this->octave_range = octave_range;
+
+            double freq = get_frequency_for_voltage(value * this->octave_range); //read_voltage(0));
 
             this->lastValue = this->currentValue;
             this->currentValue = value;
@@ -53,7 +55,7 @@ class FrequencyParameter : public Parameter<TargetClass, DataType> {
         virtual const char* getFormattedValue() {
             static char fmt[20] = "              ";
 
-            double voltage = this->currentValue * octave_range;
+            double voltage = this->currentValue * this->octave_range;
 
             double freq = get_frequency_for_voltage(voltage); //read_voltage(0));
             int pitch   = get_midi_pitch_for_voltage(voltage);

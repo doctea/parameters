@@ -36,7 +36,7 @@ class ToggleParameter : public Parameter<TargetClass,DataType> {
         this->setter_func = setter_func;
     }
 
-    virtual void setParamValue(double value) override {
+    virtual void setParamValue(double value, double range = 1.0) override {
         if (this->debug) {
             Serial.print("ToggleParameter#setParamValue(double of ");
             Serial.print(value);

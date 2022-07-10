@@ -18,7 +18,7 @@ class VoltageParameterInput : public AnalogParameterInput<TargetClass, DataType>
         virtual void read() override {
             DataType currentValue = this->voltage_source->get_voltage_normal();
             if (this->is_significant_change(currentValue, this->lastValue)) {
-                this->lastValue = currentValue;
+                this->lastValue = this->currentValue;
                 //Serial.printf("%c: Setting this->currentValue to ", this->name);
                 //Serial.println(currentValue);
                 this->currentValue = currentValue;
@@ -61,11 +61,13 @@ class VoltageParameterInput : public AnalogParameterInput<TargetClass, DataType>
                         Serial.print(currentValue); Serial.flush();
                         if (this->inverted) Serial.print(F(" - inverted")); Serial.flush();
                         Serial.println(); Serial.flush();
+
+                        Serial.printf("VoltageParameterInput %c calling setParamValue with maximum_input_voltage ", this->name);
+                        Serial.println(this->voltage_source->maximum_input_voltage);
                     }
-                    //target->setParamValueA(normal);
-                    this->target_parameter->setParamValue(normal);
+                    this->target_parameter->setParamValue(normal, this->voltage_source->maximum_input_voltage);
                 }
-                Serial.println("Finishing read()"); Serial.flush();
+                //Serial.println("Finishing read()"); Serial.flush();
             }
         }
 };
