@@ -10,6 +10,10 @@ Based on code extracted from my [envor2](https://github.com/doctea/envor2) and [
 - Convert incoming analogue level to frequency in 1v/oct fashion
 - MenuItems for [mymenu](https://github.com/doctea/mymenu) that allow changing Parameter values and ParameterInput-Parameter mappings
 
+## Untested
+
+- analogRead()-based inputs on Arduino analog pins
+
 ## Todo
 - ~~Make the usual analogRead()-based classes work again~~
 - Make the GateInput classes work again, to trigger on/offs
