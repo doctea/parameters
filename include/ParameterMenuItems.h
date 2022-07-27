@@ -4,8 +4,8 @@
 #include "mymenu.h"
 
 #include "Parameter.h"
-#include "AnalogParameterInput.h"
-#include "DigitalParameterInput.h"
+//#include "AnalogParameterInputBase.h"
+//#include "DigitalParameterInput.h"
 
 #include <LinkedList.h>
 
