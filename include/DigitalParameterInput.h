@@ -3,9 +3,8 @@
 
 #include "ParameterInput.h"
 
-template<class TargetClass>
+//template<class TargetClass>
 class DigitalParameterInput : public BaseParameterInput {
-  
   //using Callback = void(callback)(double);
 
   bool lastValue = false;
@@ -13,30 +12,61 @@ class DigitalParameterInput : public BaseParameterInput {
   //Callback callback;
 
   public:
-    using Callback = void (*)(bool);
-    Callback callback;
-    DigitalParameterInput(int in_inputPin, Callback in_callback) : BaseParameterInput() {
-      inputPin = in_inputPin;
-      //callback = in_callback;
+    using CallbackWithParam = void (*)(bool);
+    CallbackWithParam *callback_with_param;
+
+    using CallbackNoParam = void (*)();
+    CallbackNoParam *callback_on;
+    CallbackNoParam *callback_off;
+
+    BaseParameter *target_parameter = nullptr;
+
+    DigitalParameterInput(int inputPin) : BaseParameterInput() { 
+      this->inputPin = inputPin;
       pinMode(inputPin, INPUT);
     }
-    DigitalParameterInput(int in_inputPin, BaseParameter &in_target) : BaseParameterInput() {
-      inputPin = in_inputPin;
-      target_parameter = &in_target;
+
+    DigitalParameterInput(int inputPin, CallbackWithParam *callback_with_param) : DigitalParameterInput(inputPin) {
+      this->callback_with_param = callback_with_param;
+    }
+    DigitalParameterInput(int inputPin, CallbackNoParam *callback_on, CallbackNoParam *callback_off) : DigitalParameterInput(inputPin) {
+      inputPin = inputPin;
+      this->callback_on = callback_on;
+      this->callback_off = callback_off;
+      pinMode(inputPin, INPUT);
+    }
+
+    DigitalParameterInput(int inputPin, BaseParameter *target) : DigitalParameterInput(inputPin) {
+      target_parameter = target;
     }
   
     void read() {
       // todo: debouncing
       bool currentValue = digitalRead(inputPin);
       if (currentValue != lastValue) {
-        /*if (callback != NULL)
-          callback(currentValue);*/
-        if (target_parameter)
+        if (callback_with_param != nullptr)
+          (*this->callback_with_param)(currentValue);
+        if (currentValue && callback_on != nullptr) 
+          (*this->callback_on)();
+        if (!currentValue && callback_off != nullptr) 
+          (*this->callback_off)();
+        if (target_parameter!=nullptr)
           this->target_parameter->setParamValue(currentValue);
         lastValue = currentValue;
         //return currentValue;
       }
     }
 };
+
+/*
+template<class TargetClass>
+class DigitalObjectParameterInput : public DigitalParameterInput {
+  public:
+    TargetClass *target = nullptr;
+    DigitalObjectParameterInput(int in_inputPin, TargetClass &in_target) : DigitalParameterInput(in_inputPin, in_target) {
+
+    }
+
+}*/
 
 #endif

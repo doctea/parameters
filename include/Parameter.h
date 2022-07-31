@@ -1,7 +1,7 @@
 #ifndef PARAMETER__INCLUDED
 #define PARAMETER__INCLUDED
 
-#include <ArxTypeTraits.h>
+//#include <ArxTypeTraits.h>
 
 extern char NEXT_PARAMETER_NAME;
 

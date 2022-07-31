@@ -18,6 +18,9 @@ class BaseParameterInput {
     BaseParameterInput() {
       //this->name = ++NEXT_PARAMETER_NAME;
     }
+    BaseParameterInput(BaseParameter *target_parameter) {
+      this->target_parameter = target_parameter;
+    }
 
     virtual void setTarget(BaseParameter *target) {
       if (this->target_parameter!=nullptr) {

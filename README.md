@@ -15,3 +15,10 @@ Based on code extracted from my [envor2](https://github.com/doctea/envor2) and [
 - Provide scaling logic for eg opamp-scaled inputs
 - Make envor2 and talkie use this library
 - Docs/examples how to use the library in a project from scratch
+
+### Classes and structure
+
+- VoltageSources connect directly to ADS or analog pin
+- ParameterInput fetches values from VoltageSources and sends them to Parameter
+- Parameter is the final destination of the value (eg, Envelope)
+
