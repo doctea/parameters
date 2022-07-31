@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 
-#include "Parameter.h"
+#include "../parameters/Parameter.h"
 
 class BaseParameterInput {
   public:

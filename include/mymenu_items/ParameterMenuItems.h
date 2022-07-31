@@ -3,7 +3,7 @@
 
 #include "mymenu.h"
 
-#include "Parameter.h"
+#include "../parameters/Parameter.h"
 //#include "AnalogParameterInputBase.h"
 //#include "DigitalParameterInput.h"
 

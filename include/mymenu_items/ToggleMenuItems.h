@@ -1,4 +1,4 @@
-#include "Parameter.h"
+#include "../parameters/Parameter.h"
 #include "ParameterMenuItems.h"
 #include "menuitems.h"
 

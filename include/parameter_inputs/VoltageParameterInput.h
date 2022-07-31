@@ -1,6 +1,8 @@
 #include "ParameterInput.h"
 #include "AnalogParameterInputBase.h"
 
+#include "../voltage_sources/VoltageSource.h"
+
 template<class TargetClass, class DataType = double>
 class VoltageParameterInput : public AnalogParameterInputBase<TargetClass, DataType> {
     VoltageSourceBase *voltage_source;

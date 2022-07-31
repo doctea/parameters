@@ -1,3 +1,5 @@
+#ifdef ENABLE_OFFCUTS
+
 char NEXT_GATE_INPUT_NAME = 'M';
 
 class GateInput {
@@ -200,3 +202,6 @@ class DigitalGateInput : public GateInput {
       return value;
     }
 };
+
+
+#endif
