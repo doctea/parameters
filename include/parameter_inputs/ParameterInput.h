@@ -8,6 +8,14 @@
 class BaseParameterInput {
   public:
 
+    bool debug = false;
+    void setDebug(bool state) {
+      this->debug = state;
+    }
+    void toggleDebug() {
+      this->debug =! this->debug;
+    }
+
     char name = 'Z';
 
     BaseParameter *target_parameter = nullptr;
@@ -16,7 +24,7 @@ class BaseParameterInput {
     bool map_unipolar = false;
 
     BaseParameterInput() {
-      //this->name = ++NEXT_PARAMETER_NAME;
+      this->name = ++NEXT_PARAMETER_NAME;
     }
     BaseParameterInput(BaseParameter *target_parameter) {
       this->target_parameter = target_parameter;
@@ -45,7 +53,22 @@ class BaseParameterInput {
       return "?Base?";
     }
 
+    virtual void setInverted(bool invert = true) {
+      this->inverted = invert;
+      #ifdef ENABLE_PRINTF
+        Serial.printf("%s: SET INVERTED on an AnalogParameterInput!", this->name);
+      #endif
+    }
+
     virtual void loop();
+
+    virtual bool matches_label(char *label) {
+      //if (strcmp(this->label,label)==0) return true;
+      return (this->name==label[0] && label[1]=='\0');
+    }
+    virtual bool matches_label(char label) {
+      return this->name==label;
+    }
 };
 
 template<class TargetClass>

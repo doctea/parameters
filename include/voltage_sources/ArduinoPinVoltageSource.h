@@ -1,3 +1,6 @@
+#ifndef ARDUINOPINVOLTAGESOURCE__INCLUDED
+#define ARDUINOPINVOLTAGESOURCE__INCLUDED
+
 #include <Arduino.h>
 
 #include "VoltageSource.h"
@@ -26,7 +29,8 @@ class ArduinoPinVoltageSource : public VoltageSourceBase {
 
             int value = (value1+value2+value3) / 3;
 
-            double voltageFromAdc = ads_source->toVoltage(value);
+            //double voltageFromAdc = ads_source->toVoltage(value);
+            double voltageFromAdc = ((double)value/1024.0) * this->maximum_input_voltage;
             //if ((int)voltageFromAdc==ADS1X15_INVALID_VOLTAGE)
             //    return 0.0;
             
@@ -45,3 +49,5 @@ class ArduinoPinVoltageSource : public VoltageSourceBase {
             return (voltageFromAdc * correction_value_1) + correction_value_2;
         };
 };
+
+#endif

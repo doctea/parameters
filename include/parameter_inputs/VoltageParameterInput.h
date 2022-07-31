@@ -24,6 +24,7 @@ class VoltageParameterInput : public AnalogParameterInputBase<TargetClass, DataT
                 //Serial.printf("%c: Setting this->currentValue to ", this->name);
                 //Serial.println(currentValue);
                 this->currentValue = currentValue;
+                #ifdef ENABLE_PRINTF
                 if (this->debug) {
                     /*Serial.printf("%s: VoltageParameterInput->read() got intermediate %i, voltage ", this->name, intermediate);
                     Serial.print((uint32_t) this->ads->toVoltage(intermediate));
@@ -32,15 +33,18 @@ class VoltageParameterInput : public AnalogParameterInputBase<TargetClass, DataT
                     Serial.printf("%c: VoltageParameterInput->read() got voltage ", this->name); //
                     Serial.println(currentValue);
                 }
+                #endif
 
                 //DataType normal = this->get_normal_value(currentValue);
                 DataType normal = currentValue;
+                #ifdef ENABLE_PRINTF
                 if (this->debug) {
                     Serial.printf("VoltageParameterInput#read() for '%c': got currentValue ", this->name); Serial.flush();
                     Serial.print(currentValue); Serial.flush();
                     Serial.print(" converted to normal "); Serial.flush();
                     Serial.println(normal); Serial.flush();
                 }
+                #endif
 
                 if (this->callback != nullptr) {
                     if (this->debug) {
@@ -50,7 +54,7 @@ class VoltageParameterInput : public AnalogParameterInputBase<TargetClass, DataT
                         Serial.println(F(")"));
                         Serial.flush();
                     }      
-                    callback(normal);
+                    (*this->callback)(normal);
                 }
                 if (this->target_parameter!=nullptr) {
                     if (this->debug) {
@@ -61,11 +65,13 @@ class VoltageParameterInput : public AnalogParameterInputBase<TargetClass, DataT
                         Serial.print(F(")")); Serial.flush();
                         Serial.print(" from currentValue "); Serial.flush();
                         Serial.print(currentValue); Serial.flush();
-                        if (this->inverted) Serial.print(F(" - inverted")); Serial.flush();
+                        if (this->inverted) { Serial.print(F(" - inverted")); Serial.flush(); }
                         Serial.println(); Serial.flush();
 
-                        Serial.printf("VoltageParameterInput %c calling setParamValue with maximum_input_voltage ", this->name);
-                        Serial.println(this->voltage_source->maximum_input_voltage);
+                        #ifdef ENABLE_PRINTF
+                            Serial.printf("VoltageParameterInput %c calling setParamValue with maximum_input_voltage ", this->name);
+                            Serial.println(this->voltage_source->maximum_input_voltage);
+                        #endif
                     }
                     this->target_parameter->setParamValue(normal, this->voltage_source->maximum_input_voltage);
                 }

@@ -1,7 +1,7 @@
 #ifndef PARAMETER__INCLUDED
 #define PARAMETER__INCLUDED
 
-//#include <ArxTypeTraits.h>
+#include <ArxTypeTraits.h>
 
 extern char NEXT_PARAMETER_NAME;
 
@@ -10,8 +10,10 @@ extern char NEXT_PARAMETER_NAME;
 //#include "ParameterInput.h"
 
 class BaseParameterInput;
+#ifdef ENABLE_TFT
 class MenuItem;
 class ParameterMenuItem;
+#endif
 
 /*class AbstractBaseParameter {
     public:
@@ -71,12 +73,14 @@ class DataParameter : public BaseParameter {
         //this->setParamValue(0.0f);
     }
 
+    #ifdef ENABLE_TFT
     virtual MenuItem *makeControl();
+    #endif
 };
 
 
 // an object that can be targeted by a ParameterInput, calls setter method on final target object
-template<class TargetClass, class DataType>
+template<class TargetClass, class DataType = double>
 class Parameter : public DataParameter {
     public:
 
@@ -147,16 +151,20 @@ class Parameter : public DataParameter {
             this->lastValue = this->currentValue;
             this->currentValue = value;
             //this->func(value);
-            if (this->debug) {
-                Serial.println("Parameter#setParamValue()"); Serial.flush();
-                Serial.printf("%s: Calling setter func for value (", this->label);
-                Serial.print(value);
-                Serial.println(")");
-            }
+            #ifdef ENABLE_PRINTF
+                if (this->debug) {
+                    Serial.println("Parameter#setParamValue()"); Serial.flush();
+                    Serial.printf("%s: Calling setter func for value (", this->label);
+                    Serial.print(value);
+                    Serial.println(")");
+                }
+            #endif   
             if (this->target!=nullptr && this->setter_func!=nullptr) {
                 (this->target->*setter_func)((DataType)value);
             } else {
-                Serial.printf("WARNING: no target / no setter_func in %s!\n", this->label);
+                #ifdef ENABLE_PRINTF
+                    Serial.printf("WARNING: no target / no setter_func in %s!\n", this->label);
+                #endif
             }
         }
         /*void setParamValue(float value) {

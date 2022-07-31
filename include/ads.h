@@ -1,7 +1,7 @@
 #ifndef ADS__INCLUDED
 #define ADS__INCLUDED
 
-#include "ADS1X15.h"
+//#include "ADS1X15.h"
 
 #define MIDI_NOTE_A440 (69)
 

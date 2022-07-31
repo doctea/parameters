@@ -1,8 +1,10 @@
-#include "Parameter.h"
-
 char NEXT_PARAMETER_NAME = 'A';
 
-#include "ParameterInput.h"
+#ifdef ENABLE_TFT
+
+#include "parameters/Parameter.h"
+
+#include "parameter_inputs/ParameterInput.h"
 
 //template<class TargetClass, class DataType>
 /*void DataParameter::on_unbound(BaseParameterInput *input) {
@@ -11,9 +13,9 @@ char NEXT_PARAMETER_NAME = 'A';
 
 #include "menu.h"
 
-#include "Parameter.h"
-#include "ToggleParameter.h"
-#include "ToggleMenuItems.h"
+//#include "Parameter.h"
+#include "parameters/ToggleParameter.h"
+#include "mymenu_items/ToggleMenuItems.h"
 
 MenuItem *DataParameter::makeControl() {
     Serial.printf("DataParameter#makeControl for %s\n", this->label);
@@ -31,3 +33,5 @@ MenuItem *DataParameter::makeControl() {
 
     return mi;
 }
+
+#endif

@@ -1,8 +1,17 @@
+#include "Arduino.h"
+
 #include "ads.h"
 //#include "mtof.h"
 
-int sdaPin = PIN_PB4;
-int sclPin = PIN_PB2;
+#ifndef PIN_SDA
+  #define PIN_SDA SDA
+#endif
+#ifndef PIN_SCL
+  #define PIN_SCL SCL
+#endif
+
+int sdaPin = PIN_SDA; //PIN_PB4;
+int sclPin = PIN_SCL; //PIN_PB2;
 
 //ADS1115 ADS_OBJECT(0x48);
 

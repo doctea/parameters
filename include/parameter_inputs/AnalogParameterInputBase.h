@@ -27,7 +27,9 @@ class AnalogParameterInputBase : public ParameterInput<TargetClass> {
 
     virtual void setInverted(bool invert = true) {
       this->inverted = invert;
-      Serial.printf("%s: SET INVERTED on an AnalogParameterInput!", this->name);
+      #ifdef ENABLE_PRINTF
+        Serial.printf("%s: SET INVERTED on an AnalogParameterInput!", this->name);
+      #endif
     }
 
     virtual void loop () override {
@@ -69,7 +71,9 @@ class AnalogParameterInputBase : public ParameterInput<TargetClass> {
     }
 
     virtual void read() override {
-      if (this->debug) Serial.printf("%s: read() in AnalogParameterInputBase..", this->name); 
+      #ifdef ENABLE_PRINTF
+        if (this->debug) Serial.printf("%s: read() in AnalogParameterInputBase..", this->name); 
+      #endif
 
       //DataType currentValue = analogRead(inputPin);
       currentValue = 0.5f;  // TODO: refactor this

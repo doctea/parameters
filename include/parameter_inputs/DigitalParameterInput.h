@@ -12,12 +12,12 @@ class DigitalParameterInput : public BaseParameterInput {
   //Callback callback;
 
   public:
-    using CallbackWithParam = void (*)(bool);
-    CallbackWithParam *callback_with_param;
+    //using CallbackWithParam = void (*)(bool);
+    void (*callback_with_param)(bool) = nullptr;
 
-    using CallbackNoParam = void (*)();
-    CallbackNoParam *callback_on;
-    CallbackNoParam *callback_off;
+    //using CallbackNoParam = void (*)();
+    void (*callback_on)()  = nullptr;
+    void (*callback_off)() = nullptr;
 
     BaseParameter *target_parameter = nullptr;
 
@@ -26,10 +26,10 @@ class DigitalParameterInput : public BaseParameterInput {
       pinMode(inputPin, INPUT);
     }
 
-    DigitalParameterInput(int inputPin, CallbackWithParam *callback_with_param) : DigitalParameterInput(inputPin) {
+    DigitalParameterInput(int inputPin, void (*callback_with_param)(bool)) : DigitalParameterInput(inputPin) {
       this->callback_with_param = callback_with_param;
     }
-    DigitalParameterInput(int inputPin, CallbackNoParam *callback_on, CallbackNoParam *callback_off) : DigitalParameterInput(inputPin) {
+    DigitalParameterInput(int inputPin, void (*callback_on)(), void (callback_off)()) : DigitalParameterInput(inputPin) {
       inputPin = inputPin;
       this->callback_on = callback_on;
       this->callback_off = callback_off;
@@ -39,8 +39,12 @@ class DigitalParameterInput : public BaseParameterInput {
     DigitalParameterInput(int inputPin, BaseParameter *target) : DigitalParameterInput(inputPin) {
       target_parameter = target;
     }
+
+    virtual void loop() {
+      this->read();
+    }
   
-    void read() {
+    virtual void read() {
       // todo: debouncing
       bool currentValue = digitalRead(inputPin);
       if (currentValue != lastValue) {
