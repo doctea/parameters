@@ -1,6 +1,6 @@
 char NEXT_PARAMETER_NAME = 'A';
 
-#ifdef ENABLE_TFT
+#ifdef ENABLE_SCREEN 
 
 #include "parameters/Parameter.h"
 

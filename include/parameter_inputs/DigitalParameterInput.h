@@ -30,12 +30,9 @@ class DigitalParameterInput : public BaseParameterInput {
       this->callback_with_param = callback_with_param;
     }
     DigitalParameterInput(int inputPin, void (*callback_on)(), void (callback_off)()) : DigitalParameterInput(inputPin) {
-      inputPin = inputPin;
       this->callback_on = callback_on;
       this->callback_off = callback_off;
-      pinMode(inputPin, INPUT);
     }
-
     DigitalParameterInput(int inputPin, BaseParameter *target) : DigitalParameterInput(inputPin) {
       target_parameter = target;
     }
@@ -61,16 +58,5 @@ class DigitalParameterInput : public BaseParameterInput {
       }
     }
 };
-
-/*
-template<class TargetClass>
-class DigitalObjectParameterInput : public DigitalParameterInput {
-  public:
-    TargetClass *target = nullptr;
-    DigitalObjectParameterInput(int in_inputPin, TargetClass &in_target) : DigitalParameterInput(in_inputPin, in_target) {
-
-    }
-
-}*/
 
 #endif

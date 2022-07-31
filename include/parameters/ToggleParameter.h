@@ -101,11 +101,13 @@ class ToggleParameter : public Parameter<TargetClass,DataType> {
         return this->currentValue ? on : off;
     }
 
+    #ifdef ENABLE_SCREEN
     virtual MenuItem *makeControl() override {
         Serial.println("ToggleParameter#makeControl()! ############");
         Serial.printf("ToggleParameter#makeControl for %s\n", this->label);
         return new ToggleControl(this->label, this);
     }
+    #endif
 
     /*virtual const char* getFormattedValue() {
         static char fmt[20] = "              ";

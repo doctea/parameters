@@ -10,7 +10,7 @@ extern char NEXT_PARAMETER_NAME;
 //#include "ParameterInput.h"
 
 class BaseParameterInput;
-#ifdef ENABLE_TFT
+#ifdef ENABLE_SCREEN
 class MenuItem;
 class ParameterMenuItem;
 #endif
@@ -73,7 +73,7 @@ class DataParameter : public BaseParameter {
         //this->setParamValue(0.0f);
     }
 
-    #ifdef ENABLE_TFT
+    #ifdef ENABLE_SCREEN
     virtual MenuItem *makeControl();
     #endif
 };

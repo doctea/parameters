@@ -1,6 +1,6 @@
 #include "VoltageSource.h"
 
-//#include "ADS1X15.h"
+#include "ADS1X15.h"
 
 // for 1115 ADC modules with 5v range
 template<class ADS1X15Type>
