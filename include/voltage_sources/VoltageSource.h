@@ -4,6 +4,8 @@
 // base class for a voltage source, eg a wrapper around an ADC library
 class VoltageSourceBase {
     public:
+        bool debug = false;
+
         double current_value = 0.0;
         double last_value = 0.0;
 

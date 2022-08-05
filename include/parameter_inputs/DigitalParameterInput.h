@@ -1,7 +1,7 @@
 #ifndef DIGITALPARAMETERINPUT__INCLUDED
 #define DIGITALPARAMETERINPUT__INCLUDED
 
-#include "ParameterInput.h"
+#include "parameter_inputs/ParameterInput.h"
 
 //template<class TargetClass>
 class DigitalParameterInput : public BaseParameterInput {
