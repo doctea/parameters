@@ -118,7 +118,13 @@ class Parameter : public DataParameter {
             return this;
         }*/
         // TODO: this probably isnt legal usage of NULL?
-        virtual DataParameter* initialise_values(double current_value_normal = NULL, double minimum_value = 0.0, double maximum_value = 100.0) {
+        virtual DataParameter* initialise_values(double minimum_value = 0.0, double maximum_value = 100.0) {
+            double current_value_normal = 0.0f;
+            if (this->getter_func!=nullptr) 
+                current_value_normal = (this->target->*getter_func)() / maximum_value;
+            return this->initialise_values(minimum_value, maximum_value, current_value_normal);
+        }
+        virtual DataParameter* initialise_values(double minimum_value, double maximum_value, double current_value_normal) {
             if (current_value_normal==NULL && this->getter_func!=nullptr) 
                 current_value_normal = (this->target->*getter_func)() / maximum_value;
             this->minimum_value = minimum_value;
