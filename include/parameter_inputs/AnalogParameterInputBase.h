@@ -18,8 +18,8 @@ class AnalogParameterInputBase : public ParameterInput<TargetClass> {
 
     DataType sensitivity = 0.005;
       
-    AnalogParameterInput() {};
-    AnalogParameterInput(char name, TargetClass &in_target, DataType in_sensitivity = 0.005) { //}: ParameterInput() {
+    AnalogParameterInputBase() {};
+    AnalogParameterInputBase(char name, TargetClass &in_target, DataType in_sensitivity = 0.005) { //}: ParameterInput() {
       this->name = name;
       this->target_parameter = &in_target;
       this->sensitivity = in_sensitivity;

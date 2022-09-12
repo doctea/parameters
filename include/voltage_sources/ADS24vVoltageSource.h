@@ -1,3 +1,6 @@
+#ifndef ADS24v__INCLUDED
+#define ADS24v__INCLUDED
+
 #include "VoltageSource.h"
 #include "ADS1X15.h"
 // for the Pimoroni +/- 24v 1015 module
@@ -44,3 +47,5 @@ class ADS24vVoltageSource : public VoltageSourceBase {
         }
 
 };
+
+#endif

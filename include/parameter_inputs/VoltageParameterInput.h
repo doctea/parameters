@@ -1,3 +1,6 @@
+#ifndef VOLTAGEPARAMETERINPUT__INCLUDED
+#define VOLTAGEPARAMETERINPUT__INCLUDED
+
 #include "ParameterInput.h"
 #include "AnalogParameterInputBase.h"
 
@@ -79,3 +82,5 @@ class VoltageParameterInput : public AnalogParameterInputBase<TargetClass, DataT
             }
         }
 };
+
+#endif
