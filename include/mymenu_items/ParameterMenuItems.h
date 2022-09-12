@@ -143,12 +143,18 @@ class ParameterSelectorControl : public SelectorControl {
     virtual void on_add() {
         actual_value_index = -1;
         if (this->debug) {
-            Serial.println("on_add()");
-            Serial.printf("\tParameterSelectorControl@ %u...\n", initial_selected_parameter);
-            Serial.printf("\tParameterSelectorControl looking for '%s' at %p...\n", initial_selected_parameter->label, initial_selected_parameter);
+            Serial.printf("on_add() in ParameterSelectorControl @%p:\n", this); Serial.flush();
+            Serial.printf("\tParameterSelectorControl with initial_selected_parameter @%p...\n", initial_selected_parameter); Serial.flush();
+            if (initial_selected_parameter!=nullptr) {
+                Serial.printf("\tParameterSelectorControl looking for '%s' @%p...\n", initial_selected_parameter->label, initial_selected_parameter); Serial.flush();
+            } else 
+                Serial.println("\tno initial_selected_parameter set");
         }
 
-        this->actual_value_index = this->find_parameter_index_for_label(initial_selected_parameter->label);
+        if (initial_selected_parameter!=nullptr) 
+            this->actual_value_index = this->find_parameter_index_for_label(initial_selected_parameter->label);
+        else    
+            this->actual_value_index = -1;
         this->selected_value_index = this->actual_value_index;
     }
 
