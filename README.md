@@ -16,6 +16,7 @@ Based on code extracted from my [envor2](https://github.com/doctea/envor2) and [
 - Make envor2 and talkie use this library
  - Hmm, adapted envor2 to use this, but doesn't work; suspect requires too much memory for the Nano to handle?
 - Docs/examples how to use the library in a project from scratch
+- Provide a manager class that encapsulates all the annoying stuff like setting up and checking hte values (currently need to add code to do this in your app, see sidenhancy and usb_midi_clocker for examples)
 
 ### Classes and structure
 
