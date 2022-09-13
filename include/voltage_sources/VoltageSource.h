@@ -17,6 +17,7 @@ class VoltageSourceBase {
 
         virtual void update() {
             //last_value = ads_source->readADC(channel);
+            if (this->debug) Serial.printf("VoltageSource@%p#update() about to fetch_current_voltage()\n", this);
             this->last_value = this->current_value;
             this->current_value = this->fetch_current_voltage();
         }

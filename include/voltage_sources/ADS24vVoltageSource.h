@@ -20,15 +20,21 @@ class ADS24vVoltageSource : public VoltageSourceBase {
         }
 
         virtual double fetch_current_voltage() {
+            if (this->debug) {
+                Serial.println("in ADS24vVoltageSource#fetch_current_voltage()..");
+                Serial.printf("\tads_source is @%p, reading from channel %i\n", this->ads_source, this->channel);
+            }            
+
             //int16_t value = ads_source->readADC(channel);
             int16_t value1 = ads_source->readADC(channel);
             int16_t value2 = ads_source->readADC(channel);
             int16_t value3 = ads_source->readADC(channel);
+            //int16_t value1, value2, value3;
 
             int value = (value1+value2+value3) / 3;
 
             if (this->debug) {
-                Serial.printf("ADS24vVoltageSource channel %i read ADC value %i\t :", channel, value);
+                Serial.printf("ADS24vVoltageSource channel %i read ADC value %i\t :", channel, value); Serial.flush();
             }
 
             float f = ((float)value/correction_value_1) - 1.0;
@@ -42,6 +48,8 @@ class ADS24vVoltageSource : public VoltageSourceBase {
                 Serial.print(" after correction stage 2 got ");
                 Serial.println(f);
             }
+
+            if (this->debug) Serial.printf("in ADS24vVoltageSource#fetch_current_voltage() finishing (and returning %f)\n", f);
 
             return f;
         }

@@ -34,37 +34,47 @@ class ParameterManager {
         }
 
         ADCDeviceBase *addADCDevice(ADCDeviceBase *device) {
+            Serial.printf("ParameterManager#addADCDevice(%p)\n", device);
             this->devices.add(device);
             return device;
         }
 
         VoltageSourceBase *addVoltageSource(VoltageSourceBase *voltage_source) {
+            Serial.printf("ParameterManager#addVoltageSource(%p)\n", voltage_source);
             this->voltage_sources.add(voltage_source);
             return voltage_source;
         }
 
         BaseParameterInput *addInput(BaseParameterInput *parameter) {
+            Serial.printf("ParameterManager#addInput(%p)\n", parameter);
             this->available_inputs.add(parameter);
             return parameter;
         }
 
         DataParameter *addParameter(DataParameter *parameter) {
+            Serial.printf("ParameterManager#addParameter(%p)\n", parameter);
             this->available_parameters.add(parameter);
             return parameter;
         }
 
         // initialise devices and add all their voltage sources
         void auto_init_devices() {
-            char parameter_input_name = 'A';
+            Serial.printf("ParameterManager#auto_init_devices)\n");
+            //char parameter_input_name = 'A';
             for (int i = 0 ; i < devices.size() ; i++) {
                 ADCDeviceBase *device = this->devices.get(i);
+                Serial.printf("ParameterManager#auto_init_devices calling init() on device %i\n", i);
                 device->init();
-                
+
                 VoltageSourceBase *vs = device->make_voltage_source();
+                int counter = 0;
                 while (vs != nullptr) {
+                    Serial.printf("\tParameterManager#auto_init_devices adding voltage source count %i\n", counter);
                     this->addVoltageSource(vs);
                     //this->addInput(device->make_input_for_source(parameter_input_name++, vs));
+                    Serial.printf("\tParameterManager#auto_init_devices calling make_voltage_source on count %i\n", counter);
                     vs = device->make_voltage_source();
+                    counter++;
                 }
             }
         }
@@ -82,12 +92,18 @@ class ParameterManager {
 
         // read the values, but don't pass them on outside
         void update_voltage_sources() {
+            if (this->debug) Serial.printf("ParameterManager#update_voltage_sources()");
             // round robin reading so they get a chance to settle in between adc reads?
             const int size = voltage_sources.size();
             if (size==0) return;
-
             static int last_read = 0;
+
+            if (this->debug) Serial.printf("ParameterManager#update_voltage_sources() about to read from %i\n", last_read);
+            if (this->debug) voltage_sources.get(last_read)->debug = true;
+
             voltage_sources.get(last_read)->update();
+
+            if (this->debug) Serial.printf("ParameterManager#update_voltage_sources() just did read from %i\n", last_read);
             #ifdef ENABLE_PRINTF
                 if (this->debug) {
                     Serial.printf("Reading from ADC %i...", last_read);
