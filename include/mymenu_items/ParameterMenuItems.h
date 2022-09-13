@@ -127,7 +127,7 @@ class ParameterSelectorControl : public SelectorControl {
             actual_value_index = this->find_parameter_index_for_label(initial_selected_parameter->label);
             if (actual_value_index>=0) return;
         }
-        actual_value_index = this->find_parameter_index_for_label("None");
+        actual_value_index = this->find_parameter_index_for_label((char*)"None");
     }
 
     virtual int find_parameter_index_for_label(char *label) {
@@ -231,7 +231,7 @@ class ParameterSelectorControl : public SelectorControl {
             /*Serial.printf("%s :: ", (char*)get_label_for_index(selected_value_index));
             Serial.print("\n");*/
 
-            int actual_count = 0;
+            //int actual_count = 0;
             for (int i = start_value ; i < num_values ; i++) {
                 bool is_current_value_selected = i==current_value;
                 int col = is_current_value_selected ? GREEN : C_WHITE;

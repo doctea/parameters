@@ -20,15 +20,20 @@ class ADS24vVoltageSource : public VoltageSourceBase {
         }
 
         virtual double fetch_current_voltage() {
+            static bool already_succeeded = false;
             if (this->debug) {
                 Serial.println("in ADS24vVoltageSource#fetch_current_voltage()..");
                 Serial.printf("\tads_source is @%p, reading from channel %i\n", this->ads_source, this->channel);
             }            
+            if (!already_succeeded) 
+                Serial.printf("ADS24vVoltageSource#fetch_current_voltage about to read from channel %i -- if we crash at this point, check that you're using the corrrect address for your ADC board!\n", this->channel);
 
             //int16_t value = ads_source->readADC(channel);
             int16_t value1 = ads_source->readADC(channel);
             int16_t value2 = ads_source->readADC(channel);
             int16_t value3 = ads_source->readADC(channel);
+
+            already_succeeded = true;
             //int16_t value1, value2, value3;
 
             int value = (value1+value2+value3) / 3;
