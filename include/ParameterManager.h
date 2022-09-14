@@ -3,9 +3,14 @@
 
 #include "voltage_sources/VoltageSource.h"
 #include "parameters/Parameter.h"
+#include "parameter_inputs/ParameterInput.h"
 #include "devices/ADCDevice.h"
 
 #include <LinkedList.h>
+
+#ifdef ENABLE_SCREEN
+  #include "submenuitem.h"
+#endif
 
 class ParameterManager {
     public:
@@ -45,16 +50,23 @@ class ParameterManager {
             return voltage_source;
         }
 
-        BaseParameterInput *addInput(BaseParameterInput *parameter) {
-            Serial.printf("ParameterManager#addInput(%p)\n", parameter);
-            this->available_inputs.add(parameter);
-            return parameter;
+        BaseParameterInput *addInput(BaseParameterInput *input) {
+            Serial.printf("ParameterManager#addInput(%p)\n", input);
+            this->available_inputs.add(input);
+            return input;
         }
 
         DataParameter *addParameter(DataParameter *parameter) {
-            Serial.printf("ParameterManager#addParameter(%p)\n", parameter);
+            Serial.printf("ParameterManager#addParameter(%p), labeled '%s'\n", parameter, parameter->label);
             this->available_parameters.add(parameter);
             return parameter;
+        }
+        void addParameters(LinkedList<DataParameter*> *parameters) {
+            Serial.println("ParameterManager#addParameters()..");
+            for (int i = 0 ; i < parameters->size() ; i++) {
+                Serial.printf("\t%i: adding from @%p '%s'\n", parameters->get(i), parameters->get(i)->label);
+                this->available_parameters.add(parameters->get(i));
+            }
         }
 
         // initialise devices and add all their voltage sources
@@ -132,16 +144,26 @@ class ParameterManager {
         }
 
         #ifdef ENABLE_SCREEN
-
             void addAllParameterInputMenuItems(Menu *menu) {
                 for (int i = 0 ; i < this->available_inputs.size() ; i++) {
                     menu->add(this->makeMenuItemForParameterInput(this->available_inputs.get(i)));
                 }
             }
+            // add all the available parameters to the main menu
             void addAllParameterMenuItems(Menu *menu) {
                 for (int i = 0 ; i <this->available_parameters.size() ; i++) {
                     menu->add(this->makeMenuItemForParameter(this->available_parameters.get(i)));
                 }
+            }
+
+            SubMenuItem *addParameterSubMenuItems(Menu *menu, char *label, LinkedList<DataParameter*> *parameters) {
+                //LinkedList<DataParameter*> *parameters = behaviour_craftsynth->get_parameters();
+                SubMenuItem *submenu = new SubMenuItem(label, false);
+                for (int i = 0 ; i < parameters->size() ; i++) {
+                    submenu->add(this->makeMenuItemForParameter(parameters->get(i)));
+                }
+                menu->add(submenu);
+                return submenu;
             }
 
             MenuItem *makeMenuItemForParameterInput(BaseParameterInput *param_input, char *label_prefix = nullptr) {

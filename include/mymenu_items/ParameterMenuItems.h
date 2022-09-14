@@ -34,6 +34,13 @@ class ParameterMenuItem : public DirectNumberControl {
             //this->step = 0.01;
         }
 
+        virtual bool action_opened() override {
+            //Serial.printf("ParameterMenuItem#action_opened in %s ", this->label);
+            //Serial.printf("get_current_value() is %f\n", this->parameter->getCurrentValue());
+            this->internal_value = this->get_current_value(); //->parameter->getCurrentValue() * this->maximum_value; //->getCurrentValue() * this->maximum_value;
+            return true;
+        }
+
         virtual int get_current_value() override {
             if (this->parameter==nullptr)
                 return 0;
@@ -41,7 +48,7 @@ class ParameterMenuItem : public DirectNumberControl {
                 Serial.printf("ParameterMenuItem for %s (parameter %s) has currentValue ", this->label, this->parameter->label);
                 Serial.println(parameter->getCurrentValue());
             }*/
-            return (int) parameter->getCurrentValue() * this->maximum_value;    // turn into percentage
+            return (int) (parameter->getCurrentValue() * (double)this->maximum_value);    // turn into percentage
         }
 
         virtual const char *getFormattedValue() override {
@@ -59,12 +66,12 @@ class ParameterMenuItem : public DirectNumberControl {
                 return;
            
             if (this->parameter!=nullptr) {
-                if (this->debug) Serial.printf("\tCalling setParamValue %i/%i on Parameter %s\n", value, this->maximum_value, this->parameter->label); Serial.flush();
+                if (this->debug) 
+                    Serial.printf("\tParameterMenuItems#set_current_value(%i): Calling setParamValue %i/%i on Parameter %s\n", value, value, this->maximum_value, this->parameter->label); Serial.flush();
                 //double v = (double)((double)value / (double)this->maximum_value);
                 double v = (double)(((double)value/100.0)); // / (double)this->maximum_value); // * (double)this->maximum_value);
                 if (this->debug) {
-                    Serial.print("got v to pass: ");
-                    Serial.println(v);
+                    Serial.print("got v to pass: ");                    Serial.println(v);
                 }
                 this->parameter->setParamValue(v);    // turn into percentage
             } 
@@ -97,7 +104,7 @@ class ParameterMenuItem : public DirectNumberControl {
 
 
 // ui to configure which Parameter a ParameterInput targets
-// TODO: this is based on a tweaked version of the MIDIOutputSelectorControl from the usb_midi_clocker project, merge the two functionalities to make generic
+// TODO: I think ideally we want to go the other way around; for a parameter, we want to select which ParameterInputs it draws from
 class ParameterSelectorControl : public SelectorControl {
     int actual_value_index = -1;
     //void (*setter_func)(BaseParameter *midi_output);
