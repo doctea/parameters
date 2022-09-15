@@ -39,7 +39,7 @@ class ADSParameterInput : public AnalogParameterInput<TargetClass, DataType> {
     virtual const char* getInputInfo() {
       static char input_info[20] = "                ";
 
-      sprintf(input_info, "ADS@%p %i %s%s", this->ads, this->channel, (this->inverted?"I":""), (this->map_unipolar?"U":""));
+      sprintf(input_info, "ADS@%p %i %s%s", this->ads, this->channel, (this->inverted?"I":""), (this->map_unipolar_to_bipolar?"U":""));
       return input_info;
     }
 

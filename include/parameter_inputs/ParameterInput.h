@@ -21,7 +21,7 @@ class BaseParameterInput {
     BaseParameter *target_parameter = nullptr;
 
     bool inverted = false;
-    bool map_unipolar = false;
+    bool map_unipolar_to_bipolar = false;
 
     BaseParameterInput() {
       this->name = ++NEXT_PARAMETER_NAME;

@@ -42,7 +42,7 @@ class AnalogParameterInputBase : public ParameterInput<TargetClass> {
       } else 
         value = (float)value / max_input_value;
 
-      if (this->map_unipolar)
+      if (this->map_unipolar_to_bipolar)
         value = -1.0 + (value*2.0);
 
       return value;
@@ -55,7 +55,7 @@ class AnalogParameterInputBase : public ParameterInput<TargetClass> {
     virtual const char *getInputInfo() {
       static char input_info[20] = "                ";
 
-      sprintf(input_info, "Anlg %s%s", (this->inverted?"I":""), (this->map_unipolar?"U":""));
+      sprintf(input_info, "Anlg %s%s", (this->inverted?"I":""), (this->map_unipolar_to_bipolar?"U":""));
       return input_info;
     }
 
