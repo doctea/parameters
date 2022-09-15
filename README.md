@@ -23,6 +23,17 @@ Based on code extracted from my [envor2](https://github.com/doctea/envor2) and [
 - Docs/examples how to use the library in a project from scratch
 - Provide a manager class that encapsulates all the annoying stuff like setting up and checking hte values (currently need to add code to do this in your app, see sidenhancy and usb_midi_clocker for examples)
 
+### Total rebuild
+- ok, need to change all this, cos its getting too confusing.
+- so the Parameter should request the value from the ParameterInput, instead of ParameterInput pushing it to the Parameter.
+ - Parameter to be able to pull from multiple ParameterInputs, and choose the mix level, etc.
+- each ParameterInput should have a set of options to mark them as bipolar, unipolar, inverted, range, frequency.
+- ParameterInput should only send doubles, range -1 to +1?
+- ParameterControl should ask the Parameter how to display the value of a double ?
+ - But how should ParameterControl know what a knob left/knob right should do to its internal value?
+ - Maybe ParameterControl should ask Parameter 'what is X after knob turned right?' etc
+- Only Parameter needs to care about what its final output datatype is?
+
 ### Classes and structure
 
 - VoltageSources connect directly to ADS or analog pin
