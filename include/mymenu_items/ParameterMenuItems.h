@@ -52,10 +52,10 @@ class ParameterMenuItem : public DirectNumberControl {
         }
 
         virtual const char *getFormattedValue() override {
-            return this->parameter->getFormattedValue();
-            /*char fmt[20] = "      ";
-            sprintf(fmt, "%i", get_current_value());
-            return fmt;*/
+            //return this->parameter->getFormattedValue();
+            static char fmt[20] = "      ";
+            sprintf(fmt, "%s", this->parameter->getFormattedValue()); 
+            return fmt;
         }
 
         virtual void set_current_value(int value) override { 

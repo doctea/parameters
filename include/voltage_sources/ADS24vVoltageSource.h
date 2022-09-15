@@ -33,6 +33,9 @@ class ADS24vVoltageSource : public VoltageSourceBase {
             int16_t value2 = ads_source->readADC(channel);
             int16_t value3 = ads_source->readADC(channel);
 
+            if (!already_succeeded) 
+                Serial.printf("ADS24vVoltageSource#fetch_current_voltage didn't crash on first read, so address is probably ok!\n", this->channel);
+
             already_succeeded = true;
             //int16_t value1, value2, value3;
 

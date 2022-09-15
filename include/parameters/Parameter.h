@@ -204,7 +204,7 @@ class Parameter : public DataParameter {
         #ifdef CORE_TEENSY
             // use Teensy version of this code that uses overriding functions
             virtual const char* getFormattedValue() override {
-                char *fmt = this->parseFormattedDataType((DataType)this->getCurrentValue());
+                const char *fmt = this->parseFormattedDataType((DataType)this->getCurrentValue());
                 //Serial.printf("getFormattedValue: '%s'\n", fmt);
                 return fmt;
             };

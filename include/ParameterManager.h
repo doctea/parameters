@@ -64,7 +64,7 @@ class ParameterManager {
         void addParameters(LinkedList<DataParameter*> *parameters) {
             Serial.println("ParameterManager#addParameters()..");
             for (int i = 0 ; i < parameters->size() ; i++) {
-                Serial.printf("\t%i: adding from @%p '%s'\n", parameters->get(i), parameters->get(i)->label);
+                Serial.printf("\t%i: adding from @%p '%s'\n", i, parameters->get(i), parameters->get(i)->label);
                 this->available_parameters.add(parameters->get(i));
             }
         }
