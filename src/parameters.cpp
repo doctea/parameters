@@ -21,13 +21,13 @@ MenuItem *DataParameter::makeControl() {
     Serial.printf("DataParameter#makeControl for %s\n", this->label);
     ParameterMenuItem *mi = new ParameterMenuItem(this->label, this);
     Serial.printf("makeControl() in %s:- getCurrentValue()=", this->label);
-    Serial.print(this->getCurrentValue());
+    Serial.print(this->getCurrentNormalValue());
     Serial.printf(", maximum_value=");
-    Serial.print(this->maximum_value);
+    Serial.print(this->maximumNormalValue);
     Serial.println("<<<<<<<<<<<<<");
-    mi->minimum_value = this->minimum_value;
-    mi->maximum_value = this->maximum_value;
-    mi->internal_value = this->getCurrentValue() * 100.0; // * this->maximum_value;
+    mi->minimum_value = this->minimumNormalValue;
+    mi->maximum_value = this->maximumNormalValue;
+    mi->internal_value = this->getCurrentNormalValue() * 100.0; // * this->maximum_value;
     Serial.print("\tInitialised internal_value to ");
     Serial.println(mi->internal_value);
 

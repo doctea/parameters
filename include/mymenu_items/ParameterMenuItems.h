@@ -11,24 +11,30 @@
 
 // direct control over a Parameter from menu
 //template<class DataType>
+//template<class ParameterClass>
+template<class TargetClass, class DataType>
 class ParameterMenuItem : public DirectNumberControl {
     //double internal_value;
     //int minimum_value = 0; //Parameter->minimum_value;
     //int maximum_value = 100; //Parameter->maximum_value;
     //double step = 1;
 
+    /*DataType internalDataValue;
+    DataType minimumDataValue;
+    DataType maximumDataValue;*/
+
     public:
         //int internal_value = 0;
 
         //DataParameter<DataType> *parameter = nullptr;
-        DataParameter *parameter = nullptr;
+        Parameter<TargetClass, DataType> *parameter = nullptr;
 
-        ParameterMenuItem(char *in_label, DataParameter *parameter) : DirectNumberControl(label) {
+        ParameterMenuItem(char *in_label, Parameter<DataType> *parameter) : DirectNumberControl(label) {
             strcpy(label, in_label);
             this->parameter = parameter;
-            internal_value = parameter->getCurrentValue();
-            this->minimum_value = parameter->minimum_value;
-            this->maximum_value = parameter->maximum_value;
+            internal_value = parameter->getCurrentNormalValue() * 100.0;
+            this->minimum_value = 0.0f; //parameter->minimumDataValue; //minimumNormalValue;
+            this->maximum_value = 1.0f; //parameter->maximumDataValue; //maximumNormalValue;
             //this->minimum_value = parameter->minimum_value;
             //this->maximum_value = parameter->maximum_value;
             //this->step = 0.01;
@@ -48,7 +54,7 @@ class ParameterMenuItem : public DirectNumberControl {
                 Serial.printf("ParameterMenuItem for %s (parameter %s) has currentValue ", this->label, this->parameter->label);
                 Serial.println(parameter->getCurrentValue());
             }*/
-            return (int) (parameter->getCurrentValue() * (double)this->maximum_value);    // turn into percentage
+            return (int) (parameter->getCurrentNormalValue() * 100.0); //(double)this->maximum_value);    // turn into percentage
         }
 
         virtual const char *getFormattedValue() override {
@@ -69,25 +75,28 @@ class ParameterMenuItem : public DirectNumberControl {
                 if (this->debug) 
                     Serial.printf("\tParameterMenuItems#set_current_value(%i): Calling setParamValue %i/%i on Parameter %s\n", value, value, this->maximum_value, this->parameter->label); Serial.flush();
                 //double v = (double)((double)value / (double)this->maximum_value);
-                double v = (double)(((double)value/100.0)); // / (double)this->maximum_value); // * (double)this->maximum_value);
+                double v = (double)((double)value/this->maximum_value); // / (double)this->maximum_value); // * (double)this->maximum_value);
                 if (this->debug) {
                     Serial.print("got v to pass: ");                    Serial.println(v);
                 }
-                this->parameter->setParamValue(v);    // turn into percentage
+                //this->parameter->setParamValue(v);    // turn into percentage
+                this->parameter->updateValueFromNormal(v);
             } 
         }
 
-        /*virtual void increase_value() {
-            this->internal_value -= this->step;
+        virtual void increase_value() override {
+            this->internal_value = parameter->decrementValue();
+            /*this->internal_value -= this->step;
             if (this->internal_value < this->minimum_value)
-                this->internal_value = this->minimum_value; // = NUM_LOOP_SLOTS_PER_PROJECT-1;
+                this->internal_value = this->minimum_value; // = NUM_LOOP_SLOTS_PER_PROJECT-1;*/
             //project.select_loop_number(ui_selected_loop_number);
         }
-        virtual void decrease_value() {
-            this->internal_value += this->step;
+        virtual void decrease_value() override {
+            this->internal_value = parameter->incrementValue();
+            /*this->internal_value += this->step;
             if (this->internal_value >= this->maximum_value)
-                this->internal_value = this->maximum_value;
-        }*/
+                this->internal_value = this->maximum_value;*/
+        }
 
         /*virtual void change_value(int new_value) {
             if (readOnly) 

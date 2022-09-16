@@ -76,7 +76,8 @@ class VoltageParameterInput : public AnalogParameterInputBase<TargetClass, DataT
                             Serial.println(this->voltage_source->maximum_input_voltage);
                         #endif
                     }
-                    this->target_parameter->setParamValue(normal, this->voltage_source->maximum_input_voltage);
+                    //this->target_parameter->setParamValue(normal, this->voltage_source->maximum_input_voltage);
+                    this->target_parameter->updateValueFromNormal(normal); //
                 }
                 //Serial.println("Finishing read()"); Serial.flush();
             }

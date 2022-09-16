@@ -102,7 +102,7 @@ class AnalogParameterInputBase : public ParameterInput<TargetClass> {
             if (this->inverted) Serial.print(F(" - inverted"));
             Serial.println();
           }
-          this->target_parameter->setParamValue(normal);
+          this->target_parameter->updateValueFromNormal(normal); //setParamValue(normal);
         }
         //if (Parameter_number!=0xff)
           //Parameters[Parameter_number]->setParamValueA(get_normal_value(currentValue));
