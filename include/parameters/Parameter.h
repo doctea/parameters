@@ -53,7 +53,7 @@ class BaseParameter { //: public AbstractBaseParameter {
 };
 
 //template<class DataType>
-class DataParameter : public BaseParameter {
+class DoubleParameter : public BaseParameter {
     public: 
     
     double currentNormalValue = 0.0;
@@ -62,7 +62,7 @@ class DataParameter : public BaseParameter {
     double minimumNormalValue = 0.0;
     double maximumNormalValue = 100.0;
 
-    DataParameter(char *label) : BaseParameter(label) {}
+    DoubleParameter(char *label) : BaseParameter(label) {}
 
     virtual double getCurrentNormalValue() {
         return this->currentNormalValue;
@@ -71,12 +71,29 @@ class DataParameter : public BaseParameter {
         return this->lastNormalValue;
     }
 
-    virtual void updateValueFromNormal(double value/*, double range = 1.0*/) override {};
+    /*virtual int getCurrentDataValue() {
+        return round(this->currentNormalValue * 100.0);
+    }*/
+    virtual const char* getFormattedValue(double value) {
+        Serial.printf("WARNING: dummy DoubleParameter#getFormattedValue(%f) for '%s'\n", value, this->label);
+    }
+
+    virtual void updateValueFromNormal(double value/*, double range = 1.0*/) override {
+        // TODO: we might actually want this to do something?
+        Serial.printf("WARNING: dummy DoubleParameter#updateValueFromNormal(%f) for '%s'\n", value, this->label);
+    };
 
     virtual void on_unbound(BaseParameterInput *input) {
         //this->updateValueFromNormal(this->initialNormalValue * this->maximumNormalValue);
         this->updateValueFromNormal(this->initialNormalValue);
         //this->setParamValue(0.0f);
+    }
+
+    virtual void incrementValue() {
+        Serial.printf("WARNING: dummy DoubleParameter#incrementValue() for '%s'\n", this->label);
+    }
+    virtual void decrementValue() {
+        Serial.printf("WARNING: dummy DoubleParameter#decrementValue() for '%s'\n", this->label);
     }
 
     #ifdef ENABLE_SCREEN
@@ -87,7 +104,7 @@ class DataParameter : public BaseParameter {
 
 // an object that can be targeted by a ParameterInput, calls setter method on final target object
 template<class TargetClass, class DataType = double>
-class Parameter : public DataParameter {
+class DataParameter : public DoubleParameter {
     public:
 
         DataType minimumDataValue = 0.0;
@@ -104,21 +121,21 @@ class Parameter : public DataParameter {
         void (test::*func)(float);
         void (test::*func)(int);*/
 
-        Parameter(char *label, TargetClass *target) : DataParameter(label) {
+        DataParameter(char *label, TargetClass *target) : DoubleParameter(label) {
             this->target = target;
         }
-        Parameter(char *label, TargetClass *target, DataType initial_value_normal) : Parameter(label, target) {
+        DataParameter(char *label, TargetClass *target, DataType initial_value_normal) : DoubleParameter(label, target) {
             this->initialNormalValue = initial_value_normal;
         }
-        Parameter(char *label, TargetClass *target, void(TargetClass::*setter_func)(DataType)) : Parameter(label, target) {
+        DataParameter(char *label, TargetClass *target, void(TargetClass::*setter_func)(DataType)) : DoubleParameter(label, target) {
             this->setter_func = setter_func;
         }
-        Parameter(char *label, TargetClass *target, void(TargetClass::*setter_func)(DataType), DataType(TargetClass::*getter_func)()) : Parameter(label, target, setter_func) {
+        DataParameter(char *label, TargetClass *target, void(TargetClass::*setter_func)(DataType), DataType(TargetClass::*getter_func)()) : DoubleParameter(label, target, setter_func) {
             this->getter_func = getter_func;
             //if (getter_func!=nullptr)
             //    this->setInitialValue();
         }
-        Parameter(char *label, TargetClass *target, double initial_value_normal, void(TargetClass::*setter_func)(DataType)) : Parameter(label, target, setter_func) {
+        DataParameter(char *label, TargetClass *target, double initial_value_normal, void(TargetClass::*setter_func)(DataType)) : DoubleParameter(label, target, setter_func) {
             this->initialNormalValue = initial_value_normal;
             //this->setInitialValueFromNormal(initial_value_normal);
         }
@@ -159,10 +176,17 @@ class Parameter : public DataParameter {
         }
 
         virtual DataType normalToData(double value) {
-            return this->minimumDataValue + (value * (this->maximumNormalValue - this->minimumDataValue));
+            if (this->debug) Serial.printf("normalToData(%f) ", value);
+            if (this->debug) Serial.printf(", range is %i ", this->maximumDataValue - this->minimumDataValue);
+            DataType data = this->minimumDataValue + (value * (float)(this->maximumDataValue - this->minimumDataValue));
+            if (this->debug) Serial.printf(" => %i\n", data);
+            return data;
         }
         virtual double dataToNormal(DataType value) {
-            return (value - minimumDataValue) / (maximumDataValue - minimumDataValue);
+            if (this->debug) Serial.printf("dataToNormal(%i) ", value);
+            double normal = (double)(value - minimumDataValue) / (double)(maximumDataValue - minimumDataValue);
+            if (this->debug) Serial.printf(" => %f\n", normal);
+            return normal;
             // eg   min = 0, max = 100, actual = 50 ->          ( 50 - 0 ) / (100-0)            = 0.5
             //      min = 0, max = 100, actual = 75 ->          ( 75 - 0 ) / (100-0)            = 0.75
             //      min = -100, max = 100, actual = 0 ->        (0 - -100) / (100--100)         = 0.5
@@ -192,35 +216,72 @@ class Parameter : public DataParameter {
 
         // update internal param and call setter on target
         virtual void updateValueFromData(DataType value) {
+            if (this->debug) { 
+                Serial.printf("Parameter#updateValueFromData(%i)", value); Serial.flush(); 
+            }
+
             if (this->currentDataValue==value)
                 return;
 
-            if (this->debug) { 
-                Serial.println("Parameter#updateValueFromData()"); Serial.flush(); 
-            }
-
             this->lastDataValue = this->currentDataValue;
             this->lastNormalValue = this->lastNormalValue;
+
             this->currentDataValue = value;
-            this->currentNormalValue = this->dataToNormal(value);
+            this->currentNormalValue = this->dataToNormal((DataType)value);
 
             this->setTargetValueFromData(value);
         }
 
         // update internal param and send to target
         virtual void updateValueFromNormal(double value) override { //}, double range=1.0) override {
-            this->updateValueFromData(this->normalToData(value));
+            if (this->debug) Serial.printf("updateValueFromNormal(%f)\n", value);
+            this->updateValueFromData((DataType)this->normalToData(value));
         }
 
-        virtual DataType incrementDataValue(int value) {
-            return constrain(++value, this->minimumDataValue, this->maximumDataValue);
+        // increment the value and update
+        virtual void incrementValue() override {
+            this->debug = true;
+            if (this->debug) Serial.printf(
+                //"Parameter#incrementValue() for '%s', initial FormattedValue '%s' (normal %f)", 
+                "Parameter#incrementValue() for '%s', normal %f, data %i about to call updateValueFromData()....\n", 
+                this->label, 
+                //this->getFormattedValue(this->getCurrentDataValue()), 
+                this->getCurrentNormalValue(),
+                this->getCurrentDataValue()
+            );
+            this->updateValueFromData(this->incrementDataValue((DataType)this->getCurrentDataValue()));
+            if (this->debug) Serial.printf(
+                //"became '%s' (normal %f)\n",
+                "....Parameter#incrementValue() value became normal %f, data %i\n",
+                //this->getFormattedValue(this->getCurrentDataValue()), 
+                this->getCurrentNormalValue(),
+                this->getCurrentDataValue()
+            );
         }
+        // decrement the value and update
+        virtual void decrementValue() override {
+            this->debug = true;
+            //if (this->debug) Serial.printf("Parameter#decrementValue() for '%s', initial FormattedValue '%s' (normal %f)", this->label, this->getFormattedValue(this->getCurrentDataValue()), this->getCurrentNormalValue());
+            this->updateValueFromData(this->decrementDataValue((DataType)this->getCurrentDataValue()));
+            //if (this->debug) Serial.printf("became '%s' (normal %f)\n", this->getFormattedValue(this->getCurrentDataValue()), this->getCurrentNormalValue());
+        }
+
+        // returns an incremented DataType version of input value (int)
+        virtual DataType incrementDataValue(int value) {
+            Serial.printf("Parameter#incrementDataValue(%i)..\n", value);
+            int new_value = constrain(++value, this->minimumDataValue, this->maximumDataValue);
+            Serial.printf("became %i (after constrain to %i:%i)..\n", new_value, this->minimumDataValue, this->maximumDataValue);
+            return new_value;
+        }
+        // returns an incremented DataType version of input value (float)
         virtual DataType incrementDataValue(float value) {
             return constrain(value + 0.1, this->minimumDataValue, this->maximumDataValue);
         }
+        // returns a decremented DataType version of input value (int)
         virtual DataType decrementDataValue(int value) {
             return constrain(--value, this->minimumDataValue, this->maximumDataValue);
         }
+        // returns a decremented DataType version of input value (float)
         virtual DataType decrementDataValue(float value) {
             return constrain(value - 0.1, this->minimumDataValue, this->maximumDataValue);
         }       
@@ -252,6 +313,11 @@ class Parameter : public DataParameter {
                 sprintf(fmt, "%5i (signed)",      (int)(this->maximumNormalValue*this->getCurrentNormalValue())); //getCurrentValue());
                 return fmt;
             }*/
+            virtual const char* getFormattedValue(double normal) override {
+                const char *fmt = this->parseFormattedDataType(this->normalToData(normal));
+                //Serial.printf("getFormattedValue: '%s'\n", fmt);
+                return fmt;
+            };
             virtual const char* getFormattedValue() override {
                 const char *fmt = this->parseFormattedDataType((DataType)this->getCurrentDataValue());
                 //Serial.printf("getFormattedValue: '%s'\n", fmt);
@@ -299,7 +365,7 @@ class Parameter : public DataParameter {
             if (this->target!=nullptr && this->setter_func!=nullptr) {
                 #ifdef ENABLE_PRINTF
                     if (this->debug) {
-                        Serial.println("Parameter#updateValueFromNormal()"); Serial.flush();
+                        Serial.println("Parameter#setTargetValueFromData()"); Serial.flush();
                         Serial.printf("%s: Calling setter func for value (", this->label);
                         Serial.print(value);
                         Serial.println(")");

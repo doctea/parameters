@@ -4,7 +4,7 @@ class MenuItem;
 class ToggleControl;
 
 template<class TargetClass, class DataType = bool>
-class ToggleParameter : public Parameter<TargetClass,DataType> {
+class ToggleParameter : public DataParameter<TargetClass,DataType> {
     public:
 
     //TargetClass *target = nullptr;
@@ -18,7 +18,7 @@ class ToggleParameter : public Parameter<TargetClass,DataType> {
         bool initial_value, 
         void(TargetClass::*setter_func_on)(), 
         void(TargetClass::*setter_func_off)()
-    ) : Parameter<TargetClass,DataType>(label, target, nullptr) {
+    ) : DataParameter<TargetClass,DataType>(label, target, nullptr) {
         this->currentValue = initial_value;
         this->target = target;
         this->setter_func_on = setter_func_on;
@@ -30,7 +30,7 @@ class ToggleParameter : public Parameter<TargetClass,DataType> {
         TargetClass *target, 
         bool initial_value, 
         void(TargetClass::*setter_func)(bool)
-    ) : Parameter<TargetClass,DataType>(label, target, nullptr) {
+    ) : DataParameter<TargetClass,DataType>(label, target, nullptr) {
         this->currentValue = initial_value;
         this->target = target;
         this->setter_func = setter_func;

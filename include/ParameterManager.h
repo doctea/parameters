@@ -26,16 +26,16 @@ class ParameterManager {
         LinkedList<BaseParameterInput*> available_inputs        = LinkedList<BaseParameterInput*>();
 
         // Parameters, ie wrappers around destination object
-        LinkedList<DataParameter*>      available_parameters    = LinkedList<DataParameter*>();
+        LinkedList<DoubleParameter*>      available_parameters    = LinkedList<DoubleParameter*>();
 
         // 'blank' parameter used as default mapping
-        DataParameter *param_none;
+        DoubleParameter *param_none;
 
         ParameterManager () {
         }
 
         void init() {
-            this->param_none = this->addParameter(new DataParameter((char*)"None"));
+            this->param_none = this->addParameter(new DoubleParameter((char*)"None"));
         }
 
         ADCDeviceBase *addADCDevice(ADCDeviceBase *device) {
@@ -56,12 +56,12 @@ class ParameterManager {
             return input;
         }
 
-        DataParameter *addParameter(DataParameter *parameter) {
+        DoubleParameter *addParameter(DoubleParameter *parameter) {
             Serial.printf("ParameterManager#addParameter(%p), labeled '%s'\n", parameter, parameter->label);
             this->available_parameters.add(parameter);
             return parameter;
         }
-        void addParameters(LinkedList<DataParameter*> *parameters) {
+        void addParameters(LinkedList<DoubleParameter*> *parameters) {
             Serial.println("ParameterManager#addParameters()..");
             for (int i = 0 ; i < parameters->size() ; i++) {
                 Serial.printf("\t%i: adding from @%p '%s'\n", i, parameters->get(i), parameters->get(i)->label);
@@ -156,7 +156,7 @@ class ParameterManager {
                 }
             }
 
-            SubMenuItem *addParameterSubMenuItems(Menu *menu, char *label, LinkedList<DataParameter*> *parameters) {
+            SubMenuItem *addParameterSubMenuItems(Menu *menu, char *label, LinkedList<DoubleParameter*> *parameters) {
                 //LinkedList<DataParameter*> *parameters = behaviour_craftsynth->get_parameters();
                 SubMenuItem *submenu = new SubMenuItem(label, false);
                 for (int i = 0 ; i < parameters->size() ; i++) {
@@ -196,7 +196,7 @@ class ParameterManager {
             }
 
             // create a menuitem for the passed-in parameter; returns nullptr if passed-in parameter is named "None"
-            MenuItem *makeMenuItemForParameter(DataParameter *p, char *label_prefix = nullptr) {
+            MenuItem *makeMenuItemForParameter(DoubleParameter *p, char *label_prefix = nullptr) {
                 if (strcmp(p->label,"None")==0) return nullptr;
                 MenuItem *ctrl = p->makeControl();
                 return ctrl;
