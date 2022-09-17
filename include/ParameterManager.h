@@ -6,6 +6,8 @@
 #include "parameter_inputs/ParameterInput.h"
 #include "devices/ADCDevice.h"
 
+#include "mymenu_items/ParameterInputViewMenuItems.h"
+
 #include <LinkedList.h>
 
 #ifdef ENABLE_SCREEN
@@ -146,7 +148,11 @@ class ParameterManager {
         #ifdef ENABLE_SCREEN
             void addAllParameterInputMenuItems(Menu *menu) {
                 for (int i = 0 ; i < this->available_inputs.size() ; i++) {
-                    menu->add(this->makeMenuItemForParameterInput(this->available_inputs.get(i)));
+                    BaseParameterInput *param = this->available_inputs.get(i);
+                    menu->add(this->makeMenuItemForParameterInput(param));
+                    char label[20];
+                    sprintf(label, "Graph for %c", param->name);
+                    menu->add(new ViewParameterMenuItem(label, param)); //, LOOP_LENGTH_TICKS));
                 }
             }
             // add all the available parameters to the main menu

@@ -20,10 +20,10 @@ class ADCPimoroni24v : public ADCDeviceBase {
 
         ADCPimoroni24v () : ADCDeviceBase () {}
 
-        ADCPimoroni24v (uint8_t address, uint8_t gain = 2, int max_input_voltage = MAX_INPUT_VOLTAGE_24V) : ADCPimoroni24v () {
+        ADCPimoroni24v (uint8_t address, int max_input_voltage = MAX_INPUT_VOLTAGE_24V, uint8_t gain = 2) : ADCPimoroni24v () {
             this->address = address;
-            this->gain = gain;
             this->max_input_voltage = max_input_voltage;
+            this->gain = gain;
         }
 
         virtual void init() override {

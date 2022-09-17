@@ -3,6 +3,11 @@
 
 #include "ParameterInput.h"
 
+enum VALUE_TYPE {
+  BIPOLAR,
+  UNIPOLAR
+};
+
 template<class TargetClass, class DataType>
 class AnalogParameterInputBase : public ParameterInput<TargetClass> {
 
@@ -10,8 +15,11 @@ class AnalogParameterInputBase : public ParameterInput<TargetClass> {
     DataType lastValue = 0;
     DataType currentValue = 0;
 
-    DataType min_input_value = 0.0d;
-    DataType max_input_value = 1023.0d;
+    DataType min_input_value = -1.0d;
+    DataType max_input_value = 1.0d;
+
+    byte input_type = BIPOLAR;
+    byte output_type = UNIPOLAR;
 
     using Callback = void (*)(float);
     Callback callback = nullptr;
@@ -19,10 +27,15 @@ class AnalogParameterInputBase : public ParameterInput<TargetClass> {
     DataType sensitivity = 0.005;
       
     AnalogParameterInputBase() {};
-    AnalogParameterInputBase(char name, TargetClass &in_target, DataType in_sensitivity = 0.005) { //}: ParameterInput() {
+    AnalogParameterInputBase(
+      char name, TargetClass &in_target, DataType in_sensitivity = 0.005,
+      byte input_type = BIPOLAR, byte output_type = UNIPOLAR
+      ) { //}: ParameterInput() {
       this->name = name;
       this->target_parameter = &in_target;
       this->sensitivity = in_sensitivity;
+      this->input_type = input_type;
+      this->output_type = output_type;
     }
 
     virtual void setInverted(bool invert = true) {
@@ -36,14 +49,53 @@ class AnalogParameterInputBase : public ParameterInput<TargetClass> {
       read();
     }
 
-    virtual DataType get_normal_value(DataType value) {
-      if (this->inverted) {
-        value = 1.0f - ((float)value / this->max_input_value);
-      } else 
-        value = (float)value / max_input_value;
+    virtual DataType get_normal_value() override {
+      return this->get_normal_value(this->currentValue);
+    }
 
-      if (this->map_unipolar_to_bipolar)
+    virtual DataType get_normal_value(DataType value) {
+      if (this->debug) {
+        Serial.print("get_normal_value(");
+        Serial.print(value);
+        Serial.print(") ");
+      }
+
+      /*if (this->inverted) {
+        if (this->input_type==BIPOLAR)
+          value *= -1.0;
+        else 
+          value = 1.0f - ((double)value); // / this->max_input_value);
+      } else {
+        value = (double)value; // / this->max_input_value;
+      }*/
+
+      if (input_type==output_type) {
+        // dont need to do anything
+      } else if (input_type==BIPOLAR && output_type==UNIPOLAR) {
+        value = 0.5f + (value/2.0);
+      } else if (input_type==UNIPOLAR && output_type==BIPOLAR) {
         value = -1.0 + (value*2.0);
+      }
+
+      if (this->debug) {
+        Serial.print("re-normalised to ");
+        Serial.print(value);
+        Serial.print("\n");
+      }
+
+      if (this->inverted) {
+        value = 1.0f - ((double)value); // / this->max_input_value);
+      }
+
+      if (this->debug) {
+        Serial.print(", inverted to ");
+        Serial.print(value);
+        Serial.print("\n");
+      }
+
+
+      /*if (this->map_unipolar_to_bipolar)
+        value = -1.0 + (value*2.0);*/
 
       return value;
     }

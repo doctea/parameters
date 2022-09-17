@@ -190,14 +190,13 @@ class ParameterSelectorControl : public SelectorControl {
 
     LinkedList<DoubleParameter*> *available_parameters;
 
+    bool show_values = false;   // whether to display the incoming values or not
+
     public:
 
-    ParameterSelectorControl(const char *label) : SelectorControl(label, 0) {};
-/*        SelectorControl(label, 0) {
-        //strcpy(this->label, label);
-        this->setter_func = setter_func;
-        //this->initial_selected_parameter = initial_selected_parameter;
-    }*/
+    ParameterSelectorControl(const char *label, bool show_values = false) : SelectorControl(label, 0) {
+        this->show_values = show_values;
+    };
 
     virtual void configure (BaseParameterInput *parameter_input, LinkedList<DoubleParameter*> *available_parameters) { //}, void (*setter_func)(BaseParameter*)) {
         this->available_parameters = available_parameters;
@@ -281,10 +280,14 @@ class ParameterSelectorControl : public SelectorControl {
             // not selected, so just show the current value
             colours(false, C_WHITE, BLACK);
 
-            tft->printf((char*)"Inp: %-15s\n", (char*)this->parameter_input->getInputInfo()); //i @ %p")
-            tft->printf((char*)"Read: %-8s\n", (char*)this->parameter_input->getInputValue());
+            if (show_values) {
+                tft->printf((char*)"Inp: %-15s\n", (char*)this->parameter_input->getInputInfo()); //i @ %p")
+                tft->printf((char*)"Read: %-8s\n", (char*)this->parameter_input->getInputValue());
+            }
             tft->printf((char*)"Tgt: %-15s\n", (char*)get_label_for_index(actual_value_index));
-            tft->printf((char*)"Val: %-7s\n",  (char*)this->parameter_input->getFormattedValue());
+            if (show_values) {
+                tft->printf((char*)"Val: %-7s\n",  (char*)this->parameter_input->getFormattedValue());
+            }
 
             //tft->println((char*)"");
             //tft->printf("%i%\n", 100 * parameter_input->target_parameter->getCurrentValue());

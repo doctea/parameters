@@ -22,11 +22,14 @@ class VoltageParameterInput : public AnalogParameterInputBase<TargetClass, DataT
 
         virtual void read() override {
             DataType currentValue = this->voltage_source->get_voltage_normal();
+            
             if (this->is_significant_change(currentValue, this->lastValue)) {
                 this->lastValue = this->currentValue;
+                this->currentValue = currentValue;
                 //Serial.printf("%c: Setting this->currentValue to ", this->name);
                 //Serial.println(currentValue);
-                this->currentValue = currentValue;
+                //this->currentValue = currentValue;
+                //this->currentValue = currentValue = this->get_normal_value(currentValue);
                 #ifdef ENABLE_PRINTF
                 if (this->debug) {
                     /*Serial.printf("%s: VoltageParameterInput->read() got intermediate %i, voltage ", this->name, intermediate);
@@ -38,8 +41,9 @@ class VoltageParameterInput : public AnalogParameterInputBase<TargetClass, DataT
                 }
                 #endif
 
-                //DataType normal = this->get_normal_value(currentValue);
-                DataType normal = currentValue;
+                DataType normal = this->get_normal_value(currentValue);
+                //DataType normal = currentValue;
+
                 #ifdef ENABLE_PRINTF
                 if (this->debug) {
                     Serial.printf("VoltageParameterInput#read() for '%c': got currentValue ", this->name); Serial.flush();

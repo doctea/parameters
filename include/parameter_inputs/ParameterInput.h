@@ -62,6 +62,10 @@ class BaseParameterInput {
 
     virtual void loop();
 
+    virtual double get_normal_value() {
+      return 0.0;
+    }
+
     virtual bool matches_label(char *label) {
       //if (strcmp(this->label,label)==0) return true;
       return (this->name==label[0] && label[1]=='\0');
