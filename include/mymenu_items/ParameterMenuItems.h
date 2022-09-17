@@ -3,7 +3,8 @@
 
 #include "Arduino.h"
 
-#include "mymenu.h"
+#include "menu.h"
+#include "colours.h"
 
 #include "../parameters/Parameter.h"
 //#include "AnalogParameterInputBase.h"
@@ -27,6 +28,7 @@ class ParameterMenuItem : public DirectNumberControl {
 
     public:
         //int internal_value = 0;
+        double internal_value = 0;
 
         DoubleParameter *parameter = nullptr;
         //Parameter<TargetClass, DataType> *parameter = nullptr;
@@ -45,10 +47,11 @@ class ParameterMenuItem : public DirectNumberControl {
         virtual bool action_opened() override {
             //Serial.printf("ParameterMenuItem#action_opened in %s ", this->label);
             //Serial.printf("get_current_value() is %f\n", this->parameter->getCurrentValue());
-            this->internal_value = this->get_current_value(); //->parameter->getCurrentValue() * this->maximum_value; //->getCurrentValue() * this->maximum_value;
+            //this->internal_value = this->get_current_value() / 100.0; //->parameter->getCurrentValue() * this->maximum_value; //->getCurrentValue() * this->maximum_value;
             return true;
         }
 
+        // normalised integer (0-100)
         virtual int get_current_value() override {
             if (this->parameter==nullptr)
                 return 0;
@@ -66,8 +69,12 @@ class ParameterMenuItem : public DirectNumberControl {
             return fmt;
         }
 
-        virtual void set_current_value(int value) override { 
-            if (this->debug) { Serial.printf("ParameterMenuItem#set_current_value(%i) on %s\n", value, this->label); Serial.flush(); }
+        virtual const char *getFormattedInternalValue() {
+            return this->parameter->getFormattedValue(this->internal_value);
+        }
+
+        virtual void set_current_value(double value) { 
+            if (this->debug) { Serial.printf("ParameterMenuItem#set_current_value(%f) on %s\n", value, this->label); Serial.flush(); }
 
             if (this->parameter==nullptr)
                 return;
@@ -76,16 +83,17 @@ class ParameterMenuItem : public DirectNumberControl {
            
             if (this->parameter!=nullptr) {
                 if (this->debug) {
-                    Serial.printf("\tParameterMenuItem#set_current_value(%i): Calling setParamValue %i (max value %i) on Parameter %s\n", value, value, this->maximum_value, this->parameter->label); Serial.flush();
+                    Serial.printf("\tParameterMenuItem#set_current_value(%f): Calling setParamValue %f (max value %i) on Parameter %s\n", value, value, this->maximum_value, this->parameter->label); Serial.flush();
                 }
                 //double v = (double)((double)value / (double)this->maximum_value);
-                double v = (double)((double)value/(double)this->maximum_value); // / (double)this->maximum_value); // * (double)this->maximum_value);
+                //double v = (double)((double)value/(double)this->maximum_value); // / (double)this->maximum_value); // * (double)this->maximum_value);
+                double v = value;
 
                 if (this->debug) {
                     Serial.print("ParameterMenuItem#set_current_value() got v to pass: ");                    Serial.println(v);
                 }
                 //this->parameter->setParamValue(v);    // turn into percentage
-                Serial.printf("ParameterMenuItem#set_current_value(%i) about to call updateValueFromNormal(%f) (maximum_value is %i)\n", value, v, this->maximum_value);
+                Serial.printf("ParameterMenuItem#set_current_value(%f) about to call updateValueFromNormal(%f) (maximum_value is %i)\n", value, v, this->maximum_value);
                 this->parameter->updateValueFromNormal(v);
             } 
         }
@@ -93,8 +101,8 @@ class ParameterMenuItem : public DirectNumberControl {
         virtual void increase_value() override {
             this->debug = true;
             parameter->decrementValue();
-            //this->internal_value = parameter->getCurrentDataValue(); //parameter->getCurrentNormalValue() * 100.0; //this->maximum_value;
-            Serial.printf("ParameterMenuItem#increase_value updated internal_value to %i (from %f * 100.0)\n", internal_value, parameter->getCurrentNormalValue());
+            this->internal_value = parameter->getCurrentNormalValue(); //this->maximum_value;
+            Serial.printf("ParameterMenuItem#increase_value updated internal_value to %f (from %f * 100.0)\n", internal_value, parameter->getCurrentNormalValue());
             this->debug = false;
             /*this->internal_value -= this->step;
             if (this->internal_value < this->minimum_value)
@@ -104,8 +112,8 @@ class ParameterMenuItem : public DirectNumberControl {
         virtual void decrease_value() override {
             this->debug = true;
             parameter->incrementValue();
-            //this->internal_value = parameter->getCurrentDataValue(); //->getCurrentNormalValue() * 100.0; //this->maximum_value;
-            Serial.printf("ParameterMenuItem#decrease_value updated internal_value to %i (from %f * 100.0)\n", internal_value, parameter->getCurrentNormalValue());
+            this->internal_value = parameter->getCurrentNormalValue(); // * 100.0; //this->maximum_value;
+            Serial.printf("ParameterMenuItem#decrease_value updated internal_value to %f (from %f * 100.0)\n", internal_value, parameter->getCurrentNormalValue());
             this->debug = false;
             /*this->internal_value += this->step;
             if (this->internal_value >= this->maximum_value)
@@ -123,6 +131,51 @@ class ParameterMenuItem : public DirectNumberControl {
             }
         }*/
 
+        virtual bool knob_left() override {
+            if (readOnly) return false;
+            Serial.printf("------ ParameterMenuItem#knob_left, internal_value=%f\n", internal_value);
+            increase_value();
+            Serial.printf("------ ParameterMenuItem#knob_left, about to call change_value(%f)\n", internal_value);
+            change_value(internal_value);
+            Serial.printf(">------<\n");
+            //project.select_loop_number(ui_selected_loop_number);
+            return true;
+        }
+        virtual bool knob_right() override {
+            if (readOnly) return false;
+            Serial.printf("------ ParameterMenuItem#knob_right, internal_value=%f\n", internal_value);
+            decrease_value();
+            Serial.printf("------ ParameterMenuItem#knob_right, about to call change_value(%f)\n", internal_value);
+            change_value(internal_value);
+            Serial.printf(">------<\n");
+            //project.select_loop_number(internal_value);
+            return true;
+        }
+        virtual bool button_select() override {
+            if (readOnly) return true;
+            //this->target->set_transpose(internal_value);
+            //internal_value = this->get_current_value();// * this->maximum_value; 
+            change_value(internal_value);
+            return true;
+        }
+
+        virtual void change_value(int new_value) override { //
+            float f = (float)new_value / 100.0;
+            Serial.printf("ParameterMenuItem#change_value(%i) about to call change_value(%f)\n", new_value, new_value);
+            this->change_value(f);
+        }
+
+        virtual void change_value(double new_value) {    // doesn't override, implements for normalled float?
+            if (readOnly) return;
+            int last_value = get_current_value();
+            Serial.printf("ParameterMenuItem#change_value(%f) about to call set_current_value(%f)\n", new_value, new_value);
+            this->set_current_value(new_value);
+            if (on_change_handler!=nullptr) {
+                if (this->debug)  { Serial.println("NumberControl calling on_change_handler"); Serial.flush(); }
+                on_change_handler(last_value, internal_value); //this->get_internal_value());
+                if (this->debug)  { Serial.println("NumberControl after on_change_handler"); Serial.flush(); }
+            }
+        }
 };
 
 

@@ -77,6 +77,9 @@ class DoubleParameter : public BaseParameter {
     virtual const char* getFormattedValue(double value) {
         Serial.printf("WARNING: dummy DoubleParameter#getFormattedValue(%f) for '%s'\n", value, this->label);
     }
+    virtual const char* getFormattedValue() {
+        return getFormattedValue(currentNormalValue);
+    }
 
     virtual void updateValueFromNormal(double value/*, double range = 1.0*/) override {
         // TODO: we might actually want this to do something?
@@ -102,6 +105,7 @@ class DoubleParameter : public BaseParameter {
 };
 
 
+
 // an object that can be targeted by a ParameterInput, calls setter method on final target object
 template<class TargetClass, class DataType = double>
 class DataParameter : public DoubleParameter {
@@ -116,10 +120,6 @@ class DataParameter : public DoubleParameter {
         TargetClass *target;
         void(TargetClass::*setter_func)(DataType value) = nullptr;// setter_func;
         DataType(TargetClass::*getter_func)() = nullptr;// setter_func;
-
-        /*void (test::*func)(DataType);
-        void (test::*func)(float);
-        void (test::*func)(int);*/
 
         DataParameter(char *label, TargetClass *target) : DoubleParameter(label) {
             this->target = target;
@@ -217,7 +217,7 @@ class DataParameter : public DoubleParameter {
         // update internal param and call setter on target
         virtual void updateValueFromData(DataType value) {
             if (this->debug) { 
-                Serial.printf("Parameter#updateValueFromData(%i)", value); Serial.flush(); 
+                Serial.printf("Parameter#updateValueFromData(%i)\n", value); Serial.flush(); 
             }
 
             if (this->currentDataValue==value)
@@ -249,7 +249,11 @@ class DataParameter : public DoubleParameter {
                 this->getCurrentNormalValue(),
                 this->getCurrentDataValue()
             );
-            this->updateValueFromData(this->incrementDataValue((DataType)this->getCurrentDataValue()));
+            this->updateValueFromData(
+                this->incrementDataValue(
+                    (DataType)this->getCurrentDataValue()
+                )
+            );
             if (this->debug) Serial.printf(
                 //"became '%s' (normal %f)\n",
                 "....Parameter#incrementValue() value became normal %f, data %i\n",

@@ -8,7 +8,7 @@ class ToggleControl : public ParameterMenuItem {
     double value_on = 1.0;
     double value_off = 0.0;
 
-    ToggleControl(char *label, InterParameter *parameter) : ParameterMenuItem(label, parameter) {}
+    ToggleControl(char *label, DoubleParameter *parameter) : ParameterMenuItem(label, parameter) {}
 
     virtual bool action_opened() override {
         if (this->debug) Serial.println("ToggleControl#action_opened");
