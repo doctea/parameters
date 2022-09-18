@@ -28,7 +28,7 @@ struct ParameterToInputConnection {
 //class ParameterMixer;
 #ifdef ENABLE_SCREEN
     class MenuItem;
-    //class ParameterMenuItem;
+    //class ParameterValueMenuItem;
 #endif
 
 /*class AbstractBaseParameter {

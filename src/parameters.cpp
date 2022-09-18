@@ -17,8 +17,9 @@ char NEXT_PARAMETER_NAME = 'A';
 #include "mymenu_items/ToggleMenuItems.h"
 
 MenuItem *DoubleParameter::makeControl() {
+    
     Serial.printf("DataParameter#makeControl for %s\n", this->label);
-    ParameterMenuItem *mi = new ParameterMenuItem(this->label, this);
+    ParameterValueMenuItem *mi = new ParameterValueMenuItem(this->label, this);
     Serial.printf("makeControl() in %s:- getCurrentValue()=", this->label);
     Serial.print(this->getCurrentNormalValue());
     Serial.printf(", maximum_value=");

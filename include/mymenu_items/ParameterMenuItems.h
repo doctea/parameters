@@ -16,16 +16,7 @@
 //template<class DataType>
 //template<class ParameterClass>
 //template<class TargetClass, class DataType>
-class ParameterMenuItem : public DirectNumberControl {
-    //double internal_value;
-    //int minimum_value = 0; //Parameter->minimum_value;
-    //int maximum_value = 100; //Parameter->maximum_value;
-    //double step = 1;
-
-    /*DataType internalDataValue;
-    DataType minimumDataValue;
-    DataType maximumDataValue;*/
-
+class ParameterValueMenuItem : public DirectNumberControl {
     public:
         //int internal_value = 0;
         double internal_value = 0;
@@ -33,7 +24,7 @@ class ParameterMenuItem : public DirectNumberControl {
         DoubleParameter *parameter = nullptr;
         //Parameter<TargetClass, DataType> *parameter = nullptr;
 
-        ParameterMenuItem(char *in_label, DoubleParameter *parameter) : DirectNumberControl(label) {
+        ParameterValueMenuItem(char *in_label, DoubleParameter *parameter) : DirectNumberControl(label) {
             strcpy(label, in_label);
             this->parameter = parameter;
             internal_value = parameter->getCurrentNormalValue() * 100.0;
@@ -45,7 +36,7 @@ class ParameterMenuItem : public DirectNumberControl {
         }
 
         virtual bool action_opened() override {
-            //Serial.printf("ParameterMenuItem#action_opened in %s ", this->label);
+            //Serial.printf("ParameterValueMenuItem#action_opened in %s ", this->label);
             //Serial.printf("get_current_value() is %f\n", this->parameter->getCurrentValue());
             //this->internal_value = this->get_current_value() / 100.0; //->parameter->getCurrentValue() * this->maximum_value; //->getCurrentValue() * this->maximum_value;
             return true;
@@ -56,7 +47,7 @@ class ParameterMenuItem : public DirectNumberControl {
             if (this->parameter==nullptr)
                 return 0;
             /*if (this->debug) {
-                Serial.printf("ParameterMenuItem for %s (parameter %s) has currentValue ", this->label, this->parameter->label);
+                Serial.printf("ParameterValueMenuItem for %s (parameter %s) has currentValue ", this->label, this->parameter->label);
                 Serial.println(parameter->getCurrentValue());
             }*/
             return (int) (parameter->getCurrentNormalValue() * 100.0); //(double)this->maximum_value);    // turn into percentage
@@ -78,7 +69,7 @@ class ParameterMenuItem : public DirectNumberControl {
         }
 
         virtual void set_current_value(double value) { 
-            if (this->debug) { Serial.printf("ParameterMenuItem#set_current_value(%f) on %s\n", value, this->label); Serial.flush(); }
+            if (this->debug) { Serial.printf("ParameterValueMenuItem#set_current_value(%f) on %s\n", value, this->label); Serial.flush(); }
 
             if (this->parameter==nullptr)
                 return;
@@ -94,10 +85,10 @@ class ParameterMenuItem : public DirectNumberControl {
                 double v = value;
 
                 if (this->debug) {
-                    Serial.print("ParameterMenuItem#set_current_value() got v to pass: ");                    Serial.println(v);
+                    Serial.print("ParameterValueMenuItem#set_current_value() got v to pass: ");                    Serial.println(v);
                 }
                 //this->parameter->setParamValue(v);    // turn into percentage
-                Serial.printf("ParameterMenuItem#set_current_value(%f) about to call updateValueFromNormal(%f) (maximum_value is %i)\n", value, v, this->maximum_value);
+                Serial.printf("ParameterValueMenuItem#set_current_value(%f) about to call updateValueFromNormal(%f) (maximum_value is %i)\n", value, v, this->maximum_value);
                 this->parameter->updateValueFromNormal(v);
             } 
         }
@@ -106,7 +97,7 @@ class ParameterMenuItem : public DirectNumberControl {
             this->debug = true;
             parameter->decrementValue();
             this->internal_value = parameter->getCurrentNormalValue(); //this->maximum_value;
-            Serial.printf("ParameterMenuItem#increase_value updated internal_value to %f (from %f * 100.0)\n", internal_value, parameter->getCurrentNormalValue());
+            Serial.printf("ParameterValueMenuItem#increase_value updated internal_value to %f (from %f * 100.0)\n", internal_value, parameter->getCurrentNormalValue());
             this->debug = false;
             /*this->internal_value -= this->step;
             if (this->internal_value < this->minimum_value)
@@ -117,29 +108,18 @@ class ParameterMenuItem : public DirectNumberControl {
             this->debug = true;
             parameter->incrementValue();
             this->internal_value = parameter->getCurrentNormalValue(); // * 100.0; //this->maximum_value;
-            Serial.printf("ParameterMenuItem#decrease_value updated internal_value to %f (from %f * 100.0)\n", internal_value, parameter->getCurrentNormalValue());
+            Serial.printf("ParameterValueMenuItem#decrease_value updated internal_value to %f (from %f * 100.0)\n", internal_value, parameter->getCurrentNormalValue());
             this->debug = false;
             /*this->internal_value += this->step;
             if (this->internal_value >= this->maximum_value)
                 this->internal_value = this->maximum_value;*/
         }
 
-        /*virtual void change_value(int new_value) {
-            if (readOnly) 
-                return;
-            int last_value = get_current_value();
-            set_current_value(new_value);
-            if (this->on_change_handler!=nullptr) {
-                Serial.println("calling on_change_handler"); Serial.flush();
-                this->on_change_handler(last_value, internal_value);
-            }
-        }*/
-
         virtual bool knob_left() override {
             if (readOnly) return false;
-            Serial.printf("------ ParameterMenuItem#knob_left, internal_value=%f\n", internal_value);
+            Serial.printf("------ ParameterValueMenuItem#knob_left, internal_value=%f\n", internal_value);
             increase_value();
-            Serial.printf("------ ParameterMenuItem#knob_left, about to call change_value(%f)\n", internal_value);
+            Serial.printf("------ ParameterValueMenuItem#knob_left, about to call change_value(%f)\n", internal_value);
             change_value(internal_value);
             Serial.printf(">------<\n");
             //project.select_loop_number(ui_selected_loop_number);
@@ -147,9 +127,9 @@ class ParameterMenuItem : public DirectNumberControl {
         }
         virtual bool knob_right() override {
             if (readOnly) return false;
-            Serial.printf("------ ParameterMenuItem#knob_right, internal_value=%f\n", internal_value);
+            Serial.printf("------ ParameterValueMenuItem#knob_right, internal_value=%f\n", internal_value);
             decrease_value();
-            Serial.printf("------ ParameterMenuItem#knob_right, about to call change_value(%f)\n", internal_value);
+            Serial.printf("------ ParameterValueMenuItem#knob_right, about to call change_value(%f)\n", internal_value);
             change_value(internal_value);
             Serial.printf(">------<\n");
             //project.select_loop_number(internal_value);
@@ -165,14 +145,14 @@ class ParameterMenuItem : public DirectNumberControl {
 
         virtual void change_value(int new_value) override { //
             float f = (float)new_value / 100.0;
-            Serial.printf("ParameterMenuItem#change_value(%i) about to call change_value(%f)\n", new_value, new_value);
+            Serial.printf("ParameterValueMenuItem#change_value(%i) about to call change_value(%f)\n", new_value, new_value);
             this->change_value(f);
         }
 
         virtual void change_value(double new_value) {    // doesn't override, implements for normalled float?
             if (readOnly) return;
             int last_value = get_current_value();
-            Serial.printf("ParameterMenuItem#change_value(%f) about to call set_current_value(%f)\n", new_value, new_value);
+            Serial.printf("ParameterValueMenuItem#change_value(%f) about to call set_current_value(%f)\n", new_value, new_value);
             this->set_current_value(new_value);
             if (on_change_handler!=nullptr) {
                 if (this->debug)  { Serial.println("NumberControl calling on_change_handler"); Serial.flush(); }
@@ -185,6 +165,7 @@ class ParameterMenuItem : public DirectNumberControl {
 
 // ui to configure which Parameter a ParameterInput targets
 // TODO: I think ideally we want to go the other way around; for a parameter, we want to select which ParameterInputs it draws from
+/*
 class ParameterSelectorControl : public SelectorControl {
     int actual_value_index = -1;
     //void (*setter_func)(BaseParameter *midi_output);
@@ -247,9 +228,6 @@ class ParameterSelectorControl : public SelectorControl {
     virtual const char* get_label_for_index(int index) {
         if (index<0)
             return "None";
-        /*char label[20];
-        strcpy(available_parameters.get(index)->label, label);
-        return label;*/
         return this->available_parameters->get(index)->label;
     }
 
@@ -260,10 +238,6 @@ class ParameterSelectorControl : public SelectorControl {
         if (this->parameter_input!=nullptr) {
             this->parameter_input->setTarget(this->available_parameters->get(new_value));
         }
-        /*if (this->setter_func!=nullptr) {
-            Serial.printf("setting new output\n");
-            this->setter_func(available_parameters.get(new_value));
-        }*/
     }
     virtual int getter () {
         return selected_value_index;
@@ -298,14 +272,6 @@ class ParameterSelectorControl : public SelectorControl {
             //Serial.printf("get currentvalue: %i\n", parameter_input->target_parameter->getCurrentValue());
             //Serial.printf("got formatted value in selector display: %s\n", parameter_input->getFormattedValue());
         } else {
-            // calculate available viewport size
-            /*int viewport_size = tft->height() - tft->getCursorY();
-            if (num_values < viewport_size) viewport_size = num_values;
-            Serial.printf("viewport_size is %i\n", viewport_size);
-            int currentValue = actual_value_index; //this->getter();
-            for (int i = 0 ; i < viewport_size ; i++) {
-            }*/
-                      
             // selected, so show the possible values to select from
             int current_value = actual_value_index; //this->getter();
 
@@ -318,8 +284,6 @@ class ParameterSelectorControl : public SelectorControl {
             } else {
                 //Serial.printf("\n| keeping start_value to %i for selected_value_index %i: ", start_value, selected_value_index);
             }
-            /*Serial.printf("%s :: ", (char*)get_label_for_index(selected_value_index));
-            Serial.print("\n");*/
 
             //int actual_count = 0;
             for (int i = start_value ; i < num_values ; i++) {
@@ -354,5 +318,5 @@ class ParameterSelectorControl : public SelectorControl {
     }
 
 };
-
+*/
 #endif

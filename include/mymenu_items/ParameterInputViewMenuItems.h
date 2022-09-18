@@ -14,14 +14,14 @@
 #define LOOP_LENGTH_STEP_SIZE 1         // resolution of loop TODO: problems when this is set >1; reloaded sequences (or maybe its converted-from-bitmap stage?) are missing note-offs
 #define ticks_to_sequence_step(X)  ((X % LOOP_LENGTH_TICKS) / LOOP_LENGTH_STEP_SIZE)
 
-class ViewParameterMenuItem : public MenuItem {
+class ParameterInputDisplay : public MenuItem {
     public:
         BaseParameterInput *parameter_input = nullptr;
 
         double logged[LOOP_LENGTH_TICKS];
 
-        ViewParameterMenuItem(char *label, BaseParameterInput *input) : MenuItem(label) {
-        //ViewParameterMenuItem(char *label, BaseParameterInput *input) : MenuItem(label) {
+        ParameterInputDisplay(char *label, BaseParameterInput *input) : MenuItem(label) {
+        //ParameterInputDisplay(char *label, BaseParameterInput *input) : MenuItem(label) {
             this->parameter_input = input;
             //this->loop_length_ticks = loop_length_ticks;
             //double logged

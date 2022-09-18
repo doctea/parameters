@@ -166,7 +166,7 @@ class ParameterManager {
                     menu->add(this->makeMenuItemForParameterInput(param));
                     char label[20];
                     sprintf(label, "Graph for %c", param->name);
-                    menu->add(new ViewParameterMenuItem(label, param)); //, LOOP_LENGTH_TICKS));
+                    menu->add(new ParameterInputDisplay(label, param)); //, LOOP_LENGTH_TICKS));
                 }
             }
             // add all the available parameters to the main menu
