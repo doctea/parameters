@@ -1,6 +1,8 @@
 #ifndef PARAMETERMANAGER__INCLUDED
 #define PARAMETERMANAGER__INCLUDED
 
+#include "Config.h"
+
 #include "voltage_sources/VoltageSource.h"
 #include "parameters/Parameter.h"
 #include "parameter_inputs/ParameterInput.h"
@@ -143,6 +145,18 @@ class ParameterManager {
             for (int i = 0 ; i < available_inputs_size ; i++) {
                 available_inputs.get(i)->loop();
             }
+        }
+
+        unsigned long profile_update_mixers = 0;
+        void update_mixers() {
+            // this is going to be pretty intensive; may need to adjust the way this works...
+            unsigned long update_mixers_started = micros();
+            const uint16_t available_parameters_size = this->available_parameters.size();
+            for (uint16_t i = 0 ; i < available_parameters_size ; i++) {
+                this->available_parameters.get(i)->update_mixer();
+            }
+            unsigned long update_mixers_finished = micros();
+            this->profile_update_mixers = update_mixers_finished - update_mixers_started;
         }
 
         #ifdef ENABLE_SCREEN

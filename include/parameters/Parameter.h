@@ -14,6 +14,18 @@ extern char NEXT_PARAMETER_NAME;
 //#include "ParameterInput.h"
 
 class BaseParameterInput;
+
+#define MAX_SLOT_CONNECTIONS 3
+
+struct ParameterToInputConnection {
+    //BaseParameter *parameter = nullptr;
+    BaseParameterInput *parameter_input = nullptr;
+    double amount = 0.0f;
+    //bool volt_per_octave = false;
+};
+
+
+//class ParameterMixer;
 #ifdef ENABLE_SCREEN
     class MenuItem;
     //class ParameterMenuItem;
@@ -50,6 +62,12 @@ class BaseParameter { //: public AbstractBaseParameter {
         };
         virtual void on_unbound(BaseParameterInput*) {}
 
+        virtual void update_mixer() {}
+
+        virtual bool connect_input(BaseParameterInput*, double amount) {
+            return false;
+        }
+
         // called when a BaseParameterInput that was targetting this item release control of this parameter
 };
 
@@ -62,6 +80,8 @@ class DoubleParameter : public BaseParameter {
     double minimumNormalValue = 0.0;
     double maximumNormalValue = 100.0;
 
+    double lastModulatedNormalValue = 0.0;
+
     DoubleParameter(char *label) : BaseParameter(label) {}
 
     virtual double getCurrentNormalValue() {
@@ -69,6 +89,9 @@ class DoubleParameter : public BaseParameter {
     }
     virtual double getLastNormalValue() {
         return this->lastNormalValue;
+    }
+    virtual double getLastModulatedNormalValue() {
+        return this->lastModulatedNormalValue;
     }
 
     /*virtual int getCurrentDataValue() {
@@ -100,6 +123,75 @@ class DoubleParameter : public BaseParameter {
         Serial.printf("WARNING: dummy DoubleParameter#decrementValue() for '%s'\n", this->label);
     }
 
+    // parameter input mixing / modulation stuff
+    ParameterToInputConnection connections[MAX_SLOT_CONNECTIONS];
+    
+    int find_empty_slot() {
+        for (int i = 0 ; i < MAX_SLOT_CONNECTIONS ; i++) {
+            if (connections[i].parameter_input==nullptr)
+                return i;
+        }
+        return -1;
+    }
+    virtual bool connect_input(BaseParameterInput *parameter_input, double amount) {
+        int slot = find_empty_slot();
+        if (slot==-1) 
+            return false;
+
+        set_slot_input(slot, parameter_input);
+        set_slot_amount(slot, amount);
+
+        return true;
+    }
+    virtual bool disconnect_input(byte slot) { 
+        this->connections[slot].parameter_input = nullptr;
+        return true;
+    }
+
+    void set_slot_input(byte slot, BaseParameterInput *parameter_input) {
+        this->connections[slot].parameter_input = parameter_input;
+    }
+    void set_slot_amount(byte slot, double amount) {
+        this->connections[slot].amount = amount;
+    }
+
+    void set_slot_0_input(BaseParameterInput *parameter_input) {
+        this->set_slot_input(0,parameter_input);
+    }
+    void set_slot_0_amount(double amount) {
+        this->set_slot_amount(0, amount);
+    }
+    void set_slot_1_input(BaseParameterInput *parameter_input) {
+        this->set_slot_input(0,parameter_input);
+    }
+    void set_slot_1_amount(double amount) {
+        this->set_slot_amount(0, amount);
+    }
+    void set_slot_2_input(BaseParameterInput *parameter_input) {
+        this->set_slot_input(0,parameter_input);
+    }
+    void set_slot_2_amount(double amount) {
+        this->set_slot_amount(0, amount);
+    }
+
+    /*void changeValue(BaseParameterInput *parameter_input) {
+        // find the parameterinput we've been passed
+        // update and send the actual value
+    }*/
+
+    double get_modulation_value();/* {
+        // get the modulation amount to use
+        double modulation = 0.0f;
+        for (int i = 0 ; i < MAX_CONNECTIONS ; i++) {
+            if (this->connections[i].parameter_input!=nullptr)
+                modulation += (
+                    this->connections[i].parameter_input->get_normal_value() * this->connections[i].amount
+                );
+        }
+        return modulation;
+        //this->parameter->modulateValue(modulation);
+    }*/
+
     #ifdef ENABLE_SCREEN
     virtual MenuItem *makeControl();
     #endif
@@ -118,12 +210,17 @@ class DataParameter : public DoubleParameter {
         DataType currentDataValue = 0;
         DataType initialDataValue = 0;
 
+        double modulateNormalValue = 0.0;
+
         TargetClass *target;
         void(TargetClass::*setter_func)(DataType value) = nullptr;// setter_func;
         DataType(TargetClass::*getter_func)() = nullptr;// setter_func;
 
+        //ParameterMixer *mixer = nullptr;
+
         DataParameter(char *label, TargetClass *target) : DoubleParameter(label) {
             this->target = target;
+            //this->mixer = new ParameterMixer(); //this);
         }
         DataParameter(char *label, TargetClass *target, DataType initial_value_normal) : DoubleParameter(label, target) {
             this->initialNormalValue = initial_value_normal;
@@ -230,13 +327,40 @@ class DataParameter : public DoubleParameter {
             this->currentDataValue = value;
             this->currentNormalValue = this->dataToNormal((DataType)value);
 
-            this->setTargetValueFromData(value);
+            this->sendCurrentTargetValue();
+        }
+
+        virtual void update_mixer() {
+            //this->mixer->updateOutput();
+            static double lastModulationNormalValue = 0.0;
+            this->modulateNormalValue = this->get_modulation_value();
+            if (modulateNormalValue!=lastModulatedNormalValue)
+                this->sendCurrentTargetValue();
+            lastModulatedNormalValue = modulateNormalValue;
+        }
+
+        /*virtual void connect_input(BaseParameterInput* input, double amount = 1.0) {
+            this->connect(input, amount);
+        }
+        virtual void disconnect_input(BaseParameterInput* input) {
+            this->disconnect(input);
+        }*/
+
+        virtual void sendCurrentTargetValue() {
+            double value = this->currentNormalValue + this->modulateNormalValue;
+            Serial.printf("\tgot modulated value to set: %f\n", value);
+            this->setTargetValueFromNormal(value);
         }
 
         // update internal param and send to target
         virtual void updateValueFromNormal(double value) override { //}, double range=1.0) override {
             if (this->debug) Serial.printf("updateValueFromNormal(%f)\n", value);
             this->updateValueFromData((DataType)this->normalToData(value));
+        }
+
+        virtual void modulateValue(double value) override {
+            this->modulateNormalValue = value;
+            //this->updateValueFromNormal(this->currentNormalValue);
         }
 
         // increment the value and update
@@ -310,17 +434,20 @@ class DataParameter : public DoubleParameter {
             }
             virtual const char* parseFormattedDataType(double value) {
                 static char fmt[20] = "              ";
-                sprintf(fmt, "%3i%% (float)",     (int)(100.0*value)); //->getCurrentValue());
+                //sprintf(fmt, "%3i%% (float)",     (int)(100.0*value)); //->getCurrentValue());
+                sprintf(fmt, "%3i%%",     (int)(100.0*value)); //->getCurrentValue());
                 return fmt;
             }
             virtual const char* parseFormattedDataType(unsigned int value) {
                 static char fmt[20] = "              ";
-                sprintf(fmt, "%5u (unsigned)",   value); // (unsigned int)(this->maximumNormalValue*this->getCurrentNormalValue())); //getCurrentValue());
+                //sprintf(fmt, "%5u (unsigned)",   value); // (unsigned int)(this->maximumNormalValue*this->getCurrentNormalValue())); //getCurrentValue());
+                sprintf(fmt, "%5u",   value); // (unsigned int)(this->maximumNormalValue*this->getCurrentNormalValue())); //getCurrentValue());
                 return fmt;
             }
             virtual const char* parseFormattedDataType(int value) {
                 static char fmt[20] = "              ";
-                sprintf(fmt, "%5i (signed)",     value); // (int)(this->maximumNormalValue*this->getCurrentNormalValue())); //getCurrentValue());
+                //sprintf(fmt, "%5i (signed)",     value); // (int)(this->maximumNormalValue*this->getCurrentNormalValue())); //getCurrentValue());
+                sprintf(fmt, "%5i",     value); // (int)(this->maximumNormalValue*this->getCurrentNormalValue())); //getCurrentValue());
                 return fmt;
             }
         #else
@@ -361,7 +488,13 @@ class DataParameter : public DoubleParameter {
         }
         // actually set the target from normal
         virtual void setTargetValueFromNormal(double value) {
+            this->lastModulatedNormalValue = this->constrainNormal(value);
             this->setTargetValueFromData(this->normalToData(value));
+        }
+
+        virtual double constrainNormal(double value) {
+            // todo: check if polar/bipolar
+            return constrain(value, 0.0, 1.0);
         }
 
         virtual void set_target_object(TargetClass *target) {

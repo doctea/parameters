@@ -140,7 +140,8 @@ class AnalogParameterInputBase : public ParameterInput<TargetClass> {
             if (this->inverted) Serial.print(F(" - inverted"));
             Serial.println();
           }
-          this->target_parameter->updateValueFromNormal(normal); 
+          //this->target_parameter->updateValueFromNormal(normal); 
+          // TODO: trigger updating of connected parameter mixers?
         }
       }
     }

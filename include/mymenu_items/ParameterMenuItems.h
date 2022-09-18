@@ -73,6 +73,10 @@ class ParameterMenuItem : public DirectNumberControl {
             return this->parameter->getFormattedValue(this->internal_value);
         }
 
+        virtual const char *getFormattedExtra() {
+            return this->parameter->getFormattedValue(parameter->getLastModulatedNormalValue());
+        }
+
         virtual void set_current_value(double value) { 
             if (this->debug) { Serial.printf("ParameterMenuItem#set_current_value(%f) on %s\n", value, this->label); Serial.flush(); }
 
