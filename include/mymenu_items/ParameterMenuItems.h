@@ -19,15 +19,14 @@
 class ParameterValueMenuItem : public DirectNumberControl<double> {
     public:
         //int internal_value = 0;
-        double internal_value = 0;
-
+        //double internal_value = 0;
         DoubleParameter *parameter = nullptr;
         //Parameter<TargetClass, DataType> *parameter = nullptr;
 
         ParameterValueMenuItem(char *label, DoubleParameter *parameter) : DirectNumberControl(label) {
             strcpy(this->label, label);
             this->parameter = parameter;
-            internal_value = parameter->getCurrentNormalValue() * 100.0;
+            this->internal_value = parameter->getCurrentNormalValue() * 100.0;
             this->minimum_value = 0.0f; //parameter->minimumDataValue; //minimumNormalValue;
             this->maximum_value = 1.0f; //parameter->maximumDataValue; //maximumNormalValue;
             //this->minimum_value = parameter->minimum_value;
@@ -43,14 +42,15 @@ class ParameterValueMenuItem : public DirectNumberControl<double> {
         }
 
         // normalised integer (0-100)
-        virtual int get_current_value() override {
+        virtual double get_current_value() override {
             if (this->parameter==nullptr)
                 return 0;
             /*if (this->debug) {
                 Serial.printf("ParameterValueMenuItem for %s (parameter %s) has currentValue ", this->label, this->parameter->label);
                 Serial.println(parameter->getCurrentValue());
             }*/
-            return (int) (parameter->getCurrentNormalValue() * 100.0); //(double)this->maximum_value);    // turn into percentage
+            //return (int) (parameter->getCurrentNormalValue() * 100.0); //(double)this->maximum_value);    // turn into percentage
+            return parameter->getCurrentNormalValue();
         }
 
         virtual const char *getFormattedValue() override {
@@ -120,7 +120,7 @@ class ParameterValueMenuItem : public DirectNumberControl<double> {
             Serial.printf("------ ParameterValueMenuItem#knob_left, internal_value=%f\n", internal_value);
             increase_value();
             Serial.printf("------ ParameterValueMenuItem#knob_left, about to call change_value(%f)\n", internal_value);
-            change_value(internal_value);
+            change_value(this->internal_value);
             Serial.printf(">------<\n");
             //project.select_loop_number(ui_selected_loop_number);
             return true;
@@ -130,7 +130,7 @@ class ParameterValueMenuItem : public DirectNumberControl<double> {
             Serial.printf("------ ParameterValueMenuItem#knob_right, internal_value=%f\n", internal_value);
             decrease_value();
             Serial.printf("------ ParameterValueMenuItem#knob_right, about to call change_value(%f)\n", internal_value);
-            change_value(internal_value);
+            change_value(this->internal_value);
             Serial.printf(">------<\n");
             //project.select_loop_number(internal_value);
             return true;
@@ -139,7 +139,7 @@ class ParameterValueMenuItem : public DirectNumberControl<double> {
             if (readOnly) return true;
             //this->target->set_transpose(internal_value);
             //internal_value = this->get_current_value();// * this->maximum_value; 
-            change_value(internal_value);
+            change_value(this->internal_value);
             return true;
         }
 
@@ -151,17 +151,22 @@ class ParameterValueMenuItem : public DirectNumberControl<double> {
 
         virtual void change_value(double new_value) {    // doesn't override, implements for normalled float?
             if (readOnly) return;
-            int last_value = get_current_value();
+            double last_value = this->get_current_value();
             Serial.printf("ParameterValueMenuItem#change_value(%f) about to call set_current_value(%f)\n", new_value, new_value);
             this->set_current_value(new_value);
             if (on_change_handler!=nullptr) {
                 if (this->debug)  { Serial.println("NumberControl calling on_change_handler"); Serial.flush(); }
-                on_change_handler(last_value, internal_value); //this->get_internal_value());
+                on_change_handler(last_value, this->internal_value); //this->get_internal_value());
                 if (this->debug)  { Serial.println("NumberControl after on_change_handler"); Serial.flush(); }
             }
         }
 };
 
+/*
+class ParameterMenuItem : public MenuItem {
+
+}
+*/
 
 // ui to configure which Parameter a ParameterInput targets
 // TODO: I think ideally we want to go the other way around; for a parameter, we want to select which ParameterInputs it draws from
