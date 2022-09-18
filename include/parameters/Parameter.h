@@ -334,9 +334,10 @@ class DataParameter : public DoubleParameter {
             //this->mixer->updateOutput();
             static double lastModulationNormalValue = 0.0;
             this->modulateNormalValue = this->get_modulation_value();
-            if (modulateNormalValue!=lastModulatedNormalValue)
+            if (modulateNormalValue!=lastModulatedNormalValue) {
                 this->sendCurrentTargetValue();
-            lastModulatedNormalValue = modulateNormalValue;
+                lastModulatedNormalValue = modulateNormalValue;
+            }
         }
 
         /*virtual void connect_input(BaseParameterInput* input, double amount = 1.0) {
