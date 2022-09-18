@@ -30,7 +30,7 @@ class AnalogParameterInputBase : public ParameterInput<TargetClass> {
     AnalogParameterInputBase(
       char name, TargetClass &in_target, DataType in_sensitivity = 0.005,
       byte input_type = BIPOLAR, byte output_type = UNIPOLAR
-      ) { //}: ParameterInput() {
+    ) {
       this->name = name;
       this->target_parameter = &in_target;
       this->sensitivity = in_sensitivity;
@@ -60,15 +60,6 @@ class AnalogParameterInputBase : public ParameterInput<TargetClass> {
         Serial.print(") ");
       }
 
-      /*if (this->inverted) {
-        if (this->input_type==BIPOLAR)
-          value *= -1.0;
-        else 
-          value = 1.0f - ((double)value); // / this->max_input_value);
-      } else {
-        value = (double)value; // / this->max_input_value;
-      }*/
-
       if (input_type==output_type) {
         // dont need to do anything
       } else if (input_type==BIPOLAR && output_type==UNIPOLAR) {
@@ -92,10 +83,6 @@ class AnalogParameterInputBase : public ParameterInput<TargetClass> {
         Serial.print(value);
         Serial.print("\n");
       }
-
-
-      /*if (this->map_unipolar_to_bipolar)
-        value = -1.0 + (value*2.0);*/
 
       return value;
     }
@@ -131,7 +118,6 @@ class AnalogParameterInputBase : public ParameterInput<TargetClass> {
       currentValue = 0.5f;  // TODO: refactor this
 
       if (is_significant_change(currentValue, this->lastValue)) {
-      //if (abs(currentValue - this->lastValue) > this->sensitivity) {
         this->lastValue = this->currentValue;
         this->currentValue = currentValue;
 
@@ -154,11 +140,8 @@ class AnalogParameterInputBase : public ParameterInput<TargetClass> {
             if (this->inverted) Serial.print(F(" - inverted"));
             Serial.println();
           }
-          this->target_parameter->updateValueFromNormal(normal); //setParamValue(normal);
+          this->target_parameter->updateValueFromNormal(normal); 
         }
-        //if (Parameter_number!=0xff)
-          //Parameters[Parameter_number]->setParamValueA(get_normal_value(currentValue));
-        //return currentValue;
       }
     }
 };

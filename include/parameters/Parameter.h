@@ -41,6 +41,7 @@ class BaseParameter { //: public AbstractBaseParameter {
             strcpy(this->label, label);
         };
         virtual void updateValueFromNormal(double value/*, double range = 1.0*/) {};
+        virtual void modulateValue(double value) {};
         /*virtual DataType getCurrentValue() {};
         virtual DataType getLastValue() {};*/
         virtual const char* getFormattedValue() {
@@ -52,7 +53,6 @@ class BaseParameter { //: public AbstractBaseParameter {
         // called when a BaseParameterInput that was targetting this item release control of this parameter
 };
 
-//template<class DataType>
 class DoubleParameter : public BaseParameter {
     public: 
     
@@ -88,9 +88,9 @@ class DoubleParameter : public BaseParameter {
     };
 
     virtual void on_unbound(BaseParameterInput *input) {
-        //this->updateValueFromNormal(this->initialNormalValue * this->maximumNormalValue);
+        // TODO: maybe we don't always want to set the value to what it was before we started?
+        //      this is only really useful for parameters that modulate or offset or parameters...?
         this->updateValueFromNormal(this->initialNormalValue);
-        //this->setParamValue(0.0f);
     }
 
     virtual void incrementValue() {
@@ -292,32 +292,7 @@ class DataParameter : public DoubleParameter {
         }       
 
         #ifdef CORE_TEENSY
-            // use Teensy version of this code that uses overriding functions
-            /*virtual const char* getFormattedValue() override {
-                const char *fmt = this->parseFormattedDataType((DataType)this->getCurrentDataValue());
-                //Serial.printf("getFormattedValue: '%s'\n", fmt);
-                return fmt;
-            };
-            virtual const char* parseFormattedDataType(bool value) {
-                static char fmt[20] = "              ";
-                sprintf(fmt, "%s", this->getCurrentNormalValue() ? "On" : "Off");
-                return fmt;
-            }
-            virtual const char* parseFormattedDataType(double value) {
-                static char fmt[20] = "              ";
-                sprintf(fmt, "%3i%% (float)",     (int)(100.0*this->getCurrentNormalValue())); //->getCurrentValue());
-                return fmt;
-            }
-            virtual const char* parseFormattedDataType(unsigned int value) {
-                static char fmt[20] = "              ";
-                sprintf(fmt, "%5u (unsigned)",    (unsigned int)(this->maximumNormalValue*this->getCurrentNormalValue())); //getCurrentValue());
-                return fmt;
-            }
-            virtual const char* parseFormattedDataType(int value) {
-                static char fmt[20] = "              ";
-                sprintf(fmt, "%5i (signed)",      (int)(this->maximumNormalValue*this->getCurrentNormalValue())); //getCurrentValue());
-                return fmt;
-            }*/
+            // use Teensy version of this code that uses overriding functions instead of ArxTypeTraits/constexpr to render values
             virtual const char* getFormattedValue(double normal) override {
                 const char *fmt = this->parseFormattedDataType(this->normalToData(normal));
                 //Serial.printf("getFormattedValue: '%s'\n", fmt);
@@ -349,6 +324,7 @@ class DataParameter : public DoubleParameter {
                 return fmt;
             }
         #else
+            // use version for 1284p that utilise ArxTypeTraits and constexpr to render values
             virtual const char* getFormattedValue() override {
                 static char fmt[20] = "              ";
                 if constexpr (std::is_integral<DataType>::value && std::is_same<DataType, bool>::value) {
