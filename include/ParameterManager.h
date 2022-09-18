@@ -162,8 +162,10 @@ class ParameterManager {
         #ifdef ENABLE_SCREEN
             void addAllParameterInputMenuItems(Menu *menu) {
                 for (int i = 0 ; i < this->available_inputs.size() ; i++) {
+                    // TODO: probably merge these things into one new type of MenuItem?
                     BaseParameterInput *param = this->available_inputs.get(i);
                     menu->add(this->makeMenuItemForParameterInput(param));
+
                     char label[20];
                     sprintf(label, "Graph for %c", param->name);
                     menu->add(new ParameterInputDisplay(label, param)); //, LOOP_LENGTH_TICKS));
@@ -187,8 +189,11 @@ class ParameterManager {
             }
 
             MenuItem *makeMenuItemForParameterInput(BaseParameterInput *param_input, char *label_prefix = nullptr) {
+                // TODO: a new ParameterInputControl that allows to set expected input ranges
+                return nullptr;
+               
+                /*
                 char input_label[20];
-
                 // hmm think this is not actually used?
                 BaseParameter *param = param_input->target_parameter;
 
@@ -212,7 +217,7 @@ class ParameterManager {
 
                 ctrl->configure(param_input, &this->available_parameters);
 
-                return ctrl;
+                return ctrl;*/
             }
 
             // create a menuitem for the passed-in parameter; returns nullptr if passed-in parameter is named "None"

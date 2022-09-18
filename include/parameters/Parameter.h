@@ -349,7 +349,7 @@ class DataParameter : public DoubleParameter {
 
         virtual void sendCurrentTargetValue() {
             double value = this->currentNormalValue + this->modulateNormalValue;
-            Serial.printf("\tgot modulated value to set: %f\n", value);
+            if (this->debug) Serial.printf("\tin %s, got modulated value to set: %f\n", this->label, value);
             this->setTargetValueFromNormal(value);
         }
 

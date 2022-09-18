@@ -16,7 +16,7 @@
 //template<class DataType>
 //template<class ParameterClass>
 //template<class TargetClass, class DataType>
-class ParameterValueMenuItem : public DirectNumberControl {
+class ParameterValueMenuItem : public DirectNumberControl<double> {
     public:
         //int internal_value = 0;
         double internal_value = 0;
@@ -24,8 +24,8 @@ class ParameterValueMenuItem : public DirectNumberControl {
         DoubleParameter *parameter = nullptr;
         //Parameter<TargetClass, DataType> *parameter = nullptr;
 
-        ParameterValueMenuItem(char *in_label, DoubleParameter *parameter) : DirectNumberControl(label) {
-            strcpy(label, in_label);
+        ParameterValueMenuItem(char *label, DoubleParameter *parameter) : DirectNumberControl(label) {
+            strcpy(this->label, label);
             this->parameter = parameter;
             internal_value = parameter->getCurrentNormalValue() * 100.0;
             this->minimum_value = 0.0f; //parameter->minimumDataValue; //minimumNormalValue;
@@ -143,7 +143,7 @@ class ParameterValueMenuItem : public DirectNumberControl {
             return true;
         }
 
-        virtual void change_value(int new_value) override { //
+        virtual void change_value(int new_value) { //override { //
             float f = (float)new_value / 100.0;
             Serial.printf("ParameterValueMenuItem#change_value(%i) about to call change_value(%f)\n", new_value, new_value);
             this->change_value(f);
