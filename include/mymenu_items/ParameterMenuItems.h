@@ -94,22 +94,22 @@ class ParameterValueMenuItem : public DirectNumberControl<double> {
         }
 
         virtual void increase_value() override {
-            this->debug = true;
+            //this->debug = true;
             parameter->decrementValue();
             this->internal_value = parameter->getCurrentNormalValue(); //this->maximum_value;
             Serial.printf("ParameterValueMenuItem#increase_value updated internal_value to %f (from %f * 100.0)\n", internal_value, parameter->getCurrentNormalValue());
-            this->debug = false;
+            //this->debug = false;
             /*this->internal_value -= this->step;
             if (this->internal_value < this->minimum_value)
                 this->internal_value = this->minimum_value; // = NUM_LOOP_SLOTS_PER_PROJECT-1;*/
             //project.select_loop_number(ui_selected_loop_number);
         }
         virtual void decrease_value() override {
-            this->debug = true;
+            //this->debug = true;
             parameter->incrementValue();
             this->internal_value = parameter->getCurrentNormalValue(); // * 100.0; //this->maximum_value;
             Serial.printf("ParameterValueMenuItem#decrease_value updated internal_value to %f (from %f * 100.0)\n", internal_value, parameter->getCurrentNormalValue());
-            this->debug = false;
+            //this->debug = false;
             /*this->internal_value += this->step;
             if (this->internal_value >= this->maximum_value)
                 this->internal_value = this->maximum_value;*/

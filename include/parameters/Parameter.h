@@ -366,41 +366,24 @@ class DataParameter : public DoubleParameter {
 
         // increment the value and update
         virtual void incrementValue() override {
-            this->debug = true;
-            if (this->debug) Serial.printf(
-                //"Parameter#incrementValue() for '%s', initial FormattedValue '%s' (normal %f)", 
-                "Parameter#incrementValue() for '%s', normal %f, data %i about to call updateValueFromData()....\n", 
-                this->label, 
-                //this->getFormattedValue(this->getCurrentDataValue()), 
-                this->getCurrentNormalValue(),
-                this->getCurrentDataValue()
-            );
-            this->updateValueFromData(
-                this->incrementDataValue(
-                    (DataType)this->getCurrentDataValue()
-                )
-            );
-            if (this->debug) Serial.printf(
-                //"became '%s' (normal %f)\n",
-                "....Parameter#incrementValue() value became normal %f, data %i\n",
-                //this->getFormattedValue(this->getCurrentDataValue()), 
-                this->getCurrentNormalValue(),
-                this->getCurrentDataValue()
-            );
+            //this->debug = true;
+            if (this->debug) Serial.printf("Parameter#incrementValue() for '%s', normal %f, data %i about to call updateValueFromData()....\n", this->label, this->getCurrentNormalValue(), this->getCurrentDataValue());
+            this->updateValueFromData(this->incrementDataValue((DataType)this->getCurrentDataValue()));
+            if (this->debug) Serial.printf("....Parameter#incrementValue() value became normal %f, data %i\n",this->getCurrentNormalValue(),this->getCurrentDataValue());
         }
         // decrement the value and update
         virtual void decrementValue() override {
-            this->debug = true;
-            //if (this->debug) Serial.printf("Parameter#decrementValue() for '%s', initial FormattedValue '%s' (normal %f)", this->label, this->getFormattedValue(this->getCurrentDataValue()), this->getCurrentNormalValue());
+            //this->debug = true;
+            if (this->debug) Serial.printf("Parameter#decrementValue() for '%s', initial FormattedValue '%s' (normal %f)", this->label, this->getFormattedValue(this->getCurrentDataValue()), this->getCurrentNormalValue());
             this->updateValueFromData(this->decrementDataValue((DataType)this->getCurrentDataValue()));
-            //if (this->debug) Serial.printf("became '%s' (normal %f)\n", this->getFormattedValue(this->getCurrentDataValue()), this->getCurrentNormalValue());
+            if (this->debug) Serial.printf("became '%s' (normal %f)\n", this->getFormattedValue(this->getCurrentDataValue()), this->getCurrentNormalValue());
         }
 
         // returns an incremented DataType version of input value (int)
         virtual DataType incrementDataValue(int value) {
-            Serial.printf("Parameter#incrementDataValue(%i)..\n", value);
+            if (this->debug) Serial.printf("Parameter#incrementDataValue(%i)..\n", value);
             int new_value = constrain(++value, this->minimumDataValue, this->maximumDataValue);
-            Serial.printf("became %i (after constrain to %i:%i)..\n", new_value, this->minimumDataValue, this->maximumDataValue);
+            if (this->debug) Serial.printf("became %i (after constrain to %i:%i)..\n", new_value, this->minimumDataValue, this->maximumDataValue);
             return new_value;
         }
         // returns an incremented DataType version of input value (float)
