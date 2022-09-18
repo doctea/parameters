@@ -38,7 +38,7 @@ class ViewParameterMenuItem : public MenuItem {
             // update internal log of values
             unsigned int position = ticks % LOOP_LENGTH_TICKS;
             logged[position] = this->parameter_input->get_normal_value(); //get_voltage_normal();
-            Serial.printf("\tupdate_ticks(%i) recorded %f\n", position, logged[position]);
+            if (this->debug) Serial.printf("\tupdate_ticks(%i) recorded %f\n", position, logged[position]);
         }
 
         virtual int display(Coord pos, bool selected, bool opened) override {

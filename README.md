@@ -39,4 +39,13 @@ Based on code extracted from my [envor2](https://github.com/doctea/envor2) and [
 - VoltageSources connect directly to ADS or analog pin
 - ParameterInputs fetches values from VoltageSources and send them to Parameters
 - a Parameter is the final destination of the value (eg, Envelope); objects should inherit from Parameter, or simple wrappers are provided to wrap around objects and provide callbacks
+- ParameterInput is a stream of data from eg VoltageSource, MIDI CC, LFO.
+ - always a normalised double?
 
+- Parameter is for holding and mixing values from ParameterInput, and passing them on to a target object/variable.
+ - base DoubleParameter is always a double
+ - actual value on top of that can be anything..?
+	
+ParameterMenuItem is a way to interact directly with that Parameter value.
+ - asks the Parameter how to render the value, how to increment/decrement, etc..
+ 

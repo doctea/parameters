@@ -76,6 +76,7 @@ class DoubleParameter : public BaseParameter {
     }*/
     virtual const char* getFormattedValue(double value) {
         Serial.printf("WARNING: dummy DoubleParameter#getFormattedValue(%f) for '%s'\n", value, this->label);
+        return "[NaN]";
     }
     virtual const char* getFormattedValue() {
         return getFormattedValue(currentNormalValue);
