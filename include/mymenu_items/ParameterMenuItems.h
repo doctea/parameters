@@ -182,25 +182,73 @@ class ParameterMenuItem : public SubMenuItem {
     ParameterMenuItem(const char *label, DoubleParameter *parameter) : SubMenuItem(label, true) {
         this->parameter = parameter;
 
-        this->ctrl_value = new ParameterValueMenuItem("Value", parameter);
+        //this->always_show = true;
+
+        /*this->ctrl_value = new ParameterValueMenuItem("Value", parameter);
         this->ctrl_amt_1 = new DirectNumberControl<double>("Amt1", &parameter->connections[0].amount, parameter->connections[0].amount, -1, 1, nullptr);
         this->ctrl_amt_2 = new DirectNumberControl<double>("Amt2", &parameter->connections[1].amount, parameter->connections[1].amount, -1, 1, nullptr);
-        this->ctrl_amt_3 = new DirectNumberControl<double>("Amt3", &parameter->connections[2].amount, parameter->connections[2].amount, -1, 1, nullptr);
+        this->ctrl_amt_3 = new DirectNumberControl<double>("Amt3", &parameter->connections[2].amount, parameter->connections[2].amount, -1, 1, nullptr);*/
         
-        this->add(this->ctrl_value);
-        this->add(this->ctrl_amt_1);
+        // add the direct Value changer
+        this->add(new ParameterValueMenuItem("Value", parameter));
+
+        // add the Amount % changers
+        for (int i = 0 ; i < MAX_SLOT_CONNECTIONS ; i++) {
+            // todo: make this dynamic and move it to be generated on-the-fly by the DirectNumberControl
+            char labelnew[8];
+            char input_name =   parameter->connections[i].parameter_input!=nullptr ? 
+                                parameter->connections[i].parameter_input->name : 
+                                'X';
+            Serial.printf("\tfor %s, setting to parameter_input@%p '%c'\n", label, parameter->connections[i].parameter_input, input_name);
+            Serial.flush();
+            sprintf(labelnew, "Amt %c", input_name);
+            this->add(new DirectNumberControl<double>(
+                labelnew, 
+                &parameter->connections[i].amount, 
+                parameter->connections[i].amount, 
+                -1, 
+                1, 
+                nullptr
+            ));
+        }
+
+        /*this->add(this->ctrl_amt_1);
         this->add(this->ctrl_amt_2);
-        this->add(this->ctrl_amt_3);
+        this->add(this->ctrl_amt_3);*/
         //this->add(new SourceSelectorControl("S2", parameter));
         //this->add(new SourceSelectorControl("S3", parameter));
         //this->
     }
 
-    virtual bool allow_takeover() {
+    virtual bool allow_takeover() override {
         return false;
     }
 
-    virtual int display(Coord pos, bool selected, bool opened) {
+    /*virtual int display(Coord pos, bool selected, bool opened) {
+        colours(selected, C_WHITE, BLACK);
+        return MenuItem::display(pos, selected, opened);
+        tft->setTextSize(0);
+        tft->setCursor(pos.x,pos.y);
+        //tft->setTextColor(ST77XX_WHITE, ST77XX_BLACK);
+        colours(selected, C_WHITE, BLACK);
+        tft->printf("%s [s:%i o:%i]\n", label, (int)selected, (int)opened);
+        //return (tft->getTextSizeY() * 8) + 2;
+        return tft->getCursorY();
+    }*/
+
+    virtual int display(Coord pos, bool selected, bool opened) override {
+        /*tft->setCursor(pos.x, pos.y);
+        //colours(false, RED, BLACK);
+        tft->setTextColor(RED,BLACK);
+        tft->println("ParameterMenuItem test in red?");
+        return tft->getCursorY();*/
+        /*tft->setTextSize(0);
+        tft->setCursor(pos.x,pos.y);
+        //tft->setTextColor(ST77XX_WHITE, ST77XX_BLACK);
+        colours(selected);
+        tft->printf("%s [s:%i o:%i]\n", label, (int)selected, (int)opened);
+        pos.y = tft->getCursorY();*/
+        
         if (this->debug) Serial.printf("Start of display in ParameterMenuItem, passed in %i,%i\n", pos.x, pos.y);
         pos.y = header(label, pos, selected, opened);
         if (this->debug) Serial.printf("\tafter header, y=%i\n", pos.y);
@@ -218,6 +266,7 @@ class ParameterMenuItem : public SubMenuItem {
             if (temp_y>finish_y)
                 finish_y = temp_y;
         }
+
         tft->setTextColor(C_WHITE, BLACK);
         tft->setTextSize(0);
 

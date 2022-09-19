@@ -28,18 +28,22 @@ class ADS24vVoltageSource : public VoltageSourceBase {
             if (!already_succeeded) 
                 Serial.printf("ADS24vVoltageSource#fetch_current_voltage about to read from channel %i -- if we crash at this point, check that you're using the corrrect address for your ADC board!\n", this->channel);
 
-            //int16_t value = ads_source->readADC(channel);
-            int16_t value1 = ads_source->readADC(channel);
-            int16_t value2 = ads_source->readADC(channel);
-            int16_t value3 = ads_source->readADC(channel);
+            #ifndef FAST_VOLTAGE_READS
+                //int16_t value = ads_source->readADC(channel);
+                int16_t value1 = ads_source->readADC(channel);
+                int16_t value2 = ads_source->readADC(channel);
+                int16_t value3 = ads_source->readADC(channel);
 
-            if (!already_succeeded) 
-                Serial.printf("ADS24vVoltageSource#fetch_current_voltage didn't crash on first read, so address is probably ok!\n", this->channel);
+                if (!already_succeeded) 
+                    Serial.printf("ADS24vVoltageSource#fetch_current_voltage didn't crash on first read, so address is probably ok!\n", this->channel);
 
-            already_succeeded = true;
-            //int16_t value1, value2, value3;
+                already_succeeded = true;
+                //int16_t value1, value2, value3;
 
-            int value = (value1+value2+value3) / 3;
+                int value = (value1+value2+value3) / 3;
+            #else
+                int value = ads_source->readADC(channel);
+            #endif
 
             if (this->debug) {
                 Serial.printf("ADS24vVoltageSource channel %i read ADC value %i\t :", channel, value); Serial.flush();

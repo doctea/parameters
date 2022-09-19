@@ -82,7 +82,8 @@ class DoubleParameter : public BaseParameter {
 
     double lastModulatedNormalValue = 0.0;
 
-    DoubleParameter(char *label) : BaseParameter(label) {}
+    DoubleParameter(char *label) : BaseParameter(label) {
+    }
 
     virtual double getCurrentNormalValue() {
         return this->currentNormalValue;
@@ -125,8 +126,8 @@ class DoubleParameter : public BaseParameter {
 
     // parameter input mixing / modulation stuff
     ParameterToInputConnection connections[MAX_SLOT_CONNECTIONS];
-    
-    int find_empty_slot() {
+
+    virtual int find_empty_slot() {
         for (int i = 0 ; i < MAX_SLOT_CONNECTIONS ; i++) {
             if (connections[i].parameter_input==nullptr)
                 return i;
@@ -162,16 +163,16 @@ class DoubleParameter : public BaseParameter {
         this->set_slot_amount(0, amount);
     }
     void set_slot_1_input(BaseParameterInput *parameter_input) {
-        this->set_slot_input(0,parameter_input);
+        this->set_slot_input(1,parameter_input);
     }
     void set_slot_1_amount(double amount) {
-        this->set_slot_amount(0, amount);
+        this->set_slot_amount(1, amount);
     }
     void set_slot_2_input(BaseParameterInput *parameter_input) {
-        this->set_slot_input(0,parameter_input);
+        this->set_slot_input(2,parameter_input);
     }
     void set_slot_2_amount(double amount) {
-        this->set_slot_amount(0, amount);
+        this->set_slot_amount(2, amount);
     }
 
     /*void changeValue(BaseParameterInput *parameter_input) {
@@ -432,6 +433,12 @@ class DataParameter : public DoubleParameter {
                 static char fmt[20] = "              ";
                 //sprintf(fmt, "%5i (signed)",     value); // (int)(this->maximumNormalValue*this->getCurrentNormalValue())); //getCurrentValue());
                 sprintf(fmt, "%5i",     value); // (int)(this->maximumNormalValue*this->getCurrentNormalValue())); //getCurrentValue());
+                return fmt;
+            }
+            virtual const char* parseFormattedDataType(byte value) {
+                static char fmt[20] = "              ";
+                //sprintf(fmt, "%5i (signed)",     value); // (int)(this->maximumNormalValue*this->getCurrentNormalValue())); //getCurrentValue());
+                sprintf(fmt, "%-3i",     value); // (int)(this->maximumNormalValue*this->getCurrentNormalValue())); //getCurrentValue());
                 return fmt;
             }
         #else

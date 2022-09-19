@@ -139,7 +139,7 @@ class ParameterManager {
             }*/
         }
 
-        // update the ParameterInputs with the latest values from the VoltageSources, passing them on to the Parameters as appropriate
+        // update the ParameterInputs with the latest values from the VoltageSources
         void update_inputs() {
             const int available_inputs_size = available_inputs.size();
             for (int i = 0 ; i < available_inputs_size ; i++) {
@@ -148,6 +148,7 @@ class ParameterManager {
         }
 
         unsigned long profile_update_mixers = 0;
+        // update every parameter's values based on the mixed ParameterInputs
         void update_mixers() {
             // this is going to be pretty intensive; may need to adjust the way this works...
             unsigned long update_mixers_started = micros();
@@ -159,15 +160,31 @@ class ParameterManager {
             this->profile_update_mixers = update_mixers_finished - update_mixers_started;
         }
 
+        void setDefaultParameterConnections() {
+            Serial.printf("ParameterManager#setDefaultParameterConnections() has %i parameters to map to %i inputs", this->available_parameters.size(), this->available_inputs.size());
+            for (int i = 0 ; i < this->available_parameters.size() ; i++) {
+                available_parameters.get(i)->set_slot_0_input(available_inputs.get(0));
+                available_parameters.get(i)->set_slot_1_input(available_inputs.get(1));
+                available_parameters.get(i)->set_slot_2_input(available_inputs.get(2));
+                /*for (int i = 0 ; i < MAX_SLOT_CONNECTIONS ; i++) {
+                    available_parameters.get(i)->connections[i].parameter_input = available_inputs.get(i);
+                }*/
+            }
+        }
+
         #ifdef ENABLE_SCREEN
             void addAllParameterInputMenuItems(Menu *menu) {
+                Serial.println("ParameterManager#addAllParameterInputMenuItems()...");
                 for (int i = 0 ; i < this->available_inputs.size() ; i++) {
                     // TODO: probably merge these things into one new type of MenuItem?
                     BaseParameterInput *param = this->available_inputs.get(i);
-                    menu->add(this->makeMenuItemForParameterInput(param));
-
+                    //Serial.printf("\t%i: doing menu->add for makeMenuItemForParameterInput()..", i);
+                    //menu->add(this->makeMenuItemForParameterInput(param));
+                    
                     char label[20];
                     sprintf(label, "Graph for %c", param->name);
+
+                    Serial.printf("\t%i: doing menu->add for ParameterInputDisplay with label '%s'\n", i, label);
                     menu->add(new ParameterInputDisplay(label, param)); //, LOOP_LENGTH_TICKS));
                 }
             }
@@ -178,10 +195,14 @@ class ParameterManager {
                 }
             }
 
-            SubMenuItem *addParameterSubMenuItems(Menu *menu, char *label, LinkedList<DoubleParameter*> *parameters) {
+            SubMenuItem *addParameterSubMenuItems(Menu *menu, char *submenu_label, LinkedList<DoubleParameter*> *parameters) {
                 //LinkedList<DataParameter*> *parameters = behaviour_craftsynth->get_parameters();
-                SubMenuItem *submenu = new SubMenuItem(label, false);
+                SubMenuItem *submenu = new SubMenuItem(submenu_label, false);
                 for (int i = 0 ; i < parameters->size() ; i++) {
+                    //char tmp[20];
+                    //sprintf(tmp, "test item %i", i);
+                    //submenu->add(new MenuItem(tmp));
+                    Serial.printf("addParameterSubMenuItems(menu, '%s') processing parameter %i\n", submenu_label, i);
                     submenu->add(this->makeMenuItemForParameter(parameters->get(i)));
                 }
                 menu->add(submenu);
