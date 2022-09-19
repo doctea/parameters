@@ -3,7 +3,15 @@
 
 #include <Arduino.h>
 
+#ifdef ENABLE_SCREEN
+  #include "menu.h"
+#endif
 #include "../parameters/Parameter.h"
+
+enum VALUE_TYPE {
+  BIPOLAR,
+  UNIPOLAR
+};
 
 class BaseParameterInput {
   public:
@@ -22,6 +30,9 @@ class BaseParameterInput {
 
     bool inverted = false;
     bool map_unipolar_to_bipolar = false;
+
+    byte input_type = BIPOLAR;
+    byte output_type = UNIPOLAR;
 
     BaseParameterInput() {
       this->name = ++NEXT_PARAMETER_NAME;
@@ -73,6 +84,11 @@ class BaseParameterInput {
     virtual bool matches_label(char label) {
       return this->name==label;
     }
+
+    /*#ifdef ENABLE_SCREEN
+      virtual void addMenuItems(Menu *menu);
+    #endif*/
+
 };
 
 template<class TargetClass>

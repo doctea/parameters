@@ -1,19 +1,20 @@
 #ifndef PARAMETERMANAGER__INCLUDED
 #define PARAMETERMANAGER__INCLUDED
 
-#include "Config.h"
+//#include "Config.h"
 
 #include "voltage_sources/VoltageSource.h"
 #include "parameters/Parameter.h"
 #include "parameter_inputs/ParameterInput.h"
 #include "devices/ADCDevice.h"
 
-#include "mymenu_items/ParameterInputViewMenuItems.h"
+//#include "mymenu_items/ParameterInputViewMenuItems.h"
 
 #include <LinkedList.h>
 
 #ifdef ENABLE_SCREEN
   #include "submenuitem.h"
+  #include "mymenu_items/ParameterInputViewMenuItems.h"
 #endif
 
 class ParameterManager {
@@ -174,20 +175,11 @@ class ParameterManager {
 
         #ifdef ENABLE_SCREEN
             void addAllParameterInputMenuItems(Menu *menu) {
-                Serial.println("ParameterManager#addAllParameterInputMenuItems()...");
-                for (int i = 0 ; i < this->available_inputs.size() ; i++) {
-                    // TODO: probably merge these things into one new type of MenuItem?
-                    BaseParameterInput *param = this->available_inputs.get(i);
-                    //Serial.printf("\t%i: doing menu->add for makeMenuItemForParameterInput()..", i);
-                    //menu->add(this->makeMenuItemForParameterInput(param));
-                    
-                    char label[20];
-                    sprintf(label, "Graph for %c", param->name);
-
-                    Serial.printf("\t%i: doing menu->add for ParameterInputDisplay with label '%s'\n", i, label);
-                    menu->add(new ParameterInputDisplay(label, param)); //, LOOP_LENGTH_TICKS));
+                for (int i = 0 ; i < available_inputs.size() ; i++) {
+                    this->addParameterInputMenuItems(menu, available_inputs.get(i));
                 }
             }
+
             // add all the available parameters to the main menu
             void addAllParameterMenuItems(Menu *menu) {
                 for (int i = 0 ; i <this->available_parameters.size() ; i++) {
@@ -209,8 +201,19 @@ class ParameterManager {
                 return submenu;
             }
 
-            MenuItem *makeMenuItemForParameterInput(BaseParameterInput *param_input, char *label_prefix = nullptr) {
+            MenuItem *addParameterInputMenuItems(Menu *menu, BaseParameterInput *param_input, char *label_prefix = nullptr) {
                 // TODO: a new ParameterInputControl that allows to set expected input ranges
+                char label[20];
+                sprintf(label, "Graph for %c", param_input->name);
+
+                Serial.printf("\tdoing menu->add for ParameterInputDisplay with label '%s'\n", label);
+                menu->add(new ParameterInputDisplay(label, param_input)); //, LOOP_LENGTH_TICKS));
+                sprintf(label, "Input type for %c", param_input->name);
+                //menu->add(new InputTypeSelectorControl<BaseParameterInput,byte>(label, param_input, &BaseParameterInput::set_input_type, &BaseParameterInput::get_input_type));
+                menu->add(new InputTypeSelectorControl(label, &param_input->input_type));
+                sprintf(label, "Output type for %c", param_input->name);
+                menu->add(new InputTypeSelectorControl(label, &param_input->output_type)); //, &BaseParameterInput::set_output_type, &BaseParameterInput::get_output_type));
+
                 return nullptr;
                
                 /*

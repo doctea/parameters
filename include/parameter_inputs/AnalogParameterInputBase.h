@@ -3,10 +3,14 @@
 
 #include "ParameterInput.h"
 
-enum VALUE_TYPE {
-  BIPOLAR,
-  UNIPOLAR
-};
+#ifdef ENABLE_SCREEN
+  /*#include "menu.h"
+  #include "menuitems.h"
+  #include "mymenu_items/ParameterMenuItems.h"
+  #include "mymenu_items/ParameterInputViewMenuItems.h"*/
+#endif
+
+class Menu;
 
 template<class TargetClass, class DataType>
 class AnalogParameterInputBase : public ParameterInput<TargetClass> {
@@ -17,9 +21,6 @@ class AnalogParameterInputBase : public ParameterInput<TargetClass> {
 
     DataType min_input_value = -1.0d;
     DataType max_input_value = 1.0d;
-
-    byte input_type = BIPOLAR;
-    byte output_type = UNIPOLAR;
 
     using Callback = void (*)(float);
     Callback callback = nullptr;
@@ -60,11 +61,15 @@ class AnalogParameterInputBase : public ParameterInput<TargetClass> {
         Serial.print(") ");
       }
 
-      if (input_type==output_type) {
+      if (this->input_type==UNIPOLAR) {
+        value = constrain(value, 0.0, 1.0);
+      }
+
+      if (this->input_type==this->output_type) {
         // dont need to do anything
-      } else if (input_type==BIPOLAR && output_type==UNIPOLAR) {
+      } else if (this->input_type==BIPOLAR && this->output_type==UNIPOLAR) {
         value = 0.5f + (value/2.0);
-      } else if (input_type==UNIPOLAR && output_type==BIPOLAR) {
+      } else if (this->input_type==UNIPOLAR && this->output_type==BIPOLAR) {
         value = -1.0 + (value*2.0);
       }
 
@@ -145,6 +150,20 @@ class AnalogParameterInputBase : public ParameterInput<TargetClass> {
         }
       }
     }
+
+    /*#ifdef ENABLE_SCREEN
+      virtual void addMenuItems(Menu *menu) {
+            char label[20];
+            sprintf(label, "Graph for %c", this->name);
+
+            Serial.printf("\tdoing menu->add for ParameterInputDisplay with label '%s'\n", label);
+            menu->add(new ParameterInputDisplay(label, this)); //, LOOP_LENGTH_TICKS));
+            sprintf(label, "Input type for %c", this->name);
+            menu->add(new InputTypeSelectorControl(label, this, set_input_type, get_input_type));
+            sprintf(label, "Output type for %c", this->name);
+            menu->add(new InputTypeSelectorControl(label, this, set_output_type, get_output_type));
+        }
+    #endif*/
 };
 
 #endif

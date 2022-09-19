@@ -7,7 +7,7 @@
 #include "colours.h"
 
 #include "../parameters/Parameter.h"
-//#include "AnalogParameterInputBase.h"
+//#include "../parameter_inputs/AnalogParameterInputBase.h"
 //#include "DigitalParameterInput.h"
 
 #include <LinkedList.h>
