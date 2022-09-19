@@ -12,6 +12,7 @@
 
 #include <LinkedList.h>
 
+
 // direct control over a Parameter from menu
 //template<class DataType>
 //template<class ParameterClass>
@@ -60,15 +61,15 @@ class ParameterValueMenuItem : public DirectNumberControl<double> {
             return fmt;
         }
 
-        virtual const char *getFormattedInternalValue() {
+        virtual const char *getFormattedInternalValue() override {
             return this->parameter->getFormattedValue(this->internal_value);
         }
 
-        virtual const char *getFormattedExtra() {
+        virtual const char *getFormattedExtra() override {
             return this->parameter->getFormattedValue(parameter->getLastModulatedNormalValue());
         }
 
-        virtual void set_current_value(double value) { 
+        virtual void set_current_value(double value) override { 
             if (this->debug) { Serial.printf("ParameterValueMenuItem#set_current_value(%f) on %s\n", value, this->label); Serial.flush(); }
 
             if (this->parameter==nullptr)
@@ -78,17 +79,17 @@ class ParameterValueMenuItem : public DirectNumberControl<double> {
            
             if (this->parameter!=nullptr) {
                 if (this->debug) {
-                    Serial.printf("\tParameterMenuItem#set_current_value(%f): Calling setParamValue %f (max value %i) on Parameter %s\n", value, value, this->maximum_value, this->parameter->label); Serial.flush();
+                    if (this->debug) Serial.printf("\tParameterMenuItem#set_current_value(%f): Calling setParamValue %f (max value %i) on Parameter %s\n", value, value, this->maximum_value, this->parameter->label); Serial.flush();
                 }
                 //double v = (double)((double)value / (double)this->maximum_value);
                 //double v = (double)((double)value/(double)this->maximum_value); // / (double)this->maximum_value); // * (double)this->maximum_value);
                 double v = value;
 
                 if (this->debug) {
-                    Serial.print("ParameterValueMenuItem#set_current_value() got v to pass: ");                    Serial.println(v);
+                    if (this->debug) Serial.print("ParameterValueMenuItem#set_current_value() got v to pass: ");                    Serial.println(v);
                 }
                 //this->parameter->setParamValue(v);    // turn into percentage
-                Serial.printf("ParameterValueMenuItem#set_current_value(%f) about to call updateValueFromNormal(%f) (maximum_value is %i)\n", value, v, this->maximum_value);
+                if (this->debug) Serial.printf("ParameterValueMenuItem#set_current_value(%f) about to call updateValueFromNormal(%f) (maximum_value is %i)\n", value, v, this->maximum_value);
                 this->parameter->updateValueFromNormal(v);
             } 
         }
@@ -97,7 +98,7 @@ class ParameterValueMenuItem : public DirectNumberControl<double> {
             //this->debug = true;
             parameter->decrementValue();
             this->internal_value = parameter->getCurrentNormalValue(); //this->maximum_value;
-            Serial.printf("ParameterValueMenuItem#increase_value updated internal_value to %f (from %f * 100.0)\n", internal_value, parameter->getCurrentNormalValue());
+            if (this->debug) Serial.printf("ParameterValueMenuItem#increase_value updated internal_value to %f (from %f * 100.0)\n", internal_value, parameter->getCurrentNormalValue());
             //this->debug = false;
             /*this->internal_value -= this->step;
             if (this->internal_value < this->minimum_value)
@@ -108,7 +109,7 @@ class ParameterValueMenuItem : public DirectNumberControl<double> {
             //this->debug = true;
             parameter->incrementValue();
             this->internal_value = parameter->getCurrentNormalValue(); // * 100.0; //this->maximum_value;
-            Serial.printf("ParameterValueMenuItem#decrease_value updated internal_value to %f (from %f * 100.0)\n", internal_value, parameter->getCurrentNormalValue());
+            if (this->debug) Serial.printf("ParameterValueMenuItem#decrease_value updated internal_value to %f (from %f * 100.0)\n", internal_value, parameter->getCurrentNormalValue());
             //this->debug = false;
             /*this->internal_value += this->step;
             if (this->internal_value >= this->maximum_value)
@@ -117,21 +118,21 @@ class ParameterValueMenuItem : public DirectNumberControl<double> {
 
         virtual bool knob_left() override {
             if (readOnly) return false;
-            Serial.printf("------ ParameterValueMenuItem#knob_left, internal_value=%f\n", internal_value);
+            if (this->debug) Serial.printf("------ ParameterValueMenuItem#knob_left, internal_value=%f\n", internal_value);
             increase_value();
-            Serial.printf("------ ParameterValueMenuItem#knob_left, about to call change_value(%f)\n", internal_value);
+            if (this->debug) Serial.printf("------ ParameterValueMenuItem#knob_left, about to call change_value(%f)\n", internal_value);
             change_value(this->internal_value);
-            Serial.printf(">------<\n");
+            if (this->debug) Serial.printf(">------<\n");
             //project.select_loop_number(ui_selected_loop_number);
             return true;
         }
         virtual bool knob_right() override {
             if (readOnly) return false;
-            Serial.printf("------ ParameterValueMenuItem#knob_right, internal_value=%f\n", internal_value);
+            if (this->debug) Serial.printf("------ ParameterValueMenuItem#knob_right, internal_value=%f\n", internal_value);
             decrease_value();
-            Serial.printf("------ ParameterValueMenuItem#knob_right, about to call change_value(%f)\n", internal_value);
+            if (this->debug) Serial.printf("------ ParameterValueMenuItem#knob_right, about to call change_value(%f)\n", internal_value);
             change_value(this->internal_value);
-            Serial.printf(">------<\n");
+            if (this->debug) Serial.printf(">------<\n");
             //project.select_loop_number(internal_value);
             return true;
         }
@@ -145,14 +146,14 @@ class ParameterValueMenuItem : public DirectNumberControl<double> {
 
         virtual void change_value(int new_value) { //override { //
             float f = (float)new_value / 100.0;
-            Serial.printf("ParameterValueMenuItem#change_value(%i) about to call change_value(%f)\n", new_value, new_value);
+            if (this->debug) Serial.printf("ParameterValueMenuItem#change_value(%i) about to call change_value(%f)\n", new_value, new_value);
             this->change_value(f);
         }
 
         virtual void change_value(double new_value) {    // doesn't override, implements for normalled float?
             if (readOnly) return;
             double last_value = this->get_current_value();
-            Serial.printf("ParameterValueMenuItem#change_value(%f) about to call set_current_value(%f)\n", new_value, new_value);
+            if (this->debug) Serial.printf("ParameterValueMenuItem#change_value(%f) about to call set_current_value(%f)\n", new_value, new_value);
             this->set_current_value(new_value);
             if (on_change_handler!=nullptr) {
                 if (this->debug)  { Serial.println("NumberControl calling on_change_handler"); Serial.flush(); }
@@ -162,12 +163,122 @@ class ParameterValueMenuItem : public DirectNumberControl<double> {
         }
 };
 
-/*
-class ParameterMenuItem : public MenuItem {
 
-}
-*/
+#include "submenuitem.h"
 
+class ParameterMenuItem : public SubMenuItem {
+    public:
+
+    DoubleParameter *parameter = nullptr;
+
+    ParameterValueMenuItem *ctrl_value = nullptr;
+    /*SourceSelectorControl *ctrl_src_1 = nullptr;
+    SourceSelectorControl *ctrl_src_2 = nullptr;
+    SourceSelectorControl *ctrl_src_3 = nullptr;*/
+    DirectNumberControl<double> *ctrl_amt_1 = nullptr;
+    DirectNumberControl<double> *ctrl_amt_2 = nullptr;
+    DirectNumberControl<double> *ctrl_amt_3 = nullptr;
+
+    ParameterMenuItem(const char *label, DoubleParameter *parameter) : SubMenuItem(label, true) {
+        this->parameter = parameter;
+
+        this->ctrl_value = new ParameterValueMenuItem("Value", parameter);
+        this->ctrl_amt_1 = new DirectNumberControl<double>("Amt1", &parameter->connections[0].amount, parameter->connections[0].amount, -1, 1, nullptr);
+        this->ctrl_amt_2 = new DirectNumberControl<double>("Amt2", &parameter->connections[1].amount, parameter->connections[1].amount, -1, 1, nullptr);
+        this->ctrl_amt_3 = new DirectNumberControl<double>("Amt3", &parameter->connections[2].amount, parameter->connections[2].amount, -1, 1, nullptr);
+        
+        this->add(this->ctrl_value);
+        this->add(this->ctrl_amt_1);
+        this->add(this->ctrl_amt_2);
+        this->add(this->ctrl_amt_3);
+        //this->add(new SourceSelectorControl("S2", parameter));
+        //this->add(new SourceSelectorControl("S3", parameter));
+        //this->
+    }
+
+    virtual bool allow_takeover() {
+        return false;
+    }
+
+    virtual int display(Coord pos, bool selected, bool opened) {
+        if (this->debug) Serial.printf("Start of display in ParameterMenuItem, passed in %i,%i\n", pos.x, pos.y);
+        pos.y = header(label, pos, selected, opened);
+        if (this->debug) Serial.printf("\tafter header, y=%i\n", pos.y);
+        tft->setCursor(pos.x, pos.y);
+        //tft->setTextSize(1);
+        colours(opened, opened ? GREEN : C_WHITE, BLACK);
+
+        int start_y = pos.y;
+
+        static int width_per_item = tft->width()/5;
+
+        int finish_y = pos.y;
+        for (int i = 0 ; i < this->items.size() ; i++) {
+            int temp_y = this->small_display(i, i * width_per_item, start_y, width_per_item, this->currently_selected==i, this->currently_opened==i);
+            if (temp_y>finish_y)
+                finish_y = temp_y;
+        }
+        tft->setTextColor(C_WHITE, BLACK);
+        tft->setTextSize(0);
+
+        if (this->debug) Serial.printf("End of display, y=%i\n--------\n", finish_y);
+        return finish_y;//tft->getCursorY();
+    }
+
+    virtual int small_display(int index, int x, int y, int width, bool is_selected, bool is_opened) {
+        if (this->debug) Serial.printf("\tstart of small_display for index %i, passed in %i,%i\n", index, x, y);
+        NumberControlBase *ctrl = (NumberControlBase *)items.get(index);
+        int width_in_chars = 8; // presumed font width
+        char fmt[10];
+        char hdr[10];
+
+        // prepare label header format
+        sprintf(fmt, "%%%is\n", width/width_in_chars);    // becomes eg "%6s\n"
+        if (this->debug) Serial.printf("\tGot format '%s'\n", fmt);
+
+        // print label header
+        if (this->debug) Serial.printf("\tdrawing header at %i,%i\n", x, y);
+        tft->setCursor(x, y);
+        colours(is_selected, is_opened ? GREEN : C_WHITE, BLACK);
+        tft->setTextSize(0);
+        tft->printf(fmt, ctrl->label);
+        y = tft->getCursorY();
+
+        if (this->debug) Serial.printf("\t bottom of header is %i\n", y);
+        // position for value
+        tft->setCursor(x, y);   // reset cursor to underneath the label
+
+        if (this->debug) Serial.printf("\tdoing renderValue at %i,%i\n", x, y);
+        // render the label
+        y = ctrl->renderValue(is_selected, is_opened, width/width_in_chars);
+
+        if (this->debug) Serial.printf("\tend of small_display, returning y=%i\n", y);
+        return y;
+    }
+};
+
+
+/*        int val_x = 0, amt1_x = width_per_item*1, amt2_x = width_per_item*2, amt3_x = width_per_item*3;
+
+        colours(true, opened ? GREEN : C_WHITE, BLACK);
+        tft->setCursor(0,start_y);
+        tft->print("Val");
+        tft->setCursor(amt1_x, start_y);
+        tft->print("Src1");
+        tft->setCursor(amt2_x, start_y);
+        tft->print("Src2");
+        tft->setCursor(amt3_x, start_y);
+        tft->print("Src3");
+
+        colours(false, C_WHITE, BLACK);
+        tft->setCursor(0,start_y);
+        tft->print("Val");
+        tft->setCursor(amt1_x, start_y);
+        tft->print("Src1");
+        tft->setCursor(amt2_x, start_y);
+        tft->print("Src2");
+        tft->setCursor(amt3_x, start_y);
+        tft->print("Src3");*/
 // ui to configure which Parameter a ParameterInput targets
 // TODO: I think ideally we want to go the other way around; for a parameter, we want to select which ParameterInputs it draws from
 /*

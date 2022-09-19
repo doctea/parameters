@@ -102,7 +102,7 @@ class DoubleParameter : public BaseParameter {
         return "[NaN]";
     }
     virtual const char* getFormattedValue() {
-        return getFormattedValue(currentNormalValue);
+        return this->getFormattedValue(this->currentNormalValue);
     }
 
     virtual void updateValueFromNormal(double value/*, double range = 1.0*/) override {

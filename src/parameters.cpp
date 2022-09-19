@@ -18,7 +18,7 @@ char NEXT_PARAMETER_NAME = 'A';
 #include "menuitems_numbers.h"
 #include "submenuitem.h"
 
-MenuItem *DoubleParameter::makeControl() {
+/*MenuItem *DoubleParameter::makeControl() {
     Serial.printf("DataParameter#makeControl for %s\n", this->label);
 
     //char menu_label[MAX_LABEL_LENGTH];
@@ -62,6 +62,15 @@ MenuItem *DoubleParameter::makeControl() {
     }
 
     return p_submenu;
+}*/
+
+
+MenuItem *DoubleParameter::makeControl() {
+    Serial.printf("DataParameter#makeControl for %s\n", this->label);
+    // first set up the submenu to hold the values
+    ParameterMenuItem *fullmenuitem = new ParameterMenuItem(this->label, this);
+
+    return fullmenuitem;
 }
 
 #endif
