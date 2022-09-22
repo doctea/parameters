@@ -188,13 +188,15 @@ class ParameterManager {
             }
 
             SubMenuItem *addParameterSubMenuItems(Menu *menu, char *submenu_label, LinkedList<DoubleParameter*> *parameters) {
+                char label[MAX_LABEL_LENGTH];
+                sprintf(label, "Parameters for %s", submenu_label);
                 //LinkedList<DataParameter*> *parameters = behaviour_craftsynth->get_parameters();
-                SubMenuItem *submenu = new SubMenuItem(submenu_label, false);
+                SubMenuItem *submenu = new SubMenuItem(label, false);
                 for (int i = 0 ; i < parameters->size() ; i++) {
                     //char tmp[20];
                     //sprintf(tmp, "test item %i", i);
                     //submenu->add(new MenuItem(tmp));
-                    Serial.printf("addParameterSubMenuItems(menu, '%s') processing parameter %i\n", submenu_label, i);
+                    Serial.printf("addParameterSubMenuItems(menu, '%s') processing parameter %i\n", label, i);
                     submenu->add(this->makeMenuItemForParameter(parameters->get(i)));
                 }
                 menu->add(submenu);
@@ -208,11 +210,15 @@ class ParameterManager {
 
                 Serial.printf("\tdoing menu->add for ParameterInputDisplay with label '%s'\n", label);
                 menu->add(new ParameterInputDisplay(label, param_input)); //, LOOP_LENGTH_TICKS));
+
+                DoubleMenuItem *submenu = new DoubleMenuItem("Input/Output");
+                submenu->show_header = false;
                 sprintf(label, "Input type for %c", param_input->name);
                 //menu->add(new InputTypeSelectorControl<BaseParameterInput,byte>(label, param_input, &BaseParameterInput::set_input_type, &BaseParameterInput::get_input_type));
-                menu->add(new InputTypeSelectorControl(label, &param_input->input_type));
+                submenu->add(new InputTypeSelectorControl(label, &param_input->input_type));
                 sprintf(label, "Output type for %c", param_input->name);
-                menu->add(new InputTypeSelectorControl(label, &param_input->output_type)); //, &BaseParameterInput::set_output_type, &BaseParameterInput::get_output_type));
+                submenu->add(new InputTypeSelectorControl(label, &param_input->output_type)); //, &BaseParameterInput::set_output_type, &BaseParameterInput::get_output_type));
+                menu->add(submenu);
 
                 return nullptr;
                

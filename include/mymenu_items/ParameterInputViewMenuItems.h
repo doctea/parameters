@@ -28,6 +28,7 @@ class ParameterInputDisplay : public MenuItem {
             /*if (loop_length_ticks>0) {
                 double logged[] = new double[loop_length_ticks];
             }*/
+            memset(logged, 0, sizeof(logged));
         }
 
         virtual void configure(BaseParameterInput *parameter_input) {
@@ -52,10 +53,25 @@ class ParameterInputDisplay : public MenuItem {
             //Serial.println("MidiOutputSelectorControl display()!");
             tft->setTextSize(0);
 
-            pos.y = header(label, pos, selected, opened);          
-            tft->setCursor(pos.x, pos.y);
+            #define DISPLAY_INFO_IN_LABEL
+            #ifdef DISPLAY_INFO_IN_LABEL
+                static char custom_label[MAX_LABEL_LENGTH*2];
+                sprintf(custom_label, "%s: [%s] %-7s >%-4i", // %-4s>",
+                //sprintf(custom_label, "%s: %-7s >%-4s ", //%-4s>",
+                    label,                    
+                    this->parameter_input!=nullptr ? (char*)this->parameter_input->getInputInfo()  : "",
+                    this->parameter_input!=nullptr ? (char*)this->parameter_input->getInputValue() : "",
+                    //(int)(this->logged[(ticks%LOOP_LENGTH_TICKS] * 100.0)
+                    this->parameter_input!=nullptr ? (int)(this->parameter_input->get_normal_value()*100.0) : 0
+                    //(char*)this->parameter_input->getOutputValue()
+                );
+                pos.y = header(custom_label, pos, selected, opened);         
+            #else 
+                pos.y = header(label, pos, selected, opened);                      
+                //tft->setCursor(pos.x, pos.y);
+            #endif
             colours(false, C_WHITE, BLACK);
-            tft->printf("Input %c\n", parameter_input->name);
+            //tft->printf("Input %c\n", parameter_input->name);
             pos.y = tft->getCursorY();
 
             const uint16_t base_row = pos.y;
@@ -75,14 +91,15 @@ class ParameterInputDisplay : public MenuItem {
                     //int last_y = GRAPH_HEIGHT - (this->logged[tick_for_screen_X] * GRAPH_HEIGHT);
                     actual->drawLine(screen_x-1, base_row + last_y, screen_x, base_row + y, YELLOW);                    
                 }
-                actual->drawFastHLine(screen_x, base_row + y, 1, GREEN);
+                //actual->drawFastHLine(screen_x, base_row + y, 1, GREEN);
                 last_y = y;
             }
 
-            tft->setCursor(pos.x, pos.y + GRAPH_HEIGHT + 5);
-            tft->printf("Value: %i ", (int)(this->logged[ticks%LOOP_LENGTH_TICKS] * 100.0));
+            tft->setCursor(pos.x, pos.y + GRAPH_HEIGHT + 5);    // set cursor to below the graph's output
+
+            /*tft->printf("Value: %i ", (int)(this->logged[ticks%LOOP_LENGTH_TICKS] * 100.0));
             tft->printf((char*)"Inp: %-8s ", (char*)this->parameter_input->getInputInfo()); //i @ %p")
-            tft->printf((char*)"Read: %-8s ", (char*)this->parameter_input->getInputValue());
+            tft->printf((char*)"Read: %-8s ", (char*)this->parameter_input->getInputValue());*/
             //tft->printf((char*)"Tgt: %-15s\n", (char*)get_label_for_index(actual_value_index));
             //tft->printf((char*)"Val: %-7s ",  (char*)this->parameter_input->getFormattedValue());
 
@@ -141,6 +158,7 @@ class InputTypeSelectorControl : public SelectorControl {
     InputTypeSelectorControl(const char *label, byte *target) : SelectorControl(label) {
         this->target = target;
         actual_value_index = *target;
+        this->selected_value_index = this->actual_value_index = this->getter();
     };
 
     virtual const char* get_label_for_index(int index) {
@@ -175,6 +193,8 @@ class InputTypeSelectorControl : public SelectorControl {
 
         tft->setTextSize(2);
 
+        tft->setCursor(pos.x, pos.y);
+
         if (!opened) {
             // not opened, so just show the current value
             //colours(opened && selected_value_index==i, col, BLACK);
@@ -188,7 +208,9 @@ class InputTypeSelectorControl : public SelectorControl {
                 bool is_current_value_selected = i==current_value;
                 int col = is_current_value_selected ? GREEN : C_WHITE;
                 colours(opened && selected_value_index==i, col, BLACK);
+                tft->setCursor(pos.x, pos.y);
                 tft->printf((char*)"%s\n", (char*)get_label_for_index(i));
+                pos.y = tft->getCursorY();
             }
             if (tft->getCursorX()>0) // if we haven't wrapped onto next line then do it manually
                 tft->println((char*)"");

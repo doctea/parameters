@@ -105,6 +105,9 @@ class DoubleParameter : public BaseParameter {
     virtual const char* getFormattedValue() {
         return this->getFormattedValue(this->currentNormalValue);
     }
+    virtual const char* getFormattedLastOutputValue() {
+        return this->getFormattedValue(this->lastModulatedNormalValue);
+    }
 
     virtual void updateValueFromNormal(double value/*, double range = 1.0*/) override {
         // TODO: we might actually want this to do something?

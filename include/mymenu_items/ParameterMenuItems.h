@@ -24,6 +24,8 @@ class ParameterValueMenuItem : public DirectNumberControl<double> {
         DoubleParameter *parameter = nullptr;
         //Parameter<TargetClass, DataType> *parameter = nullptr;
 
+        bool show_output_mode = false;
+
         ParameterValueMenuItem(char *label, DoubleParameter *parameter) : DirectNumberControl(label) {
             strcpy(this->label, label);
             this->parameter = parameter;
@@ -33,6 +35,11 @@ class ParameterValueMenuItem : public DirectNumberControl<double> {
             //this->minimum_value = parameter->minimum_value;
             //this->maximum_value = parameter->maximum_value;
             //this->step = 0.01;
+        }
+
+        virtual ParameterValueMenuItem *set_show_output_mode(bool mode = true) {
+            this->show_output_mode = mode;
+            return this;
         }
 
         virtual bool action_opened() override {
@@ -58,6 +65,11 @@ class ParameterValueMenuItem : public DirectNumberControl<double> {
             //return this->parameter->getFormattedValue();
             static char fmt[20] = "      ";
             sprintf(fmt, "%s", this->parameter->getFormattedValue()); 
+            return fmt;
+        }
+        virtual const char *getFormattedOutputValue() {
+            static char fmt[20] = "      ";
+            sprintf(fmt, "%s", this->parameter->getFormattedLastOutputValue());
             return fmt;
         }
 
@@ -171,13 +183,13 @@ class ParameterMenuItem : public SubMenuItem {
 
     DoubleParameter *parameter = nullptr;
 
-    ParameterValueMenuItem *ctrl_value = nullptr;
+    //ParameterValueMenuItem *ctrl_value = nullptr;
     /*SourceSelectorControl *ctrl_src_1 = nullptr;
     SourceSelectorControl *ctrl_src_2 = nullptr;
     SourceSelectorControl *ctrl_src_3 = nullptr;*/
-    DirectNumberControl<double> *ctrl_amt_1 = nullptr;
-    DirectNumberControl<double> *ctrl_amt_2 = nullptr;
-    DirectNumberControl<double> *ctrl_amt_3 = nullptr;
+    //DirectNumberControl<double> *ctrl_amt_1 = nullptr;
+    //DirectNumberControl<double> *ctrl_amt_2 = nullptr;
+    //DirectNumberControl<double> *ctrl_amt_3 = nullptr;
 
     ParameterMenuItem(const char *label, DoubleParameter *parameter) : SubMenuItem(label, true) {
         this->parameter = parameter;
@@ -212,6 +224,11 @@ class ParameterMenuItem : public SubMenuItem {
             ));
         }
 
+        // enabling this causes startup to crash?!
+        /*ParameterValueMenuItem *output = new ParameterValueMenuItem("Output", parameter);
+        output->set_show_output_mode();
+        this->add(output); */
+        
         /*this->add(this->ctrl_amt_1);
         this->add(this->ctrl_amt_2);
         this->add(this->ctrl_amt_3);*/
@@ -258,7 +275,7 @@ class ParameterMenuItem : public SubMenuItem {
 
         int start_y = pos.y;
 
-        static int width_per_item = tft->width()/5;
+        static int width_per_item = tft->width()/(items.size()+1);
 
         int finish_y = pos.y;
         for (int i = 0 ; i < this->items.size() ; i++) {

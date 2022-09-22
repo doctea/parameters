@@ -43,6 +43,7 @@ class ADS24vVoltageSource : public VoltageSourceBase {
                 int value = (value1+value2+value3) / 3;
             #else
                 int value = ads_source->readADC(channel);
+                already_succeeded = true;
             #endif
 
             if (this->debug) {

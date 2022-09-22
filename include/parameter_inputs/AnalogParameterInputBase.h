@@ -113,6 +113,14 @@ class AnalogParameterInputBase : public ParameterInput<TargetClass> {
       sprintf(fmt, "[%-3i%%]", (int)(this->currentValue*100.0));
       return fmt;
     }
+    // for some reason, this prevents boot if uncommented?!
+    /*virtual const char *getOutputValue() override {
+      static char fmt[20] = "          ";
+      //sprintf(fmt, "[%-3i%%]", (int)(this->get_normal_value((double)this->currentValue)*100.0));
+      sprintf(fmt, "[%-3i%%]", (int)(this->get_normal_value()*100.0));
+      return fmt;
+    }*/
+
 
     virtual void read() override {
       #ifdef ENABLE_PRINTF
@@ -136,7 +144,7 @@ class AnalogParameterInputBase : public ParameterInput<TargetClass> {
           }      
           callback(normal);
         }
-        if (this->target_parameter!=nullptr) {
+        /*if (this->target_parameter!=nullptr) {
           if (this->debug) {
             Serial.print(this->name);
             Serial.print(F(": calling target setParamValueA("));
@@ -147,7 +155,7 @@ class AnalogParameterInputBase : public ParameterInput<TargetClass> {
           }
           //this->target_parameter->updateValueFromNormal(normal); 
           // TODO: trigger updating of connected parameter mixers?
-        }
+        }*/
       }
     }
 

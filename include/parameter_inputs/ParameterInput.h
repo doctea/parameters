@@ -63,6 +63,9 @@ class BaseParameterInput {
     virtual const char *getInputValue() {
       return "?Base?";
     }
+    virtual const char *getOutputValue() {
+      return "?Base?";
+    }
 
     virtual void setInverted(bool invert = true) {
       this->inverted = invert;
