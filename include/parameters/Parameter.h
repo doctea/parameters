@@ -25,26 +25,12 @@ struct ParameterToInputConnection {
 };
 
 
-//class ParameterMixer;
 #ifdef ENABLE_SCREEN
     class MenuItem;
-    //class ParameterValueMenuItem;
 #endif
 
-/*class AbstractBaseParameter {
+class BaseParameter { 
     public:
-    char label[20];
-    AbstractBaseParameter(char *label) {
-        strcpy(this->label, label);
-    };
-};
-
-template<class DataType>*/
-class BaseParameter { //: public AbstractBaseParameter {
-    public:
-        //DataType minimum_value = 0.0f;
-        //DataType maximum_value = 1.0f;
-
         bool debug = false;
 
         char label[20];
@@ -152,29 +138,29 @@ class DoubleParameter : public BaseParameter {
         return true;
     }
 
-    void set_slot_input(byte slot, BaseParameterInput *parameter_input) {
+    virtual void set_slot_input(byte slot, BaseParameterInput *parameter_input) {
         this->connections[slot].parameter_input = parameter_input;
     }
-    void set_slot_amount(byte slot, double amount) {
+    virtual void set_slot_amount(byte slot, double amount) {
         this->connections[slot].amount = amount;
     }
 
-    void set_slot_0_input(BaseParameterInput *parameter_input) {
+    virtual void set_slot_0_input(BaseParameterInput *parameter_input) {
         this->set_slot_input(0,parameter_input);
     }
-    void set_slot_0_amount(double amount) {
+    virtual void set_slot_0_amount(double amount) {
         this->set_slot_amount(0, amount);
     }
-    void set_slot_1_input(BaseParameterInput *parameter_input) {
+    virtual void set_slot_1_input(BaseParameterInput *parameter_input) {
         this->set_slot_input(1,parameter_input);
     }
-    void set_slot_1_amount(double amount) {
+    virtual void set_slot_1_amount(double amount) {
         this->set_slot_amount(1, amount);
     }
-    void set_slot_2_input(BaseParameterInput *parameter_input) {
+    virtual void set_slot_2_input(BaseParameterInput *parameter_input) {
         this->set_slot_input(2,parameter_input);
     }
-    void set_slot_2_amount(double amount) {
+    virtual void set_slot_2_amount(double amount) {
         this->set_slot_amount(2, amount);
     }
 
@@ -183,18 +169,8 @@ class DoubleParameter : public BaseParameter {
         // update and send the actual value
     }*/
 
-    double get_modulation_value();/* {
-        // get the modulation amount to use
-        double modulation = 0.0f;
-        for (int i = 0 ; i < MAX_CONNECTIONS ; i++) {
-            if (this->connections[i].parameter_input!=nullptr)
-                modulation += (
-                    this->connections[i].parameter_input->get_normal_value() * this->connections[i].amount
-                );
-        }
-        return modulation;
-        //this->parameter->modulateValue(modulation);
-    }*/
+    // calculate the modulation value based on the inputs * modulation amounts
+    virtual double get_modulation_value();
 
     #ifdef ENABLE_SCREEN
     virtual MenuItem *makeControl();
@@ -336,7 +312,7 @@ class DataParameter : public DoubleParameter {
 
         virtual void update_mixer() {
             //this->mixer->updateOutput();
-            static double lastModulationNormalValue = 0.0;
+            //static double lastModulationNormalValue = 0.0;
             this->modulateNormalValue = this->get_modulation_value();
             if (modulateNormalValue!=lastModulatedNormalValue) {
                 this->sendCurrentTargetValue();

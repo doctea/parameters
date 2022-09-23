@@ -178,35 +178,22 @@ class ParameterValueMenuItem : public DirectNumberControl<double> {
 
 #include "submenuitem.h"
 
+// compound menu item that shows a direct setter widget and 3x modulation amount widgets
 class ParameterMenuItem : public SubMenuItem {
     public:
 
     DoubleParameter *parameter = nullptr;
 
-    //ParameterValueMenuItem *ctrl_value = nullptr;
-    /*SourceSelectorControl *ctrl_src_1 = nullptr;
-    SourceSelectorControl *ctrl_src_2 = nullptr;
-    SourceSelectorControl *ctrl_src_3 = nullptr;*/
-    //DirectNumberControl<double> *ctrl_amt_1 = nullptr;
-    //DirectNumberControl<double> *ctrl_amt_2 = nullptr;
-    //DirectNumberControl<double> *ctrl_amt_3 = nullptr;
-
     ParameterMenuItem(const char *label, DoubleParameter *parameter) : SubMenuItem(label, true) {
         this->parameter = parameter;
 
-        //this->always_show = true;
-
-        /*this->ctrl_value = new ParameterValueMenuItem("Value", parameter);
-        this->ctrl_amt_1 = new DirectNumberControl<double>("Amt1", &parameter->connections[0].amount, parameter->connections[0].amount, -1, 1, nullptr);
-        this->ctrl_amt_2 = new DirectNumberControl<double>("Amt2", &parameter->connections[1].amount, parameter->connections[1].amount, -1, 1, nullptr);
-        this->ctrl_amt_3 = new DirectNumberControl<double>("Amt3", &parameter->connections[2].amount, parameter->connections[2].amount, -1, 1, nullptr);*/
-        
         // add the direct Value changer
         this->add(new ParameterValueMenuItem("Value", parameter));
 
-        // add the Amount % changers
+        // add the modulation Amount % changers
         for (int i = 0 ; i < MAX_SLOT_CONNECTIONS ; i++) {
-            // todo: make this dynamic and move it to be generated on-the-fly by the DirectNumberControl
+            // todo: make the modulation source part configurable too
+            // todo: make the label part dynamically generated on-the-fly by the DirectNumberControl
             char labelnew[8];
             char input_name =   parameter->connections[i].parameter_input!=nullptr ? 
                                 parameter->connections[i].parameter_input->name : 
@@ -227,7 +214,7 @@ class ParameterMenuItem : public SubMenuItem {
         // enabling this causes startup to crash?!
         /*ParameterValueMenuItem *output = new ParameterValueMenuItem("Output", parameter);
         output->set_show_output_mode();
-        this->add(output); */
+        this->add(output); */ 
         
         /*this->add(this->ctrl_amt_1);
         this->add(this->ctrl_amt_2);
@@ -241,7 +228,9 @@ class ParameterMenuItem : public SubMenuItem {
         return false;
     }
 
-    /*virtual int display(Coord pos, bool selected, bool opened) {
+    /*
+    // trying to debug why this doesn't draw properly?!
+    virtual int display(Coord pos, bool selected, bool opened) {
         colours(selected, C_WHITE, BLACK);
         return MenuItem::display(pos, selected, opened);
         tft->setTextSize(0);
@@ -253,19 +242,7 @@ class ParameterMenuItem : public SubMenuItem {
         return tft->getCursorY();
     }*/
 
-    virtual int display(Coord pos, bool selected, bool opened) override {
-        /*tft->setCursor(pos.x, pos.y);
-        //colours(false, RED, BLACK);
-        tft->setTextColor(RED,BLACK);
-        tft->println("ParameterMenuItem test in red?");
-        return tft->getCursorY();*/
-        /*tft->setTextSize(0);
-        tft->setCursor(pos.x,pos.y);
-        //tft->setTextColor(ST77XX_WHITE, ST77XX_BLACK);
-        colours(selected);
-        tft->printf("%s [s:%i o:%i]\n", label, (int)selected, (int)opened);
-        pos.y = tft->getCursorY();*/
-        
+    virtual int display(Coord pos, bool selected, bool opened) override {       
         if (this->debug) Serial.printf("Start of display in ParameterMenuItem, passed in %i,%i\n", pos.x, pos.y);
         pos.y = header(label, pos, selected, opened);
         if (this->debug) Serial.printf("\tafter header, y=%i\n", pos.y);
@@ -273,11 +250,12 @@ class ParameterMenuItem : public SubMenuItem {
         //tft->setTextSize(1);
         colours(opened, opened ? GREEN : C_WHITE, BLACK);
 
-        int start_y = pos.y;
+        int start_y = pos.y;        // y to start drawing at (just under header)
+        int finish_y = pos.y;       // highest y that we finished drawing at
 
+        // draw all the sub-widgets
+        // todo: include a widget to select the modulation source for the slot
         static int width_per_item = tft->width()/(items.size()+1);
-
-        int finish_y = pos.y;
         for (int i = 0 ; i < this->items.size() ; i++) {
             int temp_y = this->small_display(i, i * width_per_item, start_y, width_per_item, this->currently_selected==i, this->currently_opened==i);
             if (temp_y>finish_y)
@@ -296,7 +274,7 @@ class ParameterMenuItem : public SubMenuItem {
         NumberControlBase *ctrl = (NumberControlBase *)items.get(index);
         int width_in_chars = 8; // presumed font width
         char fmt[10];
-        char hdr[10];
+        //char hdr[10];
 
         // prepare label header format
         sprintf(fmt, "%%%is\n", width/width_in_chars);    // becomes eg "%6s\n"

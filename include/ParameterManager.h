@@ -164,6 +164,7 @@ class ParameterManager {
         void setDefaultParameterConnections() {
             Serial.printf("ParameterManager#setDefaultParameterConnections() has %i parameters to map to %i inputs", this->available_parameters.size(), this->available_inputs.size());
             for (int i = 0 ; i < this->available_parameters.size() ; i++) {
+                // todo: make this configurable dynamically / load defaults from save file
                 available_parameters.get(i)->set_slot_0_input(available_inputs.get(0));
                 available_parameters.get(i)->set_slot_1_input(available_inputs.get(1));
                 available_parameters.get(i)->set_slot_2_input(available_inputs.get(2));
@@ -187,7 +188,7 @@ class ParameterManager {
                 }
             }
 
-            SubMenuItem *addParameterSubMenuItems(Menu *menu, char *submenu_label, LinkedList<DoubleParameter*> *parameters) {
+            SubMenuItem *addParameterSubMenuItems(Menu *menu, const char *submenu_label, LinkedList<DoubleParameter*> *parameters) {
                 char label[MAX_LABEL_LENGTH];
                 sprintf(label, "Parameters for %s", submenu_label);
                 //LinkedList<DataParameter*> *parameters = behaviour_craftsynth->get_parameters();
@@ -203,7 +204,7 @@ class ParameterManager {
                 return submenu;
             }
 
-            MenuItem *addParameterInputMenuItems(Menu *menu, BaseParameterInput *param_input, char *label_prefix = nullptr) {
+            MenuItem *addParameterInputMenuItems(Menu *menu, BaseParameterInput *param_input, const char *label_prefix = nullptr) {
                 // TODO: a new ParameterInputControl that allows to set expected input ranges
                 char label[20];
                 sprintf(label, "Graph for %c", param_input->name);
@@ -211,7 +212,7 @@ class ParameterManager {
                 Serial.printf("\tdoing menu->add for ParameterInputDisplay with label '%s'\n", label);
                 menu->add(new ParameterInputDisplay(label, param_input)); //, LOOP_LENGTH_TICKS));
 
-                DoubleMenuItem *submenu = new DoubleMenuItem("Input/Output");
+                DualMenuItem *submenu = new DualMenuItem("Input/Output");
                 submenu->show_header = false;
                 sprintf(label, "Input type for %c", param_input->name);
                 //menu->add(new InputTypeSelectorControl<BaseParameterInput,byte>(label, param_input, &BaseParameterInput::set_input_type, &BaseParameterInput::get_input_type));
