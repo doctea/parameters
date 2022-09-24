@@ -67,6 +67,7 @@ class DoubleParameter : public BaseParameter {
     double maximumNormalValue = 100.0;
 
     double lastModulatedNormalValue = 0.0;
+    double lastOutputNormalValue = 0.0;
 
     DoubleParameter(char *label) : BaseParameter(label) {
     }
@@ -92,7 +93,7 @@ class DoubleParameter : public BaseParameter {
         return this->getFormattedValue(this->currentNormalValue);
     }
     virtual const char* getFormattedLastOutputValue() {
-        return this->getFormattedValue(this->lastModulatedNormalValue);
+        return this->getFormattedValue(this->lastOutputNormalValue);
     }
 
     virtual void updateValueFromNormal(double value/*, double range = 1.0*/) override {
@@ -459,7 +460,8 @@ class DataParameter : public DoubleParameter {
         // actually set the target from normal
         virtual void setTargetValueFromNormal(double value) {
             this->lastModulatedNormalValue = this->constrainNormal(value);
-            this->setTargetValueFromData(this->normalToData(value));
+            this->lastOutputNormalValue = this->lastModulatedNormalValue; // = value;
+            this->setTargetValueFromData(this->normalToData(lastOutputNormalValue));
         }
 
         virtual double constrainNormal(double value) {

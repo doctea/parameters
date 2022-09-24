@@ -64,6 +64,9 @@ class ParameterValueMenuItem : public DirectNumberControl<double> {
         virtual const char *getFormattedValue() override {
             //return this->parameter->getFormattedValue();
             static char fmt[20] = "      ";
+            if (this->show_output_mode) {
+                return this->getFormattedOutputValue();
+            }
             sprintf(fmt, "%s", this->parameter->getFormattedValue()); 
             return fmt;
         }
@@ -212,9 +215,9 @@ class ParameterMenuItem : public SubMenuItem {
         }
 
         // enabling this causes startup to crash?!
-        /*ParameterValueMenuItem *output = new ParameterValueMenuItem("Output", parameter);
+        ParameterValueMenuItem *output = new ParameterValueMenuItem("Output", parameter);
         output->set_show_output_mode();
-        this->add(output); */ 
+        this->add(output); 
         
         /*this->add(this->ctrl_amt_1);
         this->add(this->ctrl_amt_2);
@@ -255,7 +258,7 @@ class ParameterMenuItem : public SubMenuItem {
 
         // draw all the sub-widgets
         // todo: include a widget to select the modulation source for the slot
-        static int width_per_item = tft->width()/(items.size()+1);
+        static int width_per_item = tft->width()/(items.size() /*+1*/);
         for (int i = 0 ; i < this->items.size() ; i++) {
             int temp_y = this->small_display(i, i * width_per_item, start_y, width_per_item, this->currently_selected==i, this->currently_opened==i);
             if (temp_y>finish_y)
