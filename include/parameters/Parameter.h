@@ -13,7 +13,8 @@ extern char NEXT_PARAMETER_NAME;
 
 //#include "ParameterInput.h"
 
-class BaseParameterInput;
+//class BaseParameterInput;
+#include "parameter_inputs/ParameterInput.h"
 
 #define MAX_SLOT_CONNECTIONS 3
 
@@ -23,7 +24,6 @@ struct ParameterToInputConnection {
     double amount = 0.0f;
     //bool volt_per_octave = false;
 };
-
 
 #ifdef ENABLE_SCREEN
     class MenuItem;
@@ -134,6 +134,7 @@ class DoubleParameter : public BaseParameter {
         return true;
     }
 
+    virtual void set_slot_input(byte slot, char parameter_input_name);
     virtual void set_slot_input(byte slot, BaseParameterInput *parameter_input) {
         this->connections[slot].parameter_input = parameter_input;
     }
@@ -158,6 +159,12 @@ class DoubleParameter : public BaseParameter {
     }
     virtual void set_slot_2_amount(double amount) {
         this->set_slot_amount(2, amount);
+    }
+
+    virtual char get_connection_slot_name(int slot) {
+        return this->connections[slot].parameter_input!=nullptr ? 
+               this->connections[slot].parameter_input->name : // todo: doesnt compile (incomplete type BaseParameterInput) -- make getting the connection name into a method of Parameter?
+               'X';   // use X instead of parameter name if no parameter label is set for that parameter
     }
 
     /*void changeValue(BaseParameterInput *parameter_input) {

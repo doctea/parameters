@@ -6,7 +6,7 @@
 #ifdef ENABLE_SCREEN
   #include "menu.h"
 #endif
-#include "../parameters/Parameter.h"
+//#include "../parameters/Parameter.h"
 
 enum VALUE_TYPE {
   BIPOLAR,
@@ -26,7 +26,7 @@ class BaseParameterInput {
 
     char name = 'Z';
 
-    BaseParameter *target_parameter = nullptr;
+    //BaseParameter *target_parameter = nullptr;
 
     bool inverted = false;
     bool map_unipolar_to_bipolar = false;
@@ -37,22 +37,22 @@ class BaseParameterInput {
     BaseParameterInput() {
       this->name = ++NEXT_PARAMETER_NAME;
     }
-    BaseParameterInput(BaseParameter *target_parameter) {
+    /*BaseParameterInput(BaseParameter *target_parameter) {
       this->target_parameter = target_parameter;
-    }
+    }*/
 
-    virtual void setTarget(BaseParameter *target) {
+    /*virtual void setTarget(BaseParameter *target) {
       if (this->target_parameter!=nullptr) {
         // already assigned to a target; notify the target that its been unbound, in case we need to set parameter back to zero
         this->target_parameter->on_unbound(this);
       }
       this->target_parameter = target;
-    }
+    }*/
 
     virtual const char* getFormattedValue() {
-      if (target_parameter!=nullptr)
+      /*if (target_parameter!=nullptr)
         return target_parameter->getFormattedValue();
-      else 
+      else */
         return "[none]";
     }
 

@@ -96,6 +96,14 @@ class ParameterManager {
             }
         }
 
+        BaseParameterInput *getInputForName(char input_name) {
+            for(int i = 0 ; i < available_inputs.size() ; i++) {
+                if (available_inputs.get(i)->name==input_name)
+                    return available_inputs.get(i);
+            }
+            return nullptr;
+        }
+
         /*VoltageSourceBase *get_voltage_source_for_name(char name) {
             for (int i = 0 ; i < voltage_sources.size() ; i++) {
                 if (voltage_sources.get(i)->name==name)
@@ -221,34 +229,7 @@ class ParameterManager {
                 submenu->add(new InputTypeSelectorControl(label, &param_input->output_type)); //, &BaseParameterInput::set_output_type, &BaseParameterInput::get_output_type));
                 menu->add(submenu);
 
-                return nullptr;
-               
-                /*
-                char input_label[20];
-                // hmm think this is not actually used?
-                BaseParameter *param = param_input->target_parameter;
-
-                if (this->debug) Serial.println("makeMenuItemForParameterInput()");
-
-                if (label_prefix!=nullptr)
-                    sprintf(input_label, "%sInput %c", label_prefix, param_input->name);
-                else   
-                    sprintf(input_label, "Input %c", param_input->name);
-
-                ParameterSelectorControl *ctrl = new ParameterSelectorControl(input_label);
-                if (debug) {
-                    #ifdef ENABLE_PRINTF
-                        if (param==nullptr) {
-                            Serial.println("\tConfiguring it with available_inputs item target (no target_parameter already set)..\n"); Serial.flush();    
-                        } else {
-                            Serial.printf("\tConfiguring it with available_inputs item target '%s'..\n", param->label); Serial.flush();
-                        }
-                    #endif
-                }
-
-                ctrl->configure(param_input, &this->available_parameters);
-
-                return ctrl;*/
+                return submenu; // was nullptr
             }
 
             // create a menuitem for the passed-in parameter; returns nullptr if passed-in parameter is named "None"

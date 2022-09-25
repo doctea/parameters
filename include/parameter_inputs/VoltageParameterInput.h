@@ -63,7 +63,7 @@ class VoltageParameterInput : public AnalogParameterInputBase<TargetClass, DataT
                     }      
                     (*this->callback)(normal);
                 }
-                if (this->target_parameter!=nullptr) {
+                /*if (this->target_parameter!=nullptr) {
                     if (this->debug) {
                         Serial.println("Calling on target_parameter.."); Serial.flush();
                         Serial.print(this->name); Serial.flush();
@@ -82,7 +82,7 @@ class VoltageParameterInput : public AnalogParameterInputBase<TargetClass, DataT
                     }
                     //this->target_parameter->setParamValue(normal, this->voltage_source->maximum_input_voltage);
                     this->target_parameter->updateValueFromNormal(normal); //
-                }
+                }*/
                 //Serial.println("Finishing read()"); Serial.flush();
             }
         }
