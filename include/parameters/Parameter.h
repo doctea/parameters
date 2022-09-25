@@ -40,8 +40,6 @@ class BaseParameter {
         };
         virtual void updateValueFromNormal(double value/*, double range = 1.0*/) {};
         virtual void modulateValue(double value) {};
-        /*virtual DataType getCurrentValue() {};
-        virtual DataType getLastValue() {};*/
         virtual const char* getFormattedValue() {
             //static char noval = "[none]";
             return "[none]";
@@ -82,9 +80,6 @@ class DoubleParameter : public BaseParameter {
         return this->lastModulatedNormalValue;
     }
 
-    /*virtual int getCurrentDataValue() {
-        return round(this->currentNormalValue * 100.0);
-    }*/
     virtual const char* getFormattedValue(double value) {
         Serial.printf("WARNING: dummy DoubleParameter#getFormattedValue(%f) for '%s'\n", value, this->label);
         return "[NaN]";
@@ -174,7 +169,7 @@ class DoubleParameter : public BaseParameter {
     virtual double get_modulation_value();
 
     #ifdef ENABLE_SCREEN
-    virtual MenuItem *makeControl();
+        virtual MenuItem *makeControl();
     #endif
 };
 
@@ -237,9 +232,6 @@ class DataParameter : public DoubleParameter {
             //return this; //this->initialise_values(minimum_value, maximum_value, current_value_normal);
         }
         virtual DataParameter* initialise_values(DataType minimum_value, DataType maximum_value, DataType current_value) {
-            // TODO: this probably isnt legal usage of NULL?
-            //if (/*current_value_normal==NULL && */this->getter_func!=nullptr) 
-                //current_value_normal = (this->target->*getter_func)() / maximum_value;
             this->minimumDataValue = minimum_value;
             this->maximumDataValue = maximum_value;
             this->currentDataValue = current_value;
@@ -255,8 +247,10 @@ class DataParameter : public DoubleParameter {
         }
 
         virtual DataType normalToData(double value) {
-            if (this->debug) Serial.printf("normalToData(%f) ", value);
-            if (this->debug) Serial.printf(", range is %i ", this->maximumDataValue - this->minimumDataValue);
+            if (this->debug) {
+                Serial.printf("normalToData(%f) ", value);
+                Serial.printf(", range is %i ", this->maximumDataValue - this->minimumDataValue);
+            }
             DataType data = this->minimumDataValue + (value * (float)(this->maximumDataValue - this->minimumDataValue));
             if (this->debug) Serial.printf(" => %i\n", data);
             return data;
