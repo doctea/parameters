@@ -15,6 +15,7 @@
 #ifdef ENABLE_SCREEN
   #include "submenuitem.h"
   #include "mymenu_items/ParameterInputViewMenuItems.h"
+  #include "colours.h"
 #endif
 
 class ParameterManager {
@@ -35,6 +36,12 @@ class ParameterManager {
 
         // 'blank' parameter used as default mapping
         DoubleParameter *param_none;
+
+        uint16_t parameter_input_colours[3] = {
+            RED,
+            YELLOW,
+            BLUE
+        };
 
         ParameterManager () {
         }
@@ -57,6 +64,7 @@ class ParameterManager {
 
         BaseParameterInput *addInput(BaseParameterInput *input) {
             Serial.printf("ParameterManager#addInput(%p)\n", input);
+            input->colour = parameter_input_colours[this->available_inputs.size() % sizeof(parameter_input_colours)];
             this->available_inputs.add(input);
             return input;
         }

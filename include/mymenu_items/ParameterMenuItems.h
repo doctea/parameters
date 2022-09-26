@@ -204,14 +204,16 @@ class ParameterMenuItem : public SubMenuItem {
             Serial.printf("\tfor %s, setting to parameter_input@%p '%c'\n", label, parameter->connections[i].parameter_input, input_name);
             Serial.flush();
             sprintf(labelnew, "Amt %c", input_name);
-            this->add(new DirectNumberControl<double>(
+            DirectNumberControl<double> *input_amount_control = new DirectNumberControl<double>(
                 labelnew, 
                 &parameter->connections[i].amount, 
                 parameter->connections[i].amount, 
                 -1, 
                 1, 
                 nullptr
-            ));
+            );
+            input_amount_control->colour = parameter->connections[i].parameter_input->colour;
+            this->add(input_amount_control);
         }
 
         // enabling this causes startup to crash?!
@@ -280,13 +282,15 @@ class ParameterMenuItem : public SubMenuItem {
         //char hdr[10];
 
         // prepare label header format
+        colours(false, ctrl->colour, BLACK);
         sprintf(fmt, "%%%is\n", width/width_in_chars);    // becomes eg "%6s\n"
         if (this->debug) Serial.printf("\tGot format '%s'\n", fmt);
 
         // print label header
         if (this->debug) Serial.printf("\tdrawing header at %i,%i\n", x, y);
         tft->setCursor(x, y);
-        colours(is_selected, is_opened ? GREEN : C_WHITE, BLACK);
+        //colours(is_selected, is_opened ? GREEN : C_WHITE, BLACK);
+        colours(is_selected, is_opened ? GREEN : ctrl->colour, BLACK);
         tft->setTextSize(0);
         tft->printf(fmt, ctrl->label);
         y = tft->getCursorY();

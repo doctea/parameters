@@ -34,6 +34,8 @@ class BaseParameterInput {
     byte input_type = BIPOLAR;
     byte output_type = UNIPOLAR;
 
+    uint16_t colour = 0xFFFF;
+
     BaseParameterInput() {
       this->name = ++NEXT_PARAMETER_NAME;
     }

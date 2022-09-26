@@ -78,7 +78,8 @@ class ParameterInputDisplay : public MenuItem {
                 pos.y = header(label, pos, selected, opened);                      
                 //tft->setCursor(pos.x, pos.y);
             #endif
-            colours(false, C_WHITE, BLACK);
+            //colours(false, C_WHITE, BLACK);
+            colours(false, parameter_input->colour, BLACK);
             //tft->printf("Input %c\n", parameter_input->name);
             pos.y = tft->getCursorY();
 
@@ -97,7 +98,8 @@ class ParameterInputDisplay : public MenuItem {
                 int y = GRAPH_HEIGHT - ((*logged)[tick_for_screen_X] * GRAPH_HEIGHT);
                 if (screen_x != 0) {
                     //int last_y = GRAPH_HEIGHT - (this->logged[tick_for_screen_X] * GRAPH_HEIGHT);
-                    actual->drawLine(screen_x-1, base_row + last_y, screen_x, base_row + y, YELLOW);                    
+                    //actual->drawLine(screen_x-1, base_row + last_y, screen_x, base_row + y, YELLOW);                    
+                    actual->drawLine(screen_x-1, base_row + last_y, screen_x, base_row + y, parameter_input->colour);                    
                 }
                 //actual->drawFastHLine(screen_x, base_row + y, 1, GREEN);
                 last_y = y;
