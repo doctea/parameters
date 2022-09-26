@@ -11,14 +11,17 @@
 #include <LinkedList.h>
 
 // this stuff ripped from midi_looper.h/menu_looperdisplay.h in usb_midi_clocker TODO: make more generic
-#define LOOP_LENGTH_STEP_SIZE 1         // resolution of loop TODO: problems when this is set >1; reloaded sequences (or maybe its converted-from-bitmap stage?) are missing note-offs
-#define ticks_to_sequence_step(X)  ((X % LOOP_LENGTH_TICKS) / LOOP_LENGTH_STEP_SIZE)
+//#define LOOP_LENGTH_STEP_SIZE 1         // resolution of loop TODO: problems when this is set >1; reloaded sequences (or maybe its converted-from-bitmap stage?) are missing note-offs
+//#define ticks_to_sequence_step(X)  ((X % LOOP_LENGTH_TICKS) / LOOP_LENGTH_STEP_SIZE)
 
+template<unsigned long memory_size>
 class ParameterInputDisplay : public MenuItem {
     public:
         BaseParameterInput *parameter_input = nullptr;
 
-        double logged[LOOP_LENGTH_TICKS];
+        //double logged[LOOP_LENGTH_TICKS];
+        typedef double memory_log[memory_size];
+        memory_log *logged = nullptr;
 
         ParameterInputDisplay(char *label, BaseParameterInput *input) : MenuItem(label) {
         //ParameterInputDisplay(char *label, BaseParameterInput *input) : MenuItem(label) {
@@ -28,20 +31,25 @@ class ParameterInputDisplay : public MenuItem {
             /*if (loop_length_ticks>0) {
                 double logged[] = new double[loop_length_ticks];
             }*/
-            memset(logged, 0, sizeof(logged));
+            //memset(logged, 0, sizeof(logged));
+            logged = (memory_log*)malloc(memory_size * sizeof(double));
         }
 
         virtual void configure(BaseParameterInput *parameter_input) {
             this->parameter_input = parameter_input;
         }
 
+        unsigned long ticks_to_memory_step(uint32_t ticks) {
+            return ( ticks % memory_size );
+        }
+
         virtual void update_ticks(unsigned long ticks) {
             // update internal log of values
             unsigned int position = ticks % LOOP_LENGTH_TICKS;
-            logged[position] = this->parameter_input->get_normal_value(); //get_voltage_normal();
+            (*logged)[position] = this->parameter_input->get_normal_value(); //get_voltage_normal();
             if (this->parameter_input->output_type==BIPOLAR) {
                 // center is 0, range -1 to +1
-                logged[position] = (0.5) + (logged[position] / 2);
+                (*logged)[position] = (0.5) + ((*logged)[position] / 2);
             } else if (this->parameter_input->output_type==UNIPOLAR) {
                 // center is 0.5, range 0 to 1
                 //logged[position] =  ?? nothing
@@ -85,8 +93,8 @@ class ParameterInputDisplay : public MenuItem {
 
             int last_y = 0;
             for (int screen_x = 0 ; screen_x < tft->width() ; screen_x++) {
-                const uint16_t tick_for_screen_X = ticks_to_sequence_step((int)((float)screen_x * ticks_per_pixel)); // the tick corresponding to this screen position
-                int y = GRAPH_HEIGHT - (this->logged[tick_for_screen_X] * GRAPH_HEIGHT);
+                const uint16_t tick_for_screen_X = ticks_to_memory_step((int)((float)screen_x * ticks_per_pixel)); // the tick corresponding to this screen position
+                int y = GRAPH_HEIGHT - ((*logged)[tick_for_screen_X] * GRAPH_HEIGHT);
                 if (screen_x != 0) {
                     //int last_y = GRAPH_HEIGHT - (this->logged[tick_for_screen_X] * GRAPH_HEIGHT);
                     actual->drawLine(screen_x-1, base_row + last_y, screen_x, base_row + y, YELLOW);                    

@@ -218,7 +218,7 @@ class ParameterManager {
                 sprintf(label, "Graph for %c", param_input->name);
 
                 Serial.printf("\tdoing menu->add for ParameterInputDisplay with label '%s'\n", label);
-                menu->add(new ParameterInputDisplay(label, param_input)); //, LOOP_LENGTH_TICKS));
+                menu->add(new ParameterInputDisplay<LOOP_LENGTH_TICKS>(label, param_input)); //, LOOP_LENGTH_TICKS));
 
                 DualMenuItem *submenu = new DualMenuItem("Input/Output");
                 submenu->show_header = false;
