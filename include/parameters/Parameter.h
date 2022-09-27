@@ -407,7 +407,7 @@ class DataParameter : public DoubleParameter {
             virtual const char* parseFormattedDataType(double value) {
                 static char fmt[20] = "              ";
                 //sprintf(fmt, "%3i%% (float)",     (int)(100.0*value)); //->getCurrentValue());
-                sprintf(fmt, "%3i%%",     (int)(100.0*value)); //->getCurrentValue());
+                sprintf(fmt, "%3i%%", (int)(100.0*value)); //->getCurrentValue());
                 return fmt;
             }
             virtual const char* parseFormattedDataType(unsigned int value) {
@@ -419,13 +419,13 @@ class DataParameter : public DoubleParameter {
             virtual const char* parseFormattedDataType(int value) {
                 static char fmt[20] = "              ";
                 //sprintf(fmt, "%5i (signed)",     value); // (int)(this->maximumNormalValue*this->getCurrentNormalValue())); //getCurrentValue());
-                sprintf(fmt, "%5i",     value); // (int)(this->maximumNormalValue*this->getCurrentNormalValue())); //getCurrentValue());
+                sprintf(fmt, "%5i",   value); // (int)(this->maximumNormalValue*this->getCurrentNormalValue())); //getCurrentValue());
                 return fmt;
             }
             virtual const char* parseFormattedDataType(byte value) {
                 static char fmt[20] = "              ";
                 //sprintf(fmt, "%5i (signed)",     value); // (int)(this->maximumNormalValue*this->getCurrentNormalValue())); //getCurrentValue());
-                sprintf(fmt, "%-3i",     value); // (int)(this->maximumNormalValue*this->getCurrentNormalValue())); //getCurrentValue());
+                sprintf(fmt, "%-3i",  value); // (int)(this->maximumNormalValue*this->getCurrentNormalValue())); //getCurrentValue());
                 return fmt;
             }
         #else
@@ -483,7 +483,5 @@ class DataParameter : public DoubleParameter {
             this->setter_func = fp;
         }
 };
-
-
 
 #endif

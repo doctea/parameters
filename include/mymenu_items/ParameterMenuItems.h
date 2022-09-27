@@ -7,20 +7,12 @@
 #include "colours.h"
 
 #include "../parameters/Parameter.h"
-//#include "../parameter_inputs/AnalogParameterInputBase.h"
-//#include "DigitalParameterInput.h"
 
 #include <LinkedList.h>
 
-
 // direct control over a Parameter from menu
-//template<class DataType>
-//template<class ParameterClass>
-//template<class TargetClass, class DataType>
 class ParameterValueMenuItem : public DirectNumberControl<double> {
     public:
-        //int internal_value = 0;
-        //double internal_value = 0;
         DoubleParameter *parameter = nullptr;
         //Parameter<TargetClass, DataType> *parameter = nullptr;
 
@@ -30,8 +22,8 @@ class ParameterValueMenuItem : public DirectNumberControl<double> {
             strcpy(this->label, label);
             this->parameter = parameter;
             this->internal_value = parameter->getCurrentNormalValue() * 100.0;
-            this->minimum_value = 0.0f; //parameter->minimumDataValue; //minimumNormalValue;
-            this->maximum_value = 1.0f; //parameter->maximumDataValue; //maximumNormalValue;
+            this->minimum_value = 0.0f; 
+            this->maximum_value = 1.0f; 
             //this->minimum_value = parameter->minimum_value;
             //this->maximum_value = parameter->maximum_value;
             //this->step = 0.01;
@@ -62,11 +54,11 @@ class ParameterValueMenuItem : public DirectNumberControl<double> {
         }
 
         virtual const char *getFormattedValue() override {
-            //return this->parameter->getFormattedValue();
             static char fmt[20] = "      ";
             if (this->show_output_mode) {
                 return this->getFormattedOutputValue();
             }
+            // todo: can probably skip a sprintf and return it directly from parameter->getFormattedValue()?             //return this->parameter->getFormattedValue();
             sprintf(fmt, "%s", this->parameter->getFormattedValue()); 
             return fmt;
         }
@@ -109,26 +101,21 @@ class ParameterValueMenuItem : public DirectNumberControl<double> {
             } 
         }
 
+        // directly increase the parameter's value
         virtual void increase_value() override {
             //this->debug = true;
             parameter->decrementValue();
             this->internal_value = parameter->getCurrentNormalValue(); //this->maximum_value;
             if (this->debug) Serial.printf("ParameterValueMenuItem#increase_value updated internal_value to %f (from %f * 100.0)\n", internal_value, parameter->getCurrentNormalValue());
             //this->debug = false;
-            /*this->internal_value -= this->step;
-            if (this->internal_value < this->minimum_value)
-                this->internal_value = this->minimum_value; // = NUM_LOOP_SLOTS_PER_PROJECT-1;*/
-            //project.select_loop_number(ui_selected_loop_number);
         }
+        // directly decrease the parameter's value
         virtual void decrease_value() override {
             //this->debug = true;
             parameter->incrementValue();
             this->internal_value = parameter->getCurrentNormalValue(); // * 100.0; //this->maximum_value;
             if (this->debug) Serial.printf("ParameterValueMenuItem#decrease_value updated internal_value to %f (from %f * 100.0)\n", internal_value, parameter->getCurrentNormalValue());
             //this->debug = false;
-            /*this->internal_value += this->step;
-            if (this->internal_value >= this->maximum_value)
-                this->internal_value = this->maximum_value;*/
         }
 
         virtual bool knob_left() override {
@@ -138,7 +125,6 @@ class ParameterValueMenuItem : public DirectNumberControl<double> {
             if (this->debug) Serial.printf("------ ParameterValueMenuItem#knob_left, about to call change_value(%f)\n", internal_value);
             change_value(this->internal_value);
             if (this->debug) Serial.printf(">------<\n");
-            //project.select_loop_number(ui_selected_loop_number);
             return true;
         }
         virtual bool knob_right() override {
@@ -148,13 +134,10 @@ class ParameterValueMenuItem : public DirectNumberControl<double> {
             if (this->debug) Serial.printf("------ ParameterValueMenuItem#knob_right, about to call change_value(%f)\n", internal_value);
             change_value(this->internal_value);
             if (this->debug) Serial.printf(">------<\n");
-            //project.select_loop_number(internal_value);
             return true;
         }
         virtual bool button_select() override {
             if (readOnly) return true;
-            //this->target->set_transpose(internal_value);
-            //internal_value = this->get_current_value();// * this->maximum_value; 
             change_value(this->internal_value);
             return true;
         }
@@ -233,20 +216,6 @@ class ParameterMenuItem : public SubMenuItem {
         return false;
     }
 
-    /*
-    // trying to debug why this doesn't draw properly?!
-    virtual int display(Coord pos, bool selected, bool opened) {
-        colours(selected, C_WHITE, BLACK);
-        return MenuItem::display(pos, selected, opened);
-        tft->setTextSize(0);
-        tft->setCursor(pos.x,pos.y);
-        //tft->setTextColor(ST77XX_WHITE, ST77XX_BLACK);
-        colours(selected, C_WHITE, BLACK);
-        tft->printf("%s [s:%i o:%i]\n", label, (int)selected, (int)opened);
-        //return (tft->getTextSizeY() * 8) + 2;
-        return tft->getCursorY();
-    }*/
-
     virtual int display(Coord pos, bool selected, bool opened) override {       
         if (this->debug) Serial.printf("Start of display in ParameterMenuItem, passed in %i,%i\n", pos.x, pos.y);
         pos.y = header(label, pos, selected, opened);
@@ -309,29 +278,7 @@ class ParameterMenuItem : public SubMenuItem {
 };
 
 
-/*        int val_x = 0, amt1_x = width_per_item*1, amt2_x = width_per_item*2, amt3_x = width_per_item*3;
-
-        colours(true, opened ? GREEN : C_WHITE, BLACK);
-        tft->setCursor(0,start_y);
-        tft->print("Val");
-        tft->setCursor(amt1_x, start_y);
-        tft->print("Src1");
-        tft->setCursor(amt2_x, start_y);
-        tft->print("Src2");
-        tft->setCursor(amt3_x, start_y);
-        tft->print("Src3");
-
-        colours(false, C_WHITE, BLACK);
-        tft->setCursor(0,start_y);
-        tft->print("Val");
-        tft->setCursor(amt1_x, start_y);
-        tft->print("Src1");
-        tft->setCursor(amt2_x, start_y);
-        tft->print("Src2");
-        tft->setCursor(amt3_x, start_y);
-        tft->print("Src3");*/
-// ui to configure which Parameter a ParameterInput targets
-// TODO: I think ideally we want to go the other way around; for a parameter, we want to select which ParameterInputs it draws from
+// deprecated version -- from when the ParameterInput was re-assignable to Parameter output, rather than the Parameter pulling from (potentially) multiple ParameterInputs
 /*
 class ParameterSelectorControl : public SelectorControl {
     int actual_value_index = -1;
