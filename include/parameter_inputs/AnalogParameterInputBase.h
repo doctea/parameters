@@ -3,13 +3,6 @@
 
 #include "ParameterInput.h"
 
-#ifdef ENABLE_SCREEN
-  /*#include "menu.h"
-  #include "menuitems.h"
-  #include "mymenu_items/ParameterMenuItems.h"
-  #include "mymenu_items/ParameterInputViewMenuItems.h"*/
-#endif
-
 class Menu;
 
 template<class TargetClass, class DataType>
@@ -144,7 +137,8 @@ class AnalogParameterInputBase : public ParameterInput<TargetClass> {
           }      
           callback(normal);
         }
-        /*if (this->target_parameter!=nullptr) {
+        /* // leftover from the old ParameterInput-flows-to-Parameter approach
+        if (this->target_parameter!=nullptr) {
           if (this->debug) {
             Serial.print(this->name);
             Serial.print(F(": calling target setParamValueA("));
@@ -154,7 +148,6 @@ class AnalogParameterInputBase : public ParameterInput<TargetClass> {
             Serial.println();
           }
           //this->target_parameter->updateValueFromNormal(normal); 
-          // TODO: trigger updating of connected parameter mixers?
         }*/
       }
     }

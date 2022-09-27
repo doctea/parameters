@@ -10,28 +10,17 @@
 
 #include <LinkedList.h>
 
-// this stuff ripped from midi_looper.h/menu_looperdisplay.h in usb_midi_clocker TODO: make more generic
-//#define LOOP_LENGTH_STEP_SIZE 1         // resolution of loop TODO: problems when this is set >1; reloaded sequences (or maybe its converted-from-bitmap stage?) are missing note-offs
-//#define ticks_to_sequence_step(X)  ((X % LOOP_LENGTH_TICKS) / LOOP_LENGTH_STEP_SIZE)
-
 template<unsigned long memory_size>
 class ParameterInputDisplay : public MenuItem {
     public:
         BaseParameterInput *parameter_input = nullptr;
 
-        //double logged[LOOP_LENGTH_TICKS];
         typedef double memory_log[memory_size];
         memory_log *logged = nullptr;
 
         ParameterInputDisplay(char *label, BaseParameterInput *input) : MenuItem(label) {
-        //ParameterInputDisplay(char *label, BaseParameterInput *input) : MenuItem(label) {
             this->parameter_input = input;
-            //this->loop_length_ticks = loop_length_ticks;
-            //double logged
-            /*if (loop_length_ticks>0) {
-                double logged[] = new double[loop_length_ticks];
-            }*/
-            //memset(logged, 0, sizeof(logged));
+
             logged = (memory_log*)malloc(memory_size * sizeof(double));
         }
 
@@ -45,10 +34,10 @@ class ParameterInputDisplay : public MenuItem {
 
         virtual void update_ticks(unsigned long ticks) {
             // update internal log of values
-            unsigned int position = ticks % LOOP_LENGTH_TICKS;
-            (*logged)[position] = this->parameter_input->get_normal_value(); //get_voltage_normal();
+            unsigned int position = ticks % memory_size;
+            (*logged)[position] = this->parameter_input->get_normal_value(); 
             if (this->parameter_input->output_type==BIPOLAR) {
-                // center is 0, range -1 to +1
+                // center is 0, range -1 to +1, so re-center display
                 (*logged)[position] = (0.5) + ((*logged)[position] / 2);
             } else if (this->parameter_input->output_type==UNIPOLAR) {
                 // center is 0.5, range 0 to 1
@@ -118,49 +107,8 @@ class ParameterInputDisplay : public MenuItem {
 
 };
 
-
-/*template<class TargetClass, class DataType = byte>
-class InputTypeSelectorControl : public SelectorControl {
-    public:
-
-    int *available_values[2] = { (int)BIPOLAR, (int)UNIPOLAR };
-
-    void(TargetClass::*setter_func)(DataType value) = nullptr;// setter_func;
-    DataType(TargetClass::*getter_func)() = nullptr;// setter_func;
-    TargetClass *target = nullptr;
-
-    InputTypeSelectorControl(char *label) : SelectorControl(label) {}
-    //InputTypeSelectorControl(char *label, byte initial_selection) : SelectorControl(label, initial_selection) {}
-    InputTypeSelectorControl(char *label, TargetClass *target, void(TargetClass::*setter_func)(DataType), DataType(TargetClass::*getter_func)() ) 
-        : InputTypeSelectorControl(label) 
-    {
-            this->target = target;
-            this->getter_func = getter_func;
-            this->setter_func = setter_func;
-            this->selected_value_index = (this->target->*getter_func)();
-
-            //this->available_values = { 0, 1 };
-            this->num_values = sizeof(this->available_values);
-    }
-
-
-
-    virtual const char *get_label_for_value(byte value) {
-        if (value==BIPOLAR)
-            return (const char*)"Bipolar";
-        else if (value==UNIPOLAR)
-            return (const char*)"Unipolar";
-        else
-            return (const char*)"Unknown"; 
-    };
-};*/
-
-
 class InputTypeSelectorControl : public SelectorControl {
     int actual_value_index;
-    //void (*setter_func)(MIDIOutputWrapper *midi_output);
-    //MIDIOutputWrapper *initial_selected_output_wrapper;
-
     byte *target = nullptr;
 
     public:
