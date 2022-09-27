@@ -15,6 +15,7 @@ class ParameterInputDisplay : public MenuItem {
     public:
         BaseParameterInput *parameter_input = nullptr;
 
+        // todo: remember an int type instead of a float, for faster drawing
         typedef double memory_log[memory_size];
         memory_log *logged = nullptr;
 
@@ -22,6 +23,7 @@ class ParameterInputDisplay : public MenuItem {
             this->parameter_input = input;
 
             logged = (memory_log*)malloc(memory_size * sizeof(double));
+            memset(logged, 0, memory_size*sizeof(double));
         }
 
         virtual void configure(BaseParameterInput *parameter_input) {

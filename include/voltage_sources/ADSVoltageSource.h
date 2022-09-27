@@ -1,8 +1,10 @@
-#include "VoltageSource.h"
+#ifndef ADSVOLTAGESOURCE__INCLUDED
+#define ADSVOLTAGESOURCE__INCLUDED
 
+#include "VoltageSource.h"
 #include "ADS1X15.h"
 
-// for 1115 ADC modules with 5v range
+// for generic 1115 ADC modules with 5v range
 template<class ADS1X15Type>
 class ADSVoltageSource : public VoltageSourceBase {
     public:
@@ -19,7 +21,7 @@ class ADSVoltageSource : public VoltageSourceBase {
         }
 
         // ask the ADC for its current voltage
-        virtual double fetch_current_voltage() {
+        /*virtual double fetch_current_voltage() {
             //int16_t value = ads_source->readADC(channel);
             int16_t value1 = ads_source->readADC(channel);
             int16_t value2 = ads_source->readADC(channel);
@@ -32,10 +34,63 @@ class ADSVoltageSource : public VoltageSourceBase {
                 return 0.0;
             
             return this->get_corrected_voltage(voltageFromAdc);
+        }*/
+        virtual double fetch_current_voltage() {
+            static bool already_succeeded = false;
+            if (this->debug) {
+                Serial.println("in ADSVoltageSource#fetch_current_voltage()..");
+                Serial.printf("\tads_source is @%p, reading from channel %i\n", this->ads_source, this->channel);
+            }            
+            if (!already_succeeded) 
+                Serial.printf("ADSVoltageSource#fetch_current_voltage about to read from channel %i -- if we crash at this point, check that you're using the corrrect address for your ADC board!\n", this->channel);
+
+            #ifndef FAST_VOLTAGE_READS
+                // do three readings from ADC and average them
+                //int16_t adcReading = ads_source->readADC(channel);
+                int16_t value1 = ads_source->readADC(channel);
+                int16_t value2 = ads_source->readADC(channel);
+                int16_t value3 = ads_source->readADC(channel);
+
+                int adcReading = (value1+value2+value3) / 3;
+            #else
+                int adcReading = ads_source->readADC(channel);
+                if (!already_succeeded) 
+                    Serial.printf("ADSVoltageSource#fetch_current_voltage didn't crash on first read, so address is probably ok!\n", this->channel);
+
+                already_succeeded = true;
+            #endif
+
+            if (!already_succeeded) 
+                Serial.printf("ADSVoltageSource#fetch_current_voltage didn't crash on first read, so address is probably ok!\n", this->channel);
+            already_succeeded = true;
+
+            if (this->debug) {
+                Serial.printf("ADSVoltageSource channel %i read ADC voltageFromAdc %i\t :", channel, adcReading); Serial.flush();
+            }
+
+            double voltageFromAdc = this->adcread_to_voltage(adcReading);
+
+            double voltageCorrected = this->get_corrected_voltage(voltageFromAdc);
+
+            if (this->debug) {
+                Serial.print(" after correction stage 2 got ");
+                Serial.println(voltageCorrected);
+            }
+
+            if (this->debug) Serial.printf("in ADSVoltageSource#fetch_current_voltage() finishing (and returning %f)\n", voltageCorrected);
+
+            return voltageCorrected;
+        }
+
+        virtual double adcread_to_voltage(int16_t adcReading) {
+            double voltageFromAdc = ads_source->toVoltage(adcReading);
+            if ((int)voltageFromAdc==ADS1X15_INVALID_VOLTAGE)
+                return 0.0;
+            return voltageFromAdc;
         }
 
         // correct for non-linearity
-        double get_corrected_voltage (double voltageFromAdc) {
+        virtual double get_corrected_voltage(double voltageFromAdc) {
             // TODO: what is the maths behind this?  make configurable, etc 
             // from empirical measuring of received voltage and asked wolfram alpha to figure it out:-
             //  1v: v=1008        = 0.99206349206
@@ -46,3 +101,5 @@ class ADSVoltageSource : public VoltageSourceBase {
             return (voltageFromAdc * correction_value_1) + correction_value_2;
         };
 };
+
+#endif
