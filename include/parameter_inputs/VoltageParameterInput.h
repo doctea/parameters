@@ -6,8 +6,7 @@
 
 #include "../voltage_sources/VoltageSource.h"
 
-template<class TargetClass, class DataType = double>
-class VoltageParameterInput : public AnalogParameterInputBase<TargetClass, DataType> {
+class VoltageParameterInput : public AnalogParameterInputBase<double> {
     VoltageSourceBase *voltage_source;
 
     public:
@@ -16,12 +15,8 @@ class VoltageParameterInput : public AnalogParameterInputBase<TargetClass, DataT
             this->voltage_source = voltage_source;
         }
 
-        VoltageParameterInput(char name, VoltageSourceBase *voltage_source, TargetClass *target_parameter) : VoltageParameterInput(name, voltage_source) {
-            this->target_parameter = target_parameter;
-        }
-
         virtual void read() override {
-            DataType currentValue = this->voltage_source->get_voltage_normal();
+            double currentValue = this->voltage_source->get_voltage_normal();
             
             if (this->is_significant_change(currentValue, this->lastValue)) {
                 this->lastValue = this->currentValue;
@@ -41,8 +36,7 @@ class VoltageParameterInput : public AnalogParameterInputBase<TargetClass, DataT
                 }
                 #endif
 
-                DataType normal = this->get_normal_value(currentValue);
-                //DataType normal = currentValue;
+                double normal = this->get_normal_value(currentValue);
 
                 #ifdef ENABLE_PRINTF
                 if (this->debug) {

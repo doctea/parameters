@@ -53,14 +53,14 @@ class ParameterInputDisplay : public MenuItem {
             #define DISPLAY_INFO_IN_LABEL
             #ifdef DISPLAY_INFO_IN_LABEL
                 static char custom_label[MAX_LABEL_LENGTH*2];
-                sprintf(custom_label, "%s: [%s] %-7s >%-4i", // %-4s>",
-                //sprintf(custom_label, "%s: %-7s >%-4s ", //%-4s>",
+                sprintf(custom_label, "%s: [%s] %-7s >%-4i %-4s>",
+                    //sprintf(custom_label, "%s: %-7s >%-4s ", //%-4s>",
                     label,                    
                     this->parameter_input!=nullptr ? (char*)this->parameter_input->getInputInfo()  : "",
                     this->parameter_input!=nullptr ? (char*)this->parameter_input->getInputValue() : "",
                     //(int)(this->logged[(ticks%LOOP_LENGTH_TICKS] * 100.0)
-                    this->parameter_input!=nullptr ? (int)(this->parameter_input->get_normal_value()*100.0) : 0
-                    //(char*)this->parameter_input->getOutputValue()
+                    this->parameter_input!=nullptr ? (int)(this->parameter_input->get_normal_value()*100.0) : 0, 
+                    (char*)this->parameter_input->getOutputValue()
                 );
                 pos.y = header(custom_label, pos, selected, opened);         
             #else 

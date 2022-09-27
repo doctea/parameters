@@ -19,7 +19,7 @@ class DigitalParameterInput : public BaseParameterInput {
     void (*callback_on)()  = nullptr;
     void (*callback_off)() = nullptr;
 
-    BaseParameter *target_parameter = nullptr;
+    //BaseParameter *target_parameter = nullptr;
 
     DigitalParameterInput(int inputPin) : BaseParameterInput() { 
       this->inputPin = inputPin;
@@ -33,9 +33,9 @@ class DigitalParameterInput : public BaseParameterInput {
       this->callback_on = callback_on;
       this->callback_off = callback_off;
     }
-    DigitalParameterInput(int inputPin, BaseParameter *target) : DigitalParameterInput(inputPin) {
+    /*DigitalParameterInput(int inputPin, BaseParameter *target) : DigitalParameterInput(inputPin) {
       target_parameter = target;
-    }
+    }*/
 
     virtual void loop() {
       this->read();
@@ -51,8 +51,8 @@ class DigitalParameterInput : public BaseParameterInput {
           (*this->callback_on)();
         if (!currentValue && callback_off != nullptr) 
           (*this->callback_off)();
-        if (target_parameter!=nullptr)
-          this->target_parameter->setParamValue(currentValue);
+        /*if (target_parameter!=nullptr)
+          this->target_parameter->setParamValue(currentValue);*/
         lastValue = currentValue;
         //return currentValue;
       }

@@ -96,11 +96,9 @@ class BaseParameterInput {
 
 };
 
-template<class TargetClass>
 class ParameterInput : public BaseParameterInput {
   public:
     int inputPin = 0;
-    //TargetClass *target_parameter = nullptr;
     bool debug = false;
 
     ParameterInput() {

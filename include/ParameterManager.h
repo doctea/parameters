@@ -223,7 +223,7 @@ class ParameterManager {
             MenuItem *addParameterInputMenuItems(Menu *menu, BaseParameterInput *param_input, const char *label_prefix = nullptr) {
                 // TODO: a new ParameterInputControl that allows to set expected input ranges
                 char label[20];
-                sprintf(label, "Graph for %c", param_input->name);
+                sprintf(label, "Input %c", param_input->name);
 
                 Serial.printf("\tdoing menu->add for ParameterInputDisplay with label '%s'\n", label);
                 menu->add(new ParameterInputDisplay<LOOP_LENGTH_TICKS>(label, param_input)); //, LOOP_LENGTH_TICKS));

@@ -5,9 +5,8 @@
 
 class Menu;
 
-template<class TargetClass, class DataType>
-class AnalogParameterInputBase : public ParameterInput<TargetClass> {
-
+template<class DataType = double>
+class AnalogParameterInputBase : public ParameterInput {
   public:
     DataType lastValue = 0;
     DataType currentValue = 0;
@@ -21,12 +20,8 @@ class AnalogParameterInputBase : public ParameterInput<TargetClass> {
     DataType sensitivity = 0.005;
       
     AnalogParameterInputBase() {};
-    AnalogParameterInputBase(
-      char name, TargetClass &in_target, DataType in_sensitivity = 0.005,
-      byte input_type = BIPOLAR, byte output_type = UNIPOLAR
-    ) {
+    AnalogParameterInputBase(char name, DataType in_sensitivity = 0.005, byte input_type = BIPOLAR, byte output_type = UNIPOLAR) {
       this->name = name;
-      this->target_parameter = &in_target;
       this->sensitivity = in_sensitivity;
       this->input_type = input_type;
       this->output_type = output_type;
@@ -107,13 +102,12 @@ class AnalogParameterInputBase : public ParameterInput<TargetClass> {
       return fmt;
     }
     // for some reason, this prevents boot if uncommented?!
-    /*virtual const char *getOutputValue() override {
+    virtual const char *getOutputValue() override {
       static char fmt[20] = "          ";
       //sprintf(fmt, "[%-3i%%]", (int)(this->get_normal_value((double)this->currentValue)*100.0));
       sprintf(fmt, "[%-3i%%]", (int)(this->get_normal_value()*100.0));
       return fmt;
-    }*/
-
+    }
 
     virtual void read() override {
       #ifdef ENABLE_PRINTF
