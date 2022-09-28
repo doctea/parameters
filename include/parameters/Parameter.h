@@ -62,7 +62,7 @@ class DoubleParameter : public BaseParameter {
     double lastNormalValue = 0.0;
     double initialNormalValue = 0.0;
     double minimumNormalValue = 0.0;
-    double maximumNormalValue = 100.0;
+    double maximumNormalValue = 1.0; //100.0;
 
     double lastModulatedNormalValue = 0.0;
     double lastOutputNormalValue = 0.0;
@@ -260,12 +260,14 @@ class DataParameter : public DoubleParameter {
         }
 
         virtual DataType normalToData(double value) {
-            if (this->debug) {
+            if (this->debug && value>=0.0) {
+                Serial.printf("%s#", this->label);
                 Serial.printf("normalToData(%f) ", value);
-                Serial.printf(", range is %i ", this->maximumDataValue - this->minimumDataValue);
+                Serial.printf(", range is %i to %i ", this->minimumDataValue, this->maximumDataValue);
             }
+            value = this->constrainNormal(value);
             DataType data = this->minimumDataValue + (value * (float)(this->maximumDataValue - this->minimumDataValue));
-            if (this->debug) Serial.printf(" => %i\n", data);
+            if (this->debug && value>=0.0) Serial.printf(" => %i\n", data);
             return data;
         }
         virtual double dataToNormal(DataType value) {
@@ -448,7 +450,6 @@ class DataParameter : public DoubleParameter {
 
         // actually set the target from data, do the REAL setter call on target
         virtual void setTargetValueFromData(DataType value, bool force = false) {
-
             // early return if this value is the same as last one and we aren't being asked to force it
             static DataType last_sent_value = -1;
             if (!force && last_sent_value==value)
@@ -472,13 +473,21 @@ class DataParameter : public DoubleParameter {
         }
         // set the target from normalised post-modulation value
         virtual void setTargetValueFromNormal(double value, bool force = false) {
-            this->lastModulatedNormalValue = this->constrainNormal(value);
+            value = this->constrainNormal(value);
+            this->lastModulatedNormalValue = value;
             this->lastOutputNormalValue = this->lastModulatedNormalValue; // = value;
             this->setTargetValueFromData(this->normalToData(lastOutputNormalValue), force);
         }
 
         virtual double constrainNormal(double value) {
             // TODO: check if polar/bipolar?
+            /*if (this->debug) Serial.printf("in %s,\tconstraining %f to %f:%f => %f \n", 
+                this->label, 
+                value, 
+                this->minimumNormalValue, 
+                this->maximumNormalValue, 
+                constrain(value, this->minimumNormalValue, this->maximumNormalValue)
+            );*/
             return constrain(value, this->minimumNormalValue, this->maximumNormalValue);
         }
 

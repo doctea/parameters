@@ -32,6 +32,7 @@ class ParameterValueMenuItem : public DirectNumberControl<double> {
         // // true if this widget should show the last post-modulation output value; false if it should show the pre-modulation value
         virtual ParameterValueMenuItem *set_show_output_mode(bool mode = true) {
             this->show_output_mode = mode;
+            this->readOnly = true;
             return this;
         }
 
@@ -152,8 +153,9 @@ class ParameterValueMenuItem : public DirectNumberControl<double> {
         virtual void change_value(double new_value) {    // doesn't override, implements for normalled float?
             if (readOnly) return;
             double last_value = this->get_current_value();
-            if (this->debug) Serial.printf("ParameterValueMenuItem#change_value(%f) about to call set_current_value(%f)\n", new_value, new_value);
+            if (this->debug) Serial.printf("ParameterValueMenuItem#change_value(%f)\t in %s\tabout to call set_current_value(%f)\n", new_value, this->label);
             this->set_current_value(new_value);
+            if (this->debug) Serial.printf("ParameterValueMenuItem#change_value(%f)\t after set_current_value(%f) get_current_value is \n", new_value, this->get_current_value());
             if (on_change_handler!=nullptr) {
                 if (this->debug)  { Serial.println("NumberControl calling on_change_handler"); Serial.flush(); }
                 on_change_handler(last_value, this->internal_value); //this->get_internal_value());
@@ -175,7 +177,7 @@ class ParameterMenuItem : public SubMenuItem {
         this->parameter = parameter;
 
         // add the direct Value changer
-        this->add(new ParameterValueMenuItem("Value", parameter));
+        this->add(new ParameterValueMenuItem((char*)"Value", parameter));
 
         // add the modulation Amount % changers
         for (int i = 0 ; i < MAX_SLOT_CONNECTIONS ; i++) {
@@ -192,16 +194,17 @@ class ParameterMenuItem : public SubMenuItem {
                 labelnew, 
                 &parameter->connections[i].amount, 
                 parameter->connections[i].amount, 
-                -1, 
-                1, 
+                -1.0, 
+                1.0, 
                 nullptr
             );
             input_amount_control->colour = parameter->connections[i].parameter_input->colour;
+            //input_amount_control->debug = true;
             this->add(input_amount_control);
         }
 
         // add another small widget to display the last output value (after modulation etc)
-        ParameterValueMenuItem *output = new ParameterValueMenuItem("Output", parameter);
+        ParameterValueMenuItem *output = new ParameterValueMenuItem((char*)"Output", parameter);
         output->set_show_output_mode();
         this->add(output); 
         

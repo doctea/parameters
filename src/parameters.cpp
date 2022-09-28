@@ -89,7 +89,10 @@ double DoubleParameter::get_modulation_value() {
             }
         }
         if (this->debug && number_of_modulations>0) 
-            Serial.printf("%s#get_modulation_value() returning %f from %i modulations\n", this->label, modulation, number_of_modulations);
+            Serial.printf("%s#get_modulation_value()\treturning\t%f from\t%i modulations\n", this->label, modulation, number_of_modulations);
+        /*else {
+            Serial.printf("%s#get_modulation_value() got no modulations\n", this->label);
+        }*/
         return modulation;
         //this->parameter->modulateValue(modulation);
 }
