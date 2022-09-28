@@ -16,7 +16,7 @@ class ParameterValueMenuItem : public DirectNumberControl<double> {
         DoubleParameter *parameter = nullptr;
         //Parameter<TargetClass, DataType> *parameter = nullptr;
 
-        bool show_output_mode = false;
+        bool show_output_mode = false;  // true if this widget should show the last post-modulation output value; false if it should show the pre-modulation value
 
         ParameterValueMenuItem(char *label, DoubleParameter *parameter) : DirectNumberControl(label) {
             strcpy(this->label, label);
@@ -29,6 +29,7 @@ class ParameterValueMenuItem : public DirectNumberControl<double> {
             //this->step = 0.01;
         }
 
+        // // true if this widget should show the last post-modulation output value; false if it should show the pre-modulation value
         virtual ParameterValueMenuItem *set_show_output_mode(bool mode = true) {
             this->show_output_mode = mode;
             return this;
@@ -164,7 +165,7 @@ class ParameterValueMenuItem : public DirectNumberControl<double> {
 
 #include "submenuitem.h"
 
-// compound menu item that shows a direct setter widget and 3x modulation amount widgets
+// compound menu item that shows a direct value-setter widget, 3x modulation amount widgets, and the last post-modulation output value
 class ParameterMenuItem : public SubMenuItem {
     public:
 
@@ -199,7 +200,7 @@ class ParameterMenuItem : public SubMenuItem {
             this->add(input_amount_control);
         }
 
-        // enabling this causes startup to crash?!
+        // add another small widget to display the last output value (after modulation etc)
         ParameterValueMenuItem *output = new ParameterValueMenuItem("Output", parameter);
         output->set_show_output_mode();
         this->add(output); 

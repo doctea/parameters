@@ -446,8 +446,14 @@ class DataParameter : public DoubleParameter {
             };
         #endif
 
-        // actually set the target from data, do the real setter call on target
-        virtual void setTargetValueFromData(DataType value) {
+        // actually set the target from data, do the REAL setter call on target
+        virtual void setTargetValueFromData(DataType value, bool force = false) {
+
+            // early return if this value is the same as last one and we aren't being asked to force it
+            static DataType last_sent_value = -1;
+            if (!force && last_sent_value==value)
+                return;
+
             if (this->target!=nullptr && this->setter_func!=nullptr) {
                 #ifdef ENABLE_PRINTF
                     if (this->debug) {
@@ -464,16 +470,16 @@ class DataParameter : public DoubleParameter {
                 #endif
             }
         }
-        // actually set the target from normal
-        virtual void setTargetValueFromNormal(double value) {
+        // set the target from normalised post-modulation value
+        virtual void setTargetValueFromNormal(double value, bool force = false) {
             this->lastModulatedNormalValue = this->constrainNormal(value);
             this->lastOutputNormalValue = this->lastModulatedNormalValue; // = value;
-            this->setTargetValueFromData(this->normalToData(lastOutputNormalValue));
+            this->setTargetValueFromData(this->normalToData(lastOutputNormalValue), force);
         }
 
         virtual double constrainNormal(double value) {
-            // todo: check if polar/bipolar
-            return constrain(value, 0.0, 1.0);
+            // TODO: check if polar/bipolar?
+            return constrain(value, this->minimumNormalValue, this->maximumNormalValue);
         }
 
         virtual void set_target_object(TargetClass *target) {
