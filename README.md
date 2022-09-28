@@ -1,3 +1,6 @@
+**NOTE** this is version prior to refactor, where the ParameterInput is assigned to one Parameter and pushes values to it -- this is the version that was used with sidenhancy
+
+
 # Eurorack Arduino parameters library
 
 Work-in-progress, classes designed for handling Eurorack inputs in Arduino platform projects and mapping values to object-setter functions.
