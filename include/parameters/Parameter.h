@@ -427,7 +427,7 @@ class DataParameter : public DoubleParameter {
             virtual const char* parseFormattedDataType(byte value) {
                 static char fmt[20] = "              ";
                 //sprintf(fmt, "%5i (signed)",     value); // (int)(this->maximumNormalValue*this->getCurrentNormalValue())); //getCurrentValue());
-                sprintf(fmt, "%-3i",  value); // (int)(this->maximumNormalValue*this->getCurrentNormalValue())); //getCurrentValue());
+                sprintf(fmt, "%3i",  value); // (int)(this->maximumNormalValue*this->getCurrentNormalValue())); //getCurrentValue());
                 return fmt;
             }
         #else
