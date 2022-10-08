@@ -1,6 +1,8 @@
 #ifndef VOLTAGE_SOURCE__INCLUDED
 #define VOLTAGE_SOURCE__INCLUDED
 
+#include "ads.h"
+
 // base class for a voltage source, eg a wrapper around an ADC library
 class VoltageSourceBase {
     public:
@@ -31,5 +33,10 @@ class VoltageSourceBase {
         virtual double get_voltage_normal() {
             return this->get_voltage() / this->maximum_input_voltage;
         }
+
+        virtual byte get_voltage_pitch() {
+            return get_midi_pitch_for_voltage(this->get_voltage());
+        }
+
 };
 #endif

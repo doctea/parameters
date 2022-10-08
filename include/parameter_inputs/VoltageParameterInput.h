@@ -6,6 +6,8 @@
 
 #include "../voltage_sources/VoltageSource.h"
 
+#include "ads.h"
+
 class VoltageParameterInput : public AnalogParameterInputBase<double> {
     VoltageSourceBase *voltage_source;
 
@@ -13,6 +15,16 @@ class VoltageParameterInput : public AnalogParameterInputBase<double> {
         VoltageParameterInput(char name, VoltageSourceBase *voltage_source) {
             this->name = name;
             this->voltage_source = voltage_source;
+        }
+
+        virtual char *getExtra() override {
+            static char extra_output[20];
+            sprintf(
+                extra_output, 
+                "MIDI pitch for %3.3f is %s\n", 
+                this->voltage_source->get_voltage(), get_note_name(this->voltage_source->get_voltage_pitch()).c_str()
+            );
+            return extra_output;
         }
 
         virtual void read() override {

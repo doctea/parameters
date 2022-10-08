@@ -98,6 +98,8 @@ class ParameterInputDisplay : public MenuItem {
 
             tft->setCursor(pos.x, pos.y + GRAPH_HEIGHT + 5);    // set cursor to below the graph's output
 
+            //this->do_extra(this->parameter_input);
+            tft->printf("Extra: %s\n", this->parameter_input->getExtra());
             /*tft->printf("Value: %i ", (int)(this->logged[ticks%LOOP_LENGTH_TICKS] * 100.0));
             tft->printf((char*)"Inp: %-8s ", (char*)this->parameter_input->getInputInfo()); //i @ %p")
             tft->printf((char*)"Read: %-8s ", (char*)this->parameter_input->getInputValue());*/
@@ -106,6 +108,7 @@ class ParameterInputDisplay : public MenuItem {
 
             return tft->getCursorY();
         }
+
 
 };
 

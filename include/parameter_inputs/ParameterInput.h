@@ -3,6 +3,8 @@
 
 #include <Arduino.h>
 
+#include "ads.h"
+
 #ifdef ENABLE_SCREEN
   #include "menu.h"
 #endif
@@ -67,6 +69,10 @@ class BaseParameterInput {
     }
     virtual const char *getOutputValue() {
       return "?Base?";
+    }
+
+    virtual char *getExtra() {
+      return "baseExtra";
     }
 
     virtual void setInverted(bool invert = true) {

@@ -77,7 +77,7 @@ double get_corrected_voltage (float voltageFromAdc) {
 };
 */
 
-int get_midi_pitch_for_voltage(float voltageFromAdc, int pitch_offset = 24) {
+int get_midi_pitch_for_voltage(float voltageFromAdc, int pitch_offset) {
   //int pitch = pitch_offset + round(/*scaler **/get_corrected_voltage(voltageFromAdc) * 12.0);
   int pitch = pitch_offset + round(voltageFromAdc * 12.0);
   return pitch;
