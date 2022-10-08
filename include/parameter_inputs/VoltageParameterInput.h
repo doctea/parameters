@@ -18,7 +18,10 @@ class VoltageParameterInput : public AnalogParameterInputBase<double> {
         }
 
         virtual char *getExtra() override {
-            static char extra_output[20];
+            if (this->voltage_source==nullptr) {
+                return "[null voltage_source]";
+            }
+            static char extra_output[40];
             sprintf(
                 extra_output, 
                 "MIDI pitch for %3.3f is %s\n", 
