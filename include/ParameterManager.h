@@ -58,6 +58,11 @@ class ParameterManager {
 
         FLASHMEM VoltageSourceBase *addVoltageSource(VoltageSourceBase *voltage_source) {
             Serial.printf("ParameterManager#addVoltageSource(%p)\n", voltage_source);
+            #ifdef LOAD_CALIBRATION_ON_BOOT
+                Serial.printf("Loading calibration for %i!\n", voltage_source->slot);
+                voltage_source->load_calibration();
+            #endif
+
             this->voltage_sources.add(voltage_source);
             return voltage_source;
         }
