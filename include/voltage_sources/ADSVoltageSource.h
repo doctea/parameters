@@ -16,7 +16,7 @@ class ADSVoltageSourceBase : public VoltageSourceBase {
         float correction_value_2 = 0.0123321;
 
         #ifdef ENABLE_SCREEN
-            virtual MenuItem *makeCalibrationControls(int i) override;
+            FLASHMEM virtual MenuItem *makeCalibrationControls(int i) override;
             //virtual MenuItem *makeCalibrationLoadSaveControls(int i) override;
         #endif
 };

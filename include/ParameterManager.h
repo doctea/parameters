@@ -46,35 +46,35 @@ class ParameterManager {
         ParameterManager () {
         }
 
-        void init() {
+        FLASHMEM void init() {
             this->param_none = this->addParameter(new DoubleParameter((char*)"None"));
         }
 
-        ADCDeviceBase *addADCDevice(ADCDeviceBase *device) {
+        FLASHMEM ADCDeviceBase *addADCDevice(ADCDeviceBase *device) {
             Serial.printf("ParameterManager#addADCDevice(%p)\n", device);
             this->devices.add(device);
             return device;
         }
 
-        VoltageSourceBase *addVoltageSource(VoltageSourceBase *voltage_source) {
+        FLASHMEM VoltageSourceBase *addVoltageSource(VoltageSourceBase *voltage_source) {
             Serial.printf("ParameterManager#addVoltageSource(%p)\n", voltage_source);
             this->voltage_sources.add(voltage_source);
             return voltage_source;
         }
 
-        BaseParameterInput *addInput(BaseParameterInput *input) {
+        FLASHMEM BaseParameterInput *addInput(BaseParameterInput *input) {
             Serial.printf("ParameterManager#addInput(%p)\n", input);
             input->colour = parameter_input_colours[this->available_inputs.size() % sizeof(parameter_input_colours)];
             this->available_inputs.add(input);
             return input;
         }
 
-        DoubleParameter *addParameter(DoubleParameter *parameter) {
+        FLASHMEM DoubleParameter *addParameter(DoubleParameter *parameter) {
             Serial.printf("ParameterManager#addParameter(%p), labeled '%s'\n", parameter, parameter->label);
             this->available_parameters.add(parameter);
             return parameter;
         }
-        void addParameters(LinkedList<DoubleParameter*> *parameters) {
+        FLASHMEM void addParameters(LinkedList<DoubleParameter*> *parameters) {
             Serial.println("ParameterManager#addParameters()..");
             for (int i = 0 ; i < parameters->size() ; i++) {
                 Serial.printf("\t%i: adding from @%p '%s'\n", i, parameters->get(i), parameters->get(i)->label);
@@ -83,7 +83,7 @@ class ParameterManager {
         }
 
         // initialise devices and add all their voltage sources
-        void auto_init_devices() {
+        FLASHMEM void auto_init_devices() {
             Serial.printf("ParameterManager#auto_init_devices)\n");
             //char parameter_input_name = 'A';
             for (int i = 0 ; i < devices.size() ; i++) {
@@ -104,7 +104,7 @@ class ParameterManager {
             }
         }
 
-        BaseParameterInput *getInputForName(char input_name) {
+        FASTRUN BaseParameterInput *getInputForName(char input_name) {
             for(int i = 0 ; i < available_inputs.size() ; i++) {
                 if (available_inputs.get(i)->name==input_name)
                     return available_inputs.get(i);
@@ -124,7 +124,7 @@ class ParameterManager {
         }*/
 
         // read the values, but don't pass them on outside
-        void update_voltage_sources() {
+        FASTRUN void update_voltage_sources() {
             if (this->debug) Serial.printf("ParameterManager#update_voltage_sources()");
             // round robin reading so they get a chance to settle in between adc reads?
             const int size = voltage_sources.size();
@@ -157,7 +157,7 @@ class ParameterManager {
         }
 
         // update the ParameterInputs with the latest values from the VoltageSources
-        void update_inputs() {
+        FASTRUN void update_inputs() {
             const int available_inputs_size = available_inputs.size();
             for (int i = 0 ; i < available_inputs_size ; i++) {
                 available_inputs.get(i)->loop();
@@ -166,7 +166,7 @@ class ParameterManager {
 
         unsigned long profile_update_mixers = 0;
         // update every parameter's values based on the mixed ParameterInputs
-        void update_mixers() {
+        FASTRUN void update_mixers() {
             // this is going to be pretty intensive; may need to adjust the way this works...
             unsigned long update_mixers_started = micros();
             const uint16_t available_parameters_size = this->available_parameters.size();
@@ -177,7 +177,7 @@ class ParameterManager {
             this->profile_update_mixers = update_mixers_finished - update_mixers_started;
         }
 
-        void setDefaultParameterConnections() {
+        FLASHMEM void setDefaultParameterConnections() {
             Serial.printf("ParameterManager#setDefaultParameterConnections() has %i parameters to map to %i inputs", this->available_parameters.size(), this->available_inputs.size());
             for (int i = 0 ; i < this->available_parameters.size() ; i++) {
                 // todo: make this configurable dynamically / load defaults from save file
@@ -191,26 +191,26 @@ class ParameterManager {
         }
 
         #ifdef ENABLE_SCREEN
-            void addAllParameterInputMenuItems(Menu *menu) {
+            FLASHMEM void addAllParameterInputMenuItems(Menu *menu) {
                 for (int i = 0 ; i < available_inputs.size() ; i++) {
                     this->addParameterInputMenuItems(menu, available_inputs.get(i));
                 }
             }
 
             // add all the available parameters to the main menu
-            void addAllParameterMenuItems(Menu *menu) {
+            FLASHMEM void addAllParameterMenuItems(Menu *menu) {
                 for (int i = 0 ; i <this->available_parameters.size() ; i++) {
                     menu->add(this->makeMenuItemForParameter(this->available_parameters.get(i)));
                 }
             }
 
-            SubMenuItem *addParameterSubMenuItems(Menu *menu, const char *submenu_label, LinkedList<DoubleParameter*> *parameters) {
+            FLASHMEM SubMenuItem *addParameterSubMenuItems(Menu *menu, const char *submenu_label, LinkedList<DoubleParameter*> *parameters) {
                 char label[MAX_LABEL_LENGTH];
                 sprintf(label, "Parameters for %s", submenu_label);
                 //LinkedList<DataParameter*> *parameters = behaviour_craftsynth->get_parameters();
                 SubMenuItem *submenu = new SubMenuItem(label, false);
                 for (int i = 0 ; i < parameters->size() ; i++) {
-                    //char tmp[20];
+                    //char tmp[MENU_C_MAX];
                     //sprintf(tmp, "test item %i", i);
                     //submenu->add(new MenuItem(tmp));
                     Serial.printf("addParameterSubMenuItems(menu, '%s') processing parameter %i\n", label, i);
@@ -220,9 +220,9 @@ class ParameterManager {
                 return submenu;
             }
 
-            MenuItem *addParameterInputMenuItems(Menu *menu, BaseParameterInput *param_input, const char *label_prefix = nullptr) {
+            FLASHMEM MenuItem *addParameterInputMenuItems(Menu *menu, BaseParameterInput *param_input, const char *label_prefix = nullptr) {
                 // TODO: a new ParameterInputControl that allows to set expected input ranges
-                char label[20];
+                char label[MENU_C_MAX];
                 sprintf(label, "Input %c", param_input->name);
 
                 Serial.printf("\tdoing menu->add for ParameterInputDisplay with label '%s'\n", label);
@@ -241,47 +241,32 @@ class ParameterManager {
             }
 
             // create a menuitem for the passed-in parameter; returns nullptr if passed-in parameter is named "None"
-            MenuItem *makeMenuItemForParameter(DoubleParameter *p, char *label_prefix = nullptr) {
+            FLASHMEM MenuItem *makeMenuItemForParameter(DoubleParameter *p, char *label_prefix = nullptr) {
                 if (strcmp(p->label,"None")==0) return nullptr;
                 MenuItem *ctrl = p->makeControl();
                 return ctrl;
             }
 
-            void *addAllVoltageSourceMenuItems(Menu *menu) {
-                Serial.printf("ParameterManager#addAllVoltageSourceMenuItems() has %i VoltageSources to add items for?\n", this->voltage_sources.size());
+            FLASHMEM void *addAllVoltageSourceMenuItems(Menu *menu) {
+                Serial.printf(F("------------\nParameterManager#addAllVoltageSourceMenuItems() has %i VoltageSources to add items for?\n"), this->voltage_sources.size());
                 const int size = this->voltage_sources.size();
                 for (int i = 0 ; i < size ; i++) {
-                    Serial.printf("ParameterManager#addAllVoltageSourceMenuItems() for voltage_source %i/%i\n", i+1, size);
+                    Serial.printf(F("\tParameterManager#addAllVoltageSourceMenuItems() for voltage_source %i/%i\n"), i+1, size); Serial.flush();
                     //this->addVoltageSourceMenuItems(menu, this->voltage_sources.get(i));
-                    menu->add(this->voltage_sources.get(i)->makeCalibrationControls(i));
-                    menu->add(this->voltage_sources.get(i)->makeCalibrationLoadSaveControls(i));
+                    VoltageSourceBase *voltage_source = this->voltage_sources.get(i);
+                    if (voltage_source!=nullptr) {
+                        menu->add(voltage_source->makeCalibrationControls(i));
+                        menu->add(voltage_source->makeCalibrationLoadSaveControls(i));
+                        Serial.println(F("\t\tmakeCalibrationControls+makeCalibrationLoadSaveControls done!")); Serial.flush();
+                    } else {
+                        while(1)
+                            Serial.printf("\t\tERROR:- got a null voltage_source for %i?!!!\n", i);
+                    }
+                    Serial.printf(F("\tfinished with voltage_source %i\n"), i);
                 }
-                Serial.printf("ParameterManager#addAllVoltageSourceMenuItems() done\n", this->voltage_sources.size());
+                Serial.printf(F("ParameterManager#addAllVoltageSourceMenuItems() done!\n------------\n")); Serial.flush();
                 return nullptr;
             }
-
-            /*MenuItem *addVoltageSourceMenuItems(Menu *menu, VoltageSourceBase *source) {
-                Serial.println("addVoltageSourceMenuItems() for VoltageSourceBase passed a source!");
-                return nullptr;
-            }
-
-            MenuItem *addVoltageSourceMenuItems(Menu *menu, ADS24vVoltageSource<ADS1015> *source) {
-                Serial.println("addVoltageSourceMenuItem() for an ADS24vVoltageSource!");
-                DualMenuItem *submenu = new DualMenuItem("Voltage Source Calibrator");
-                //DirectNumberControl(const char* label, DataType *target_variable, DataType start_value, DataType min_value, DataType max_value, void (*on_change_handler)(DataType last_value, DataType new_value) = nullptr) 
-
-                DirectNumberControl<float> *ctrl1 = new DirectNumberControl<float> ("correction_1", &(source->correction_value_1), source->correction_value_1, 1024.0, 1200.0, nullptr);
-                ctrl1->step = 0.5;
-                DirectNumberControl<float> *ctrl2 = new DirectNumberControl<float> ("correction_2", &(source->correction_value_2), source->correction_value_2, 0.020, 0.099, nullptr);
-                ctrl2->step = 0.001;
-
-                submenu->add(ctrl1);
-                submenu->add(ctrl2);
-
-                menu->add(submenu);
-                while(1);
-            }*/
-
         #endif
 
 };

@@ -5,10 +5,11 @@
     #include "submenuitem_bar.h"
     #include "menuitems_object.h"
 
-    MenuItem *ADSVoltageSourceBase::makeCalibrationControls(int i) {
+    FLASHMEM MenuItem *ADSVoltageSourceBase::makeCalibrationControls(int i) {
         Serial.println("makeCalibrationControls() for an ADS24vVoltageSource!"); Serial.flush();
 
-        char name[20];
+        Serial.printf("MENU_C_MAX is %i\n", MENU_C_MAX);
+        char name[MENU_C_MAX];
         sprintf(name, "Voltage Source %i Calibrator", i);
         SubMenuItemBar *submenu = new SubMenuItemBar(name);
 
@@ -26,11 +27,14 @@
         submenu->add(ctrl1);
         submenu->add(ctrl2);
 
+        Serial.println("makeCalibrationControls() creating current_value_disp control!"); Serial.flush();   
         DirectNumberControl<double> *current_value_disp = new DirectNumberControl<double> 
             ("current", &this->current_value, this->current_value, -10.0, 10.0, nullptr);
         current_value_disp->readOnly = true;
         submenu->add(current_value_disp);
 
+        //Serial.println("makeCalibrationControls() returning!"); Serial.flush();   
+        Serial.printf("makeCalibrationControls() returning - i is %i!\n", i); Serial.flush();   
         return submenu;
     }
 
