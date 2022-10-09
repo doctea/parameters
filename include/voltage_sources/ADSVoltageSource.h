@@ -15,10 +15,16 @@ class ADSVoltageSourceBase : public VoltageSourceBase {
         float correction_value_1 = 0.976937;
         float correction_value_2 = 0.0123321;
 
+        ADSVoltageSourceBase(int slot) : VoltageSourceBase(slot) {}
+
         #ifdef ENABLE_SCREEN
             FLASHMEM virtual MenuItem *makeCalibrationControls(int i) override;
             //virtual MenuItem *makeCalibrationLoadSaveControls(int i) override;
         #endif
+
+        virtual void load_calibration() override;
+        virtual void save_calibration() override;
+        
 };
 
 // for generic 1115 ADC modules with 5v range
@@ -28,7 +34,8 @@ class ADSVoltageSource : public ADSVoltageSourceBase {
         byte channel = 0;
         ADS1X15Type *ads_source;
 
-        ADSVoltageSource(ADS1X15Type *ads_source, byte channel, float maximum_input_voltage = 5.0) {
+        ADSVoltageSource(int slot, ADS1X15Type *ads_source, byte channel, float maximum_input_voltage = 5.0) 
+        : ADSVoltageSourceBase(slot) {
             this->ads_source = ads_source;
             this->channel = channel;
             this->maximum_input_voltage = maximum_input_voltage;
@@ -68,10 +75,6 @@ class ADSVoltageSource : public ADSVoltageSourceBase {
                 int adcReading = (value1+value2+value3) / 3;
             #else
                 int adcReading = ads_source->readADC(channel);
-                if (!already_succeeded) 
-                    Serial.printf("ADSVoltageSource#fetch_current_voltage didn't crash on first read, so address is probably ok!\n", this->channel);
-
-                already_succeeded = true;
             #endif
 
             if (!already_succeeded) 

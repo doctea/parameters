@@ -50,7 +50,7 @@ class ADCPimoroni24v : public ADCDeviceBase {
             if (!this->initialised)
                 this->init();
             if (i<MAX_CHANNELS)
-                return new ADS24vVoltageSource<ADSDeviceClass>(this->actual_device, i, max_input_voltage);
+                return new ADS24vVoltageSource<ADSDeviceClass>(i, this->actual_device, i, max_input_voltage);
             else 
                 return nullptr;
         }

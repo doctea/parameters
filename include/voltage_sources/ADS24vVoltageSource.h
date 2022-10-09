@@ -12,11 +12,13 @@ class ADS24vVoltageSource : public ADSVoltageSource<ADS1X15Type> {
         //float correction_value_1 = 1182.0;
         //float correction_value_2 = 0.041;
 
-        ADS24vVoltageSource(ADS1X15Type *ads_source, byte channel, float maximum_input_voltage = 10.0) :
-            ADSVoltageSource<ADS1X15Type>(ads_source, channel, maximum_input_voltage) {
+        ADS24vVoltageSource(int slot, ADS1X15Type *ads_source, byte channel, float maximum_input_voltage = 10.0) :
+            ADSVoltageSource<ADS1X15Type>(slot, ads_source, channel, maximum_input_voltage) {
                 //this->debug = true;
                 this->correction_value_1 = 1182.0;
                 this->correction_value_2 = 0.041;
+                //actually getting close: 1183, 0.0400
+                //          1181, 0.0400
         }
 
         virtual double adcread_to_voltage(int16_t adcReading) override {

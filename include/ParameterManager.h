@@ -43,8 +43,8 @@ class ParameterManager {
             BLUE
         };
 
-        ParameterManager () {
-        }
+        ParameterManager () {}
+        ~ParameterManager () {}
 
         FLASHMEM void init() {
             this->param_none = this->addParameter(new DoubleParameter((char*)"None"));
@@ -269,6 +269,18 @@ class ParameterManager {
             }
         #endif
 
+        virtual int find_slot_for_voltage(VoltageSourceBase *source) {
+            for (int i = 0 ; i < voltage_sources.size() ; i++) {
+                if (voltage_sources.get(i) == source)
+                    return i;
+            }
+            return -1;
+        }
+
+        //virtual bool load_voltage_calibration();
+        //virtual bool save_voltage_calibration();
 };
+
+//extern ParameterManager parameter_manager;
 
 #endif

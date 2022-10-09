@@ -19,6 +19,11 @@ class VoltageSourceBase {
 
         double maximum_input_voltage;
 
+        int slot = -1;
+        VoltageSourceBase(int slot) {
+            this->slot = slot;
+        }
+
         // actually fetch the current value from ADC, put it in the current_value
         virtual double fetch_current_voltage();
         // update the current voltage values

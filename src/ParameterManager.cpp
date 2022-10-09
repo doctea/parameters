@@ -28,3 +28,13 @@
     }
 
 #endif*/
+/*
+#include "ParameterManager.h"
+
+// todo: different implementations depending on whether we have SD card available or not
+bool ParameterManager::load_voltage_calibration(int slot) {
+    VoltageSourceBase 
+}
+bool ParameterManager::save_voltage_calibration(int slot) {
+
+}*/
