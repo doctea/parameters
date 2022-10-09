@@ -247,6 +247,41 @@ class ParameterManager {
                 return ctrl;
             }
 
+            void *addAllVoltageSourceMenuItems(Menu *menu) {
+                Serial.printf("ParameterManager#addAllVoltageSourceMenuItems() has %i VoltageSources to add items for?\n", this->voltage_sources.size());
+                const int size = this->voltage_sources.size();
+                for (int i = 0 ; i < size ; i++) {
+                    Serial.printf("ParameterManager#addAllVoltageSourceMenuItems() for voltage_source %i/%i\n", i+1, size);
+                    //this->addVoltageSourceMenuItems(menu, this->voltage_sources.get(i));
+                    menu->add(this->voltage_sources.get(i)->makeCalibrationControls(i));
+                    menu->add(this->voltage_sources.get(i)->makeCalibrationLoadSaveControls(i));
+                }
+                Serial.printf("ParameterManager#addAllVoltageSourceMenuItems() done\n", this->voltage_sources.size());
+                return nullptr;
+            }
+
+            /*MenuItem *addVoltageSourceMenuItems(Menu *menu, VoltageSourceBase *source) {
+                Serial.println("addVoltageSourceMenuItems() for VoltageSourceBase passed a source!");
+                return nullptr;
+            }
+
+            MenuItem *addVoltageSourceMenuItems(Menu *menu, ADS24vVoltageSource<ADS1015> *source) {
+                Serial.println("addVoltageSourceMenuItem() for an ADS24vVoltageSource!");
+                DualMenuItem *submenu = new DualMenuItem("Voltage Source Calibrator");
+                //DirectNumberControl(const char* label, DataType *target_variable, DataType start_value, DataType min_value, DataType max_value, void (*on_change_handler)(DataType last_value, DataType new_value) = nullptr) 
+
+                DirectNumberControl<float> *ctrl1 = new DirectNumberControl<float> ("correction_1", &(source->correction_value_1), source->correction_value_1, 1024.0, 1200.0, nullptr);
+                ctrl1->step = 0.5;
+                DirectNumberControl<float> *ctrl2 = new DirectNumberControl<float> ("correction_2", &(source->correction_value_2), source->correction_value_2, 0.020, 0.099, nullptr);
+                ctrl2->step = 0.001;
+
+                submenu->add(ctrl1);
+                submenu->add(ctrl2);
+
+                menu->add(submenu);
+                while(1);
+            }*/
+
         #endif
 
 };

@@ -9,12 +9,14 @@
 template<class ADS1X15Type>
 class ADS24vVoltageSource : public ADSVoltageSource<ADS1X15Type> {
     public:
-        float correction_value_1 = 1182.0;
-        float correction_value_2 = 0.041;
+        //float correction_value_1 = 1182.0;
+        //float correction_value_2 = 0.041;
 
         ADS24vVoltageSource(ADS1X15Type *ads_source, byte channel, float maximum_input_voltage = 10.0) :
             ADSVoltageSource<ADS1X15Type>(ads_source, channel, maximum_input_voltage) {
                 //this->debug = true;
+                this->correction_value_1 = 1182.0;
+                this->correction_value_2 = 0.041;
         }
 
         virtual double adcread_to_voltage(int16_t adcReading) override {
@@ -52,6 +54,10 @@ class ADS24vVoltageSource : public ADSVoltageSource<ADS1X15Type> {
             }
             return corrected2;
         }
+
+        #ifdef ENABLE_SCREEN
+            virtual MenuItem *makeCalibrationLoadSaveControls(int i) override;
+        #endif
 };
 
 #endif

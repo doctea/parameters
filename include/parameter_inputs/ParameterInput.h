@@ -71,7 +71,7 @@ class BaseParameterInput {
       return "?Base?";
     }
 
-    virtual char *getExtra() {
+    virtual const char *getExtra() {
       return "baseExtra";
     }
 

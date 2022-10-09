@@ -4,15 +4,28 @@
 #include "VoltageSource.h"
 #include "ADS1X15.h"
 
+#ifdef ENABLE_SCREEN
+    //#include "menuitems.h"
+    class MenuItem;
+    class Menu;
+#endif
+
+class ADSVoltageSourceBase : public VoltageSourceBase {
+    public:
+        float correction_value_1 = 0.976937;
+        float correction_value_2 = 0.0123321;
+
+        #ifdef ENABLE_SCREEN
+            virtual MenuItem *makeCalibrationControls(int i) override;
+        #endif
+};
+
 // for generic 1115 ADC modules with 5v range
 template<class ADS1X15Type>
-class ADSVoltageSource : public VoltageSourceBase {
+class ADSVoltageSource : public ADSVoltageSourceBase {
     public:
         byte channel = 0;
         ADS1X15Type *ads_source;
-
-        float correction_value_1 = 0.976937;
-        float correction_value_2 = 0.0123321;
 
         ADSVoltageSource(ADS1X15Type *ads_source, byte channel, float maximum_input_voltage = 5.0) {
             this->ads_source = ads_source;
@@ -100,6 +113,19 @@ class ADSVoltageSource : public VoltageSourceBase {
             // https://www.wolframalpha.com/input?i=linear+fit+%7B%7B1.008%2C1%7D%2C+%7B2.034%2C2%7D%2C+%7B3.063%2C3%7D%2C+%7B4.086%2C4%7D%2C+%7B5.1%2C5%7D%7D
             return (voltageFromAdc * correction_value_1) + correction_value_2;
         };
+
+        virtual void load_calibration() {
+            Serial.printf("load_calibration for unknown input!");
+            // todo: make VoltageSource know its name so that it knows where to load from
+        }
+        virtual void save_calibration() {
+            Serial.printf("load_calibration for unknown input!");
+            // todo: make VoltageSource know its name so that it knows where to save to
+        }
+
+        #ifdef ENABLE_SCREEN
+            virtual MenuItem *makeCalibrationLoadSaveControls(int i) override;
+        #endif
 };
 
 #endif

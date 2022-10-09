@@ -17,7 +17,7 @@ class VoltageParameterInput : public AnalogParameterInputBase<double> {
             this->voltage_source = voltage_source;
         }
 
-        virtual char *getExtra() override {
+        virtual const char *getExtra() override {
             if (this->voltage_source==nullptr) {
                 return "[null voltage_source]";
             }

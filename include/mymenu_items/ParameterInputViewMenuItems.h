@@ -100,7 +100,7 @@ class ParameterInputDisplay : public MenuItem {
 
             //this->do_extra(this->parameter_input);
             if (this->parameter_input!=nullptr)
-                tft->printf("Extra: %s\n", this->parameter_input->getExtra());
+                tft->printf((char*)"Extra: %s\n", (char*)this->parameter_input->getExtra());
             /*tft->printf("Value: %i ", (int)(this->logged[ticks%LOOP_LENGTH_TICKS] * 100.0));
             tft->printf((char*)"Inp: %-8s ", (char*)this->parameter_input->getInputInfo()); //i @ %p")
             tft->printf((char*)"Read: %-8s ", (char*)this->parameter_input->getInputValue());*/

@@ -1,7 +1,13 @@
 #ifndef VOLTAGE_SOURCE__INCLUDED
 #define VOLTAGE_SOURCE__INCLUDED
 
+#include "Arduino.h"
+
 #include "ads.h"
+#ifdef ENABLE_SCREEN
+    class MenuItem;
+    class Menu;
+#endif
 
 // base class for a voltage source, eg a wrapper around an ADC library
 class VoltageSourceBase {
@@ -19,7 +25,7 @@ class VoltageSourceBase {
 
         virtual void update() {
             //last_value = ads_source->readADC(channel);
-            if (this->debug) Serial.printf("VoltageSource@%p#update() about to fetch_current_voltage()\n", this);
+            //if (this->debug) Serial.printf("VoltageSource@%p#update() about to fetch_current_voltage()\n", this);
             this->last_value = this->current_value;
             this->current_value = this->fetch_current_voltage();
         }
@@ -34,9 +40,17 @@ class VoltageSourceBase {
             return this->get_voltage() / this->maximum_input_voltage;
         }
 
-        virtual byte get_voltage_pitch() {
+        virtual uint8_t get_voltage_pitch() {
             return get_midi_pitch_for_voltage(this->get_voltage());
         }
 
+        #ifdef ENABLE_SCREEN
+            virtual MenuItem *makeCalibrationControls(int i) {
+                return nullptr;
+            }
+            virtual MenuItem *makeCalibrationLoadSaveControls(int i) {
+                return nullptr;
+            }
+        #endif
 };
 #endif
