@@ -10,7 +10,7 @@
         //Serial.printf(F("\tpassed i=%i!\n"), i);
 
         char name[MENU_C_MAX];
-        sprintf(name, "%i Calibration", i);
+        sprintf(name, "Recall Voltage Source %i", i+1);
         //Serial.printf(F("Creating submenu control for '%s'..\n"), name); Serial.flush();
         SubMenuItemBar *submenu = new SubMenuItemBar(name);
         
@@ -20,7 +20,6 @@
             this,
             &VoltageSourceBase::load_calibration
         );
-        //Serial.printf(F("adding to menu..\n"), name); Serial.flush();
         submenu->add(load);
 
         //Serial.printf(F("Creating save control for '%s'\n"), name);Serial.flush();
@@ -28,14 +27,10 @@
             "Save", 
             this,
             &VoltageSourceBase::save_calibration
-            //(bool(VoltageSourceBase::*))nullptr,
-            //(char*)nullptr
         );
-        //Serial.printf(F("adding to menu..\n"), name); Serial.flush();
         submenu->add(save);
 
         //Serial.println(F("makeCalibrationLoadSaveControls() returning!")); Serial.flush();
-
         return submenu;
     }   
 
