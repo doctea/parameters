@@ -55,9 +55,9 @@ class ADS24vVoltageSource : public ADSVoltageSource<ADS1X15Type> {
             return corrected2;
         }
 
-        #ifdef ENABLE_SCREEN
+        /*#ifdef ENABLE_SCREEN
             virtual MenuItem *makeCalibrationLoadSaveControls(int i) override;
-        #endif
+        #endif*/
 };
 
 #endif

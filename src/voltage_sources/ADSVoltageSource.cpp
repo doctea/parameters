@@ -34,38 +34,4 @@
         return submenu;
     }
 
-    //template<class ADS1015>
-    template<class ADS1X15Type>
-    MenuItem *ADS24vVoltageSource<ADS1X15Type>::makeCalibrationLoadSaveControls(int i) {
-    //MenuItem *ADSVoltageSource<ADS::makeCalibrationLoadSaveControls(int i) {
-        Serial.println("makeCalibrationControls() for an ADS24vVoltageSource!"); Serial.flush();
-
-        char name[20];
-        sprintf(name, "%i Calibration", i);
-        SubMenuItemBar *submenu = new SubMenuItemBar(name);
-
-        //    ObjectActionConfirmItem(const char *label, TargetClass *target_object, setter_def setter, getter_def getter, const char *button_label_true, const char *button_label_false = nullptr) 
-
-        ObjectActionConfirmItem<ADS24vVoltageSource> *load = new ObjectActionConfirmItem<ADS24vVoltageSource> (
-            "Load", 
-            this,
-            ADS24vVoltageSource<ADS1X15Type>::load_calibration,
-            nullptr,
-            "",
-            ""
-        );
-        submenu->add(load);
-
-        ObjectActionConfirmItem<ADS24vVoltageSource> *save = new ObjectActionConfirmItem<ADS24vVoltageSource> (
-            "Save", 
-            this,
-            ADS24vVoltageSource<ADS1X15Type>::save_calibration,
-            nullptr,
-            "",
-            ""
-        );
-        submenu->add(save);
-
-        return submenu;
-    }   
 #endif

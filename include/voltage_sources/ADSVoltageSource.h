@@ -17,6 +17,7 @@ class ADSVoltageSourceBase : public VoltageSourceBase {
 
         #ifdef ENABLE_SCREEN
             virtual MenuItem *makeCalibrationControls(int i) override;
+            //virtual MenuItem *makeCalibrationLoadSaveControls(int i) override;
         #endif
 };
 
@@ -114,18 +115,6 @@ class ADSVoltageSource : public ADSVoltageSourceBase {
             return (voltageFromAdc * correction_value_1) + correction_value_2;
         };
 
-        virtual void load_calibration() {
-            Serial.printf("load_calibration for unknown input!");
-            // todo: make VoltageSource know its name so that it knows where to load from
-        }
-        virtual void save_calibration() {
-            Serial.printf("load_calibration for unknown input!");
-            // todo: make VoltageSource know its name so that it knows where to save to
-        }
-
-        #ifdef ENABLE_SCREEN
-            virtual MenuItem *makeCalibrationLoadSaveControls(int i) override;
-        #endif
 };
 
 #endif
