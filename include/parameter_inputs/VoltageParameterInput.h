@@ -9,7 +9,7 @@
 #include "ads.h"
 
 class VoltageParameterInput : public AnalogParameterInputBase<double> {
-    VoltageSourceBase *voltage_source;
+    VoltageSourceBase *voltage_source = nullptr;
 
     public:
         VoltageParameterInput(char name, VoltageSourceBase *voltage_source) {
@@ -25,9 +25,16 @@ class VoltageParameterInput : public AnalogParameterInputBase<double> {
             sprintf(
                 extra_output, 
                 "MIDI pitch for %3.3f is %s\n", 
-                this->voltage_source->get_voltage(), get_note_name(this->voltage_source->get_voltage_pitch()).c_str()
+                this->voltage_source->get_voltage(), 
+                get_note_name(get_voltage_pitch()).c_str() //this->voltage_source->get_voltage_pitch()).c_str()
             );
             return extra_output;
+        }
+        virtual uint8_t get_voltage_pitch() {
+            //return get_midi_pitch_for_voltage(this->voltage_source->get_voltage_pitch());
+            if (this->voltage_source==nullptr) 
+                Serial.printf("%c#get_voltage_pitch() has no voltage_source?!", this->name); Serial.flush();
+            return this->voltage_source->get_voltage_pitch();
         }
 
         virtual void read() override {
