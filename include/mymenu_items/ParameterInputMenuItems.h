@@ -48,7 +48,7 @@ class ParameterInputSelectorControl : public SelectorControl {
         char initial_name = ' ';
         if (this->initial_selected_parameter_input!=nullptr)
             initial_name = this->initial_selected_parameter_input->name;
-        actual_value_index = parameter_manager.getIndexForName(initial_name);
+        actual_value_index = parameter_manager.getInputIndexForName(initial_name);
                 //this->find_parameter_input_index_for_label(initial_name);
     }
 
@@ -79,7 +79,7 @@ class ParameterInputSelectorControl : public SelectorControl {
         if (initial_selected_parameter_input!=nullptr) {
             Serial.printf("%s#on_add: got non-null initial_selected_parameter_input\n"); Serial.flush();
             Serial.printf("\tand its name is %c\n", initial_selected_parameter_input->name); Serial.flush();
-            this->actual_value_index = parameter_manager.getIndexForName(initial_selected_parameter_input->name); ////this->find_parameter_input_index_for_label(initial_selected_parameter_input->name);
+            this->actual_value_index = parameter_manager.getInputIndexForName(initial_selected_parameter_input->name); ////this->find_parameter_input_index_for_label(initial_selected_parameter_input->name);
         } else {
             this->actual_value_index = -1;
         }
@@ -87,10 +87,13 @@ class ParameterInputSelectorControl : public SelectorControl {
         Serial.printf("%s#on_add returning");
     }
 
-    virtual const char* get_label_for_index(int index) {
+    virtual const char *get_label_for_index(int index) {
+        static char label_for_index[MENU_C_MAX];
+        // todo: this is currently unused + untested
         if (index<0)
             return "None";
-        return this->available_parameter_inputs->get(index)->name;
+        sprintf( label_for_index, "%c", this->available_parameter_inputs->get(index)->name);
+        return label_for_index;
     }
 
     virtual void setter (int new_value) {
@@ -100,6 +103,9 @@ class ParameterInputSelectorControl : public SelectorControl {
         //if (this->parameter_input!=nullptr) {
         if(new_value>=0) {
             //this->parameter_input->setTarget(this->available_parameter_inputs->get(new_value));
+            // todo: proper checking that the input is able to provide a voltage/pitch -- ie it is a VoltageParameterInput*
+            //          currently works because the only subclasses of BaseParameterInput that we are using are VoltageParameterInputs, 
+            //          but this won't hold true if/when we start adding other input types
             (this->target_object->*this->setter_func)(this->available_parameter_inputs->get(new_value));
         }
     }

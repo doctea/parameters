@@ -94,7 +94,7 @@ double get_frequency_for_voltage(float voltageFromAdc, int pitch_offset) { // wa
   return freq;
 }
 
-double get_frequency_for_pitch(int pitch, int base_pitch = MIDI_NOTE_A440) {
+double get_frequency_for_pitch(int pitch, int base_pitch) {
   //double freq = mtof.toFrequency((double)pitch);
   // tune from 440hz
   double freq = 440.0 * pow(2.0, ((double)(pitch - base_pitch) / 12.0));
