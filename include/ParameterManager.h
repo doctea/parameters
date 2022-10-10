@@ -121,7 +121,7 @@ class ParameterManager {
                 if (available_inputs.get(i)->name==input_name)
                     return i;
             }
-            return nullptr;
+            return -1;
         }
 
         /*VoltageSourceBase *get_voltage_source_for_name(char name) {
