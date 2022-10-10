@@ -160,7 +160,7 @@ class ParameterManager {
             if (last_read>=size)
                 last_read = 0;
 
-            voltage_sources.get(last_read)->update();   // pre-read the next one so it has a chance to settle?
+            voltage_sources.get(last_read)->discard_update();   // pre-read the next one so it has a chance to settle?
 
             /*  // simple reading of all of them    
             for (int i = 0 ; i < voltage_sources.size() ; i++) {

@@ -28,6 +28,11 @@ class VoltageSourceBase {
         virtual double fetch_current_voltage();
         // update the current voltage values
 
+        // read a value from ADC to 'prime' it, but discard it 
+        virtual void discard_update() {
+            this->fetch_current_voltage();
+        }
+
         virtual void update() {
             //last_value = ads_source->readADC(channel);
             //if (this->debug) Serial.printf("VoltageSource@%p#update() about to fetch_current_voltage()\n", this);
