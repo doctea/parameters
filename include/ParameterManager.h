@@ -116,7 +116,7 @@ class ParameterManager {
             }
             return nullptr;
         }
-        FASTRUN int *getIndexForName(char input_name) {
+        FASTRUN int getInputIndexForName(char input_name) {
             for(int i = 0 ; i < available_inputs.size() ; i++) {
                 if (available_inputs.get(i)->name==input_name)
                     return i;
