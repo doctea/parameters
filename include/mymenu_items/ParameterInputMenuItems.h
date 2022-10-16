@@ -3,7 +3,7 @@
 #include "parameter_inputs/ParameterInput.h"
 #include "ParameterManager.h"
 
-extern ParameterManager parameter_manager;
+extern ParameterManager *parameter_manager;
 
 template<class TargetClass>
 class ParameterInputSelectorControl : public SelectorControl {
@@ -36,7 +36,7 @@ class ParameterInputSelectorControl : public SelectorControl {
         this->setter_func = setter_func;
     };
 
-    virtual void configure (LinkedList<BaseParameterInput*> *available_parameter_inputs) {
+    FLASHMEM virtual void configure (LinkedList<BaseParameterInput*> *available_parameter_inputs) {
         this->available_parameter_inputs = available_parameter_inputs;
         //this->initial_selected_parameter_input = this->parameter_input->target_parameter;
         /*if (this->initial_selected_parameter_input!=nullptr) {
@@ -48,7 +48,7 @@ class ParameterInputSelectorControl : public SelectorControl {
         char initial_name = ' ';
         if (this->initial_selected_parameter_input!=nullptr)
             initial_name = this->initial_selected_parameter_input->name;
-        actual_value_index = parameter_manager.getInputIndexForName(initial_name);
+        actual_value_index = parameter_manager->getInputIndexForName(initial_name);
                 //this->find_parameter_input_index_for_label(initial_name);
     }
 
@@ -64,7 +64,7 @@ class ParameterInputSelectorControl : public SelectorControl {
         return -1;
     }
 
-    virtual void on_add() {
+    virtual void on_add() override {
         Serial.printf("%s#on_add...\n", this->label); Serial.flush();
         actual_value_index = -1;
         /*if (this->debug) {
@@ -79,7 +79,7 @@ class ParameterInputSelectorControl : public SelectorControl {
         if (initial_selected_parameter_input!=nullptr) {
             Serial.printf("%s#on_add: got non-null initial_selected_parameter_input\n"); Serial.flush();
             Serial.printf("\tand its name is %c\n", initial_selected_parameter_input->name); Serial.flush();
-            this->actual_value_index = parameter_manager.getInputIndexForName(initial_selected_parameter_input->name); ////this->find_parameter_input_index_for_label(initial_selected_parameter_input->name);
+            this->actual_value_index = parameter_manager->getInputIndexForName(initial_selected_parameter_input->name); ////this->find_parameter_input_index_for_label(initial_selected_parameter_input->name);
         } else {
             this->actual_value_index = -1;
         }

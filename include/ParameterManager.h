@@ -23,16 +23,16 @@ class ParameterManager {
         bool debug = false;
 
         // actual i2c ADC devices, potentially with multiple channels
-        LinkedList<ADCDeviceBase*> devices = LinkedList<ADCDeviceBase*>();
+        LinkedList<ADCDeviceBase*> *devices = nullptr; //LinkedList<ADCDeviceBase*>();
 
         // voltage-measuring channels
-        LinkedList<VoltageSourceBase*> voltage_sources = LinkedList<VoltageSourceBase*> ();
+        LinkedList<VoltageSourceBase*> *voltage_sources = nullptr; //= LinkedList<VoltageSourceBase*> ();
 
         // ParameterInputs, ie wrappers around input mechanism, assignable to a Parameter
-        LinkedList<BaseParameterInput*> available_inputs        = LinkedList<BaseParameterInput*>();
+        LinkedList<BaseParameterInput*> *available_inputs = nullptr; // LinkedList<BaseParameterInput*>();
 
         // Parameters, ie wrappers around destination object
-        LinkedList<DoubleParameter*>      available_parameters    = LinkedList<DoubleParameter*>();
+        LinkedList<DoubleParameter*>      *available_parameters = nullptr; //   = LinkedList<DoubleParameter*>();
 
         // 'blank' parameter used as default mapping
         DoubleParameter *param_none;
@@ -48,11 +48,15 @@ class ParameterManager {
 
         FLASHMEM void init() {
             this->param_none = this->addParameter(new DoubleParameter((char*)"None"));
+            this->devices = new LinkedList<ADCDeviceBase*>();
+            this->voltage_sources = new LinkedList<VoltageSourceBase*>();
+            this->available_inputs = new LinkedList<BaseParameterInput*>();
+            this->available_parameters = new LinkedList<DoubleParameter*>();
         }
 
         FLASHMEM ADCDeviceBase *addADCDevice(ADCDeviceBase *device) {
             Serial.printf("ParameterManager#addADCDevice(%p)\n", device);
-            this->devices.add(device);
+            this->devices->add(device);
             return device;
         }
 
@@ -63,27 +67,27 @@ class ParameterManager {
                 voltage_source->load_calibration();
             #endif
 
-            this->voltage_sources.add(voltage_source);
+            this->voltage_sources->add(voltage_source);
             return voltage_source;
         }
 
         FLASHMEM BaseParameterInput *addInput(BaseParameterInput *input) {
             Serial.printf("ParameterManager#addInput(%p)\n", input);
-            input->colour = parameter_input_colours[this->available_inputs.size() % sizeof(parameter_input_colours)];
-            this->available_inputs.add(input);
+            input->colour = parameter_input_colours[this->available_inputs->size() % sizeof(parameter_input_colours)];
+            this->available_inputs->add(input);
             return input;
         }
 
         FLASHMEM DoubleParameter *addParameter(DoubleParameter *parameter) {
             Serial.printf("ParameterManager#addParameter(%p), labeled '%s'\n", parameter, parameter->label);
-            this->available_parameters.add(parameter);
+            this->available_parameters->add(parameter);
             return parameter;
         }
         FLASHMEM void addParameters(LinkedList<DoubleParameter*> *parameters) {
             Serial.println("ParameterManager#addParameters()..");
             for (int i = 0 ; i < parameters->size() ; i++) {
                 Serial.printf("\t%i: adding from @%p '%s'\n", i, parameters->get(i), parameters->get(i)->label);
-                this->available_parameters.add(parameters->get(i));
+                this->available_parameters->add(parameters->get(i));
             }
         }
 
@@ -91,8 +95,8 @@ class ParameterManager {
         FLASHMEM void auto_init_devices() {
             Serial.printf("ParameterManager#auto_init_devices)\n");
             //char parameter_input_name = 'A';
-            for (int i = 0 ; i < devices.size() ; i++) {
-                ADCDeviceBase *device = this->devices.get(i);
+            for (int i = 0 ; i < devices->size() ; i++) {
+                ADCDeviceBase *device = this->devices->get(i);
                 Serial.printf("ParameterManager#auto_init_devices calling init() on device %i\n", i);
                 device->init();
 
@@ -110,49 +114,49 @@ class ParameterManager {
         }
 
         FASTRUN BaseParameterInput *getInputForName(char input_name) {
-            for(int i = 0 ; i < available_inputs.size() ; i++) {
-                if (available_inputs.get(i)->name==input_name)
-                    return available_inputs.get(i);
+            for(int i = 0 ; i < available_inputs->size() ; i++) {
+                if (available_inputs->get(i)->name==input_name)
+                    return available_inputs->get(i);
             }
             return nullptr;
         }
         FASTRUN int getInputIndexForName(char input_name) {
-            for(int i = 0 ; i < available_inputs.size() ; i++) {
-                if (available_inputs.get(i)->name==input_name)
+            for(int i = 0 ; i < available_inputs->size() ; i++) {
+                if (available_inputs->get(i)->name==input_name)
                     return i;
             }
             return -1;
         }
 
         /*VoltageSourceBase *get_voltage_source_for_name(char name) {
-            for (int i = 0 ; i < voltage_sources.size() ; i++) {
-                if (voltage_sources.get(i)->name==name)
-                    return voltage_sources.get(i);
+            for (int i = 0 ; i < voltage_sources->size() ; i++) {
+                if (voltage_sources->get(i)->name==name)
+                    return voltage_sources->get(i);
             }
         }*/
 
         /*void connect_input_to_parameter(int input_index, DataParameter *parameter) {
-            //this->available_inputs.get(input_index)->setTarget(parameter);
+            //this->available_inputs->get(input_index)->setTarget(parameter);
         }*/
 
         // read the values, but don't pass them on outside
         FASTRUN void update_voltage_sources() {
             if (this->debug) Serial.printf("ParameterManager#update_voltage_sources()");
             // round robin reading so they get a chance to settle in between adc reads?
-            const int size = voltage_sources.size();
+            const int size = voltage_sources->size();
             if (size==0) return;
             static int last_read = 0;
 
             if (this->debug) Serial.printf("ParameterManager#update_voltage_sources() about to read from %i\n", last_read);
-            if (this->debug) voltage_sources.get(last_read)->debug = true;
+            if (this->debug) voltage_sources->get(last_read)->debug = true;
 
-            voltage_sources.get(last_read)->update();
+            voltage_sources->get(last_read)->update();
 
             if (this->debug) Serial.printf("ParameterManager#update_voltage_sources() just did read from %i\n", last_read);
             #ifdef ENABLE_PRINTF
                 if (this->debug) {
                     Serial.printf("Reading from ADC %i...", last_read);
-                    Serial.printf("update_voltage_sources read value %f\n", voltage_sources.get(last_read)->current_value);
+                    Serial.printf("update_voltage_sources read value %f\n", voltage_sources->get(last_read)->current_value);
                 }
             #endif
 
@@ -160,19 +164,19 @@ class ParameterManager {
             if (last_read>=size)
                 last_read = 0;
 
-            voltage_sources.get(last_read)->discard_update();   // pre-read the next one so it has a chance to settle?
+            voltage_sources->get(last_read)->discard_update();   // pre-read the next one so it has a chance to settle?
 
             /*  // simple reading of all of them    
-            for (int i = 0 ; i < voltage_sources.size() ; i++) {
-                voltage_sources.get(i)->update();
+            for (int i = 0 ; i < voltage_sources->size() ; i++) {
+                voltage_sources->get(i)->update();
             }*/
         }
 
         // update the ParameterInputs with the latest values from the VoltageSources
         FASTRUN void update_inputs() {
-            const int available_inputs_size = available_inputs.size();
+            const int available_inputs_size = available_inputs->size();
             for (int i = 0 ; i < available_inputs_size ; i++) {
-                available_inputs.get(i)->loop();
+                available_inputs->get(i)->loop();
             }
         }
 
@@ -181,38 +185,38 @@ class ParameterManager {
         FASTRUN void update_mixers() {
             // this is going to be pretty intensive; may need to adjust the way this works...
             unsigned long update_mixers_started = micros();
-            const uint16_t available_parameters_size = this->available_parameters.size();
+            const uint16_t available_parameters_size = this->available_parameters->size();
             for (uint16_t i = 0 ; i < available_parameters_size ; i++) {
-                this->available_parameters.get(i)->update_mixer();
+                this->available_parameters->get(i)->update_mixer();
             }
             unsigned long update_mixers_finished = micros();
             this->profile_update_mixers = update_mixers_finished - update_mixers_started;
         }
 
         FLASHMEM void setDefaultParameterConnections() {
-            Serial.printf("ParameterManager#setDefaultParameterConnections() has %i parameters to map to %i inputs", this->available_parameters.size(), this->available_inputs.size());
-            for (int i = 0 ; i < this->available_parameters.size() ; i++) {
+            Serial.printf("ParameterManager#setDefaultParameterConnections() has %i parameters to map to %i inputs", this->available_parameters->size(), this->available_inputs->size());
+            for (int i = 0 ; i < this->available_parameters->size() ; i++) {
                 // todo: make this configurable dynamically / load defaults from save file
-                available_parameters.get(i)->set_slot_0_input(available_inputs.get(0));
-                available_parameters.get(i)->set_slot_1_input(available_inputs.get(1));
-                available_parameters.get(i)->set_slot_2_input(available_inputs.get(2));
+                available_parameters->get(i)->set_slot_0_input(available_inputs->get(0));
+                available_parameters->get(i)->set_slot_1_input(available_inputs->get(1));
+                available_parameters->get(i)->set_slot_2_input(available_inputs->get(2));
                 /*for (int i = 0 ; i < MAX_SLOT_CONNECTIONS ; i++) {
-                    available_parameters.get(i)->connections[i].parameter_input = available_inputs.get(i);
+                    available_parameters->get(i)->connections[i].parameter_input = available_inputs->get(i);
                 }*/
             }
         }
 
         #ifdef ENABLE_SCREEN
             FLASHMEM void addAllParameterInputMenuItems(Menu *menu) {
-                for (int i = 0 ; i < available_inputs.size() ; i++) {
-                    this->addParameterInputMenuItems(menu, available_inputs.get(i));
+                for (int i = 0 ; i < available_inputs->size() ; i++) {
+                    this->addParameterInputMenuItems(menu, available_inputs->get(i));
                 }
             }
 
             // add all the available parameters to the main menu
             FLASHMEM void addAllParameterMenuItems(Menu *menu) {
-                for (int i = 0 ; i <this->available_parameters.size() ; i++) {
-                    menu->add(this->makeMenuItemForParameter(this->available_parameters.get(i)));
+                for (int i = 0 ; i <this->available_parameters->size() ; i++) {
+                    menu->add(this->makeMenuItemForParameter(this->available_parameters->get(i)));
                 }
             }
 
@@ -260,12 +264,12 @@ class ParameterManager {
             }
 
             /*FLASHMEM void *addAllVoltageSourceMenuItems(Menu *menu) {
-                Serial.printf(F("------------\nParameterManager#addAllVoltageSourceMenuItems() has %i VoltageSources to add items for?\n"), this->voltage_sources.size());
-                const int size = this->voltage_sources.size();
+                Serial.printf(F("------------\nParameterManager#addAllVoltageSourceMenuItems() has %i VoltageSources to add items for?\n"), this->voltage_sources->size());
+                const int size = this->voltage_sources->size();
                 for (int i = 0 ; i < size ; i++) {
                     Serial.printf(F("\tParameterManager#addAllVoltageSourceMenuItems() for voltage_source %i/%i\n"), i+1, size); Serial.flush();
 
-                    VoltageSourceBase *voltage_source = this->voltage_sources.get(i);
+                    VoltageSourceBase *voltage_source = this->voltage_sources->get(i);
                     if (voltage_source!=nullptr) {
                         menu->add(voltage_source->makeCalibrationControls(i));
                         Serial.println(F("\t\tmakeCalibrationControls done!")); Serial.flush();
@@ -277,15 +281,15 @@ class ParameterManager {
             }*/
 
             FLASHMEM void addAllVoltageSourceCalibrationMenuItems(Menu *menu) {
-                Serial.printf(F("------------\nParameterManager#addAllVoltageSourceCalibrationMenuItems() has %i VoltageSources to add items for?\n"), this->voltage_sources.size());
-                const int size = this->voltage_sources.size();
+                Serial.printf(F("------------\nParameterManager#addAllVoltageSourceCalibrationMenuItems() has %i VoltageSources to add items for?\n"), this->voltage_sources->size());
+                const int size = this->voltage_sources->size();
 
                 SubMenuItem *submenuitem = new SubMenuItem("Voltage Source Calibration", false);
 
                 for (int i = 0 ; i < size ; i++) {
                     Serial.printf(F("\tParameterManager#addAllVoltageSourceCalibrationMenuItems() for voltage_source %i/%i\n"), i+1, size); Serial.flush();
                     
-                    VoltageSourceBase *voltage_source = this->voltage_sources.get(i);
+                    VoltageSourceBase *voltage_source = this->voltage_sources->get(i);
                     submenuitem->add(voltage_source->makeCalibrationControls(i));
                     submenuitem->add(voltage_source->makeCalibrationLoadSaveControls(i));
 
@@ -300,8 +304,8 @@ class ParameterManager {
         #endif
 
         virtual int find_slot_for_voltage(VoltageSourceBase *source) {
-            for (int i = 0 ; i < voltage_sources.size() ; i++) {
-                if (voltage_sources.get(i) == source)
+            for (int i = 0 ; i < voltage_sources->size() ; i++) {
+                if (voltage_sources->get(i) == source)
                     return i;
             }
             return -1;
@@ -311,6 +315,6 @@ class ParameterManager {
         //virtual bool save_voltage_calibration();
 };
 
-//extern ParameterManager parameter_manager;
+//extern ParameterManager *parameter_manager;
 
 #endif

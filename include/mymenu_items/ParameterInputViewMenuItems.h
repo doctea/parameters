@@ -26,7 +26,7 @@ class ParameterInputDisplay : public MenuItem {
             memset(logged, 0, memory_size*sizeof(double));
         }
 
-        virtual void configure(BaseParameterInput *parameter_input) {
+        FLASHMEM virtual void configure(BaseParameterInput *parameter_input) {
             this->parameter_input = parameter_input;
         }
 
