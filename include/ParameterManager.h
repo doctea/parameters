@@ -226,7 +226,14 @@ class ParameterManager {
                 }
             }
 
+
             FLASHMEM SubMenuItem *addParameterSubMenuItems(Menu *menu, const char *submenu_label, LinkedList<DoubleParameter*> *parameters) {
+                SubMenuItem *sub = getParameterSubMenuItems(menu, submenu_label, parameters);
+                menu->add(sub);
+                return sub;
+            }
+
+            FLASHMEM SubMenuItem *getParameterSubMenuItems(Menu *menu, const char *submenu_label, LinkedList<DoubleParameter*> *parameters) {
                 char label[MAX_LABEL_LENGTH];
                 sprintf(label, "Parameters for %s", submenu_label);
                 //LinkedList<DataParameter*> *parameters = behaviour_craftsynth->get_parameters();
@@ -238,7 +245,6 @@ class ParameterManager {
                     Serial.printf("addParameterSubMenuItems(menu, '%s') processing parameter %i\n", label, i);
                     submenu->add(this->makeMenuItemForParameter(parameters->get(i)));
                 }
-                menu->add(submenu);
                 return submenu;
             }
 
