@@ -198,7 +198,7 @@ class ParameterMenuItem : public SubMenuItemBar {
                 1.0, 
                 nullptr
             );
-            input_amount_control->colour = parameter->connections[i].parameter_input->colour;
+            input_amount_control->default_fg = parameter->connections[i].parameter_input->colour;
             //input_amount_control->debug = true;
             this->add(input_amount_control);
         }
