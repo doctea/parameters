@@ -36,7 +36,7 @@ class ParameterInputSelectorControl : public SelectorControl {
         this->setter_func = setter_func;
     };
 
-    FLASHMEM virtual void configure (LinkedList<BaseParameterInput*> *available_parameter_inputs) {
+    virtual void configure (LinkedList<BaseParameterInput*> *available_parameter_inputs) {
         this->available_parameter_inputs = available_parameter_inputs;
         //this->initial_selected_parameter_input = this->parameter_input->target_parameter;
         /*if (this->initial_selected_parameter_input!=nullptr) {

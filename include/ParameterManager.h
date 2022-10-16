@@ -23,19 +23,19 @@ class ParameterManager {
         bool debug = false;
 
         // actual i2c ADC devices, potentially with multiple channels
-        LinkedList<ADCDeviceBase*> *devices = nullptr; //LinkedList<ADCDeviceBase*>();
+        LinkedList<ADCDeviceBase*> *devices = new LinkedList<ADCDeviceBase*>(); //nullptr; //LinkedList<ADCDeviceBase*>();
 
         // voltage-measuring channels
-        LinkedList<VoltageSourceBase*> *voltage_sources = nullptr; //= LinkedList<VoltageSourceBase*> ();
+        LinkedList<VoltageSourceBase*> *voltage_sources = new LinkedList<VoltageSourceBase*>(); //nullptr; //= LinkedList<VoltageSourceBase*> ();
 
         // ParameterInputs, ie wrappers around input mechanism, assignable to a Parameter
-        LinkedList<BaseParameterInput*> *available_inputs = nullptr; // LinkedList<BaseParameterInput*>();
+        LinkedList<BaseParameterInput*> *available_inputs = new LinkedList<BaseParameterInput*>(); //nullptr; // LinkedList<BaseParameterInput*>();
 
         // Parameters, ie wrappers around destination object
-        LinkedList<DoubleParameter*>      *available_parameters = nullptr; //   = LinkedList<DoubleParameter*>();
+        LinkedList<DoubleParameter*>    *available_parameters = new LinkedList<DoubleParameter*>(); //nullptr; //   = LinkedList<DoubleParameter*>();
 
         // 'blank' parameter used as default mapping
-        DoubleParameter *param_none;
+        DoubleParameter *param_none = nullptr;
 
         uint16_t parameter_input_colours[3] = {
             RED,
@@ -43,15 +43,20 @@ class ParameterManager {
             BLUE
         };
 
-        ParameterManager () {}
+        ParameterManager () {
+            /*this->devices = new LinkedList<ADCDeviceBase*>();
+            this->voltage_sources = new LinkedList<VoltageSourceBase*>();
+            this->available_inputs = new LinkedList<BaseParameterInput*>();
+            this->available_parameters = new LinkedList<DoubleParameter*>();*/
+        }
         ~ParameterManager () {}
 
         FLASHMEM void init() {
-            this->param_none = this->addParameter(new DoubleParameter((char*)"None"));
-            this->devices = new LinkedList<ADCDeviceBase*>();
+            /*this->devices = new LinkedList<ADCDeviceBase*>();
             this->voltage_sources = new LinkedList<VoltageSourceBase*>();
             this->available_inputs = new LinkedList<BaseParameterInput*>();
-            this->available_parameters = new LinkedList<DoubleParameter*>();
+            this->available_parameters = new LinkedList<DoubleParameter*>();*/
+            this->param_none = this->addParameter(new DoubleParameter((char*)"None"));
         }
 
         FLASHMEM ADCDeviceBase *addADCDevice(ADCDeviceBase *device) {
@@ -87,7 +92,8 @@ class ParameterManager {
             Serial.println("ParameterManager#addParameters()..");
             for (int i = 0 ; i < parameters->size() ; i++) {
                 Serial.printf("\t%i: adding from @%p '%s'\n", i, parameters->get(i), parameters->get(i)->label);
-                this->available_parameters->add(parameters->get(i));
+                //this->available_parameters->add(parameters->get(i));
+                this->addParameter(parameters->get(i));
             }
         }
 
@@ -155,7 +161,7 @@ class ParameterManager {
             if (this->debug) Serial.printf("ParameterManager#update_voltage_sources() just did read from %i\n", last_read);
             #ifdef ENABLE_PRINTF
                 if (this->debug) {
-                    Serial.printf("Reading from ADC %i...", last_read);
+                    //Serial.printf("Reading from ADC %i...", last_read);
                     Serial.printf("update_voltage_sources read value %f\n", voltage_sources->get(last_read)->current_value);
                 }
             #endif
