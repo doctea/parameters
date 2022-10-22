@@ -198,9 +198,11 @@ class ParameterMenuItem : public SubMenuItemBar {
                 1.0, 
                 nullptr
             );
-            input_amount_control->default_fg = parameter->connections[i].parameter_input->colour;
+            //input_amount_control->default_fg = parameter->connections[i].parameter_input->colour;
+            Serial.printf("ParameterMenuItem(%s) connection %i got colour %4x from '%c'!\n", label, i, parameter->connections[i].parameter_input->colour, parameter->connections[i].parameter_input->name);
             //input_amount_control->debug = true;
             this->add(input_amount_control);
+            input_amount_control->default_fg = parameter->connections[i].parameter_input->colour; // do this after add to avoid parent colours overwriting it?
         }
 
         // add another small widget to display the last output value (after modulation etc)
