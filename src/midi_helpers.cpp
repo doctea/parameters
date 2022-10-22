@@ -1,24 +1,31 @@
 #include <Arduino.h>
-#include "midi_helpers.h"
+//#include "midi_helpers.h"
 
-const char* get_note_namec(int pitch) {
-  static char value[7] = "      ";
-  const String note_names[] = {
-    "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"
-  };
-
+String get_note_name(int pitch) {
   if (pitch==-1 || pitch>127) {
-    strcpy(value, "_");
-    //String s = "_"; //note_names[chromatic_degree] + String(octave);
-    //return s;
-    return value;
+    String s = "_"; 
+    return s;
+  }
+  int octave = pitch / 12;
+  int chromatic_degree = pitch % 12; 
+  const String note_names[] = {
+    F("C"), F("C#"), F("D"), F("D#"), F("E"), F("F"), F("F#"), F("G"), F("G#"), F("A"), F("A#"), F("B")
+  };
+  
+  String s = note_names[chromatic_degree] + String(octave);
+  return s;
+}
+
+const char *get_note_name_c(int pitch) {
+  if (pitch==-1 || pitch>127) {
+    return "_";
   }
   int octave = pitch / 12;
   int chromatic_degree = pitch % 12;
-
-  String s = note_names[chromatic_degree] + String(octave);
-  //sprintf(value, "%s", s.c_str());
-  //return s;
-  strcpy(value, s.c_str());
-  return value; 
+  const char *note_names[] = {
+    "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"
+  };
+  static char note_name[4];
+  sprintf(note_name, "%s%i", note_names[chromatic_degree], octave);
+  return note_name;
 }
