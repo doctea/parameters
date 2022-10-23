@@ -227,9 +227,10 @@ class ParameterManager {
             }
 
 
-            FLASHMEM SubMenuItem *addParameterSubMenuItems(Menu *menu, const char *submenu_label, LinkedList<DoubleParameter*> *parameters) {
+            FLASHMEM SubMenuItem *addParameterSubMenuItems(Menu *menu, const char *submenu_label, LinkedList<DoubleParameter*> *parameters, int16_t default_fg_colour = C_WHITE) {
                 SubMenuItem *sub = getParameterSubMenuItems(menu, submenu_label, parameters);
                 menu->add(sub);
+                sub->set_default_colours(default_fg_colour);
                 return sub;
             }
 

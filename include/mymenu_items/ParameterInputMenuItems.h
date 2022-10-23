@@ -129,7 +129,7 @@ class ParameterInputSelectorControl : public SelectorControl {
 
             //Serial.printf("\tnot opened\n"); Serial.flush();
 
-            colours(false, C_WHITE, BLACK);
+            colours(false, this->default_fg, BLACK);
 
             if (this->actual_value_index>=0) {
                 //Serial.printf("\tactual value index %i\n", this->actual_value_index); Serial.flush();
@@ -164,7 +164,7 @@ class ParameterInputSelectorControl : public SelectorControl {
             //int actual_count = 0;
             for (int i = start_value ; i < num_values ; i++) {
                 bool is_current_value_selected = i==current_value;
-                int col = is_current_value_selected ? GREEN : C_WHITE;
+                int col = is_current_value_selected ? GREEN : this->default_fg;
                 colours(opened && selected_value_index==i, col, BLACK);
                 //Serial.printf("\tactual_count=%i, i=%i, name=%s, invert=%i, cursorY=%i\n", actual_count, i, get_label_for_index(i), opened && selected_value_index==i, tft->getCursorY());
                 //tft->printf((char*)"%s\n", (char*)get_label_for_index(i));

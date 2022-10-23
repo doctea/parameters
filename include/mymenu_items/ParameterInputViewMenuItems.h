@@ -170,7 +170,7 @@ class InputTypeSelectorControl : public SelectorControl {
 
             for (int i = 0 ; i < num_values ; i++) {
                 bool is_current_value_selected = i==current_value;
-                int col = is_current_value_selected ? GREEN : C_WHITE;
+                int col = is_current_value_selected ? GREEN : this->default_fg;
                 colours(opened && selected_value_index==i, col, BLACK);
                 tft->setCursor(pos.x, pos.y);
                 tft->printf((char*)"%s\n", (char*)get_label_for_index(i));
