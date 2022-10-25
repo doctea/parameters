@@ -67,6 +67,7 @@ class ParameterInputSelectorControl : public SelectorControl {
     }
 
     virtual void on_add() override {
+        //this->debug = true;
         //Serial.printf(F("%s#on_add...\n"), this->label); Serial.flush();
         actual_value_index = -1;
         /*if (this->debug) {
@@ -86,7 +87,7 @@ class ParameterInputSelectorControl : public SelectorControl {
             this->actual_value_index = -1;
         }
         this->selected_value_index = this->actual_value_index;
-        Serial.printf(F("%s#on_add returning"));
+        Serial.printf(F("#on_add returning"));
     }
 
     virtual const char *get_label_for_index(int index) {
@@ -115,28 +116,34 @@ class ParameterInputSelectorControl : public SelectorControl {
         return selected_value_index;
     }
 
+    // TODO: implement this!!
+    virtual int renderValue(bool selected, bool opened, uint16_t max_character_width) override {
+        Serial.printf("ParameterInputMenuItems#renderValue()");
+        return 10;
+    }
+
     // classic fixed display version
     virtual int display(Coord pos, bool selected, bool opened) override {
-        //Serial.println("ParameterInputSelectorControl display()!"); Serial.flush();
+        Serial.println("ParameterInputSelectorControl display()!"); Serial.flush();
         tft->setTextSize(0);
 
         pos.y = header(label, pos, selected, opened);
         
         num_values = this->available_parameter_inputs->size(); //NUM_AVAILABLE_PARAMETERS;
-        //Serial.printf("\tdisplay got num_values %i\n", num_values); Serial.flush();
+        Serial.printf("\tdisplay got num_values %i\n", num_values); Serial.flush();
         //tft->setTextSize(1);
 
         if (!opened) {
             // not selected, so just show the current value
 
-            //Serial.printf("\tnot opened\n"); Serial.flush();
+            Serial.printf("\tnot opened\n"); Serial.flush();
 
             colours(false, this->default_fg, BLACK);
 
             if (this->actual_value_index>=0) {
-                //Serial.printf("\tactual value index %i\n", this->actual_value_index); Serial.flush();
+                Serial.printf("\tactual value index %i\n", this->actual_value_index); Serial.flush();
                 tft->printf((char*)"Selected: %c\n", this->available_parameter_inputs->get(this->actual_value_index)->name);
-                //Serial.printf("\tdrew selected %i\n", this->actual_value_index); Serial.flush();
+                Serial.printf("\tdrew selected %i\n", this->actual_value_index); Serial.flush();
             } else {
                 tft->printf((char*)"Selected: none\n");
             }
@@ -158,9 +165,9 @@ class ParameterInputSelectorControl : public SelectorControl {
             int start_value = 0;
             if (!tft->will_x_rows_fit_to_height(selected_value_index)) {
                 start_value = selected_value_index;
-                //Serial.printf("\n| setting start_value to %i for selected_value_index %i: ", start_value, selected_value_index);
+                Serial.printf("\n| setting start_value to %i for selected_value_index %i: ", start_value, selected_value_index);
             } else {
-                //Serial.printf("\n| keeping start_value to %i for selected_value_index %i: ", start_value, selected_value_index);
+                Serial.printf("\n| keeping start_value to %i for selected_value_index %i: ", start_value, selected_value_index);
             }
 
             //int actual_count = 0;

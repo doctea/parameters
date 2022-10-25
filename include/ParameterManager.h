@@ -24,20 +24,11 @@ class ParameterManager {
 
         unsigned long memory_size;
 
-        // actual i2c ADC devices, potentially with multiple channels
-        LinkedList<ADCDeviceBase*> *devices = new LinkedList<ADCDeviceBase*>(); //nullptr; //LinkedList<ADCDeviceBase*>();
-
-        // voltage-measuring channels
-        LinkedList<VoltageSourceBase*> *voltage_sources = new LinkedList<VoltageSourceBase*>(); //nullptr; //= LinkedList<VoltageSourceBase*> ();
-
-        // ParameterInputs, ie wrappers around input mechanism, assignable to a Parameter
-        LinkedList<BaseParameterInput*> *available_inputs = new LinkedList<BaseParameterInput*>(); //nullptr; // LinkedList<BaseParameterInput*>();
-
-        // Parameters, ie wrappers around destination object
-        LinkedList<DoubleParameter*>    *available_parameters = new LinkedList<DoubleParameter*>(); //nullptr; //   = LinkedList<DoubleParameter*>();
-
-        // 'blank' parameter used as default mapping
-        DoubleParameter *param_none = nullptr;
+        LinkedList<ADCDeviceBase*> *devices = new LinkedList<ADCDeviceBase*>();  // actual i2c ADC devices, potentially with multiple channels
+        LinkedList<VoltageSourceBase*> *voltage_sources = new LinkedList<VoltageSourceBase*>();  // voltage-measuring channels
+        LinkedList<BaseParameterInput*> *available_inputs = new LinkedList<BaseParameterInput*>();  // ParameterInputs, ie wrappers around input mechanism, assignable to a Parameter
+        LinkedList<DoubleParameter*>    *available_parameters = new LinkedList<DoubleParameter*>();        // Parameters, ie wrappers around destination object
+        DoubleParameter *param_none = nullptr;        // 'blank' parameter used as default mapping
 
         uint16_t parameter_input_colours[3] = {
             RED,

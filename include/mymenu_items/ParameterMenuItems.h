@@ -166,6 +166,7 @@ class ParameterValueMenuItem : public DirectNumberControl<double> {
 
 
 #include "submenuitem_bar.h"
+#include "parameter_inputs/ParameterInput.h"
 
 // compound menu item that shows a direct value-setter widget, 3x modulation amount widgets, and the last post-modulation output value
 class ParameterMenuItem : public SubMenuItemBar {
