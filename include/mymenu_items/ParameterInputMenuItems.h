@@ -55,19 +55,19 @@ class ParameterInputSelectorControl : public SelectorControl {
     }
 
     virtual int find_parameter_input_index_for_label(char name) {
-        Serial.printf("find_parameter_input_index_for_label(%c) has available_parameter_inputs @%p\n", name, available_parameter_inputs); Serial.flush();
+        //Serial.printf(F("find_parameter_input_index_for_label(%c) has available_parameter_inputs @%p\n"), name, available_parameter_inputs); Serial.flush();
         int size = available_parameter_inputs->size();
         for (int i = 0 ; i < size ; i++) {
-            Serial.printf("find_parameter_input_index_for_label(%c) looping over '%c'\n", name, available_parameter_inputs->get(i)->name); Serial.flush();
+            //Serial.printf(F("find_parameter_input_index_for_label(%c) looping over '%c'\n"), name, available_parameter_inputs->get(i)->name); Serial.flush();
             if (available_parameter_inputs->get(i)->name==name)
                 return i;
         }
-        Serial.printf("WARNING: find_parameter_index_for_label: didn't find one for '%c'?\n", name); Serial.flush();
+        Serial.printf(F("WARNING: find_parameter_index_for_label: didn't find one for '%c'?\n"), name); Serial.flush();
         return -1;
     }
 
     virtual void on_add() override {
-        Serial.printf("%s#on_add...\n", this->label); Serial.flush();
+        //Serial.printf(F("%s#on_add...\n"), this->label); Serial.flush();
         actual_value_index = -1;
         /*if (this->debug) {
             Serial.printf("on_add() in ParameterSelectorControl @%p:\n", this); Serial.flush();
@@ -79,14 +79,14 @@ class ParameterInputSelectorControl : public SelectorControl {
         }*/
 
         if (initial_selected_parameter_input!=nullptr) {
-            Serial.printf("%s#on_add: got non-null initial_selected_parameter_input\n"); Serial.flush();
-            Serial.printf("\tand its name is %c\n", initial_selected_parameter_input->name); Serial.flush();
+            //Serial.printf(F("%s#on_add: got non-null initial_selected_parameter_input\n")); Serial.flush();
+            //Serial.printf(F("\tand its name is %c\n"), initial_selected_parameter_input->name); Serial.flush();
             this->actual_value_index = parameter_manager->getInputIndexForName(initial_selected_parameter_input->name); ////this->find_parameter_input_index_for_label(initial_selected_parameter_input->name);
         } else {
             this->actual_value_index = -1;
         }
         this->selected_value_index = this->actual_value_index;
-        Serial.printf("%s#on_add returning");
+        Serial.printf(F("%s#on_add returning"));
     }
 
     virtual const char *get_label_for_index(int index) {
@@ -99,7 +99,7 @@ class ParameterInputSelectorControl : public SelectorControl {
     }
 
     virtual void setter (int new_value) {
-        if (this->debug) Serial.printf("ParameterSelectorControl changing from %i to %i\n", this->actual_value_index, new_value);
+        //if (this->debug) Serial.printf(F("ParameterSelectorControl changing from %i to %i\n"), this->actual_value_index, new_value);
         actual_value_index = new_value;
         selected_value_index = actual_value_index;
         //if (this->parameter_input!=nullptr) {
@@ -189,7 +189,7 @@ class ParameterInputSelectorControl : public SelectorControl {
 
         char msg[255];
         //Serial.printf("about to build msg string...\n");
-        sprintf(msg, "Set %s to %c (%i)", label, this->available_parameter_inputs->get( selected_value_index)->name, selected_value_index);
+        sprintf(msg, "Set %s to %c (%i)", label, this->available_parameter_inputs->get(selected_value_index)->name, selected_value_index);
         //Serial.printf("about to set_last_message!");
         msg[20] = '\0'; // limit the string so we don't overflow set_last_message
         menu_set_last_message(msg,GREEN);

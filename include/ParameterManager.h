@@ -63,15 +63,15 @@ class ParameterManager {
         }
 
         FLASHMEM ADCDeviceBase *addADCDevice(ADCDeviceBase *device) {
-            Serial.printf("ParameterManager#addADCDevice(%p)\n", device);
+            Serial.printf(F("ParameterManager#addADCDevice(%p)\n"), device);
             this->devices->add(device);
             return device;
         }
 
         FLASHMEM VoltageSourceBase *addVoltageSource(VoltageSourceBase *voltage_source) {
-            Serial.printf("ParameterManager#addVoltageSource(%p)\n", voltage_source);
+            Serial.printf(F("ParameterManager#addVoltageSource(%p)\n"), voltage_source);
             #ifdef LOAD_CALIBRATION_ON_BOOT
-                Serial.printf("Loading calibration for %i!\n", voltage_source->slot);
+                Serial.printf(F("Loading calibration for %i!\n"), voltage_source->slot);
                 voltage_source->load_calibration();
             #endif
 
@@ -80,21 +80,21 @@ class ParameterManager {
         }
 
         FLASHMEM BaseParameterInput *addInput(BaseParameterInput *input) {
-            Serial.printf("ParameterManager#addInput(%p)\n", input);
+            Serial.printf(F("ParameterManager#addInput(%p)\n"), input);
             input->colour = parameter_input_colours[this->available_inputs->size() % sizeof(parameter_input_colours)];
             this->available_inputs->add(input);
             return input;
         }
 
         FLASHMEM DoubleParameter *addParameter(DoubleParameter *parameter) {
-            Serial.printf("ParameterManager#addParameter(%p), labeled '%s'\n", parameter, parameter->label);
+            Serial.printf(F("ParameterManager#addParameter(%p), labeled '%s'\n"), parameter, parameter->label);
             this->available_parameters->add(parameter);
             return parameter;
         }
         FLASHMEM void addParameters(LinkedList<DoubleParameter*> *parameters) {
-            Serial.println("ParameterManager#addParameters()..");
+            Serial.println(F("ParameterManager#addParameters().."));
             for (int i = 0 ; i < parameters->size() ; i++) {
-                Serial.printf("\t%i: adding from @%p '%s'\n", i, parameters->get(i), parameters->get(i)->label);
+                Serial.printf(F("\t%i: adding from @%p '%s'\n"), i, parameters->get(i), parameters->get(i)->label);
                 //this->available_parameters->add(parameters->get(i));
                 this->addParameter(parameters->get(i));
             }
