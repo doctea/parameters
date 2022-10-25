@@ -10,23 +10,25 @@
 
 #include <LinkedList.h>
 
-template<unsigned long memory_size>
+//template<unsigned long memory_size>
 class ParameterInputDisplay : public MenuItem {
     public:
         BaseParameterInput *parameter_input = nullptr;
 
         // todo: remember an int type instead of a float, for faster drawing
-        typedef double memory_log[memory_size];
+        typedef double memory_log;
+        unsigned long memory_size;
         memory_log *logged = nullptr;
 
-        ParameterInputDisplay(char *label, BaseParameterInput *input) : MenuItem(label) {
+        ParameterInputDisplay(char *label, unsigned long memory_size, BaseParameterInput *input) : MenuItem(label) {
             this->parameter_input = input;
+            this->memory_size = memory_size;
 
             logged = (memory_log*)malloc(memory_size * sizeof(double));
             memset(logged, 0, memory_size*sizeof(double));
         }
 
-        FLASHMEM virtual void configure(BaseParameterInput *parameter_input) {
+        virtual void configure(BaseParameterInput *parameter_input) {
             this->parameter_input = parameter_input;
         }
 
@@ -37,10 +39,10 @@ class ParameterInputDisplay : public MenuItem {
         virtual void update_ticks(unsigned long ticks) {
             // update internal log of values
             unsigned int position = ticks % memory_size;
-            (*logged)[position] = this->parameter_input->get_normal_value(); 
+            (logged)[position] = this->parameter_input->get_normal_value(); 
             if (this->parameter_input->output_type==BIPOLAR) {
                 // center is 0, range -1 to +1, so re-center display
-                (*logged)[position] = (0.5) + ((*logged)[position] / 2);
+                (logged)[position] = (0.5) + ((logged)[position] / 2);
             } else if (this->parameter_input->output_type==UNIPOLAR) {
                 // center is 0.5, range 0 to 1
                 //logged[position] =  ?? nothing
@@ -75,7 +77,7 @@ class ParameterInputDisplay : public MenuItem {
             pos.y = tft->getCursorY();
 
             const uint16_t base_row = pos.y;
-            static float ticks_per_pixel = (float)LOOP_LENGTH_TICKS / (float)tft->width();
+            static float ticks_per_pixel = (float)memory_size / (float)tft->width();
 
             // we're going to use direct access to the underlying Adafruit library here
             const DisplayTranslator_STeensy *tft2 = (DisplayTranslator_STeensy*)tft;
@@ -86,7 +88,7 @@ class ParameterInputDisplay : public MenuItem {
             int last_y = 0;
             for (int screen_x = 0 ; screen_x < tft->width() ; screen_x++) {
                 const uint16_t tick_for_screen_X = ticks_to_memory_step((int)((float)screen_x * ticks_per_pixel)); // the tick corresponding to this screen position
-                int y = GRAPH_HEIGHT - ((*logged)[tick_for_screen_X] * GRAPH_HEIGHT);
+                int y = GRAPH_HEIGHT - ((logged)[tick_for_screen_X] * GRAPH_HEIGHT);
                 if (screen_x != 0) {
                     //int last_y = GRAPH_HEIGHT - (this->logged[tick_for_screen_X] * GRAPH_HEIGHT);
                     //actual->drawLine(screen_x-1, base_row + last_y, screen_x, base_row + y, YELLOW);                    

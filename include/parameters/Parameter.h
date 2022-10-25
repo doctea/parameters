@@ -9,6 +9,8 @@
 #endif
 #include <stddef.h>
 
+#include <LinkedList.h>
+
 extern char NEXT_PARAMETER_NAME;
 
 //#include "ParameterInput.h"
@@ -183,6 +185,7 @@ class DoubleParameter : public BaseParameter {
 
     #ifdef ENABLE_SCREEN
         virtual MenuItem *makeControl();
+        virtual LinkedList<MenuItem *> *makeControls();
     #endif
 };
 

@@ -4,7 +4,9 @@
 #include "ParameterManager.h"
 
 extern ParameterManager *parameter_manager;
+class VoltageParameterInput;
 
+// Selector to choose a ParameterInput from the available list; used by objects/parameters that can only feed from one ParameterInput at a time, eg CVInput
 template<class TargetClass>
 class ParameterInputSelectorControl : public SelectorControl {
     int actual_value_index = -1;
@@ -15,7 +17,7 @@ class ParameterInputSelectorControl : public SelectorControl {
     LinkedList<BaseParameterInput*> *available_parameter_inputs = nullptr;
 
     TargetClass *target_object = nullptr;
-    void(TargetClass::*setter_func)(VoltageParameterInput*);
+    void(TargetClass::*setter_func)(BaseParameterInput*);
 
     bool show_values = false;   // whether to display the incoming values or not
 
@@ -24,7 +26,7 @@ class ParameterInputSelectorControl : public SelectorControl {
     ParameterInputSelectorControl(
         const char *label, 
         TargetClass *target_object, 
-        void(TargetClass::*setter_func)(VoltageParameterInput*), 
+        void(TargetClass::*setter_func)(BaseParameterInput*), 
         //BaseParameterInput *initial_parameter_input,
         LinkedList<BaseParameterInput*> *available_parameter_inputs,
         bool show_values = false

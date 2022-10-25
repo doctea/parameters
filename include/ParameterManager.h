@@ -22,6 +22,8 @@ class ParameterManager {
     public:
         bool debug = false;
 
+        unsigned long memory_size;
+
         // actual i2c ADC devices, potentially with multiple channels
         LinkedList<ADCDeviceBase*> *devices = new LinkedList<ADCDeviceBase*>(); //nullptr; //LinkedList<ADCDeviceBase*>();
 
@@ -43,7 +45,8 @@ class ParameterManager {
             BLUE
         };
 
-        ParameterManager () {
+        ParameterManager (unsigned long memory_size) {
+            this->memory_size = memory_size;
             /*this->devices = new LinkedList<ADCDeviceBase*>();
             this->voltage_sources = new LinkedList<VoltageSourceBase*>();
             this->available_inputs = new LinkedList<BaseParameterInput*>();
@@ -222,7 +225,7 @@ class ParameterManager {
             // add all the available parameters to the main menu
             FLASHMEM void addAllParameterMenuItems(Menu *menu) {
                 for (int i = 0 ; i <this->available_parameters->size() ; i++) {
-                    menu->add(this->makeMenuItemForParameter(this->available_parameters->get(i)));
+                    menu->add(this->makeMenuItemsForParameter(this->available_parameters->get(i)));
                 }
             }
 
@@ -244,7 +247,7 @@ class ParameterManager {
                     //sprintf(tmp, "test item %i", i);
                     //submenu->add(new MenuItem(tmp));
                     Serial.printf("addParameterSubMenuItems(menu, '%s') processing parameter %i\n", label, i);
-                    submenu->add(this->makeMenuItemForParameter(parameters->get(i)));
+                    submenu->add(this->makeMenuItemsForParameter(parameters->get(i)));
                 }
                 return submenu;
             }
@@ -255,7 +258,7 @@ class ParameterManager {
                 sprintf(label, "Input %c", param_input->name);
 
                 Serial.printf("\tdoing menu->add for ParameterInputDisplay with label '%s'\n", label);
-                menu->add(new ParameterInputDisplay<LOOP_LENGTH_TICKS>(label, param_input)); //, LOOP_LENGTH_TICKS));
+                menu->add(new ParameterInputDisplay(label, this->memory_size, param_input)); //, LOOP_LENGTH_TICKS));
 
                 DualMenuItem *submenu = new DualMenuItem("Input/Output");
                 submenu->show_header = false;
@@ -274,6 +277,11 @@ class ParameterManager {
                 if (strcmp(p->label,"None")==0) return nullptr;
                 MenuItem *ctrl = p->makeControl();
                 return ctrl;
+            }
+            FLASHMEM LinkedList<MenuItem *> *makeMenuItemsForParameter(DoubleParameter *p, char *label_prefix = nullptr) {
+                if (strcmp(p->label,"None")==0) return nullptr;
+                LinkedList<MenuItem *> *ctrls = p->makeControls();
+                return ctrls;
             }
 
             /*FLASHMEM void *addAllVoltageSourceMenuItems(Menu *menu) {

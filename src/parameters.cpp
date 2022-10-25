@@ -65,12 +65,49 @@ char NEXT_PARAMETER_NAME = 'A';
         return p_submenu;
     }
 #else
+
+    #include "mymenu_items/ParameterInputMenuItems.h"
+
     MenuItem *DoubleParameter::makeControl() {
         Serial.printf("DataParameter#makeControl for %s\n", this->label);
         // first set up the submenu to hold the values
         ParameterMenuItem *fullmenuitem = new ParameterMenuItem(this->label, this);
 
         return fullmenuitem;
+    }
+    LinkedList<MenuItem *> *DoubleParameter::makeControls() {
+        LinkedList<MenuItem *> *controls = new LinkedList<MenuItem *>();
+        
+        Serial.printf("DataParameter#makeControls for %s\n", this->label);
+        // first set up the submenu to hold the values
+        ParameterMenuItem *fullmenuitem = new ParameterMenuItem(this->label, this);
+        controls->add(fullmenuitem);
+
+        SubMenuItemBar *input_selectors_bar = new SubMenuItemBar("Inputs");
+        input_selectors_bar->add(new ParameterInputSelectorControl<DoubleParameter>(
+            "Input 1", 
+            this,
+            &DoubleParameter::set_slot_0_input,
+            parameter_manager->available_inputs,
+            false
+        ));
+        input_selectors_bar->add(new ParameterInputSelectorControl<DoubleParameter>(
+            "Input 2", 
+            this,
+            &DoubleParameter::set_slot_1_input,
+            parameter_manager->available_inputs,
+            false
+        ));
+        input_selectors_bar->add(new ParameterInputSelectorControl<DoubleParameter>(
+            "Input 3", 
+            this,
+            &DoubleParameter::set_slot_2_input,
+            parameter_manager->available_inputs,
+            false
+        ));
+        controls->add(input_selectors_bar);
+
+        return controls;
     }
 #endif
 
