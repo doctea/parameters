@@ -38,10 +38,6 @@ class ParameterManager {
 
         ParameterManager (unsigned long memory_size) {
             this->memory_size = memory_size;
-            /*this->devices = new LinkedList<ADCDeviceBase*>();
-            this->voltage_sources = new LinkedList<VoltageSourceBase*>();
-            this->available_inputs = new LinkedList<BaseParameterInput*>();
-            this->available_parameters = new LinkedList<DoubleParameter*>();*/
         }
         ~ParameterManager () {}
 
@@ -194,7 +190,7 @@ class ParameterManager {
         }
 
         FLASHMEM void setDefaultParameterConnections() {
-            Serial.printf("ParameterManager#setDefaultParameterConnections() has %i parameters to map to %i inputs", this->available_parameters->size(), this->available_inputs->size());
+            Serial.printf("ParameterManager#setDefaultParameterConnections() has %i parameters to map to %i inputs..\n", this->available_parameters->size(), this->available_inputs->size());
             for (int i = 0 ; i < this->available_parameters->size() ; i++) {
                 // todo: make this configurable dynamically / load defaults from save file
                 available_parameters->get(i)->set_slot_0_input(available_inputs->get(0));

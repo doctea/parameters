@@ -14,9 +14,11 @@
 extern char NEXT_PARAMETER_NAME;
 
 //#include "ParameterInput.h"
-
 class BaseParameterInput;
-//#include "parameter_inputs/ParameterInput.h"
+
+#ifdef ENABLE_SCREEN
+    class MenuItem;
+#endif
 
 #define MAX_SLOT_CONNECTIONS 3
 
@@ -24,12 +26,12 @@ struct ParameterToInputConnection {
     //BaseParameter *parameter = nullptr;
     BaseParameterInput *parameter_input = nullptr;
     double amount = 0.0f;
+    #ifdef ENABLE_SCREEN
+        // todo: add colour, and update the colour of the widget too
+        MenuItem *amount_control = nullptr;
+    #endif
     //bool volt_per_octave = false;
 };
-
-#ifdef ENABLE_SCREEN
-    class MenuItem;
-#endif
 
 class BaseParameter { 
     public:
@@ -136,6 +138,7 @@ class DoubleParameter : public BaseParameter {
     }
 
     virtual char get_input_name_for_slot(byte slot);
+    double get_amount_for_slot(byte slot);
 
     virtual void set_slot_input(byte slot, char parameter_input_name);
     virtual void set_slot_input(byte slot, BaseParameterInput *parameter_input);
@@ -185,6 +188,10 @@ class DoubleParameter : public BaseParameter {
     #ifdef ENABLE_SCREEN
         virtual MenuItem *makeControl();
         virtual LinkedList<MenuItem *> *makeControls();
+
+        // update the slot's menu control to represent the newly set parameter input source
+        void update_slot_amount_control(byte slot, BaseParameterInput *parameter_input);
+        //void update_slot_amount_control(byte slot, char name);
     #endif
 };
 

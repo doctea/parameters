@@ -67,6 +67,7 @@ char NEXT_PARAMETER_NAME = 'A';
 #else
     #include "mymenu_items/ParameterInputMenuItems.h"
 
+    // just main control, with amounts 
     MenuItem *DoubleParameter::makeControl() {
         Serial.printf("DataParameter#makeControl for %s\n", this->label);
         // first set up the submenu to hold the values
@@ -74,6 +75,7 @@ char NEXT_PARAMETER_NAME = 'A';
 
         return fullmenuitem;
     }
+    // enhanced controls, with ability to choose ParameterInput mappings
     LinkedList<MenuItem *> *DoubleParameter::makeControls() {
         LinkedList<MenuItem *> *controls = new LinkedList<MenuItem *>();
         
@@ -112,6 +114,8 @@ char NEXT_PARAMETER_NAME = 'A';
             fullmenuitem->items->get(3)     // fourth item of ParameterMenuItem is third slot
         ));
         controls->add(input_selectors_bar);
+
+        return controls;
     }
 #endif
 
@@ -137,3 +141,6 @@ double DoubleParameter::get_modulation_value() {
         return modulation;
         //this->parameter->modulateValue(modulation);
 }
+
+
+// todo: merge this with Parameter.cpp
