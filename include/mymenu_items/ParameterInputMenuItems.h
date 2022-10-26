@@ -117,20 +117,20 @@ class ParameterInputSelectorControl : public SelectorControl {
     }
 
     // TODO: implement this!!
-    virtual int renderValue(bool selected, bool opened, uint16_t max_character_width) override {
+    /*virtual int renderValue(bool selected, bool opened, uint16_t max_character_width) override {
         Serial.printf("ParameterInputMenuItems#renderValue()");
         return 10;
-    }
+    }*/
 
     // classic fixed display version
     virtual int display(Coord pos, bool selected, bool opened) override {
-        Serial.println("ParameterInputSelectorControl display()!"); Serial.flush();
+        Serial.println(F("ParameterInputSelectorControl display()!")); Serial.flush();
         tft->setTextSize(0);
 
         pos.y = header(label, pos, selected, opened);
         
         num_values = this->available_parameter_inputs->size(); //NUM_AVAILABLE_PARAMETERS;
-        Serial.printf("\tdisplay got num_values %i\n", num_values); Serial.flush();
+        Serial.printf(F("\tdisplay got num_values %i\n"), num_values); Serial.flush();
         //tft->setTextSize(1);
 
         if (!opened) {
@@ -141,21 +141,12 @@ class ParameterInputSelectorControl : public SelectorControl {
             colours(false, this->default_fg, BLACK);
 
             if (this->actual_value_index>=0) {
-                Serial.printf("\tactual value index %i\n", this->actual_value_index); Serial.flush();
+                Serial.printf(F("\tactual value index %i\n"), this->actual_value_index); Serial.flush();
                 tft->printf((char*)"Selected: %c\n", this->available_parameter_inputs->get(this->actual_value_index)->name);
-                Serial.printf("\tdrew selected %i\n", this->actual_value_index); Serial.flush();
+                Serial.printf(F("\tdrew selected %i\n"), this->actual_value_index); Serial.flush();
             } else {
                 tft->printf((char*)"Selected: none\n");
             }
-
-            /*if (show_values) {
-                tft->printf((char*)"Inp: %-15s\n", (char*)this->parameter_input->getInputInfo()); //i @ %p")
-                tft->printf((char*)"Read: %-8s\n", (char*)this->parameter_input->getInputValue());
-            }
-            tft->printf((char*)"Tgt: %-15s\n", (char*)get_label_for_index(actual_value_index));
-            if (show_values) {
-                tft->printf((char*)"Val: %-7s\n",  (char*)this->parameter_input->getFormattedValue());
-            }*/
         } else {
             // selected, so show the possible values to select from
             int current_value = actual_value_index; //this->getter();
@@ -165,9 +156,9 @@ class ParameterInputSelectorControl : public SelectorControl {
             int start_value = 0;
             if (!tft->will_x_rows_fit_to_height(selected_value_index)) {
                 start_value = selected_value_index;
-                Serial.printf("\n| setting start_value to %i for selected_value_index %i: ", start_value, selected_value_index);
+                //Serial.printf(F("\n| setting start_value to %i for selected_value_index %i: "), start_value, selected_value_index);
             } else {
-                Serial.printf("\n| keeping start_value to %i for selected_value_index %i: ", start_value, selected_value_index);
+                //Serial.printf(F("\n| keeping start_value to %i for selected_value_index %i: "), start_value, selected_value_index);
             }
 
             //int actual_count = 0;
@@ -186,6 +177,17 @@ class ParameterInputSelectorControl : public SelectorControl {
             if (tft->getCursorX()>0) // if we haven't wrapped onto next line then do it manually
                 tft->println((char*)"\n");
         }
+        return tft->getCursorY();
+    }
+
+    virtual int renderValue(bool selected, bool opened, uint16_t max_character_width) override {
+        /*char label[MAX_LABEL_LENGTH];
+        //strcpy(label, get_label_for_value(available_values[opened ? selected_value_index : this->getter()]));
+        if (strlen(label) > max_character_width) {
+            label[max_character_width] = '\0';
+        }
+        tft->printf("%s", label);*/
+        tft->printf("%c", this->available_parameter_inputs->get(selected_value_index)->name);
         return tft->getCursorY();
     }
 

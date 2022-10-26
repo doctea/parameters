@@ -47,7 +47,7 @@ class ParameterInputDisplay : public MenuItem {
                 // center is 0.5, range 0 to 1
                 //logged[position] =  ?? nothing
             }
-            if (this->debug) Serial.printf("\tupdate_ticks(%i) recorded %f\n", position, logged[position]);
+            if (this->debug) Serial.printf(F("\tupdate_ticks(%i) recorded %f\n"), position, logged[position]);
         }
 
         virtual int display(Coord pos, bool selected, bool opened) override {
