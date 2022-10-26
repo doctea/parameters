@@ -21,21 +21,26 @@ class ParameterInputSelectorControl : public SelectorControl {
 
     bool show_values = false;   // whether to display the incoming values or not
 
+    MenuItem* control_to_update = nullptr;
+
     public:
 
     ParameterInputSelectorControl(
         const char *label, 
         TargetClass *target_object, 
         void(TargetClass::*setter_func)(BaseParameterInput*), 
-        //BaseParameterInput *initial_parameter_input,
         LinkedList<BaseParameterInput*> *available_parameter_inputs,
+        BaseParameterInput *initial_parameter_input = nullptr,
+        MenuItem* control_to_update = nullptr,
         bool show_values = false
     ) : SelectorControl(label, 0) {
         this->show_values = show_values;
-        //this->initial_selected_parameter_input = initial_parameter_input,
+        this->initial_selected_parameter_input = initial_parameter_input,
         this->available_parameter_inputs = available_parameter_inputs,
         this->target_object = target_object;
         this->setter_func = setter_func;
+        this->control_to_update = control_to_update;
+        this->num_values = available_parameter_inputs->size();
     };
 
     virtual void configure (LinkedList<BaseParameterInput*> *available_parameter_inputs) {
@@ -110,6 +115,14 @@ class ParameterInputSelectorControl : public SelectorControl {
             //          currently works because the only subclasses of BaseParameterInput that we are using are VoltageParameterInputs, 
             //          but this won't hold true if/when we start adding other input types
             (this->target_object->*this->setter_func)(this->available_parameter_inputs->get(new_value));
+            if (this->control_to_update!=nullptr) {
+                char new_label[10];
+                sprintf(new_label, "Amt %c", this->available_parameter_inputs->get(actual_value_index)->name);
+                Serial.printf("setting value to %i, new_label '%s', on control already labelled '%s'!\n", actual_value_index, new_label, this->control_to_update->label);
+                strcpy(this->control_to_update->label, new_label);
+            } else {
+                Serial.printf("setting value to %i, but no control_to_update set!\n", actual_value_index);
+            }
         }
     }
     virtual int getter () {
@@ -187,7 +200,17 @@ class ParameterInputSelectorControl : public SelectorControl {
             label[max_character_width] = '\0';
         }
         tft->printf("%s", label);*/
-        tft->printf("%c", this->available_parameter_inputs->get(selected_value_index)->name);
+
+        //Serial.printf("ParameterInputMenuItems#renderValue() in %s\n", this->label);
+        int col = selected_value_index==this->actual_value_index ? GREEN : this->default_fg;
+        colours(opened && selected_value_index==this->actual_value_index, col, BLACK);
+        char txt[MENU_C_MAX];
+        if (selected_value_index>=0)
+            sprintf(txt,"%3c", this->available_parameter_inputs->get(selected_value_index)->name);
+        else
+            sprintf(txt,"None");
+        tft->setTextSize((strlen(txt)<max_character_width/2) ? 1 : 2);
+        tft->println(txt);
         return tft->getCursorY();
     }
 
