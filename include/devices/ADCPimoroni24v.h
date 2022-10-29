@@ -55,8 +55,4 @@ class ADCPimoroni24v : public ADCDeviceBase {
                 return nullptr;
         }
 
-        /*virtual BaseParameterInput *make_input_for_source(char name, ADS24vVoltageSource<ADSDeviceClass> *vs) {
-            return new VoltageParameterInput(name, vs);
-        }*/
-
 };

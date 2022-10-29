@@ -52,23 +52,24 @@ class ParameterInputSelectorControl : public SelectorControl {
             actual_value_index = this->find_parameter_index_for_label(initial_selected_parameter_input->label);
             if (actual_value_index>=0) return;
         }*/
-        char initial_name = ' ';
+        char *initial_name = (char*)"None";
         if (this->initial_selected_parameter_input!=nullptr)
             initial_name = this->initial_selected_parameter_input->name;
         actual_value_index = parameter_manager->getInputIndexForName(initial_name);
                 //this->find_parameter_input_index_for_label(initial_name);
     }
 
-    virtual int find_parameter_input_index_for_label(char name) {
+    virtual int find_parameter_input_index_for_label(char *name) {
+        return parameter_manager->getInputIndexForName(name);
         //Serial.printf(F("find_parameter_input_index_for_label(%c) has available_parameter_inputs @%p\n"), name, available_parameter_inputs); Serial.flush();
-        int size = available_parameter_inputs->size();
+        /*int size = available_parameter_inputs->size();
         for (int i = 0 ; i < size ; i++) {
             //Serial.printf(F("find_parameter_input_index_for_label(%c) looping over '%c'\n"), name, available_parameter_inputs->get(i)->name); Serial.flush();
             if (available_parameter_inputs->get(i)->name==name)
                 return i;
         }
         Serial.printf(F("WARNING: find_parameter_index_for_label: didn't find one for '%c'?\n"), name); Serial.flush();
-        return -1;
+        return -1;*/
     }
 
     virtual void on_add() override {
@@ -100,7 +101,7 @@ class ParameterInputSelectorControl : public SelectorControl {
         // todo: this is currently unused + untested
         if (index<0)
             return "None";
-        sprintf( label_for_index, "%c", this->available_parameter_inputs->get(index)->name);
+        sprintf(label_for_index, "%s", this->available_parameter_inputs->get(index)->name);
         return label_for_index;
     }
 
@@ -154,7 +155,7 @@ class ParameterInputSelectorControl : public SelectorControl {
 
             if (this->actual_value_index>=0) {
                 //Serial.printf(F("\tactual value index %i\n"), this->actual_value_index); Serial.flush();
-                tft->printf((char*)"Selected: %c\n", this->available_parameter_inputs->get(this->actual_value_index)->name);
+                tft->printf((char*)"Selected: %s\n", (char*)this->get_label_for_index(this->actual_value_index));
                 //Serial.printf(F("\tdrew selected %i\n"), this->actual_value_index); Serial.flush();
             } else {
                 tft->printf((char*)"Selected: none\n");
@@ -181,7 +182,7 @@ class ParameterInputSelectorControl : public SelectorControl {
                 //Serial.printf("\tactual_count=%i, i=%i, name=%s, invert=%i, cursorY=%i\n", actual_count, i, get_label_for_index(i), opened && selected_value_index==i, tft->getCursorY());
                 //tft->printf((char*)"%s\n", (char*)get_label_for_index(i));
                 //tft->printf((char*)get_label_for_index(i));
-                tft->printf("%c\n", this->available_parameter_inputs->get(i)->name);
+                tft->printf("%s\n", this->available_parameter_inputs->get(i)->name);
                 if (tft->getCursorY()>tft->height()) break;
                 //tft->println((char*)get_label_for_index(i));
                 //tft->setTextColor(BLACK,BLACK);
@@ -209,7 +210,7 @@ class ParameterInputSelectorControl : public SelectorControl {
         colours(selected, col, BLACK);
         char txt[MENU_C_MAX];
         if (selected_value_index>=0)
-            sprintf(txt,"%3c", this->available_parameter_inputs->get(selected_value_index)->name);
+            sprintf(txt,"%6s", this->available_parameter_inputs->get(selected_value_index)->name);
         else
             sprintf(txt,"None");
         tft->setTextSize((strlen(txt) < max_character_width/2) ? 2 : 1);
@@ -224,7 +225,7 @@ class ParameterInputSelectorControl : public SelectorControl {
 
         char msg[255];
         //Serial.printf("about to build msg string...\n");
-        sprintf(msg, "Set %s to %c (%i)", label, this->available_parameter_inputs->get(selected_value_index)->name, selected_value_index);
+        sprintf(msg, "Set %s to %s (%i)", label, this->available_parameter_inputs->get(selected_value_index)->name, selected_value_index);
         //Serial.printf("about to set_last_message!");
         msg[20] = '\0'; // limit the string so we don't overflow set_last_message
         menu_set_last_message(msg,GREEN);

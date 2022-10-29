@@ -11,7 +11,7 @@
 
 #include <LinkedList.h>
 
-extern char NEXT_PARAMETER_NAME;
+//extern char NEXT_PARAMETER_NAME;
 
 //#include "ParameterInput.h"
 class BaseParameterInput;
@@ -137,10 +137,10 @@ class DoubleParameter : public BaseParameter {
         return true;
     }
 
-    virtual char get_input_name_for_slot(byte slot);
+    virtual char *get_input_name_for_slot(byte slot);
     double get_amount_for_slot(byte slot);
 
-    virtual void set_slot_input(byte slot, char parameter_input_name);
+    virtual void set_slot_input(byte slot, char *parameter_input_name);
     virtual void set_slot_input(byte slot, BaseParameterInput *parameter_input);
     virtual void set_slot_amount(byte slot, double amount) {
         this->connections[slot].amount = amount;

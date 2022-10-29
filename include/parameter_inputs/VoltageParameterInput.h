@@ -12,8 +12,7 @@ class VoltageParameterInput : public AnalogParameterInputBase<double> {
     VoltageSourceBase *voltage_source = nullptr;
 
     public:
-        VoltageParameterInput(char name, VoltageSourceBase *voltage_source) {
-            this->name = name;
+        VoltageParameterInput(char *name, VoltageSourceBase *voltage_source) : AnalogParameterInputBase(name) {
             this->voltage_source = voltage_source;
         }
 

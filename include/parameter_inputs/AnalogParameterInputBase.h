@@ -20,8 +20,8 @@ class AnalogParameterInputBase : public ParameterInput {
     DataType sensitivity = 0.005;
       
     AnalogParameterInputBase() {};
-    AnalogParameterInputBase(char name, DataType in_sensitivity = 0.005, byte input_type = BIPOLAR, byte output_type = UNIPOLAR) {
-      this->name = name;
+    AnalogParameterInputBase(char *name, DataType in_sensitivity = 0.005, byte input_type = BIPOLAR, byte output_type = UNIPOLAR) : ParameterInput(name) {
+      //this->name = name;
       this->sensitivity = in_sensitivity;
       this->input_type = input_type;
       this->output_type = output_type;
@@ -92,12 +92,7 @@ class AnalogParameterInputBase : public ParameterInput {
     }
 
     virtual const char *getInputValue() override {
-      /*Serial.printf("%c: getInputValue() working on this->currentValue ", this->name);
-      Serial.println(this->currentValue);
-      Serial.printf("%c: normal_value is ", this->name);
-      Serial.println(this->currentValue * 100); //get_normal_value((double)this->currentValue));*/
       static char fmt[20] = "          ";
-      //sprintf(fmt, "[%-3i%%]", (int)(this->get_normal_value((double)this->currentValue)*100.0));
       sprintf(fmt, "[%-3i%%]", (int)(this->currentValue*100.0));
       return fmt;
     }
@@ -131,34 +126,8 @@ class AnalogParameterInputBase : public ParameterInput {
           }      
           callback(normal);
         }
-        /* // leftover from the old ParameterInput-flows-to-Parameter approach
-        if (this->target_parameter!=nullptr) {
-          if (this->debug) {
-            Serial.print(this->name);
-            Serial.print(F(": calling target setParamValueA("));
-            Serial.print(normal);
-            Serial.print(F(")"));
-            if (this->inverted) Serial.print(F(" - inverted"));
-            Serial.println();
-          }
-          //this->target_parameter->updateValueFromNormal(normal); 
-        }*/
       }
     }
-
-    /*#ifdef ENABLE_SCREEN
-      virtual void addMenuItems(Menu *menu) {
-            char label[20];
-            sprintf(label, "Graph for %c", this->name);
-
-            Serial.printf("\tdoing menu->add for ParameterInputDisplay with label '%s'\n", label);
-            menu->add(new ParameterInputDisplay(label, this)); //, LOOP_LENGTH_TICKS));
-            sprintf(label, "Input type for %c", this->name);
-            menu->add(new InputTypeSelectorControl(label, this, set_input_type, get_input_type));
-            sprintf(label, "Output type for %c", this->name);
-            menu->add(new InputTypeSelectorControl(label, this, set_output_type, get_output_type));
-        }
-    #endif*/
 };
 
 #endif

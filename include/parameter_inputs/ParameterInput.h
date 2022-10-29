@@ -15,6 +15,8 @@ enum VALUE_TYPE {
   UNIPOLAR
 };
 
+#define MAX_INPUT_NAME 10
+
 class BaseParameterInput {
   public:
 
@@ -26,7 +28,7 @@ class BaseParameterInput {
       this->debug =! this->debug;
     }
 
-    char name = 'Z';
+    char name[MAX_INPUT_NAME] = "Unnamed";
 
     //BaseParameter *target_parameter = nullptr;
 
@@ -38,9 +40,12 @@ class BaseParameterInput {
 
     uint16_t colour = 0xFFFF;
 
-    BaseParameterInput() {
-      this->name = ++NEXT_PARAMETER_NAME;
+    BaseParameterInput(char *name) {
+      strcpy(this->name, name);
+      //this->name = ++NEXT_PARAMETER_NAME;
     }
+    virtual ~BaseParameterInput() = default;
+
     /*BaseParameterInput(BaseParameter *target_parameter) {
       this->target_parameter = target_parameter;
     }*/
@@ -82,38 +87,21 @@ class BaseParameterInput {
       #endif
     }
 
-    virtual void loop();
+    virtual void loop() {}
 
     virtual double get_normal_value() {
       return 0.0;
     }
 
     virtual bool matches_label(char *label) {
-      //if (strcmp(this->label,label)==0) return true;
-      return (this->name==label[0] && label[1]=='\0');
+      return (strcmp(label, this->name)==0);
     }
-    virtual bool matches_label(char label) {
-      return this->name==label;
-    }
-
-    /*#ifdef ENABLE_SCREEN
-      virtual void addMenuItems(Menu *menu);
-    #endif*/
 
 };
 
 class ParameterInput : public BaseParameterInput {
   public:
-    int inputPin = 0;
-    bool debug = false;
-
-    ParameterInput() {
-      this->name = ++NEXT_PARAMETER_NAME;
-    }
-
-    void setDebug() {
-      debug = !debug;
-    }
+    ParameterInput(char *name) : BaseParameterInput(name) {}
 
     virtual void read() {};
     virtual void loop() {

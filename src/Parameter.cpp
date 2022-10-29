@@ -17,7 +17,7 @@ class BaseParameterInput;
 
 extern ParameterManager *parameter_manager;
 
-void DoubleParameter::set_slot_input(byte slot, char name) {
+void DoubleParameter::set_slot_input(byte slot, char *name) {
     this->set_slot_input(slot, parameter_manager->getInputForName(name));
 }
 
@@ -26,7 +26,7 @@ void DoubleParameter::set_slot_input(byte slot, char name) {
 #endif
 
 void DoubleParameter::set_slot_input(byte slot, BaseParameterInput *parameter_input) {
-    Serial.printf(F("PARAMETERS\tDoubleParameter#set_slot_input in '%s': asked to set slot %i to point to %c\n"), this->label, slot, parameter_input->name);
+    Serial.printf(F("PARAMETERS\tDoubleParameter#set_slot_input in '%s': asked to set slot %i to point to %s\n"), this->label, slot, parameter_input->name);
     this->connections[slot].parameter_input = parameter_input;
     #ifdef ENABLE_SCREEN
         if (parameter_input!=nullptr) {
@@ -44,11 +44,11 @@ void DoubleParameter::set_slot_input(byte slot, BaseParameterInput *parameter_in
         if (this->connections[slot].amount_control!=nullptr) {
             if (parameter_input!=nullptr) {
                 char new_label[7];
-                sprintf(new_label, "Amt %c", parameter_input->name);
+                sprintf(new_label, "%s", parameter_input->name); //"Amt %s"
                 this->connections[slot].amount_control->update_label(new_label);
                 this->connections[slot].amount_control->set_default_colours(parameter_input->colour);
             } else {
-                this->connections[slot].amount_control->update_label("None");
+                this->connections[slot].amount_control->update_label((char*)"None");
                 this->connections[slot].amount_control->set_default_colours(C_WHITE);   // todo: need a GREY colour for disabled items?
             }            
         }
@@ -67,11 +67,11 @@ void DoubleParameter::set_slot_input(byte slot, BaseParameterInput *parameter_in
     }*/
 #endif
 
-char DoubleParameter::get_input_name_for_slot(byte slot) {
+char *DoubleParameter::get_input_name_for_slot(byte slot) {
     if (this->connections[slot].parameter_input!=nullptr)
         return this->connections[slot].parameter_input->name;
     Serial.printf("WARNING: get_input_name_for_slot(%i) got an empty slot!", slot);
-    return 0;
+    return "None";
 }
 
 double DoubleParameter::get_amount_for_slot(byte slot) {

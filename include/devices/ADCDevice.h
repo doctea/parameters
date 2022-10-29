@@ -20,8 +20,6 @@ class ADCDeviceBase {
             return this->make_voltage_source(count++);
         };
         virtual VoltageSourceBase *make_voltage_source(int i);
-        // create an appropriate ParameterInput object to wrap the passed-in VoltageSourceBase object
-        //virtual BaseParameterInput *make_input_for_source(char name, VoltageSourceBase*);
 
 };
 

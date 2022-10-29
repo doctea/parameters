@@ -109,16 +109,16 @@ class ParameterManager {
             }
         }
 
-        FASTRUN BaseParameterInput *getInputForName(char input_name) {
+        FASTRUN BaseParameterInput *getInputForName(char *input_name) {
             for(int i = 0 ; i < available_inputs->size() ; i++) {
-                if (available_inputs->get(i)->name==input_name)
+                if (0==strcmp(available_inputs->get(i)->name,input_name))
                     return available_inputs->get(i);
             }
             return nullptr;
         }
-        FASTRUN int getInputIndexForName(char input_name) {
+        FASTRUN int getInputIndexForName(char *input_name) {
             for(int i = 0 ; i < available_inputs->size() ; i++) {
-                if (available_inputs->get(i)->name==input_name)
+                if (0==strcmp(available_inputs->get(i)->name,input_name))
                     return i;
             }
             return -1;
@@ -242,7 +242,7 @@ class ParameterManager {
             FLASHMEM MenuItem *addParameterInputMenuItems(Menu *menu, BaseParameterInput *param_input, const char *label_prefix = nullptr) {
                 // TODO: a new ParameterInputControl that allows to set expected input ranges
                 char label[MENU_C_MAX];
-                sprintf(label, "Input %c", param_input->name);
+                sprintf(label, "Input %s", param_input->name);
 
                 menu->add(new SeparatorMenuItem(label, param_input->colour));
 
@@ -253,12 +253,12 @@ class ParameterManager {
                 submenu->set_default_colours(param_input->colour);
                 submenu->show_header = false;
 
-                sprintf(label, "Input type for %c", param_input->name);
+                sprintf(label, "Input type for %s", param_input->name);
                 submenu->add(new InputTypeSelectorControl(label, &param_input->input_type));
 
-                sprintf(label, "Output type for %c", param_input->name);
+                sprintf(label, "Output type for %s", param_input->name);
                 submenu->add(new InputTypeSelectorControl(label, &param_input->output_type));
-                
+
                 menu->add(submenu);
 
                 return submenu; // was nullptr

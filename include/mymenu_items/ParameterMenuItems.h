@@ -188,12 +188,12 @@ class ParameterMenuItem : public SubMenuItemBar {
             // todo: make the modulation source part configurable too
             // todo: make the label part dynamically generated on-the-fly by the DirectNumberControl
             char labelnew[8];
-            char input_name =   parameter->connections[i].parameter_input!=nullptr ? 
+            char *input_name =  parameter->connections[i].parameter_input!=nullptr ? 
                                 parameter->connections[i].parameter_input->name : 
-                                'X';
-            Serial.printf(F("\tfor %s, setting to parameter_input@%p '%c'\n"), label, parameter->connections[i].parameter_input, input_name);
+                                (char*)"None";
+            Serial.printf(F("\tfor %s, setting to parameter_input@%p '%s'\n"), label, parameter->connections[i].parameter_input, input_name);
             Serial.flush();
-            sprintf(labelnew, "Amt %c", input_name);
+            sprintf(labelnew, "%s", input_name); //"Amt "
             DirectNumberControl<double> *input_amount_control = new DirectNumberControl<double>(
                 labelnew, 
                 &parameter->connections[i].amount, 
@@ -203,7 +203,7 @@ class ParameterMenuItem : public SubMenuItemBar {
                 nullptr
             );
             //input_amount_control->default_fg = parameter->connections[i].parameter_input->colour;
-            Serial.printf(F("ParameterMenuItem(%s) connection %i got colour %4x from '%c'!\n"), label, i, parameter->connections[i].parameter_input->colour, parameter->connections[i].parameter_input->name);
+            Serial.printf(F("ParameterMenuItem(%s) connection %i got colour %4x from '%s'!\n"), label, i, parameter->connections[i].parameter_input->colour, parameter->connections[i].parameter_input->name);
             //input_amount_control->debug = true;
             this->add(input_amount_control);
             input_amount_control->default_fg = parameter->connections[i].parameter_input->colour; // do this after add to avoid parent colours overwriting it?
@@ -223,160 +223,4 @@ class ParameterMenuItem : public SubMenuItemBar {
     }
 };
 
-
-// deprecated version -- from when the ParameterInput was re-assignable to Parameter output, rather than the Parameter pulling from (potentially) multiple ParameterInputs
-/*
-class ParameterSelectorControl : public SelectorControl {
-    int actual_value_index = -1;
-    //void (*setter_func)(BaseParameter *midi_output);
-    BaseParameterInput *parameter_input = nullptr;
-    //void(BaseParameterInput::*setter_func)(BaseParameter *target_parameter);
-    BaseParameter *initial_selected_parameter;
-
-    LinkedList<DoubleParameter*> *available_parameters;
-
-    bool show_values = false;   // whether to display the incoming values or not
-
-    public:
-
-    ParameterSelectorControl(const char *label, bool show_values = false) : SelectorControl(label, 0) {
-        this->show_values = show_values;
-    };
-
-    virtual void configure (BaseParameterInput *parameter_input, LinkedList<DoubleParameter*> *available_parameters) { //}, void (*setter_func)(BaseParameter*)) {
-        this->available_parameters = available_parameters;
-        this->parameter_input = parameter_input;
-        //this->setter_func = setter_func;
-        this->initial_selected_parameter = this->parameter_input->target_parameter;
-        if (this->initial_selected_parameter!=nullptr) {
-            if (this->debug) Serial.printf("ParameterSelectorControl configured control labelled '%s' with initial_selected_parameter '%s'@%p from parameter_input @ %p\n", label, initial_selected_parameter->label, initial_selected_parameter, parameter_input);
-            //Serial.printf("%u and %u\n", this->initial_selected_parameter, this->setter_func);
-            actual_value_index = this->find_parameter_index_for_label(initial_selected_parameter->label);
-            if (actual_value_index>=0) return;
-        }
-        actual_value_index = this->find_parameter_index_for_label((char*)"None");
-    }
-
-    virtual int find_parameter_index_for_label(char *label) {
-        int size = available_parameters->size();
-        for (int i = 0 ; i < size ; i++) {
-            if (!strcmp(available_parameters->get(i)->label, label))
-                return i;
-        }
-        Serial.printf("WARNING: find_parameter_index_for_label: didn't find one for '%s'?\n", label);
-        return -1;
-    }
-
-    virtual void on_add() {
-        actual_value_index = -1;
-        if (this->debug) {
-            Serial.printf("on_add() in ParameterSelectorControl @%p:\n", this); Serial.flush();
-            Serial.printf("\tParameterSelectorControl with initial_selected_parameter @%p...\n", initial_selected_parameter); Serial.flush();
-            if (initial_selected_parameter!=nullptr) {
-                Serial.printf("\tParameterSelectorControl looking for '%s' @%p...\n", initial_selected_parameter->label, initial_selected_parameter); Serial.flush();
-            } else 
-                Serial.println("\tno initial_selected_parameter set");
-        }
-
-        if (initial_selected_parameter!=nullptr) 
-            this->actual_value_index = this->find_parameter_index_for_label(initial_selected_parameter->label);
-        else    
-            this->actual_value_index = -1;
-        this->selected_value_index = this->actual_value_index;
-    }
-
-    virtual const char* get_label_for_index(int index) {
-        if (index<0)
-            return "None";
-        return this->available_parameters->get(index)->label;
-    }
-
-    virtual void setter (int new_value) {
-        if (this->debug) Serial.printf("ParameterSelectorControl changing from %i to %i\n", this->actual_value_index, new_value);
-        actual_value_index = new_value;
-        selected_value_index = actual_value_index;
-        if (this->parameter_input!=nullptr) {
-            this->parameter_input->setTarget(this->available_parameters->get(new_value));
-        }
-    }
-    virtual int getter () {
-        return selected_value_index;
-    }
-
-    // classic fixed display version
-    virtual int display(Coord pos, bool selected, bool opened) override {
-        //Serial.println("MidiOutputSelectorControl display()!");
-        tft->setTextSize(0);
-
-        pos.y = header(label, pos, selected, opened);
-        
-        num_values = this->available_parameters->size(); //NUM_AVAILABLE_PARAMETERS;
-
-        //tft->setTextSize(1);
-
-        if (!opened) {
-            // not selected, so just show the current value
-            colours(false, C_WHITE, BLACK);
-
-            if (show_values) {
-                tft->printf((char*)"Inp: %-15s\n", (char*)this->parameter_input->getInputInfo()); //i @ %p")
-                tft->printf((char*)"Read: %-8s\n", (char*)this->parameter_input->getInputValue());
-            }
-            tft->printf((char*)"Tgt: %-15s\n", (char*)get_label_for_index(actual_value_index));
-            if (show_values) {
-                tft->printf((char*)"Val: %-7s\n",  (char*)this->parameter_input->getFormattedValue());
-            }
-
-            //tft->println((char*)"");
-            //tft->printf("%i%\n", 100 * parameter_input->target_parameter->getCurrentValue());
-            //Serial.printf("get currentvalue: %i\n", parameter_input->target_parameter->getCurrentValue());
-            //Serial.printf("got formatted value in selector display: %s\n", parameter_input->getFormattedValue());
-        } else {
-            // selected, so show the possible values to select from
-            int current_value = actual_value_index; //this->getter();
-
-            if (selected_value_index==-1) selected_value_index = actual_value_index;
-
-            int start_value = 0;
-            if (!tft->will_x_rows_fit_to_height(selected_value_index)) {
-                start_value = selected_value_index;
-                //Serial.printf("\n| setting start_value to %i for selected_value_index %i: ", start_value, selected_value_index);
-            } else {
-                //Serial.printf("\n| keeping start_value to %i for selected_value_index %i: ", start_value, selected_value_index);
-            }
-
-            //int actual_count = 0;
-            for (int i = start_value ; i < num_values ; i++) {
-                bool is_current_value_selected = i==current_value;
-                int col = is_current_value_selected ? GREEN : C_WHITE;
-                colours(opened && selected_value_index==i, col, BLACK);
-                //Serial.printf("\tactual_count=%i, i=%i, name=%s, invert=%i, cursorY=%i\n", actual_count, i, get_label_for_index(i), opened && selected_value_index==i, tft->getCursorY());
-                //tft->printf((char*)"%s\n", (char*)get_label_for_index(i));
-                tft->printf((char*)get_label_for_index(i));
-                if (tft->getCursorY()>tft->height()) break;
-                //tft->println((char*)get_label_for_index(i));
-                //tft->setTextColor(BLACK,BLACK);
-            }
-            if (tft->getCursorX()>0) // if we haven't wrapped onto next line then do it manually
-                tft->println((char*)"\n");
-        }
-        return tft->getCursorY();
-    }
-
-    virtual bool button_select() override {
-        //Serial.printf("button_select with selected_value_index %i\n", selected_value_index);
-        //Serial.printf("that is available_values[%i] of %i\n", selected_value_index, available_values[selected_value_index]);
-        this->setter(selected_value_index);
-
-        char msg[255];
-        //Serial.printf("about to build msg string...\n");
-        sprintf(msg, "Set %s to %s (%i)", label, get_label_for_index(selected_value_index), selected_value_index);
-        //Serial.printf("about to set_last_message!");
-        msg[20] = '\0'; // limit the string so we don't overflow set_last_message
-        menu_set_last_message(msg,GREEN);
-        return false;
-    }
-
-};
-*/
 #endif
