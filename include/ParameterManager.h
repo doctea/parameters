@@ -244,16 +244,21 @@ class ParameterManager {
                 char label[MENU_C_MAX];
                 sprintf(label, "Input %c", param_input->name);
 
+                menu->add(new SeparatorMenuItem(label, param_input->colour));
+
                 Serial.printf("\tdoing menu->add for ParameterInputDisplay with label '%s'\n", label);
                 menu->add(new ParameterInputDisplay(label, this->memory_size, param_input)); //, LOOP_LENGTH_TICKS));
 
                 DualMenuItem *submenu = new DualMenuItem("Input/Output");
+                submenu->set_default_colours(param_input->colour);
                 submenu->show_header = false;
+
                 sprintf(label, "Input type for %c", param_input->name);
-                //menu->add(new InputTypeSelectorControl<BaseParameterInput,byte>(label, param_input, &BaseParameterInput::set_input_type, &BaseParameterInput::get_input_type));
                 submenu->add(new InputTypeSelectorControl(label, &param_input->input_type));
+
                 sprintf(label, "Output type for %c", param_input->name);
-                submenu->add(new InputTypeSelectorControl(label, &param_input->output_type)); //, &BaseParameterInput::set_output_type, &BaseParameterInput::get_output_type));
+                submenu->add(new InputTypeSelectorControl(label, &param_input->output_type));
+                
                 menu->add(submenu);
 
                 return submenu; // was nullptr

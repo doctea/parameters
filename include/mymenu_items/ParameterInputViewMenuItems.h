@@ -23,6 +23,8 @@ class ParameterInputDisplay : public MenuItem {
         ParameterInputDisplay(char *label, unsigned long memory_size, BaseParameterInput *input) : MenuItem(label) {
             this->parameter_input = input;
             this->memory_size = memory_size;
+            if (parameter_input!=nullptr) 
+                this->set_default_colours(parameter_input->colour);
 
             logged = (memory_log*)malloc(memory_size * sizeof(double));
             memset(logged, 0, memory_size*sizeof(double));
@@ -53,6 +55,7 @@ class ParameterInputDisplay : public MenuItem {
         virtual int display(Coord pos, bool selected, bool opened) override {
             //Serial.println("MidiOutputSelectorControl display()!");
             tft->setTextSize(0);
+            colours(false, parameter_input->colour, BLACK);
 
             #define DISPLAY_INFO_IN_LABEL
             #ifdef DISPLAY_INFO_IN_LABEL
@@ -72,7 +75,7 @@ class ParameterInputDisplay : public MenuItem {
                 //tft->setCursor(pos.x, pos.y);
             #endif
             //colours(false, C_WHITE, BLACK);
-            colours(false, parameter_input->colour, BLACK);
+            //colours(false, parameter_input->colour, BLACK);
             //tft->printf("Input %c\n", parameter_input->name);
             pos.y = tft->getCursorY();
 

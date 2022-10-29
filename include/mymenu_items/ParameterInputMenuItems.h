@@ -202,7 +202,7 @@ class ParameterInputSelectorControl : public SelectorControl {
         //Serial.printf("ParameterInputMenuItems#renderValue() in %s\n", this->label);
         int col = selected_value_index==this->actual_value_index ? GREEN : this->default_fg;
 
-        if (opened || selected_value_index==this->actual_value_index && selected_value_index>=0)
+        if (opened || (selected_value_index>=0 && selected_value_index==this->actual_value_index))
             col = this->available_parameter_inputs->get(selected_value_index)->colour;
 
         //colours(opened && selected_value_index==this->actual_value_index, col, BLACK);
