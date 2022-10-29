@@ -24,6 +24,8 @@ class ParameterValueMenuItem : public DirectNumberControl<double> {
             this->internal_value = parameter->getCurrentNormalValue() * 100.0;
             this->minimum_value = 0.0f; 
             this->maximum_value = 1.0f; 
+
+            go_back_on_select = true;
             //this->minimum_value = parameter->minimum_value;
             //this->maximum_value = parameter->maximum_value;
             //this->step = 0.01;
@@ -141,7 +143,8 @@ class ParameterValueMenuItem : public DirectNumberControl<double> {
         virtual bool button_select() override {
             if (readOnly) return true;
             change_value(this->internal_value);
-            return true;
+            
+            return go_back_on_select;
         }
 
         virtual void change_value(int new_value) { //override { //

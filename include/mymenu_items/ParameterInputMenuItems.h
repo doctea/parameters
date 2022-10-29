@@ -137,13 +137,13 @@ class ParameterInputSelectorControl : public SelectorControl {
 
     // classic fixed display version
     virtual int display(Coord pos, bool selected, bool opened) override {
-        Serial.println(F("ParameterInputSelectorControl display()!")); Serial.flush();
+        //Serial.println(F("ParameterInputSelectorControl display()!")); Serial.flush();
         tft->setTextSize(0);
 
         pos.y = header(label, pos, selected, opened);
         
         num_values = this->available_parameter_inputs->size(); //NUM_AVAILABLE_PARAMETERS;
-        Serial.printf(F("\tdisplay got num_values %i\n"), num_values); Serial.flush();
+        //Serial.printf(F("\tdisplay got num_values %i\n"), num_values); Serial.flush();
         //tft->setTextSize(1);
 
         if (!opened) {
@@ -228,7 +228,8 @@ class ParameterInputSelectorControl : public SelectorControl {
         //Serial.printf("about to set_last_message!");
         msg[20] = '\0'; // limit the string so we don't overflow set_last_message
         menu_set_last_message(msg,GREEN);
-        return false;
+
+        return go_back_on_select;
     }
 
 };
