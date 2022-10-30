@@ -23,7 +23,7 @@ class ParameterInputDisplay : public MenuItem {
         ParameterInputDisplay(char *label, unsigned long memory_size, BaseParameterInput *input) : MenuItem(label) {
             this->parameter_input = input;
             this->memory_size = memory_size;
-            this->selectable = false;
+            this->selectable = !input->supports_bipolar();
             if (parameter_input!=nullptr) 
                 this->set_default_colours(parameter_input->colour);
 
@@ -61,9 +61,11 @@ class ParameterInputDisplay : public MenuItem {
             #define DISPLAY_INFO_IN_LABEL
             #ifdef DISPLAY_INFO_IN_LABEL
                 static char custom_label[MAX_LABEL_LENGTH*2];
-                sprintf(custom_label, "%s: [%s] %-7s >%-4i %-4s>",
+                //sprintf(custom_label, "%s: [%s] %-3s >%-3i %-3s>",
+                //sprintf(custom_label, "%s: [%s] %-7s >%-4i %-4s>",
                     //sprintf(custom_label, "%s: %-7s >%-4s ", //%-4s>",
-                    label,                    
+                sprintf(custom_label, "[%s] %-3s >%-3i %-3s>",
+                    //label,                    
                     this->parameter_input!=nullptr ? (char*)this->parameter_input->getInputInfo()  : "",
                     this->parameter_input!=nullptr ? (char*)this->parameter_input->getInputValue() : "",
                     //(int)(this->logged[(ticks%LOOP_LENGTH_TICKS] * 100.0)

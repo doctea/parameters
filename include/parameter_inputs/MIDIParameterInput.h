@@ -18,9 +18,9 @@ class MIDIParameterInput : public ParameterInput {
         }
 
         // midi ccs are always unipolar 0-127
-        /*virtual bool supports_bipolar() override {
+        virtual bool supports_bipolar() override {
             return false;
-        }*/
+        }
 
         virtual void loop() override {
             // do nothing, since should be informed of events by a sender

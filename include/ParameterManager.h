@@ -36,10 +36,10 @@ class ParameterManager {
             BLUE,
             PURPLE,
             ORANGE,
-            GREEN,
-            (RED + YELLOW) / 2,
+            (YELLOW + BLUE) / 2,
             (ORANGE + BLUE) / 2,
-            (GREEN + ORANGE) / 2,
+            (GREEN + RED) / 2,
+            (GREEN + ORANGE) / 2
         };
 
         ParameterManager (unsigned long memory_size) {
