@@ -20,6 +20,7 @@
             this,
             &VoltageSourceBase::load_calibration
         );
+        //load->show_header = false;
         submenu->add(load);
 
         //Serial.printf(F("Creating save control for '%s'\n"), name);Serial.flush();
@@ -28,7 +29,11 @@
             this,
             &VoltageSourceBase::save_calibration
         );
+        //save->show_header = false;
         submenu->add(save);
+
+        submenu->show_header = false;
+        submenu->show_sub_headers = false;
 
         //Serial.println(F("makeCalibrationLoadSaveControls() returning!")); Serial.flush();
         return submenu;

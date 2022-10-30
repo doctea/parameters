@@ -25,6 +25,9 @@
 // Now modified quite a bit by Tristan Rowley with full thanks and royalties ;-) to Russell Borogove for the basis!
 //  Seems to work OK on an Arduino Nano
 
+/// NOTE THIS IS NOT USED / NOT WORKING AT PRESENT
+#ifdef ENABLE_OFFCUTS
+
 char NEXT_ENVELOPE_NAME = 'A';
 
 class Envelope : public Targetable {
@@ -107,7 +110,7 @@ private:
   int EnvB = 1;
   float EnvAlpha = 0.0f;
 
-  long long lastUpdatedClock = 0l;
+  long lastUpdatedClock = 0l;
     
   float envelopeLevel = 0.0f;
   // silence the envelope when it reaches this level, well below 12 bit dac resolution.
@@ -388,3 +391,5 @@ public:
       }
   }
 };
+
+#endif
