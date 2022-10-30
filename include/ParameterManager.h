@@ -30,10 +30,16 @@ class ParameterManager {
         LinkedList<DoubleParameter*>    *available_parameters = new LinkedList<DoubleParameter*>();        // Parameters, ie wrappers around destination object
         DoubleParameter *param_none = nullptr;        // 'blank' parameter used as default mapping
 
-        uint16_t parameter_input_colours[3] = {
+        uint16_t parameter_input_colours[9] = {
             RED,
             YELLOW,
-            BLUE
+            BLUE,
+            PURPLE,
+            ORANGE,
+            GREEN,
+            (RED + YELLOW) / 2,
+            (ORANGE + BLUE) / 2,
+            (GREEN + ORANGE) / 2,
         };
 
         ParameterManager (unsigned long memory_size) {
@@ -68,7 +74,7 @@ class ParameterManager {
 
         FLASHMEM BaseParameterInput *addInput(BaseParameterInput *input) {
             Serial.printf(F("ParameterManager#addInput(%p)\n"), input);
-            input->colour = parameter_input_colours[this->available_inputs->size() % sizeof(parameter_input_colours)];
+            input->colour = parameter_input_colours[this->available_inputs->size() % (sizeof(parameter_input_colours)/2)];
             this->available_inputs->add(input);
             return input;
         }
@@ -239,27 +245,30 @@ class ParameterManager {
 
             FLASHMEM MenuItem *addParameterInputMenuItems(Menu *menu, BaseParameterInput *param_input, const char *label_prefix = nullptr) {
                 // TODO: a new ParameterInputControl that allows to set expected input ranges
-                char label[MENU_C_MAX];
-                sprintf(label, "Input %s", param_input->name);
+                //char label[MENU_C_MAX];
+                //sprintf(label, "Input %s", param_input->name);
+                char *label = param_input->name;
 
                 menu->add(new SeparatorMenuItem(label, param_input->colour));
 
                 Serial.printf("\tdoing menu->add for ParameterInputDisplay with label '%s'\n", label);
                 menu->add(new ParameterInputDisplay(label, this->memory_size, param_input)); //, LOOP_LENGTH_TICKS));
 
-                DualMenuItem *submenu = new DualMenuItem("Input/Output");
-                submenu->set_default_colours(param_input->colour);
-                submenu->show_header = false;
+                if (param_input->supports_bipolar()) {
+                    DualMenuItem *submenu = new DualMenuItem("Input/Output");
+                    submenu->set_default_colours(param_input->colour);
+                    submenu->show_header = false;
 
-                sprintf(label, "Input type for %s", param_input->name);
-                submenu->add(new InputTypeSelectorControl(label, &param_input->input_type));
+                    sprintf(label, "Inp type for %s", param_input->name);
+                    submenu->add(new InputTypeSelectorControl(label, &param_input->input_type));
 
-                sprintf(label, "Output type for %s", param_input->name);
-                submenu->add(new InputTypeSelectorControl(label, &param_input->output_type));
+                    sprintf(label, "Out type for %s", param_input->name);
+                    submenu->add(new InputTypeSelectorControl(label, &param_input->output_type));
 
-                menu->add(submenu);
-
-                return submenu; // was nullptr
+                    menu->add(submenu);
+                    return submenu; // was nullptr
+                } 
+                return nullptr;
             }
 
             // create a menuitem for the passed-in parameter; returns nullptr if passed-in parameter is named "None"

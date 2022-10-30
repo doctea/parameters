@@ -46,22 +46,12 @@ class BaseParameterInput {
     }
     virtual ~BaseParameterInput() = default;
 
-    /*BaseParameterInput(BaseParameter *target_parameter) {
-      this->target_parameter = target_parameter;
-    }*/
-
-    /*virtual void setTarget(BaseParameter *target) {
-      if (this->target_parameter!=nullptr) {
-        // already assigned to a target; notify the target that its been unbound, in case we need to set parameter back to zero
-        this->target_parameter->on_unbound(this);
-      }
-      this->target_parameter = target;
-    }*/
+    // whether to show unipolar/bipolar options for this type - override in subclasses
+    virtual bool supports_bipolar() {
+      return true;
+    }
 
     virtual const char* getFormattedValue() {
-      /*if (target_parameter!=nullptr)
-        return target_parameter->getFormattedValue();
-      else */
         return "[none]";
     }
 
