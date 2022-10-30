@@ -50,6 +50,10 @@ class BaseParameterInput {
     virtual bool supports_bipolar() {
       return true;
     }
+    // whether this object type supports pitch readouts, eg 1v/oct CV
+    virtual bool supports_pitch() {
+      return false;
+    }
 
     virtual const char* getFormattedValue() {
         return "[none]";
@@ -68,6 +72,10 @@ class BaseParameterInput {
 
     virtual const char *getExtra() {
       return "baseExtra";
+    }
+    // whether there is any extra info string to display in ParameterInputView controls
+    virtual bool hasExtra() {
+      return false;
     }
 
     virtual void setInverted(bool invert = true) {

@@ -11,6 +11,8 @@
 
 // base class for a voltage source, eg a wrapper around an ADC library
 class VoltageSourceBase {
+    bool has_pitch_capability = false;
+
     public:
         bool debug = false;
 
@@ -20,8 +22,9 @@ class VoltageSourceBase {
         double maximum_input_voltage;
 
         int slot = -1;
-        VoltageSourceBase(int slot) {
+        VoltageSourceBase(int slot, bool supports_pitch = false) {
             this->slot = slot;
+            this->has_pitch_capability = supports_pitch;
         }
 
         // actually fetch the current value from ADC, put it in the current_value
@@ -50,6 +53,9 @@ class VoltageSourceBase {
             return this->get_voltage() / this->maximum_input_voltage;
         }
 
+        virtual bool supports_pitch() {
+            return this->has_pitch_capability;
+        }
         virtual uint8_t get_voltage_pitch() {
             return get_midi_pitch_for_voltage(this->get_voltage());
         }

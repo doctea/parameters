@@ -1,5 +1,3 @@
-char NEXT_PARAMETER_NAME = 'A';
-
 #include "parameters/Parameter.h"
 #include "parameter_inputs/ParameterInput.h"
 

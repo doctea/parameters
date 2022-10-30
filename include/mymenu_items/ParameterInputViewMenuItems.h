@@ -77,9 +77,6 @@ class ParameterInputDisplay : public MenuItem {
                 pos.y = header(label, pos, selected, opened);                      
                 //tft->setCursor(pos.x, pos.y);
             #endif
-            //colours(false, C_WHITE, BLACK);
-            //colours(false, parameter_input->colour, BLACK);
-            //tft->printf("Input %c\n", parameter_input->name);
             pos.y = tft->getCursorY();
 
             const uint16_t base_row = pos.y;
@@ -89,12 +86,12 @@ class ParameterInputDisplay : public MenuItem {
             const DisplayTranslator_STeensy *tft2 = (DisplayTranslator_STeensy*)tft;
             ST7789_t3 *actual = tft2->tft;
 
-            int GRAPH_HEIGHT = 50;
+            const int GRAPH_HEIGHT = 50;
 
             int last_y = 0;
             for (int screen_x = 0 ; screen_x < tft->width() ; screen_x++) {
                 const uint16_t tick_for_screen_X = ticks_to_memory_step((int)((float)screen_x * ticks_per_pixel)); // the tick corresponding to this screen position
-                int y = GRAPH_HEIGHT - ((logged)[tick_for_screen_X] * GRAPH_HEIGHT);
+                const int y = GRAPH_HEIGHT - ((logged)[tick_for_screen_X] * GRAPH_HEIGHT);
                 if (screen_x != 0) {
                     //int last_y = GRAPH_HEIGHT - (this->logged[tick_for_screen_X] * GRAPH_HEIGHT);
                     //actual->drawLine(screen_x-1, base_row + last_y, screen_x, base_row + y, YELLOW);                    
@@ -107,7 +104,7 @@ class ParameterInputDisplay : public MenuItem {
             tft->setCursor(pos.x, pos.y + GRAPH_HEIGHT + 5);    // set cursor to below the graph's output
 
             //this->do_extra(this->parameter_input);
-            if (this->parameter_input!=nullptr)
+            if (this->parameter_input!=nullptr && this->parameter_input->hasExtra())
                 tft->printf((char*)"Extra: %s\n", (char*)this->parameter_input->getExtra());
             /*tft->printf("Value: %i ", (int)(this->logged[ticks%LOOP_LENGTH_TICKS] * 100.0));
             tft->printf((char*)"Inp: %-8s ", (char*)this->parameter_input->getInputInfo()); //i @ %p")

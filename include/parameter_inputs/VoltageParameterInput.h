@@ -16,18 +16,29 @@ class VoltageParameterInput : public AnalogParameterInputBase<double> {
             this->voltage_source = voltage_source;
         }
 
+        virtual bool hasExtra() override {
+            return this->supports_pitch();
+        }
         virtual const char *getExtra() override {
             if (this->voltage_source==nullptr) {
                 return "[null voltage_source]";
             }
-            static char extra_output[40];
-            sprintf(
-                extra_output, 
-                "MIDI pitch for %3.3f is %s\n", 
-                this->voltage_source->get_voltage(), 
-                get_note_name(get_voltage_pitch()).c_str() //this->voltage_source->get_voltage_pitch()).c_str()
-            );
-            return extra_output;
+            if (this->supports_pitch()) {
+                static char extra_output[40];
+                sprintf(
+                    extra_output, 
+                    "MIDI pitch for %3.3f is %s\n", 
+                    this->voltage_source->get_voltage(), 
+                    get_note_name(get_voltage_pitch()).c_str()
+                );
+                return extra_output;
+            }
+            return "";
+        }
+
+        virtual bool supports_pitch() override {
+            //return this->voltage_source->supports_pitch();
+            return this->voltage_source->supports_pitch();
         }
         virtual uint8_t get_voltage_pitch() {
             //return get_midi_pitch_for_voltage(this->voltage_source->get_voltage_pitch());

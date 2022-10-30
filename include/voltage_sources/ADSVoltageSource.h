@@ -15,7 +15,7 @@ class ADSVoltageSourceBase : public VoltageSourceBase {
         float correction_value_1 = 0.976937;
         float correction_value_2 = 0.0123321;
 
-        ADSVoltageSourceBase(int slot) : VoltageSourceBase(slot) {}
+        ADSVoltageSourceBase(int slot, bool supports_pitch = false) : VoltageSourceBase(slot, supports_pitch) {}
 
         #ifdef ENABLE_SCREEN
             FLASHMEM virtual MenuItem *makeCalibrationControls(int i) override;
@@ -34,8 +34,8 @@ class ADSVoltageSource : public ADSVoltageSourceBase {
         byte channel = 0;
         ADS1X15Type *ads_source;
 
-        ADSVoltageSource(int slot, ADS1X15Type *ads_source, byte channel, float maximum_input_voltage = 5.0) 
-        : ADSVoltageSourceBase(slot) {
+        ADSVoltageSource(int slot, ADS1X15Type *ads_source, byte channel, float maximum_input_voltage = 5.0, bool supports_pitch = false) 
+        : ADSVoltageSourceBase(slot, supports_pitch) {
             this->ads_source = ads_source;
             this->channel = channel;
             this->maximum_input_voltage = maximum_input_voltage;

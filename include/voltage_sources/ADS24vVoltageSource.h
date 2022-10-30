@@ -6,6 +6,7 @@
 #include "ADS1X15.h"
 
 // for the Pimoroni +/- 24v 1015 module https://shop.pimoroni.com/products/ads1015-adc-breakout?variant=27859155026003
+// supports 1v/oct
 template<class ADS1X15Type>
 class ADS24vVoltageSource : public ADSVoltageSource<ADS1X15Type> {
     public:
@@ -13,7 +14,8 @@ class ADS24vVoltageSource : public ADSVoltageSource<ADS1X15Type> {
         //float correction_value_2 = 0.041;
 
         ADS24vVoltageSource(int slot, ADS1X15Type *ads_source, byte channel, float maximum_input_voltage = 10.0) :
-            ADSVoltageSource<ADS1X15Type>(slot, ads_source, channel, maximum_input_voltage) {
+            ADSVoltageSource<ADS1X15Type>(slot, ads_source, channel, maximum_input_voltage, true) {
+                // note this passes 'true' as the last argument above, because this can support 1v/oct
                 //this->debug = true;
                 this->correction_value_1 = 1182.0;
                 this->correction_value_2 = 0.041;

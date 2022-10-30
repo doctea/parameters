@@ -58,28 +58,8 @@ class ParameterInputSelectorControl : public SelectorControl {
                 //this->find_parameter_input_index_for_label(initial_name);
     }
 
-    /*virtual void update_actual_index(int new_index) {
-        this->actual_value_index = new_index;
-    }
-    // used when needs to be told to update
-    virtual void update_selected_input(BaseParameterInput *new_input) {
-        if (new_input!=nullptr)
-            this->actual_value_index = find_parameter_input_index_for_label(new_input->name);
-        else
-            this->actual_value_index = -1;
-    }*/
-
     virtual int find_parameter_input_index_for_label(char *name) {
         return parameter_manager->getInputIndexForName(name);
-        //Serial.printf(F("find_parameter_input_index_for_label(%c) has available_parameter_inputs @%p\n"), name, available_parameter_inputs); Serial.flush();
-        /*int size = available_parameter_inputs->size();
-        for (int i = 0 ; i < size ; i++) {
-            //Serial.printf(F("find_parameter_input_index_for_label(%c) looping over '%c'\n"), name, available_parameter_inputs->get(i)->name); Serial.flush();
-            if (available_parameter_inputs->get(i)->name==name)
-                return i;
-        }
-        Serial.printf(F("WARNING: find_parameter_index_for_label: didn't find one for '%c'?\n"), name); Serial.flush();
-        return -1;*/
     }
 
     virtual void on_add() override {
@@ -106,13 +86,6 @@ class ParameterInputSelectorControl : public SelectorControl {
         Serial.printf(F("#on_add returning"));
     }
 
-    // used when needs to be told to update externally -- eg when ParameterInput mapping changes and need to tell its ParameterInputSelector
-    /*virtual void update_actual_index(int new_index) {
-        this->actual_value_index = new_index;
-        //if (new_index>=0)   // TODO: i don't think this is the right thing to do here, but for some reason widget is getting rendered in white after value has been set from loading sequence file?
-        //    this->set_default_colours(available_parameter_inputs->get(new_index)->colour);
-    }*/
-
     virtual const char *get_label_for_index(int index) {
         static char label_for_index[MENU_C_MAX];
         // todo: this is currently unused + untested
@@ -126,32 +99,13 @@ class ParameterInputSelectorControl : public SelectorControl {
         //if (this->debug) Serial.printf(F("ParameterSelectorControl changing from %i to %i\n"), this->actual_value_index, new_value);
         actual_value_index = new_value;
         selected_value_index = actual_value_index;
-        //if (this->parameter_input!=nullptr) {
         if(new_value>=0) {
-            //this->parameter_input->setTarget(this->available_parameter_inputs->get(new_value));
-            // todo: proper checking that the input is able to provide a voltage/pitch -- ie it is a VoltageParameterInput*
-            //          currently works because the only subclasses of BaseParameterInput that we are using are VoltageParameterInputs, 
-            //          but this won't hold true if/when we start adding other input types
             (this->target_object->*this->setter_func)(this->available_parameter_inputs->get(new_value));
-            /*if (this->control_to_update!=nullptr) {
-                char new_label[10];
-                sprintf(new_label, "Amt %c", this->available_parameter_inputs->get(actual_value_index)->name);
-                Serial.printf("setting value to %i, new_label '%s', on control already labelled '%s'!\n", actual_value_index, new_label, this->control_to_update->label);
-                strcpy(this->control_to_update->label, new_label);
-            } else {
-                Serial.printf("setting value to %i, but no control_to_update set!\n", actual_value_index);
-            }*/
         }
     }
     virtual int getter () {
         return selected_value_index;
     }
-
-    // TODO: implement this!!
-    /*virtual int renderValue(bool selected, bool opened, uint16_t max_character_width) override {
-        Serial.printf("ParameterInputMenuItems#renderValue()");
-        return 10;
-    }*/
 
     // classic fixed display version
     virtual int display(Coord pos, bool selected, bool opened) override {
@@ -162,12 +116,10 @@ class ParameterInputSelectorControl : public SelectorControl {
         
         num_values = this->available_parameter_inputs->size(); //NUM_AVAILABLE_PARAMETERS;
         //Serial.printf(F("\tdisplay got num_values %i\n"), num_values); Serial.flush();
-        //tft->setTextSize(1);
 
         if (!opened) {
-            // not selected, so just show the current value
+            // not selected, so just show the current value on one row
             //Serial.printf("\tnot opened\n"); Serial.flush();
-
             colours(selected, this->default_fg, BLACK);
 
             if (this->actual_value_index>=0) {
@@ -179,7 +131,7 @@ class ParameterInputSelectorControl : public SelectorControl {
             }
         } else {
             // selected, so show the possible values to select from
-            int current_value = actual_value_index; //this->getter();
+            const int current_value = actual_value_index; //this->getter();
 
             if (selected_value_index==-1) selected_value_index = actual_value_index;
 
@@ -191,46 +143,34 @@ class ParameterInputSelectorControl : public SelectorControl {
                 //Serial.printf(F("\n| keeping start_value to %i for selected_value_index %i: "), start_value, selected_value_index);
             }
 
-            //int actual_count = 0;
             for (int i = start_value ; i < num_values ; i++) {
-                bool is_current_value_selected = i==current_value;
-                int col = is_current_value_selected ? GREEN : this->default_fg;
+                const BaseParameterInput *param_input = this->available_parameter_inputs->get(i);
+                const bool is_current_value_selected = i==current_value;
+                const int col = is_current_value_selected ? GREEN : param_input->colour;
                 colours(opened && selected_value_index==i, col, BLACK);
-                //Serial.printf("\tactual_count=%i, i=%i, name=%s, invert=%i, cursorY=%i\n", actual_count, i, get_label_for_index(i), opened && selected_value_index==i, tft->getCursorY());
-                //tft->printf((char*)"%s\n", (char*)get_label_for_index(i));
-                //tft->printf((char*)get_label_for_index(i));
-                tft->printf("%s\n", this->available_parameter_inputs->get(i)->name);
-                if (tft->getCursorY()>tft->height()) break;
-                //tft->println((char*)get_label_for_index(i));
-                //tft->setTextColor(BLACK,BLACK);
+
+                //tft->printf("%s\n", (char*)param_input->name);
+                tft->println((const char*)param_input->name);
+
+                if (tft->getCursorY()>tft->height()) 
+                    break;
             }
             if (tft->getCursorX()>0) // if we haven't wrapped onto next line then do it manually
-                tft->println((char*)"\n");
+                tft->println(); //(char*)"\n");
         }
         return tft->getCursorY();
     }
 
     virtual int renderValue(bool selected, bool opened, uint16_t max_character_width) override {
-        /*char label[MAX_LABEL_LENGTH];
-        //strcpy(label, get_label_for_value(available_values[opened ? selected_value_index : this->getter()]));
-        if (strlen(label) > max_character_width) {
-            label[max_character_width] = '\0';
-        }
-        tft->printf("%s", label);*/
-        //Serial.printf("ParameterInputMenuItems#renderValue() in %s\n", this->label);      
-        int index_to_display = actual_value_index;
-        if (opened) index_to_display = selected_value_index;
-        //int col = selected_value_index==this->actual_value_index ? GREEN : this->default_fg;
-        int col = selected_value_index==this->actual_value_index && opened ? 
+        const int index_to_display = opened ? selected_value_index : actual_value_index;
+        const int col = selected_value_index==this->actual_value_index && opened ? 
                 GREEN : 
                 this->available_parameter_inputs->get(index_to_display)->colour;
-        //if (!opened || (opened && selected_value_index>=0)) // && selected_value_index==this->actual_value_index))
-        //if (!opened) col = this->available_parameter_inputs->get(index_to_display)->colour;
-
-        //colours(opened && selected_value_index==this->actual_value_index, col, BLACK);
+        
         colours(selected, col, BLACK);
         char txt[MENU_C_MAX];
         if (index_to_display>=0)
+            // todo: sprintf to correct number of max_character_width characters
             sprintf(txt,"%6s", this->available_parameter_inputs->get(index_to_display)->name);
         else
             sprintf(txt,"None");

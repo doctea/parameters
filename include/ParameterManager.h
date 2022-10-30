@@ -36,7 +36,7 @@ class ParameterManager {
             BLUE,
             PURPLE,
             ORANGE,
-            (YELLOW + BLUE) / 2,
+            32 + ((YELLOW + BLUE) / 2),
             (ORANGE + BLUE) / 2,
             (GREEN + RED) / 2,
             (GREEN + ORANGE) / 2
@@ -53,6 +53,18 @@ class ParameterManager {
             this->available_inputs = new LinkedList<BaseParameterInput*>();
             this->available_parameters = new LinkedList<DoubleParameter*>();*/
             this->param_none = this->addParameter(new DoubleParameter((char*)"None"));
+        }
+
+        LinkedList<BaseParameterInput*> *get_available_pitch_inputs() {
+            static LinkedList<BaseParameterInput*> *available_pitch_inputs = new LinkedList<BaseParameterInput*>();
+            static bool already_calculated = false;
+            if (!already_calculated) {
+                for (int i = 0 ; i < available_inputs->size() ; i++) {
+                    if (available_inputs->get(i)->supports_pitch())
+                        available_pitch_inputs->add(available_inputs->get(i));
+                }
+            }
+            return available_pitch_inputs;
         }
 
         FLASHMEM ADCDeviceBase *addADCDevice(ADCDeviceBase *device) {
