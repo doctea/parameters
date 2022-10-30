@@ -245,9 +245,9 @@ class ParameterManager {
 
             FLASHMEM MenuItem *addParameterInputMenuItems(Menu *menu, BaseParameterInput *param_input, const char *label_prefix = nullptr) {
                 // TODO: a new ParameterInputControl that allows to set expected input ranges
-                //char label[MENU_C_MAX];
-                //sprintf(label, "Input %s", param_input->name);
-                char *label = param_input->name;
+                char label[MENU_C_MAX];
+                sprintf(label, "%s", param_input->name);
+                //char *label = param_input->name;
 
                 menu->add(new SeparatorMenuItem(label, param_input->colour));
 
