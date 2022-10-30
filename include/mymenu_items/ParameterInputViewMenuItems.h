@@ -23,6 +23,7 @@ class ParameterInputDisplay : public MenuItem {
         ParameterInputDisplay(char *label, unsigned long memory_size, BaseParameterInput *input) : MenuItem(label) {
             this->parameter_input = input;
             this->memory_size = memory_size;
+            this->selectable = false;
             if (parameter_input!=nullptr) 
                 this->set_default_colours(parameter_input->colour);
 

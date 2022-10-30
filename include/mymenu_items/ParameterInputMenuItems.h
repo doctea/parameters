@@ -9,7 +9,6 @@ class VoltageParameterInput;
 // Selector to choose a ParameterInput from the available list; used by objects/parameters that can only feed from one ParameterInput at a time, eg CVInput
 template<class TargetClass>
 class ParameterInputSelectorControl : public SelectorControl {
-    int actual_value_index = -1;
     //void (*setter_func)(BaseParameter *midi_output);
     //BaseParameterInput *parameter_input = nullptr;
     //void(BaseParameterInput::*setter_func)(BaseParameter *target_parameter);
@@ -59,6 +58,17 @@ class ParameterInputSelectorControl : public SelectorControl {
                 //this->find_parameter_input_index_for_label(initial_name);
     }
 
+    /*virtual void update_actual_index(int new_index) {
+        this->actual_value_index = new_index;
+    }
+    // used when needs to be told to update
+    virtual void update_selected_input(BaseParameterInput *new_input) {
+        if (new_input!=nullptr)
+            this->actual_value_index = find_parameter_input_index_for_label(new_input->name);
+        else
+            this->actual_value_index = -1;
+    }*/
+
     virtual int find_parameter_input_index_for_label(char *name) {
         return parameter_manager->getInputIndexForName(name);
         //Serial.printf(F("find_parameter_input_index_for_label(%c) has available_parameter_inputs @%p\n"), name, available_parameter_inputs); Serial.flush();
@@ -95,6 +105,13 @@ class ParameterInputSelectorControl : public SelectorControl {
         this->selected_value_index = this->actual_value_index;
         Serial.printf(F("#on_add returning"));
     }
+
+    // used when needs to be told to update externally -- eg when ParameterInput mapping changes and need to tell its ParameterInputSelector
+    /*virtual void update_actual_index(int new_index) {
+        this->actual_value_index = new_index;
+        //if (new_index>=0)   // TODO: i don't think this is the right thing to do here, but for some reason widget is getting rendered in white after value has been set from loading sequence file?
+        //    this->set_default_colours(available_parameter_inputs->get(new_index)->colour);
+    }*/
 
     virtual const char *get_label_for_index(int index) {
         static char label_for_index[MENU_C_MAX];
@@ -200,17 +217,21 @@ class ParameterInputSelectorControl : public SelectorControl {
             label[max_character_width] = '\0';
         }
         tft->printf("%s", label);*/
-        //Serial.printf("ParameterInputMenuItems#renderValue() in %s\n", this->label);
-        int col = selected_value_index==this->actual_value_index ? GREEN : this->default_fg;
-
-        if (opened || (selected_value_index>=0 && selected_value_index==this->actual_value_index))
-            col = this->available_parameter_inputs->get(selected_value_index)->colour;
+        //Serial.printf("ParameterInputMenuItems#renderValue() in %s\n", this->label);      
+        int index_to_display = actual_value_index;
+        if (opened) index_to_display = selected_value_index;
+        //int col = selected_value_index==this->actual_value_index ? GREEN : this->default_fg;
+        int col = selected_value_index==this->actual_value_index && opened ? 
+                GREEN : 
+                this->available_parameter_inputs->get(index_to_display)->colour;
+        //if (!opened || (opened && selected_value_index>=0)) // && selected_value_index==this->actual_value_index))
+        //if (!opened) col = this->available_parameter_inputs->get(index_to_display)->colour;
 
         //colours(opened && selected_value_index==this->actual_value_index, col, BLACK);
         colours(selected, col, BLACK);
         char txt[MENU_C_MAX];
-        if (selected_value_index>=0)
-            sprintf(txt,"%6s", this->available_parameter_inputs->get(selected_value_index)->name);
+        if (index_to_display>=0)
+            sprintf(txt,"%6s", this->available_parameter_inputs->get(index_to_display)->name);
         else
             sprintf(txt,"None");
         tft->setTextSize((strlen(txt) < max_character_width/2) ? 2 : 1);

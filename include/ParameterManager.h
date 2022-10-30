@@ -111,29 +111,27 @@ class ParameterManager {
 
         FASTRUN BaseParameterInput *getInputForName(char *input_name) {
             for(int i = 0 ; i < available_inputs->size() ; i++) {
-                if (0==strcmp(available_inputs->get(i)->name,input_name))
+                if (available_inputs->get(i)->matches_label(input_name))
                     return available_inputs->get(i);
             }
             return nullptr;
         }
         FASTRUN int getInputIndexForName(char *input_name) {
             for(int i = 0 ; i < available_inputs->size() ; i++) {
-                if (0==strcmp(available_inputs->get(i)->name,input_name))
+                if (available_inputs->get(i)->matches_label(input_name))
                     return i;
             }
             return -1;
         }
-
-        /*VoltageSourceBase *get_voltage_source_for_name(char name) {
-            for (int i = 0 ; i < voltage_sources->size() ; i++) {
-                if (voltage_sources->get(i)->name==name)
-                    return voltage_sources->get(i);
+        FASTRUN int getInputIndex(BaseParameterInput *param) {
+            if (param==nullptr) return -1;
+            for (int i = 0 ; i < this->available_inputs->size() ; i++) {
+                if (param==this->available_inputs->get(i))
+                    return i;
             }
-        }*/
-
-        /*void connect_input_to_parameter(int input_index, DataParameter *parameter) {
-            //this->available_inputs->get(input_index)->setTarget(parameter);
-        }*/
+            return -1;
+            //return this->getInputIndexForName(param->name);
+        }
 
         // read the values, but don't pass them on outside
         FASTRUN void update_voltage_sources() {

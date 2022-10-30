@@ -15,9 +15,11 @@
 
 //#include "ParameterInput.h"
 class BaseParameterInput;
+class BaseParameter;
 
 #ifdef ENABLE_SCREEN
     class MenuItem;
+    class SelectorControl;
 #endif
 
 #define MAX_SLOT_CONNECTIONS 3
@@ -29,6 +31,7 @@ struct ParameterToInputConnection {
     #ifdef ENABLE_SCREEN
         // todo: add colour, and update the colour of the widget too
         MenuItem *amount_control = nullptr;
+        SelectorControl *input_control = nullptr;
     #endif
     //bool volt_per_octave = false;
 };

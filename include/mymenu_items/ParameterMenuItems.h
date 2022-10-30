@@ -211,6 +211,7 @@ class ParameterMenuItem : public SubMenuItemBar {
 
         // add another small widget to display the last output value (after modulation etc)
         ParameterValueMenuItem *output = new ParameterValueMenuItem((char*)"Output", parameter);
+        output->setReadOnly();
         output->set_show_output_mode();
         this->add(output); 
         
