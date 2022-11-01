@@ -21,10 +21,10 @@ class BaseParameterInput {
   public:
 
     bool debug = false;
-    void setDebug(bool state) {
+    FLASHMEM void setDebug(bool state) {
       this->debug = state;
     }
-    void toggleDebug() {
+    FLASHMEM void toggleDebug() {
       this->debug =! this->debug;
     }
 
@@ -81,7 +81,7 @@ class BaseParameterInput {
     virtual void setInverted(bool invert = true) {
       this->inverted = invert;
       #ifdef ENABLE_PRINTF
-        Serial.printf("%s: SET INVERTED on an AnalogParameterInput!", this->name);
+        Serial.printf(F("%s: SET INVERTED on an AnalogParameterInput!"), this->name);
       #endif
     }
 

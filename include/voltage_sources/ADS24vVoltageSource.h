@@ -34,11 +34,11 @@ class ADS24vVoltageSource : public ADSVoltageSource<ADS1X15Type> {
             voltageCorrected *= this->ads_source->getGain();
             voltageCorrected /= 1000.0;
             */
-            if (this->debug) {
+            /*if (this->debug) {
                 Serial.printf("after applying correction stage 1, got ");
                 Serial.print(voltageCorrected);
                 Serial.print("\t, ");
-            }
+            }*/
             return voltageCorrected;
         }
 
@@ -51,11 +51,11 @@ class ADS24vVoltageSource : public ADSVoltageSource<ADS1X15Type> {
             input_v += 1.241;
             double corrected2 = input_v;
             */
-            if (this->debug) {
+            /*if (this->debug) {
                 Serial.printf("after applying correction stage 1, got ");
                 Serial.print(corrected2);
                 Serial.print("\t, ");
-            }
+            }*/
             return corrected2;
         }
 
