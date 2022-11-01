@@ -165,7 +165,7 @@ class ParameterInputSelectorControl : public SelectorControl {
         const int index_to_display = opened ? selected_value_index : actual_value_index;
         const int col = selected_value_index==this->actual_value_index && opened ? 
                 GREEN : 
-                this->available_parameter_inputs->get(index_to_display)->colour;
+                (index_to_display>=0 ? this->available_parameter_inputs->get(index_to_display)->colour : YELLOW/2);
         
         colours(selected, col, BLACK);
         char txt[MENU_C_MAX];
@@ -186,7 +186,9 @@ class ParameterInputSelectorControl : public SelectorControl {
 
         char msg[255];
         //Serial.printf("about to build msg string...\n");
-        sprintf(msg, "Set %s to %s (%i)", label, this->available_parameter_inputs->get(selected_value_index)->name, selected_value_index);
+        char *name = selected_value_index>=0 ? this->available_parameter_inputs->get(selected_value_index)->name : "None";
+        if (selected_value_index>=0)
+        sprintf(msg, "Set %s to %s (%i)", label, name, selected_value_index);
         //Serial.printf("about to set_last_message!");
         msg[20] = '\0'; // limit the string so we don't overflow set_last_message
         menu_set_last_message(msg,GREEN);
