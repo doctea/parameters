@@ -187,7 +187,7 @@ class ParameterInputSelectorControl : public SelectorControl {
         char msg[255];
         //Serial.printf("about to build msg string...\n");
         char *name = selected_value_index>=0 ? this->available_parameter_inputs->get(selected_value_index)->name : "None";
-        if (selected_value_index>=0)
+        //if (selected_value_index>=0)
         sprintf(msg, "Set %s to %s (%i)", label, name, selected_value_index);
         //Serial.printf("about to set_last_message!");
         msg[20] = '\0'; // limit the string so we don't overflow set_last_message
