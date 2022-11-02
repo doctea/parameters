@@ -21,11 +21,11 @@ class MIDI_CC_Source {
     }
 
     // register a parameter input to this object
-    void addParameterInput(MIDIParameterInput *parameter_input) {
+    FLASHMEM void addParameterInput(MIDIParameterInput *parameter_input) {
         this->parameter_inputs->add(parameter_input);
         parameter_manager->addInput(parameter_input);
     }
-    void addParameterInput(const char *name, byte number, byte channel = 0) {
+    FLASHMEM void addParameterInput(const char *name, byte number, byte channel = 0) {
         this->addParameterInput(new MIDIParameterInput((char*)name, number, channel));
     }
 };
