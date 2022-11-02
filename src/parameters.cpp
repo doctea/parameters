@@ -17,7 +17,7 @@
 #include "submenuitem.h"
 
 #ifdef MENU_SIMPLE_PARAMETERS
-    MenuItem *DoubleParameter::makeControl() {
+    FLASHMEM MenuItem *DoubleParameter::makeControl() {
         Serial.printf("DataParameter#makeControl for %s\n", this->label);
 
         //char menu_label[MAX_LABEL_LENGTH];
@@ -66,7 +66,7 @@
     #include "mymenu_items/ParameterInputMenuItems.h"
 
     // just main control, with amounts 
-    MenuItem *DoubleParameter::makeControl() {
+    FLASHMEM MenuItem *DoubleParameter::makeControl() {
         //Serial.printf(F("DataParameter#makeControl for %s\n"), this->label);
         // first set up the submenu to hold the values
         ParameterMenuItem *fullmenuitem = new ParameterMenuItem(this->label, this);
