@@ -130,15 +130,20 @@ class ParameterManager {
             }
         }
 
-        FASTRUN BaseParameterInput *getInputForName(char *input_name) {
-            for(int i = 0 ; i < available_inputs->size() ; i++) {
+        FASTRUN BaseParameterInput *getInputForName(const char *input_name) {
+            const byte size = available_inputs->size();
+            for(byte i = 0 ; i < size ; i++) {
                 if (available_inputs->get(i)->matches_label(input_name))
                     return available_inputs->get(i);
             }
             return nullptr;
+            /*int index = this->getInputIndexForName(input_name);
+            if (index!=-1) return this->available_inputs->get(index);
+            return nullptr;*/
         }
-        FASTRUN int getInputIndexForName(char *input_name) {
-            for(int i = 0 ; i < available_inputs->size() ; i++) {
+        FASTRUN int getInputIndexForName(const char *input_name) {
+            const byte size = available_inputs->size();
+            for(byte i = 0 ; i < size ; i++) {
                 if (available_inputs->get(i)->matches_label(input_name))
                     return i;
             }
@@ -146,7 +151,8 @@ class ParameterManager {
         }
         FASTRUN int getInputIndex(BaseParameterInput *param) {
             if (param==nullptr) return -1;
-            for (int i = 0 ; i < this->available_inputs->size() ; i++) {
+            const byte size = available_inputs->size();
+            for (byte i = 0 ; i < size ; i++) {
                 if (param==this->available_inputs->get(i))
                     return i;
             }
@@ -222,9 +228,9 @@ class ParameterManager {
         }
 
         #ifdef ENABLE_SCREEN
-            FLASHMEM void addAllParameterInputMenuItems(Menu *menu) {
+            FLASHMEM void addAllParameterInputMenuItems(Menu *menu, const char *label_prefix = nullptr) {
                 for (int i = 0 ; i < available_inputs->size() ; i++) {
-                    this->addParameterInputMenuItems(menu, available_inputs->get(i));
+                    this->addParameterInputMenuItems(menu, available_inputs->get(i), label_prefix);
                 }
             }
 
@@ -258,10 +264,10 @@ class ParameterManager {
                 return submenu;
             }
 
-            FLASHMEM MenuItem *addParameterInputMenuItems(Menu *menu, BaseParameterInput *param_input, const char *label_prefix = nullptr) {
+            FLASHMEM MenuItem *addParameterInputMenuItems(Menu *menu, BaseParameterInput *param_input, const char *label_prefix = "") {
                 // TODO: a new ParameterInputControl that allows to set expected input ranges
                 char label[MENU_C_MAX];
-                sprintf(label, "%s", param_input->name);
+                sprintf(label, "%s%s", label_prefix, param_input->name);
                 //char *label = param_input->name;
 
                 menu->add(new SeparatorMenuItem(label, param_input->colour));
@@ -274,11 +280,11 @@ class ParameterManager {
                     submenu->set_default_colours(param_input->colour);
                     submenu->show_header = false;
 
-                    sprintf(label, "Inp type for %s", param_input->name);
-                    submenu->add(new InputTypeSelectorControl(label, &param_input->input_type));
+                    //sprintf(label, "Input type for %s", param_input->name);
+                    submenu->add(new InputTypeSelectorControl("Input type"/*label*/, &param_input->input_type));
 
-                    sprintf(label, "Out type for %s", param_input->name);
-                    submenu->add(new InputTypeSelectorControl(label, &param_input->output_type));
+                    //sprintf(label, "Out type for %s", param_input->name);
+                    submenu->add(new InputTypeSelectorControl("Output type"/*label*/, &param_input->output_type));
 
                     menu->add(submenu);
                     return submenu; // was nullptr
@@ -287,12 +293,12 @@ class ParameterManager {
             }
 
             // create a menuitem for the passed-in parameter; returns nullptr if passed-in parameter is named "None"
-            FLASHMEM MenuItem *makeMenuItemForParameter(DoubleParameter *p, char *label_prefix = nullptr) {
+            FLASHMEM MenuItem *makeMenuItemForParameter(DoubleParameter *p, const char *label_prefix = "") {
                 if (strcmp(p->label,"None")==0) return nullptr;
                 MenuItem *ctrl = p->makeControl();
                 return ctrl;
             }
-            FLASHMEM LinkedList<MenuItem *> *makeMenuItemsForParameter(DoubleParameter *p, char *label_prefix = nullptr) {
+            FLASHMEM LinkedList<MenuItem *> *makeMenuItemsForParameter(DoubleParameter *p, const char *label_prefix = "") {
                 if (strcmp(p->label,"None")==0) return nullptr;
                 LinkedList<MenuItem *> *ctrls = p->makeControls();
                 return ctrls;
@@ -316,21 +322,20 @@ class ParameterManager {
             }*/
 
             FLASHMEM void addAllVoltageSourceCalibrationMenuItems(Menu *menu) {
-                Serial.printf(F("------------\nParameterManager#addAllVoltageSourceCalibrationMenuItems() has %i VoltageSources to add items for?\n"), this->voltage_sources->size());
+                //Serial.printf(F("------------\nParameterManager#addAllVoltageSourceCalibrationMenuItems() has %i VoltageSources to add items for?\n"), this->voltage_sources->size());
                 const int size = this->voltage_sources->size();
 
                 SubMenuItem *submenuitem = new SubMenuItem("Voltage Source Calibration", false);
 
                 for (int i = 0 ; i < size ; i++) {
-                    Serial.printf(F("\tParameterManager#addAllVoltageSourceCalibrationMenuItems() for voltage_source %i/%i\n"), i+1, size); Serial.flush();
+                    //Serial.printf(F("\tParameterManager#addAllVoltageSourceCalibrationMenuItems() for voltage_source %i/%i\n"), i+1, size); Serial.flush();
                     
                     VoltageSourceBase *voltage_source = this->voltage_sources->get(i);
                     submenuitem->add(voltage_source->makeCalibrationControls(i));
                     submenuitem->add(voltage_source->makeCalibrationLoadSaveControls(i));
 
-                    Serial.println(F("\t\taddAllVoltageSourceCalibrationMenuItems done!")); Serial.flush();
-
-                    Serial.printf(F("\tfinished with voltage_source %i\n"), i);
+                    //Serial.println(F("\t\taddAllVoltageSourceCalibrationMenuItems done!")); Serial.flush();
+                    //Serial.printf(F("\tfinished with voltage_source %i\n"), i);
                 }
                 Serial.printf(F("ParameterManager#addAllVoltageSourceCalibrationMenuItems() done!\n------------\n")); Serial.flush();
 

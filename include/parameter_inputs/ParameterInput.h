@@ -91,7 +91,7 @@ class BaseParameterInput {
       return 0.0;
     }
 
-    virtual bool matches_label(char *label) {
+    virtual bool matches_label(const char *label) {
       return (strcmp(label, this->name)==0);
     }
 
