@@ -131,8 +131,8 @@ class ParameterManager {
         }
 
         FASTRUN BaseParameterInput *getInputForName(const char *input_name) {
-            const byte size = available_inputs->size();
-            for(byte i = 0 ; i < size ; i++) {
+            const int size = available_inputs->size();
+            for(int i = 0 ; i < size ; i++) {
                 if (available_inputs->get(i)->matches_label(input_name))
                     return available_inputs->get(i);
             }
@@ -142,8 +142,8 @@ class ParameterManager {
             return nullptr;*/
         }
         FASTRUN int getInputIndexForName(const char *input_name) {
-            const byte size = available_inputs->size();
-            for(byte i = 0 ; i < size ; i++) {
+            const int size = available_inputs->size();
+            for(int i = 0 ; i < size ; i++) {
                 if (available_inputs->get(i)->matches_label(input_name))
                     return i;
             }
@@ -151,8 +151,8 @@ class ParameterManager {
         }
         FASTRUN int getInputIndex(BaseParameterInput *param) {
             if (param==nullptr) return -1;
-            const byte size = available_inputs->size();
-            for (byte i = 0 ; i < size ; i++) {
+            const int size = available_inputs->size();
+            for (int i = 0 ; i < size ; i++) {
                 if (param==this->available_inputs->get(i))
                     return i;
             }
