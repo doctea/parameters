@@ -17,7 +17,7 @@
 #include "submenuitem.h"
 
 #ifdef MENU_SIMPLE_PARAMETERS
-    MenuItem *DoubleParameter::makeControl() {
+    FLASHMEM MenuItem *DoubleParameter::makeControl() {
         Serial.printf("DataParameter#makeControl for %s\n", this->label);
 
         //char menu_label[MAX_LABEL_LENGTH];
@@ -66,24 +66,25 @@
     #include "mymenu_items/ParameterInputMenuItems.h"
 
     // just main control, with amounts 
-    MenuItem *DoubleParameter::makeControl() {
-        Serial.printf("DataParameter#makeControl for %s\n", this->label);
+    FLASHMEM MenuItem *DoubleParameter::makeControl() {
+        //Serial.printf(F("DataParameter#makeControl for %s\n"), this->label);
         // first set up the submenu to hold the values
         ParameterMenuItem *fullmenuitem = new ParameterMenuItem(this->label, this);
 
         return fullmenuitem;
     }
     // enhanced controls, with ability to choose ParameterInput mappings
-    LinkedList<MenuItem *> *DoubleParameter::makeControls() {
+    // NOTENOTENOTE -- i dont think this is actually used anywhere so its basically untested -- *MIDICCParameter::makeControls() IS used and is more up-to-date than this!!
+    FLASHMEM LinkedList<MenuItem *> *DoubleParameter::makeControls() {
         LinkedList<MenuItem *> *controls = new LinkedList<MenuItem *>();
         
-        Serial.printf("DataParameter#makeControls for %s\n", this->label);
+        //Serial.printf("DataParameter#makeControls for %s\n", this->label);
         // first set up the submenu to hold the values
         ParameterMenuItem *fullmenuitem = new ParameterMenuItem(this->label, this);
         controls->add(fullmenuitem);
 
         //while(!Serial);
-        Serial.printf("in makeControls() in %s, parameter_manager is @%p and available_inputs is @%p\n", this->label, parameter_manager, parameter_manager->available_inputs);
+        Serial.printf(F("in makeControls() in %s, parameter_manager is @%p and available_inputs is @%p\n"), this->label, parameter_manager, parameter_manager->available_inputs);
 
         SubMenuItemBar *input_selectors_bar = new SubMenuItemBar("Inputs");
         //input_selectors_bar->debug = true;  // TODO: remove this !
@@ -132,7 +133,7 @@ double DoubleParameter::get_modulation_value() {
             }
         }
         if (this->debug && number_of_modulations>0) 
-            Serial.printf("%s#get_modulation_value()\treturning\t%f from\t%i modulations\n", this->label, modulation, number_of_modulations);
+            Serial.printf(F("%s#get_modulation_value()\treturning\t%f from\t%i modulations\n"), this->label, modulation, number_of_modulations);
         /*else {
             Serial.printf("%s#get_modulation_value() got no modulations\n", this->label);
         }*/

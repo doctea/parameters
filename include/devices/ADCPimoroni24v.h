@@ -27,26 +27,26 @@ class ADCPimoroni24v : public ADCDeviceBase {
         }
 
         virtual void init() override {
-            Serial.println("ADCPimoroni24v#init() initialising!");
+            Serial.println(F("ADCPimoroni24v#init() initialising!"));
             if (this->actual_device!=nullptr) {
-                Serial.println("\t..already has actual_device set, returning without doing anything");
+                Serial.println(F("\t..already has actual_device set, returning without doing anything"));
                 return;
             }
             if (this->initialised) {
-                Serial.println("\ti..nitialised flag already set, returning without doing anything");
+                Serial.println(F("\ti..nitialised flag already set, returning without doing anything"));
                 return;
             }                
 
-            Serial.println("\t..instantiating an object of ADSDeviceClass..");
+            Serial.println(F("\t..instantiating an object of ADSDeviceClass.."));
             this->actual_device = &ADS_OBJECT_24V; //new ADSDeviceClass(address);
             this->actual_device->begin();
             this->actual_device->setGain(gain);
             this->initialised = true;
-            Serial.println("\t..instantiated!"); // an object of ADSDeviceClass");
+            Serial.println(F("\t..instantiated!")); // an object of ADSDeviceClass");
         }
 
         virtual VoltageSourceBase *make_voltage_source(int i) override {
-            Serial.printf("ADCPimoroni24v#make_voltage_source(%i)..\n", i);
+            Serial.printf(F("ADCPimoroni24v#make_voltage_source(%i)..\n"), i);
             if (!this->initialised)
                 this->init();
             if (i<MAX_CHANNELS)

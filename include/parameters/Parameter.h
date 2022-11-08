@@ -189,8 +189,8 @@ class DoubleParameter : public BaseParameter {
     virtual double get_modulation_value();
 
     #ifdef ENABLE_SCREEN
-        virtual MenuItem *makeControl();
-        virtual LinkedList<MenuItem *> *makeControls();
+        FLASHMEM virtual MenuItem *makeControl();
+        FLASHMEM virtual LinkedList<MenuItem *> *makeControls();
 
         // update the slot's menu control to represent the newly set parameter input source
         void update_slot_amount_control(byte slot, BaseParameterInput *parameter_input);

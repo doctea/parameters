@@ -30,7 +30,7 @@ class AnalogParameterInputBase : public ParameterInput {
     virtual void setInverted(bool invert = true) {
       this->inverted = invert;
       #ifdef ENABLE_PRINTF
-        Serial.printf("%s: SET INVERTED on an AnalogParameterInput!", this->name);
+        Serial.printf(F("%s: SET INVERTED on an AnalogParameterInput!"), this->name);
       #endif
     }
 
@@ -43,11 +43,11 @@ class AnalogParameterInputBase : public ParameterInput {
     }
 
     virtual DataType get_normal_value(DataType value) {
-      if (this->debug) {
+      /*if (this->debug) {
         Serial.print("get_normal_value(");
         Serial.print(value);
         Serial.print(") ");
-      }
+      }*/
 
       if (this->input_type==UNIPOLAR) {
         value = constrain(value, 0.0, 1.0);
@@ -61,21 +61,21 @@ class AnalogParameterInputBase : public ParameterInput {
         value = -1.0 + (value*2.0);
       }
 
-      if (this->debug) {
+      /*if (this->debug) {
         Serial.print("re-normalised to ");
         Serial.print(value);
         Serial.print("\n");
-      }
+      }*/
 
       if (this->inverted) {
         value = 1.0f - ((double)value); // / this->max_input_value);
       }
 
-      if (this->debug) {
+      /*if (this->debug) {
         Serial.print(", inverted to ");
         Serial.print(value);
         Serial.print("\n");
-      }
+      }*/
 
       return value;
     }
@@ -106,7 +106,7 @@ class AnalogParameterInputBase : public ParameterInput {
 
     virtual void read() override {
       #ifdef ENABLE_PRINTF
-        if (this->debug) Serial.printf("%s: read() in AnalogParameterInputBase..", this->name); 
+        if (this->debug) Serial.printf(F("%s: read() in AnalogParameterInputBase.."), this->name); 
       #endif
 
       //DataType currentValue = analogRead(inputPin);
@@ -122,7 +122,7 @@ class AnalogParameterInputBase : public ParameterInput {
             Serial.print(this->name);
             Serial.print(F(": calling callback("));
             Serial.print(normal);
-            Serial.println(F(")"));
+            Serial.println(')');
           }      
           callback(normal);
         }

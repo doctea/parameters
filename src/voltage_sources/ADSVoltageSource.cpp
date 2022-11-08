@@ -66,7 +66,7 @@
     #include "SD.h"
     #define FILEPATH_CALIBRATION_FORMAT       "calibration_voltage_source_%i.txt"
     
-    void ADSVoltageSourceBase::load_calibration() {
+    FLASHMEM void ADSVoltageSourceBase::load_calibration() {
         // todo: make VoltageSource know its name so that it knows where to load from
         Serial.printf("ADSVoltageSourceBase: load_calibration for slot!\n", slot);
         //int slot = parameter_manager.find_slot_for_voltage(this);
@@ -99,7 +99,7 @@
 
         Serial.printf("for slot %i, got calibration values %6.6f : %6.6f\n", slot, this->correction_value_1, this->correction_value_2);
     }
-    void ADSVoltageSourceBase::save_calibration() {
+    FLASHMEM void ADSVoltageSourceBase::save_calibration() {
         // todo: make VoltageSource know its name so that it knows where to save to
         Serial.printf("ADSVoltageSourceBase: save_calibration for slot %i!", slot);
         //int slot = parameter_manager.find_slot_for_voltage(this);
