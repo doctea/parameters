@@ -37,16 +37,16 @@ class ToggleParameter : public DataParameter<TargetClass,DataType> {
     }
 
     virtual void setNormalParamValue(double value, double range = 1.0) override {
-        if (this->debug) {
-            Serial.print("ToggleParameter#setParamValue(double of ");
+        /*if (this->debug) {
+            Serial.print(F("ToggleParameter#setParamValue(double of "));
             Serial.print(value);
-            Serial.print(") about to call setParamValue(bool)"); Serial.flush();
-        }
+            Serial.print(F(") about to call setParamValue(bool)")); Serial.flush();
+        }*/
         if (value>=0.5) {
-            if (this->debug) Serial.println("true!!");
+            //if (this->debug) Serial.println("true!!");
             this->setParamValue((bool)true);
         } else {
-            if (this->debug) Serial.println("false!!");
+            //if (this->debug) Serial.println("false!!");
             this->setParamValue((bool)false);
         }
     }
