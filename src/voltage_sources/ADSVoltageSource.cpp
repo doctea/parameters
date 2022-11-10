@@ -77,8 +77,8 @@
         char filename[255] = "";
         sprintf(filename, FILEPATH_CALIBRATION_FORMAT, slot); //, preset_number);
         Serial.printf("\tload_calibration() opening '%s' for slot %i\n", filename, slot);
-        myFile = SD.open(filename, FILE_READ);
         myFile.setTimeout(0);
+        myFile = SD.open(filename, FILE_READ);
 
         if (!myFile) {
             Serial.printf("Error: Couldn't open %s for reading for slot %i!\n", filename, slot);
