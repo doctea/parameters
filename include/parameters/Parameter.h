@@ -20,6 +20,8 @@ class BaseParameter;
 #ifdef ENABLE_SCREEN
     class MenuItem;
     class SelectorControl;
+    class ParameterMenuItem;
+    //, ParameterInputSelectorControl;
 #endif
 
 #define MAX_SLOT_CONNECTIONS 3
@@ -29,7 +31,8 @@ struct ParameterToInputConnection {
     BaseParameterInput *parameter_input = nullptr;
     double amount = 0.0f;
     #ifdef ENABLE_SCREEN
-        // todo: add colour, and update the colour of the widget too
+        // done more directly? todo: add colour, and update the colour of the widget too
+        // link the parameter mapping back to the screen controls, so that we can update the screen when mapping changes
         MenuItem *amount_control = nullptr;
         SelectorControl *input_control = nullptr;
     #endif
@@ -62,6 +65,7 @@ class BaseParameter {
         // called when a BaseParameterInput that was targetting this item release control of this parameter
 };
 
+// doubletype-backed Parameter class from which usable types descend
 class DoubleParameter : public BaseParameter {
     public: 
     
@@ -192,6 +196,15 @@ class DoubleParameter : public BaseParameter {
         FLASHMEM virtual MenuItem *makeControl();
         FLASHMEM virtual LinkedList<MenuItem *> *makeControls();
 
+        void link_parameter_input_controls_to_connections(MenuItem *amt1, MenuItem *amt2, MenuItem *amt3, SelectorControl *source_selector_1, SelectorControl *source_selector_2, SelectorControl *source_selector_3) {
+            this->connections[0].amount_control = amt1;
+            this->connections[1].amount_control = amt2;
+            this->connections[2].amount_control = amt3;
+            this->connections[0].input_control = source_selector_1;
+            this->connections[1].input_control = source_selector_2;
+            this->connections[2].input_control = source_selector_3;
+        }
+
         // update the slot's menu control to represent the newly set parameter input source
         void update_slot_amount_control(byte slot, BaseParameterInput *parameter_input);
         //void update_slot_amount_control(byte slot, char name);
@@ -223,18 +236,19 @@ class DataParameter : public DoubleParameter {
             this->target = target;
             //this->mixer = new ParameterMixer(); //this);
         }
-        DataParameter(char *label, TargetClass *target, DataType initial_value_normal) : DoubleParameter(label, target) {
+        DataParameter(char *label, TargetClass *target, DataType initial_value_normal) : DataParameter(label, target) {
             this->initialNormalValue = initial_value_normal;
         }
-        DataParameter(char *label, TargetClass *target, void(TargetClass::*setter_func)(DataType)) : DoubleParameter(label, target) {
+        DataParameter(char *label, TargetClass *target, void(TargetClass::*setter_func)(DataType)) : DataParameter(label, target) {
             this->setter_func = setter_func;
         }
-        DataParameter(char *label, TargetClass *target, void(TargetClass::*setter_func)(DataType), DataType(TargetClass::*getter_func)()) : DoubleParameter(label, target, setter_func) {
+        DataParameter(char *label, TargetClass *target, void(TargetClass::*setter_func)(DataType), DataType(TargetClass::*getter_func)()) 
+            : DataParameter<TargetClass,DataType>(label, target, setter_func) {
             this->getter_func = getter_func;
             //if (getter_func!=nullptr)
             //    this->setInitialValue();
         }
-        DataParameter(char *label, TargetClass *target, double initial_value_normal, void(TargetClass::*setter_func)(DataType)) : DoubleParameter(label, target, setter_func) {
+        DataParameter(char *label, TargetClass *target, double initial_value_normal, void(TargetClass::*setter_func)(DataType)) : DataParameter(label, target, setter_func) {
             this->initialNormalValue = initial_value_normal;
             //this->setInitialValueFromNormal(initial_value_normal);
         }

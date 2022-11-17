@@ -75,7 +75,7 @@
     }
     // enhanced controls, with ability to choose ParameterInput mappings
     // NOTENOTENOTE -- i dont think this is actually used anywhere so its basically untested -- *MIDICCParameter::makeControls() IS used and is more up-to-date than this!!
-    FLASHMEM LinkedList<MenuItem *> *DoubleParameter::makeControls() {
+    /*FLASHMEM LinkedList<MenuItem *> *DoubleParameter::makeControls() {
         LinkedList<MenuItem *> *controls = new LinkedList<MenuItem *>();
         
         //Serial.printf("DataParameter#makeControls for %s\n", this->label);
@@ -112,6 +112,77 @@
             parameter_manager->getInputForName(this->get_input_name_for_slot(2)),
             fullmenuitem->items->get(3)     // fourth item of ParameterMenuItem is third slot
         ));
+        controls->add(input_selectors_bar);
+
+        return controls;
+    }*/
+    FLASHMEM LinkedList<MenuItem *> *DoubleParameter::makeControls() {
+        Serial.printf(F("DoubleParameter#makeControls for %s\n"), this->label);
+
+        // list for storing all the controls we're about to add
+        LinkedList<MenuItem *> *controls = new LinkedList<MenuItem *>();
+        
+        // first, set up the submenu to hold the controls for the amounts
+        // this is handled by its own compound control type, 'ParameterMenuItem'
+        ParameterMenuItem *fullmenuitem = new ParameterMenuItem(this->label, this);
+        controls->add(fullmenuitem);
+
+        // then set up a generic submenuitembar to hold the input selectors
+        SubMenuItemBar *input_selectors_bar = new SubMenuItemBar("Inputs");
+        input_selectors_bar->show_header = false;
+        input_selectors_bar->show_sub_headers = false;
+
+        // some spacers so that the input controls align with the corresponding amount controls
+        MenuItem *spacer1 = new MenuItem("Inputs");
+        MenuItem *spacer2 = new MenuItem("");
+        spacer1->selectable = false;
+        spacer2->selectable = false;
+        input_selectors_bar->add(spacer1);
+
+        // make the three source selector controls
+        ParameterInputSelectorControl<DoubleParameter> *source_selector_1 = new ParameterInputSelectorControl<DoubleParameter>(
+            "Input 1", 
+            this,
+            &DoubleParameter::set_slot_0_input,
+            parameter_manager->available_inputs,
+            parameter_manager->getInputForName(this->get_input_name_for_slot(0)),
+            fullmenuitem->items->get(1)     // second item of ParameterMenuItem is first slot
+        );
+        source_selector_1->go_back_on_select = true;
+        ParameterInputSelectorControl<DoubleParameter> *source_selector_2 = new ParameterInputSelectorControl<DoubleParameter>(
+            "Input 2", 
+            this,
+            &DoubleParameter::set_slot_1_input,
+            parameter_manager->available_inputs,
+            parameter_manager->getInputForName(this->get_input_name_for_slot(1)),
+            fullmenuitem->items->get(2)     // third item of ParameterMenuItem is second slot
+        );
+        source_selector_2->go_back_on_select = true;
+        ParameterInputSelectorControl<DoubleParameter> *source_selector_3 = new ParameterInputSelectorControl<DoubleParameter>(
+            "Input 3", 
+            this,
+            &DoubleParameter::set_slot_2_input,
+            parameter_manager->available_inputs,
+            parameter_manager->getInputForName(this->get_input_name_for_slot(2)),
+            fullmenuitem->items->get(3)     // fourth item of ParameterMenuItem is third slot
+        );
+        source_selector_3->go_back_on_select = true;
+
+        // tell the parameter's connection mappings which screen controls they need to update
+        this->link_parameter_input_controls_to_connections(
+            fullmenuitem->items->get(1),
+            fullmenuitem->items->get(2),
+            fullmenuitem->items->get(3),
+            source_selector_1,
+            source_selector_2,
+            source_selector_3
+        );
+
+        input_selectors_bar->add(source_selector_1);
+        input_selectors_bar->add(source_selector_2);
+        input_selectors_bar->add(source_selector_3);
+        input_selectors_bar->add(spacer2);
+
         controls->add(input_selectors_bar);
 
         return controls;
