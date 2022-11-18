@@ -11,13 +11,13 @@ class ToggleControl : public ParameterValueMenuItem {
     ToggleControl(char *label, DoubleParameter *parameter) : ParameterValueMenuItem(label, parameter) {}
 
     virtual bool action_opened() override {
-        if (this->debug) Serial.println("ToggleControl#action_opened");
+        if (this->debug) Serial.println(F("ToggleControl#action_opened"));
         if (parameter->getCurrentNormalValue()<0.5) {
-            if (this->debug) Serial.println("sending value_on");
+            if (this->debug) Serial.println(F("sending value_on"));
             //parameter->setParamValue(value_on);
             parameter->updateValueFromNormal(value_on);
         } else {
-            if (this->debug) Serial.println("sending value_off");
+            if (this->debug) Serial.println(F("sending value_off"));
             parameter->updateValueFromNormal(value_off);
         }
         //this->parameter->setParamValue(((DataParameter*)parameter)->getCurrentValue() < 0.5);

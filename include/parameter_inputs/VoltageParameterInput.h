@@ -43,7 +43,7 @@ class VoltageParameterInput : public AnalogParameterInputBase<double> {
         virtual uint8_t get_voltage_pitch() {
             //return get_midi_pitch_for_voltage(this->voltage_source->get_voltage_pitch());
             if (this->voltage_source==nullptr) 
-                Serial.printf("%c#get_voltage_pitch() has no voltage_source?!", this->name); Serial.flush();
+                Serial.printf(F("%c#get_voltage_pitch() has no voltage_source?!"), this->name); Serial.flush();
             return this->voltage_source->get_voltage_pitch();
         }
 
@@ -63,7 +63,7 @@ class VoltageParameterInput : public AnalogParameterInputBase<double> {
                     Serial.print((uint32_t) this->ads->toVoltage(intermediate));
                     Serial.printf(", final %i", (uint32_t) currentValue*1000.0);
                     Serial.println();*/
-                    Serial.printf("%c: VoltageParameterInput->read() got voltage ", this->name); //
+                    Serial.printf(F("%c: VoltageParameterInput->read() got voltage "), this->name); //
                     Serial.println(currentValue);
                 }
                 #endif
@@ -72,9 +72,9 @@ class VoltageParameterInput : public AnalogParameterInputBase<double> {
 
                 #ifdef ENABLE_PRINTF
                 if (this->debug) {
-                    Serial.printf("VoltageParameterInput#read() for '%c': got currentValue ", this->name); Serial.flush();
+                    Serial.printf(F("VoltageParameterInput#read() for '%c': got currentValue "), this->name); Serial.flush();
                     Serial.print(currentValue); Serial.flush();
-                    Serial.print(" converted to normal "); Serial.flush();
+                    Serial.print(F(" converted to normal ")); Serial.flush();
                     Serial.println(normal); Serial.flush();
                 }
                 #endif
