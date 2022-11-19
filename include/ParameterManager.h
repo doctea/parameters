@@ -207,7 +207,7 @@ class ParameterManager {
             // this is going to be pretty intensive; may need to adjust the way this works...
             unsigned long update_mixers_started = micros();
             const uint16_t available_parameters_size = this->available_parameters->size();
-            for (uint16_t i = 0 ; i < available_parameters_size ; i++) {
+            for (int i = 0 ; i < available_parameters_size ; i++) {
                 this->available_parameters->get(i)->update_mixer();
             }
             unsigned long update_mixers_finished = micros();

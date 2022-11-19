@@ -45,7 +45,7 @@ class BaseParameter {
 
         char label[20];
 
-        BaseParameter(char *label) {
+        BaseParameter(const char *label) {
             strcpy(this->label, label);
         };
         virtual void updateValueFromNormal(double value/*, double range = 1.0*/) {};
@@ -78,7 +78,7 @@ class DoubleParameter : public BaseParameter {
     double lastModulatedNormalValue = 0.0;
     double lastOutputNormalValue = 0.0;
 
-    DoubleParameter(char *label) : BaseParameter(label) {}
+    DoubleParameter(const char *label) : BaseParameter(label) {}
 
     virtual double getCurrentNormalValue() {
         return this->currentNormalValue;
@@ -232,23 +232,23 @@ class DataParameter : public DoubleParameter {
 
         //ParameterMixer *mixer = nullptr;
 
-        DataParameter(char *label, TargetClass *target) : DoubleParameter(label) {
+        DataParameter(const char *label, TargetClass *target) : DoubleParameter(label) {
             this->target = target;
             //this->mixer = new ParameterMixer(); //this);
         }
-        DataParameter(char *label, TargetClass *target, DataType initial_value_normal) : DataParameter(label, target) {
+        DataParameter(const char *label, TargetClass *target, DataType initial_value_normal) : DataParameter(label, target) {
             this->initialNormalValue = initial_value_normal;
         }
-        DataParameter(char *label, TargetClass *target, void(TargetClass::*setter_func)(DataType)) : DataParameter(label, target) {
+        DataParameter(const char *label, TargetClass *target, void(TargetClass::*setter_func)(DataType)) : DataParameter(label, target) {
             this->setter_func = setter_func;
         }
-        DataParameter(char *label, TargetClass *target, void(TargetClass::*setter_func)(DataType), DataType(TargetClass::*getter_func)()) 
+        DataParameter(const char *label, TargetClass *target, void(TargetClass::*setter_func)(DataType), DataType(TargetClass::*getter_func)()) 
             : DataParameter<TargetClass,DataType>(label, target, setter_func) {
             this->getter_func = getter_func;
             //if (getter_func!=nullptr)
             //    this->setInitialValue();
         }
-        DataParameter(char *label, TargetClass *target, double initial_value_normal, void(TargetClass::*setter_func)(DataType)) : DataParameter(label, target, setter_func) {
+        DataParameter(const char *label, TargetClass *target, double initial_value_normal, void(TargetClass::*setter_func)(DataType)) : DataParameter(label, target, setter_func) {
             this->initialNormalValue = initial_value_normal;
             //this->setInitialValueFromNormal(initial_value_normal);
         }
