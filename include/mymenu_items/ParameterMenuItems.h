@@ -226,6 +226,12 @@ class ParameterMenuItem : public SubMenuItemBar {
         //this->add(new SourceSelectorControl("S3", parameter));
         //this->
     }
+
+    void on_add() override {
+        for (int i = 0 ; i < 3 ; i++) {
+            parameter->connections[i].amount_control->set_default_colours(parameter->connections[i].parameter_input->colour);
+        }
+    }
 };
 
 #endif
