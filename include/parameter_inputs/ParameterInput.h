@@ -5,6 +5,8 @@
 
 #include "ads.h"
 
+#include "debug.h"
+
 #ifdef ENABLE_SCREEN
   #include "menu.h"
 #endif

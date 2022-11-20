@@ -81,7 +81,7 @@ class ParameterValueMenuItem : public DirectNumberControl<double> {
         }
 
         virtual void set_current_value(double value) override { 
-            if (this->debug) { Serial.printf(F("ParameterValueMenuItem#set_current_value(%f) on %s\n"), value, this->label); Serial.flush(); }
+            if (this->debug) { Serial.printf(F("ParameterValueMenuItem#set_current_value(%f) on %s\n"), value, this->label); Serial_flush(); }
 
             if (this->parameter==nullptr)
                 return;
@@ -90,7 +90,7 @@ class ParameterValueMenuItem : public DirectNumberControl<double> {
            
             if (this->parameter!=nullptr) {
                 if (this->debug) {
-                    if (this->debug) Serial.printf(F("\tParameterMenuItem#set_current_value(%f): Calling setParamValue %f (max value %i) on Parameter %s\n"), value, value, this->maximum_value, this->parameter->label); Serial.flush();
+                    if (this->debug) Serial.printf(F("\tParameterMenuItem#set_current_value(%f): Calling setParamValue %f (max value %i) on Parameter %s\n"), value, value, this->maximum_value, this->parameter->label); Serial_flush();
                 }
                 //double v = (double)((double)value / (double)this->maximum_value);
                 //double v = (double)((double)value/(double)this->maximum_value); // / (double)this->maximum_value); // * (double)this->maximum_value);
@@ -160,9 +160,9 @@ class ParameterValueMenuItem : public DirectNumberControl<double> {
             this->set_current_value(new_value);
             if (this->debug) Serial.printf(F("ParameterValueMenuItem#change_value(%f)\t after set_current_value(%f) get_current_value is \n"), new_value, this->get_current_value());
             if (on_change_handler!=nullptr) {
-                if (this->debug)  { Serial.println(F("NumberControl calling on_change_handler")); Serial.flush(); }
+                if (this->debug)  { Serial.println(F("NumberControl calling on_change_handler")); Serial_flush(); }
                 on_change_handler(last_value, this->internal_value); //this->get_internal_value());
-                if (this->debug)  { Serial.println(F("NumberControl after on_change_handler")); Serial.flush(); }
+                if (this->debug)  { Serial.println(F("NumberControl after on_change_handler")); Serial_flush(); }
             }
         }
 };
@@ -192,7 +192,7 @@ class ParameterMenuItem : public SubMenuItemBar {
                                 parameter->connections[i].parameter_input->name : 
                                 (char*)"None";
             Serial.printf(F("\tfor %s, setting to parameter_input@%p '%s'\n"), label, parameter->connections[i].parameter_input, input_name);
-            Serial.flush();
+            Serial_flush();
             sprintf(labelnew, "%s", input_name); //"Amt "
             DirectNumberControl<double> *input_amount_control = new DirectNumberControl<double>(
                 labelnew, 

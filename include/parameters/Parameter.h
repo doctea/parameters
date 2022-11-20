@@ -9,6 +9,8 @@
 #endif
 //#include <stddef.h>
 
+#include "debug.h"
+
 #include <LinkedList.h>
 
 //extern char NEXT_PARAMETER_NAME;
@@ -331,7 +333,7 @@ class DataParameter : public DoubleParameter {
         // update internal param and call setter on target
         virtual void updateValueFromData(DataType value) {
             /*if (this->debug) { 
-                Serial.printf(F("Parameter#updateValueFromData(%i)\n"), value); Serial.flush(); 
+                Serial.printf(F("Parameter#updateValueFromData(%i)\n"), value); Serial_flush(); 
             }*/
 
             if (this->currentDataValue==value)
@@ -482,7 +484,7 @@ class DataParameter : public DoubleParameter {
             if (this->target!=nullptr && this->setter_func!=nullptr) {
                 #ifdef ENABLE_PRINTF
                     /*if (this->debug) {
-                        Serial.println(F("Parameter#setTargetValueFromData()")); Serial.flush();
+                        Serial.println(F("Parameter#setTargetValueFromData()")); Serial_flush();
                         Serial.printf(F("%s: Calling setter func for value ("), this->label);
                         Serial.print(value);
                         Serial.println(')');

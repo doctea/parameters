@@ -43,7 +43,7 @@ class VoltageParameterInput : public AnalogParameterInputBase<double> {
         virtual uint8_t get_voltage_pitch() {
             //return get_midi_pitch_for_voltage(this->voltage_source->get_voltage_pitch());
             if (this->voltage_source==nullptr) 
-                Serial.printf(F("%c#get_voltage_pitch() has no voltage_source?!"), this->name); Serial.flush();
+                Serial.printf(F("%c#get_voltage_pitch() has no voltage_source?!"), this->name); Serial_flush();
             return this->voltage_source->get_voltage_pitch();
         }
 
@@ -72,10 +72,10 @@ class VoltageParameterInput : public AnalogParameterInputBase<double> {
 
                 #ifdef ENABLE_PRINTF
                 if (this->debug) {
-                    Serial.printf(F("VoltageParameterInput#read() for '%c': got currentValue "), this->name); Serial.flush();
-                    Serial.print(currentValue); Serial.flush();
-                    Serial.print(F(" converted to normal ")); Serial.flush();
-                    Serial.println(normal); Serial.flush();
+                    Serial.printf(F("VoltageParameterInput#read() for '%c': got currentValue "), this->name); Serial_flush();
+                    Serial.print(currentValue); Serial_flush();
+                    Serial.print(F(" converted to normal ")); Serial_flush();
+                    Serial.println(normal); Serial_flush();
                 }
                 #endif
 
@@ -85,21 +85,21 @@ class VoltageParameterInput : public AnalogParameterInputBase<double> {
                         Serial.print(F(": calling callback("));
                         Serial.print(normal);
                         Serial.println(F(")"));
-                        Serial.flush();
+                        Serial_flush();
                     }      
                     (*this->callback)(normal);
                 }
                 /*if (this->target_parameter!=nullptr) {
                     if (this->debug) {
-                        Serial.println("Calling on target_parameter.."); Serial.flush();
-                        Serial.print(this->name); Serial.flush();
-                        Serial.print(F(": calling target from normal setParamValue(")); Serial.flush();
-                        Serial.print(normal); Serial.flush();
-                        Serial.print(F(")")); Serial.flush();
-                        Serial.print(" from currentValue "); Serial.flush();
-                        Serial.print(currentValue); Serial.flush();
-                        if (this->inverted) { Serial.print(F(" - inverted")); Serial.flush(); }
-                        Serial.println(); Serial.flush();
+                        Serial.println("Calling on target_parameter.."); Serial_flush();
+                        Serial.print(this->name); Serial_flush();
+                        Serial.print(F(": calling target from normal setParamValue(")); Serial_flush();
+                        Serial.print(normal); Serial_flush();
+                        Serial.print(F(")")); Serial_flush();
+                        Serial.print(" from currentValue "); Serial_flush();
+                        Serial.print(currentValue); Serial_flush();
+                        if (this->inverted) { Serial.print(F(" - inverted")); Serial_flush(); }
+                        Serial.println(); Serial_flush();
 
                         #ifdef ENABLE_PRINTF
                             Serial.printf("VoltageParameterInput %c calling setParamValue with maximum_input_voltage ", this->name);
@@ -109,7 +109,7 @@ class VoltageParameterInput : public AnalogParameterInputBase<double> {
                     //this->target_parameter->setParamValue(normal, this->voltage_source->maximum_input_voltage);
                     this->target_parameter->updateValueFromNormal(normal); //
                 }*/
-                //Serial.println("Finishing read()"); Serial.flush();
+                //Serial.println("Finishing read()"); Serial_flush();
             }
         }
 };

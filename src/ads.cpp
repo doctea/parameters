@@ -35,14 +35,14 @@ int16_t ads_values[4] = { 0, 0, 0, 0 };*/
 
 /*
 void setup_ads() {
-  Serial.println(F("initiating ADS_OBJECT..")); Serial.flush();
+  Serial.println(F("initiating ADS_OBJECT..")); Serial_flush();
   ADS_OBJECT.begin();
-  Serial.println(F("\tfinished begin()")); Serial.flush();
+  Serial.println(F("\tfinished begin()")); Serial_flush();
   ADS_OBJECT.setGain(0);
 
   //ADS_OBJECT.requestADC(0);    // start continuous reads ?
   //ADS_OBJECT.requestADC(1);    // start continuous reads ?
-  Serial.println(F("Finished initialising ADS_OBJECT!")); Serial.flush();
+  Serial.println(F("Finished initialising ADS_OBJECT!")); Serial_flush();
 }
 
 int read_value(int channel = 0) {

@@ -34,7 +34,7 @@ void DoubleParameter::set_slot_input(byte slot, BaseParameterInput *parameter_in
     this->connections[slot].parameter_input = parameter_input;
     #ifdef ENABLE_SCREEN
         if (parameter_input!=nullptr) {
-            Serial.println("calling update_slot_amount_control.."); Serial.flush();
+            Serial.println("calling update_slot_amount_control.."); Serial_flush();
             // todo: add colour, and update the colour of the widget too
             this->update_slot_amount_control(slot, parameter_input);
         }
@@ -44,7 +44,7 @@ void DoubleParameter::set_slot_input(byte slot, BaseParameterInput *parameter_in
 #ifdef ENABLE_SCREEN
     // TODO: this is kinda ugly!  should be a better way to do this.
     void DoubleParameter::update_slot_amount_control(byte slot, BaseParameterInput *parameter_input) {
-        Serial.println(F("in update_slot_amount_control (DoubleParameter version)..")); Serial.flush();
+        Serial.println(F("in update_slot_amount_control (DoubleParameter version)..")); Serial_flush();
         //this->update_slot_amount_control(slot, parameter_input->name);
         if (this->connections[slot].amount_control!=nullptr) {
             Serial.printf(F("Updating colours+label on slot %i on %s\n"), slot, this->connections[slot].amount_control->label);
@@ -66,12 +66,12 @@ void DoubleParameter::set_slot_input(byte slot, BaseParameterInput *parameter_in
     }
 
     /*void DoubleParameter::update_slot_amount_control(byte slot, char name) {
-        //Serial.println("update_slot_amount_control creating label.."); Serial.flush();
+        //Serial.println("update_slot_amount_control creating label.."); Serial_flush();
         char new_label[7];
         sprintf(new_label, "Amt %c", name);
-        //Serial.printf("got new label '%s'\n", new_label); Serial.flush();
+        //Serial.printf("got new label '%s'\n", new_label); Serial_flush();
         if (this->connections[slot].amount_control!=nullptr) {
-            //Serial.println("calling update_label"); Serial.flush();
+            //Serial.println("calling update_label"); Serial_flush();
             this->connections[slot].amount_control->update_label(new_label);
             //this->connections[slot].amount_control->set_default_colours(parameter_input->colour);
         } 

@@ -40,7 +40,7 @@ class ToggleParameter : public DataParameter<TargetClass,DataType> {
         /*if (this->debug) {
             Serial.print(F("ToggleParameter#setParamValue(double of "));
             Serial.print(value);
-            Serial.print(F(") about to call setParamValue(bool)")); Serial.flush();
+            Serial.print(F(") about to call setParamValue(bool)")); Serial_flush();
         }*/
         if (value>=0.5) {
             //if (this->debug) Serial.println("true!!");
@@ -55,9 +55,9 @@ class ToggleParameter : public DataParameter<TargetClass,DataType> {
         if (value==this->currentValue) 
             return;
         if (this->debug) {
-            Serial.print("ToggleParameter#setParamValue("); Serial.flush();
+            Serial.print("ToggleParameter#setParamValue("); Serial_flush();
             Serial.print(value);
-            Serial.println(")"); Serial.flush();
+            Serial.println(")"); Serial_flush();
         }
 
         this->lastValue = this->currentValue;
@@ -80,17 +80,17 @@ class ToggleParameter : public DataParameter<TargetClass,DataType> {
         }
         /*if (this->currentValue) {
             if (this->setter_func_on!=nullptr) {
-                if (this->debug) { Serial.println("ToggleParameter#setParamValue calling setter_func_on!"); Serial.flush(); }
+                if (this->debug) { Serial.println("ToggleParameter#setParamValue calling setter_func_on!"); Serial_flush(); }
                 (this->target->*setter_func_on)(true);
             } else {
-                Serial.println("ToggleParameter#setParamValue has no setter_func_on!"); Serial.flush();
+                Serial.println("ToggleParameter#setParamValue has no setter_func_on!"); Serial_flush();
             }
         } else {
             if (this->setter_func_off!=nullptr) {
-                if (this->debug) { Serial.println("ToggleParameter#setParamValue calling setter_func_off!"); Serial.flush(); } 
+                if (this->debug) { Serial.println("ToggleParameter#setParamValue calling setter_func_off!"); Serial_flush(); } 
                 (this->target->*setter_func_off)(false);
             } else {
-                Serial.println("ToggleParameter#setParamValue has no setter_func_off!"); Serial.flush();
+                Serial.println("ToggleParameter#setParamValue has no setter_func_off!"); Serial_flush();
             }
         }*/
     }

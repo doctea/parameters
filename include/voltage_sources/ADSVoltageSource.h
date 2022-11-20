@@ -82,7 +82,7 @@ class ADSVoltageSource : public ADSVoltageSourceBase {
             already_succeeded = true;
 
             if (this->debug) {
-                Serial.printf(F("ADSVoltageSource channel %i read ADC voltageFromAdc %i\t :"), channel, adcReading); Serial.flush();
+                Serial.printf(F("ADSVoltageSource channel %i read ADC voltageFromAdc %i\t :"), channel, adcReading); Serial_flush();
             }
 
             double voltageFromAdc = this->adcread_to_voltage(adcReading);

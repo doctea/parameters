@@ -3,6 +3,8 @@
 
 //#include "Config.h"
 
+#include "debug.h"
+
 #include "voltage_sources/VoltageSource.h"
 #include "parameters/Parameter.h"
 #include "parameter_inputs/ParameterInput.h"
@@ -97,13 +99,13 @@ class ParameterManager {
             return parameter;
         }
         FLASHMEM void addParameters(LinkedList<DoubleParameter*> *parameters) {
-            Serial.println(F("ParameterManager#addParameters()..")); Serial.flush();
-            Serial.printf(F("\t\tpassed @%p, has size %i\n"), parameters, parameters->size()); Serial.flush();
+            Serial.println(F("ParameterManager#addParameters()..")); Serial_flush();
+            Serial.printf(F("\t\tpassed @%p, has size %i\n"), parameters, parameters->size()); Serial_flush();
             for (int i = 0 ; i < parameters->size() ; i++) {
-                Serial.printf(F("\t%i: adding from @%p '%s'\n"), i, parameters->get(i), parameters->get(i)->label); Serial.flush();
+                Serial.printf(F("\t%i: adding from @%p '%s'\n"), i, parameters->get(i), parameters->get(i)->label); Serial_flush();
                 //this->available_parameters->add(parameters->get(i));
                 this->addParameter(parameters->get(i));
-                Serial.printf(F("..added\n")); Serial.flush();
+                Serial.printf(F("..added\n")); Serial_flush();
             }
             Serial.println(F("finished in addParameters"));
         }
@@ -308,17 +310,17 @@ class ParameterManager {
                 Serial.printf(F("------------\nParameterManager#addAllVoltageSourceMenuItems() has %i VoltageSources to add items for?\n"), this->voltage_sources->size());
                 const int size = this->voltage_sources->size();
                 for (int i = 0 ; i < size ; i++) {
-                    Serial.printf(F("\tParameterManager#addAllVoltageSourceMenuItems() for voltage_source %i/%i\n"), i+1, size); Serial.flush();
+                    Serial.printf(F("\tParameterManager#addAllVoltageSourceMenuItems() for voltage_source %i/%i\n"), i+1, size); Serial_flush();
 
                     VoltageSourceBase *voltage_source = this->voltage_sources->get(i);
                     if (voltage_source!=nullptr) {
                         menu->add(voltage_source->makeCalibrationControls(i));
-                        Serial.println(F("\t\tmakeCalibrationControls done!")); Serial.flush();
+                        Serial.println(F("\t\tmakeCalibrationControls done!")); Serial_flush();
                     }
 
                     Serial.printf(F("\tfinished with voltage_source %i\n"), i);
                 }
-                Serial.printf(F("ParameterManager#addAllVoltageSourceMenuItems() done!\n------------\n")); Serial.flush();
+                Serial.printf(F("ParameterManager#addAllVoltageSourceMenuItems() done!\n------------\n")); Serial_flush();
             }*/
 
             FLASHMEM void addAllVoltageSourceCalibrationMenuItems(Menu *menu) {
@@ -328,16 +330,16 @@ class ParameterManager {
                 SubMenuItem *submenuitem = new SubMenuItem("Voltage Source Calibration", false);
 
                 for (int i = 0 ; i < size ; i++) {
-                    //Serial.printf(F("\tParameterManager#addAllVoltageSourceCalibrationMenuItems() for voltage_source %i/%i\n"), i+1, size); Serial.flush();
+                    //Serial.printf(F("\tParameterManager#addAllVoltageSourceCalibrationMenuItems() for voltage_source %i/%i\n"), i+1, size); Serial_flush();
                     
                     VoltageSourceBase *voltage_source = this->voltage_sources->get(i);
                     submenuitem->add(voltage_source->makeCalibrationControls(i));
                     submenuitem->add(voltage_source->makeCalibrationLoadSaveControls(i));
 
-                    //Serial.println(F("\t\taddAllVoltageSourceCalibrationMenuItems done!")); Serial.flush();
+                    //Serial.println(F("\t\taddAllVoltageSourceCalibrationMenuItems done!")); Serial_flush();
                     //Serial.printf(F("\tfinished with voltage_source %i\n"), i);
                 }
-                Serial.printf(F("ParameterManager#addAllVoltageSourceCalibrationMenuItems() done!\n------------\n")); Serial.flush();
+                Serial.printf(F("ParameterManager#addAllVoltageSourceCalibrationMenuItems() done!\n------------\n")); Serial_flush();
 
                 menu->add(submenuitem);
             }

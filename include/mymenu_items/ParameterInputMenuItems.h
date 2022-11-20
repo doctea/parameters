@@ -64,20 +64,20 @@ class ParameterInputSelectorControl : public SelectorControl {
 
     virtual void on_add() override {
         //this->debug = true;
-        //Serial.printf(F("%s#on_add...\n"), this->label); Serial.flush();
+        //Serial.printf(F("%s#on_add...\n"), this->label); Serial_flush();
         actual_value_index = -1;
         /*if (this->debug) {
-            Serial.printf("on_add() in ParameterSelectorControl @%p:\n", this); Serial.flush();
-            Serial.printf("\tParameterSelectorControl with initial_selected_parameter @%p...\n", initial_selected_parameter_input); Serial.flush();
+            Serial.printf("on_add() in ParameterSelectorControl @%p:\n", this); Serial_flush();
+            Serial.printf("\tParameterSelectorControl with initial_selected_parameter @%p...\n", initial_selected_parameter_input); Serial_flush();
             if (initial_selected_parameter_input!=nullptr) {
-                Serial.printf("\tParameterSelectorControl looking for '%s' @%p...\n", initial_selected_parameter_input->label, initial_selected_parameter_input); Serial.flush();
+                Serial.printf("\tParameterSelectorControl looking for '%s' @%p...\n", initial_selected_parameter_input->label, initial_selected_parameter_input); Serial_flush();
             } else 
                 Serial.println("\tno initial_selected_parameter set");
         }*/
 
         if (initial_selected_parameter_input!=nullptr) {
-            //Serial.printf(F("%s#on_add: got non-null initial_selected_parameter_input\n")); Serial.flush();
-            //Serial.printf(F("\tand its name is %c\n"), initial_selected_parameter_input->name); Serial.flush();
+            //Serial.printf(F("%s#on_add: got non-null initial_selected_parameter_input\n")); Serial_flush();
+            //Serial.printf(F("\tand its name is %c\n"), initial_selected_parameter_input->name); Serial_flush();
             this->actual_value_index = parameter_manager->getInputIndexForName(initial_selected_parameter_input->name); ////this->find_parameter_input_index_for_label(initial_selected_parameter_input->name);
         } else {
             this->actual_value_index = -1;
@@ -109,23 +109,23 @@ class ParameterInputSelectorControl : public SelectorControl {
 
     // classic fixed display version
     virtual int display(Coord pos, bool selected, bool opened) override {
-        //Serial.println(F("ParameterInputSelectorControl display()!")); Serial.flush();
+        //Serial.println(F("ParameterInputSelectorControl display()!")); Serial_flush();
         tft->setTextSize(0);
 
         pos.y = header(label, pos, selected, opened);
         
         num_values = this->available_parameter_inputs->size(); //NUM_AVAILABLE_PARAMETERS;
-        //Serial.printf(F("\tdisplay got num_values %i\n"), num_values); Serial.flush();
+        //Serial.printf(F("\tdisplay got num_values %i\n"), num_values); Serial_flush();
 
         if (!opened) {
             // not selected, so just show the current value on one row
-            //Serial.printf("\tnot opened\n"); Serial.flush();
+            //Serial.printf("\tnot opened\n"); Serial_flush();
             colours(selected, this->default_fg, BLACK);
 
             if (this->actual_value_index>=0) {
-                //Serial.printf(F("\tactual value index %i\n"), this->actual_value_index); Serial.flush();
+                //Serial.printf(F("\tactual value index %i\n"), this->actual_value_index); Serial_flush();
                 tft->printf((char*)"Selected: %s\n", (char*)this->get_label_for_index(this->actual_value_index));
-                //Serial.printf(F("\tdrew selected %i\n"), this->actual_value_index); Serial.flush();
+                //Serial.printf(F("\tdrew selected %i\n"), this->actual_value_index); Serial_flush();
             } else {
                 tft->printf((char*)"Selected: none\n");
             }

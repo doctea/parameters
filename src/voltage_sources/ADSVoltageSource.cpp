@@ -9,14 +9,14 @@
     //#include "ParameterManager.h"
 
     FLASHMEM MenuItem *ADSVoltageSourceBase::makeCalibrationControls(int i) {
-        Serial.println("makeCalibrationControls() for an ADS24vVoltageSource!"); Serial.flush();
+        Serial.println("makeCalibrationControls() for an ADS24vVoltageSource!"); Serial_flush();
 
         Serial.printf("MENU_C_MAX is %i\n", MENU_C_MAX);
         char name[MENU_C_MAX];
         sprintf(name, "Voltage Source %i Calibrator", i);
         SubMenuItemBar *submenu = new SubMenuItemBar(name);
 
-        Serial.println("makeCalibrationControls() creating ctrl1!"); Serial.flush();
+        Serial.println("makeCalibrationControls() creating ctrl1!"); Serial_flush();
         DirectNumberControl<float> *ctrl1 = new DirectNumberControl<float> (
             "correction_1", 
             &(this->correction_value_1), 
@@ -29,7 +29,7 @@
         ctrl1->float_mult = 10.0;
         ctrl1->float_unit = ' ';
 
-        Serial.println("makeCalibrationControls() creating ctrl2!"); Serial.flush();
+        Serial.println("makeCalibrationControls() creating ctrl2!"); Serial_flush();
         DirectNumberControl<float> *ctrl2 = new DirectNumberControl<float> (
             "correction_2", 
             &(this->correction_value_2), 
@@ -42,19 +42,19 @@
         ctrl2->float_mult = 100000.0;
         ctrl2->float_unit = ' ';
 
-        Serial.println("makeCalibrationControls() adding to submenu!"); Serial.flush();   
+        Serial.println("makeCalibrationControls() adding to submenu!"); Serial_flush();   
         submenu->add(ctrl1);
         submenu->add(ctrl2);
 
-        Serial.println("makeCalibrationControls() creating current_value_disp control!"); Serial.flush();   
+        Serial.println("makeCalibrationControls() creating current_value_disp control!"); Serial_flush();   
         DirectNumberControl<double> *current_value_disp = new DirectNumberControl<double> 
             ("current", &this->current_value, this->current_value, -10.0, 10.0, nullptr);
         current_value_disp->readOnly = true;
         current_value_disp->float_unit = 'v';
         submenu->add(current_value_disp);
 
-        //Serial.println("makeCalibrationControls() returning!"); Serial.flush();   
-        Serial.printf("makeCalibrationControls() returning - i is %i!\n", i); Serial.flush();   
+        //Serial.println("makeCalibrationControls() returning!"); Serial_flush();   
+        Serial.printf("makeCalibrationControls() returning - i is %i!\n", i); Serial_flush();   
         return submenu;
     }
 
