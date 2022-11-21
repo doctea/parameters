@@ -54,20 +54,20 @@ class ToggleParameter : public DataParameter<TargetClass,DataType> {
     virtual void setParamValue(bool value) {
         if (value==this->currentValue) 
             return;
-        if (this->debug) {
+        /*if (this->debug) {
             Serial.print("ToggleParameter#setParamValue("); Serial_flush();
             Serial.print(value);
             Serial.println(")"); Serial_flush();
-        }
+        }*/
 
         this->lastValue = this->currentValue;
         this->currentValue = value;
         //this->func(value);
-        if (this->debug) {
+        /*if (this->debug) {
             Serial.printf("%s: Calling setter func for value (", this->label);
             Serial.print(value);
             Serial.println(")");
-        }
+        }*/
         
         if (this->setter_func_off!=nullptr) { // if a second setter_func_off is specifed, call the individual functions without passing state as a parameter
             if (this->currentValue) {
@@ -96,15 +96,15 @@ class ToggleParameter : public DataParameter<TargetClass,DataType> {
     }
 
     virtual const char* getFormattedValue() {
-        static const char *on = "On";
-        static const char *off = "Off";
-        return this->currentValue ? on : off;
+        const char *label_on = "On";
+        const char *label_off = "Off";
+        return this->currentValue ? label_on : label_off;
     }
 
     #ifdef ENABLE_SCREEN
     virtual MenuItem *makeControl() override {
-        Serial.println("ToggleParameter#makeControl()! ############");
-        Serial.printf("ToggleParameter#makeControl for %s\n", this->label);
+        //Serial.println("ToggleParameter#makeControl()! ############");
+        //Serial.printf("ToggleParameter#makeControl for %s\n", this->label);
         return new ToggleControl(this->label, this);
     }
     #endif

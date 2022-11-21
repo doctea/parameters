@@ -83,7 +83,7 @@ class ParameterInputSelectorControl : public SelectorControl {
             this->actual_value_index = -1;
         }
         this->selected_value_index = this->actual_value_index;
-        Serial.printf(F("#on_add returning"));
+        //Serial.printf(F("#on_add returning"));
     }
 
     virtual const char *get_label_for_index(int index) {
@@ -132,17 +132,10 @@ class ParameterInputSelectorControl : public SelectorControl {
         } else {
             // selected, so show the possible values to select from
             const int current_value = actual_value_index; //this->getter();
-
-            if (selected_value_index==-1) selected_value_index = actual_value_index;
-
-            int start_value = 0;
-            if (!tft->will_x_rows_fit_to_height(selected_value_index)) {
-                start_value = selected_value_index;
-                //Serial.printf(F("\n| setting start_value to %i for selected_value_index %i: "), start_value, selected_value_index);
-            } else {
-                //Serial.printf(F("\n| keeping start_value to %i for selected_value_index %i: "), start_value, selected_value_index);
-            }
-
+            if (selected_value_index==-1) 
+                selected_value_index = actual_value_index;
+            const int start_value = tft->will_x_rows_fit_to_height(selected_value_index) ? actual_value_index : selected_value_index;
+            
             for (int i = start_value ; i < num_values ; i++) {
                 const BaseParameterInput *param_input = this->available_parameter_inputs->get(i);
                 const bool is_current_value_selected = i==current_value;

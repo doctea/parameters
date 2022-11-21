@@ -75,7 +75,7 @@
         return fullmenuitem;
     }
     FLASHMEM LinkedList<MenuItem *> *DoubleParameter::makeControls() {
-        Serial.printf(F("DoubleParameter#makeControls for %s - is_modulatable is %s\n"), this->label, this->is_modulatable() ? "true" : "false");
+        Debug_printf(F("DoubleParameter#makeControls for %s - is_modulatable is %s\n"), this->label, this->is_modulatable() ? "true" : "false");
 
         // list for storing all the controls we're about to add
         LinkedList<MenuItem *> *controls = new LinkedList<MenuItem *>();
@@ -144,7 +144,7 @@
 
             controls->add(input_selectors_bar);
         } else {
-            Serial.println("non-modulatable branch..");
+            Debug_println("non-modulatable branch..");
             ParameterValueMenuItem *mi = new ParameterValueMenuItem(this->label, this);
             Serial.println("instantiated!..");
             mi->minimum_value = this->minimumNormalValue;
@@ -174,7 +174,7 @@ double DoubleParameter::get_modulation_value() {
             }
         }
         if (this->debug && number_of_modulations>0) 
-            Serial.printf(F("%s#get_modulation_value()\treturning\t%f from\t%i modulations\n"), this->label, modulation, number_of_modulations);
+            Debug_printf(F("%s#get_modulation_value()\treturning\t%f from\t%i modulations\n"), this->label, modulation, number_of_modulations);
         /*else {
             Serial.printf("%s#get_modulation_value() got no modulations\n", this->label);
         }*/
