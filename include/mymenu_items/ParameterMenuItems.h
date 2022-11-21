@@ -64,6 +64,7 @@ class ParameterValueMenuItem : public DirectNumberControl<double> {
             }
             // todo: can probably skip a sprintf and return it directly from parameter->getFormattedValue()?             //return this->parameter->getFormattedValue();
             sprintf(fmt, "%-3s", this->parameter->getFormattedValue()); 
+            //Serial.printf("%s#getFormattedValue(): '%s'\n", fmt);
             return fmt;
         }
         virtual const char *getFormattedOutputValue() {
@@ -77,7 +78,9 @@ class ParameterValueMenuItem : public DirectNumberControl<double> {
         }
 
         virtual const char *getFormattedExtra() override {
-            return this->parameter->getFormattedValue(parameter->getLastModulatedNormalValue());
+            if (this->parameter->is_modulatable())
+                return this->parameter->getFormattedValue(parameter->getLastModulatedNormalValue());
+            return nullptr;
         }
 
         virtual void set_current_value(double value) override { 
