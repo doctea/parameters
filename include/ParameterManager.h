@@ -243,14 +243,25 @@ class ParameterManager {
                 }
             }
 
-
             FLASHMEM SubMenuItem *addParameterSubMenuItems(Menu *menu, const char *submenu_label, LinkedList<DoubleParameter*> *parameters, int16_t default_fg_colour = C_WHITE) {
+                // first add all the modulatable items into a sub menu
                 SubMenuItem *sub = getParameterSubMenuItems(menu, submenu_label, parameters);
-                menu->add(sub);
-                sub->set_default_colours(default_fg_colour);
-                return sub;
+                if (sub!=nullptr && sub->items->size()>0) {
+                    menu->add(sub);
+                    sub->set_default_colours(default_fg_colour);
+                }
+
+                // then add all the non-modulatable ones as separate rows
+                for (int i = 0 ; i < parameters->size() ; i++) {
+                    if (!parameters->get(i)->is_modulatable()) {
+                        menu->add(this->makeMenuItemForParameter(parameters->get(i)));
+                    }
+                }
+
+                return sub; // we actually add them in this function above, so we can do other stuff
             }
 
+            // add only the modulatable items to a sub-menu
             FLASHMEM SubMenuItem *getParameterSubMenuItems(Menu *menu, const char *submenu_label, LinkedList<DoubleParameter*> *parameters) {
                 char label[MAX_LABEL_LENGTH];
                 sprintf(label, "Parameters for %s", submenu_label);
@@ -260,8 +271,10 @@ class ParameterManager {
                     //char tmp[MENU_C_MAX];
                     //sprintf(tmp, "test item %i", i);
                     //submenu->add(new MenuItem(tmp));
-                    Serial.printf("addParameterSubMenuItems(menu, '%s') processing parameter %i\n", label, i);
-                    submenu->add(this->makeMenuItemsForParameter(parameters->get(i)));
+                    if (parameters->get(i)->is_modulatable()) {
+                        Serial.printf(F("addParameterSubMenuItems(menu, '%s') processing parameter %i\n"), label, i);
+                        submenu->add(this->makeMenuItemsForParameter(parameters->get(i)));
+                    }
                 }
                 return submenu;
             }
@@ -274,7 +287,7 @@ class ParameterManager {
 
                 menu->add(new SeparatorMenuItem(label, param_input->colour));
 
-                Serial.printf("\tdoing menu->add for ParameterInputDisplay with label '%s'\n", label);
+                Serial.printf(F("\tdoing menu->add for ParameterInputDisplay with label '%s'\n"), label);
                 menu->add(new ParameterInputDisplay(label, this->memory_size, param_input)); //, LOOP_LENGTH_TICKS));
 
                 if (param_input->supports_bipolar()) {
@@ -302,6 +315,7 @@ class ParameterManager {
             }
             FLASHMEM LinkedList<MenuItem *> *makeMenuItemsForParameter(DoubleParameter *p, const char *label_prefix = "") {
                 if (strcmp(p->label,"None")==0) return nullptr;
+                Serial.println("makeMenuItemsForParameter calling makeControls!.."); Serial.flush();
                 LinkedList<MenuItem *> *ctrls = p->makeControls();
                 return ctrls;
             }

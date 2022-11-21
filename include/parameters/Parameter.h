@@ -180,19 +180,20 @@ class DoubleParameter : public BaseParameter {
         this->set_slot_2_amount(0.0);
     }
 
-    /*virtual char get_connection_slot_name(int slot) {
-        return this->connections[slot].parameter_input!=nullptr ? 
-               this->connections[slot].parameter_input->name : // todo: doesnt compile (incomplete type BaseParameterInput) -- make getting the connection name into a method of Parameter?
-               'X';   // use X instead of parameter name if no parameter label is set for that parameter
-    }*/
-
-    /*void changeValue(BaseParameterInput *parameter_input) {
-        // find the parameterinput we've been passed
-        // update and send the actual value
-    }*/
-
     // calculate the modulation value based on the inputs * modulation amounts
     virtual double get_modulation_value();
+
+    // whether to allow modulations to be set to this object, ie whether it can be modulated in realtime
+    bool modulatable = true;
+
+    virtual bool is_modulatable() {
+        return this->modulatable;
+    }
+    virtual DoubleParameter* set_modulatable(bool value) {
+        this->modulatable = value;
+        return this;
+    }
+
 
     #ifdef ENABLE_SCREEN
         FLASHMEM virtual MenuItem *makeControl();
