@@ -70,15 +70,15 @@ class ParameterManager {
         }
 
         FLASHMEM ADCDeviceBase *addADCDevice(ADCDeviceBase *device) {
-            Serial.printf(F("ParameterManager#addADCDevice(%p)\n"), device);
+            Debug_printf(F("ParameterManager#addADCDevice(%p)\n"), device);
             this->devices->add(device);
             return device;
         }
 
         FLASHMEM VoltageSourceBase *addVoltageSource(VoltageSourceBase *voltage_source) {
-            Serial.printf(F("ParameterManager#addVoltageSource(%p)\n"), voltage_source);
+            Debug_printf(F("ParameterManager#addVoltageSource(%p)\n"), voltage_source);
             #ifdef LOAD_CALIBRATION_ON_BOOT
-                Serial.printf(F("Loading calibration for %i!\n"), voltage_source->slot);
+                Debug_printf(F("Loading calibration for %i!\n"), voltage_source->slot);
                 voltage_source->load_calibration();
             #endif
 
@@ -87,45 +87,45 @@ class ParameterManager {
         }
 
         FLASHMEM BaseParameterInput *addInput(BaseParameterInput *input) {
-            Serial.printf(F("ParameterManager#addInput(%p)\n"), input);
+            Debug_printf(F("ParameterManager#addInput(%p)\n"), input);
             input->colour = parameter_input_colours[this->available_inputs->size() % (sizeof(parameter_input_colours)/2)];
             this->available_inputs->add(input);
             return input;
         }
 
         FLASHMEM DoubleParameter *addParameter(DoubleParameter *parameter) {
-            Serial.printf(F("ParameterManager#addParameter(%p), labeled '%s'\n"), parameter, parameter->label);
+            Debug_printf(F("ParameterManager#addParameter(%p), labeled '%s'\n"), parameter, parameter->label);
             this->available_parameters->add(parameter);
             return parameter;
         }
         FLASHMEM void addParameters(LinkedList<DoubleParameter*> *parameters) {
-            Serial.println(F("ParameterManager#addParameters()..")); Serial_flush();
-            Serial.printf(F("\t\tpassed @%p, has size %i\n"), parameters, parameters->size()); Serial_flush();
+            Debug_println(F("ParameterManager#addParameters()..")); Serial_flush();
+            Debug_printf(F("\t\tpassed @%p, has size %i\n"), parameters, parameters->size()); Serial_flush();
             for (int i = 0 ; i < parameters->size() ; i++) {
-                Serial.printf(F("\t%i: adding from @%p '%s'\n"), i, parameters->get(i), parameters->get(i)->label); Serial_flush();
+                Debug_printf(F("\t%i: adding from @%p '%s'\n"), i, parameters->get(i), parameters->get(i)->label); Serial_flush();
                 //this->available_parameters->add(parameters->get(i));
                 this->addParameter(parameters->get(i));
-                Serial.printf(F("..added\n")); Serial_flush();
+                Debug_printf(F("..added\n")); Serial_flush();
             }
-            Serial.println(F("finished in addParameters"));
+            Debug_println(F("finished in addParameters"));
         }
 
         // initialise devices and add all their voltage sources
         FLASHMEM void auto_init_devices() {
-            Serial.printf(F("ParameterManager#auto_init_devices)\n"));
+            Debug_printf(F("ParameterManager#auto_init_devices)\n"));
             //char parameter_input_name = 'A';
             for (int i = 0 ; i < devices->size() ; i++) {
                 ADCDeviceBase *device = this->devices->get(i);
-                Serial.printf(F("ParameterManager#auto_init_devices calling init() on device %i\n"), i);
+                Debug_printf(F("ParameterManager#auto_init_devices calling init() on device %i\n"), i);
                 device->init();
 
                 VoltageSourceBase *vs = device->make_voltage_source();
                 int counter = 0;
                 while (vs != nullptr) {
-                    Serial.printf(F("\tParameterManager#auto_init_devices adding voltage source count %i\n"), counter);
+                    Debug_printf(F("\tParameterManager#auto_init_devices adding voltage source count %i\n"), counter);
                     this->addVoltageSource(vs);
                     //this->addInput(device->make_input_for_source(parameter_input_name++, vs));
-                    Serial.printf(F("\tParameterManager#auto_init_devices calling make_voltage_source on count %i\n"), counter);
+                    Debug_printf(F("\tParameterManager#auto_init_devices calling make_voltage_source on count %i\n"), counter);
                     vs = device->make_voltage_source();
                     counter++;
                 }
@@ -217,7 +217,7 @@ class ParameterManager {
         }
 
         FLASHMEM void setDefaultParameterConnections() {
-            Serial.printf(F("ParameterManager#setDefaultParameterConnections() has %i parameters to map to %i inputs..\n"), this->available_parameters->size(), this->available_inputs->size());
+            Debug_printf(F("ParameterManager#setDefaultParameterConnections() has %i parameters to map to %i inputs..\n"), this->available_parameters->size(), this->available_inputs->size());
             for (int i = 0 ; i < this->available_parameters->size() ; i++) {
                 // todo: make this configurable dynamically / load defaults from save file
                 available_parameters->get(i)->set_slot_0_input(available_inputs->get(0));
@@ -257,7 +257,7 @@ class ParameterManager {
                 // then add all the non-modulatable ones as separate rows
                 for (int i = 0 ; i < parameters->size() ; i++) {
                     if (!parameters->get(i)->is_modulatable()) {
-                        Serial.printf("addParameterSubMenuItems() adding non-modulatable item %i aka '%s'\n", i, parameters->get(i)->label);
+                        Debug_printf("addParameterSubMenuItems() adding non-modulatable item %i aka '%s'\n", i, parameters->get(i)->label);
                         MenuItem *item = this->makeMenuItemForParameter(parameters->get(i));
                         item->set_default_colours(default_fg_colour);
                         menu->add(item);
@@ -278,7 +278,7 @@ class ParameterManager {
                     //sprintf(tmp, "test item %i", i);
                     //submenu->add(new MenuItem(tmp));
                     if (parameters->get(i)->is_modulatable()) {
-                        Serial.printf(F("getModulatableParameterSubMenuItems(menu, '%s') processing parameter %i\n"), label, i);
+                        Debug_printf(F("getModulatableParameterSubMenuItems(menu, '%s') processing parameter %i\n"), label, i);
                         submenu->add(this->makeMenuItemsForParameter(parameters->get(i)));
                     }
                 }
@@ -293,7 +293,7 @@ class ParameterManager {
 
                 menu->add(new SeparatorMenuItem(label, param_input->colour));
 
-                Serial.printf(F("\tdoing menu->add for ParameterInputDisplay with label '%s'\n"), label);
+                Debug_printf(F("\tdoing menu->add for ParameterInputDisplay with label '%s'\n"), label);
                 menu->add(new ParameterInputDisplay(label, this->memory_size, param_input)); //, LOOP_LENGTH_TICKS));
 
                 if (param_input->supports_bipolar()) {
@@ -321,7 +321,7 @@ class ParameterManager {
             }
             FLASHMEM LinkedList<MenuItem *> *makeMenuItemsForParameter(DoubleParameter *p, const char *label_prefix = "") {
                 if (strcmp(p->label,"None")==0) return nullptr;
-                Serial.println(F("makeMenuItemsForParameter calling makeControls!..")); Serial.flush();
+                Debug_println(F("makeMenuItemsForParameter calling makeControls!..")); Serial_flush();
                 LinkedList<MenuItem *> *ctrls = p->makeControls();
                 return ctrls;
             }

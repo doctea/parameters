@@ -30,7 +30,7 @@ class AnalogParameterInputBase : public ParameterInput {
     virtual void setInverted(bool invert = true) {
       this->inverted = invert;
       #ifdef ENABLE_PRINTF
-        Serial.printf(F("%s: SET INVERTED on an AnalogParameterInput!"), this->name);
+        Debug_printf(F("%s: SET INVERTED on an AnalogParameterInput!"), this->name);
       #endif
     }
 
@@ -106,7 +106,7 @@ class AnalogParameterInputBase : public ParameterInput {
 
     virtual void read() override {
       #ifdef ENABLE_PRINTF
-        if (this->debug) Serial.printf(F("%s: read() in AnalogParameterInputBase.."), this->name); 
+        Debug_printf(F("%s: read() in AnalogParameterInputBase.."), this->name); 
       #endif
 
       //DataType currentValue = analogRead(inputPin);
@@ -118,12 +118,10 @@ class AnalogParameterInputBase : public ParameterInput {
 
         float normal = get_normal_value(currentValue);
         if (callback != NULL) {
-          if (this->debug) {
-            Serial.print(this->name);
-            Serial.print(F(": calling callback("));
-            Serial.print(normal);
-            Serial.println(')');
-          }      
+          Debug_print(this->name);
+          Debug_print(F(": calling callback("));
+          Debug_print(normal);
+          Debug_println(')');
           callback(normal);
         }
       }

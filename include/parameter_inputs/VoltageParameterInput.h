@@ -43,7 +43,7 @@ class VoltageParameterInput : public AnalogParameterInputBase<double> {
         virtual uint8_t get_voltage_pitch() {
             //return get_midi_pitch_for_voltage(this->voltage_source->get_voltage_pitch());
             if (this->voltage_source==nullptr) 
-                Serial.printf(F("%c#get_voltage_pitch() has no voltage_source?!"), this->name); Serial_flush();
+                Debug_printf(F("%c#get_voltage_pitch() has no voltage_source?!"), this->name); Serial_flush();
             return this->voltage_source->get_voltage_pitch();
         }
 
@@ -63,8 +63,8 @@ class VoltageParameterInput : public AnalogParameterInputBase<double> {
                     Serial.print((uint32_t) this->ads->toVoltage(intermediate));
                     Serial.printf(", final %i", (uint32_t) currentValue*1000.0);
                     Serial.println();*/
-                    Serial.printf(F("%c: VoltageParameterInput->read() got voltage "), this->name); //
-                    Serial.println(currentValue);
+                    Debug_printf(F("%c: VoltageParameterInput->read() got voltage "), this->name); //
+                    Debug_println(currentValue);
                 }
                 #endif
 
@@ -72,19 +72,19 @@ class VoltageParameterInput : public AnalogParameterInputBase<double> {
 
                 #ifdef ENABLE_PRINTF
                 if (this->debug) {
-                    Serial.printf(F("VoltageParameterInput#read() for '%c': got currentValue "), this->name); Serial_flush();
-                    Serial.print(currentValue); Serial_flush();
-                    Serial.print(F(" converted to normal ")); Serial_flush();
-                    Serial.println(normal); Serial_flush();
+                    Debug_printf(F("VoltageParameterInput#read() for '%c': got currentValue "), this->name); Serial_flush();
+                    Debug_print(currentValue); Serial_flush();
+                    Debug_print(F(" converted to normal ")); Serial_flush();
+                    Debug_println(normal); Serial_flush();
                 }
                 #endif
 
                 if (this->callback != nullptr) {
                     if (this->debug) {
-                        Serial.print(this->name);
-                        Serial.print(F(": calling callback("));
-                        Serial.print(normal);
-                        Serial.println(F(")"));
+                        Debug_print(this->name);
+                        Debug_print(F(": calling callback("));
+                        Debug_print(normal);
+                        Debug_println(F(")"));
                         Serial_flush();
                     }      
                     (*this->callback)(normal);

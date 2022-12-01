@@ -68,7 +68,7 @@
 
     // just main control, with amounts 
     FLASHMEM MenuItem *DoubleParameter::makeControl() {
-        Serial.printf(F("DoubleParameter#makeControl for %s\n"), this->label);
+        Debug_printf(F("DoubleParameter#makeControl for %s\n"), this->label);
         // first set up the submenu to hold the values
         ParameterValueMenuItem *menuitem = new ParameterValueMenuItem(this->label, this);
 
@@ -81,7 +81,7 @@
         LinkedList<MenuItem *> *controls = new LinkedList<MenuItem *>();
 
         if (!this->is_modulatable()) {
-            Serial.printf(F("WARNING: %s is NOT modulatable but asked to create modulatable controls!"), this->label);
+            Debug_printf(F("WARNING: %s is NOT modulatable but asked to create modulatable controls!"), this->label);
             controls->add(this->makeControl());
             return controls;
         }

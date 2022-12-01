@@ -195,7 +195,7 @@ class ParameterMenuItem : public SubMenuItemBar {
             char *input_name =  parameter->connections[i].parameter_input!=nullptr ? 
                                 parameter->connections[i].parameter_input->name : 
                                 (char*)"None";
-            Serial.printf(F("\tfor %s, setting to parameter_input@%p '%s'\n"), label, parameter->connections[i].parameter_input, input_name);
+            Debug_printf(F("\tfor %s, setting to parameter_input@%p '%s'\n"), label, parameter->connections[i].parameter_input, input_name);
             Serial_flush();
             sprintf(labelnew, "%s", input_name); //"Amt "
             DirectNumberControl<double> *input_amount_control = new DirectNumberControl<double>(
@@ -210,10 +210,10 @@ class ParameterMenuItem : public SubMenuItemBar {
                 //input_amount_control->debug = true;
             this->add(input_amount_control);
             if (parameter->connections[i].parameter_input!=nullptr) {
-                Serial.printf(F("ParameterMenuItem(%s) connection %i got colour %4x from '%s'!\n"), label, i, parameter->connections[i].parameter_input->colour, parameter->connections[i].parameter_input->name);
+                Debug_printf(F("ParameterMenuItem(%s) connection %i got colour %4x from '%s'!\n"), label, i, parameter->connections[i].parameter_input->colour, parameter->connections[i].parameter_input->name);
                 input_amount_control->default_fg = parameter->connections[i].parameter_input->colour; // do this after add to avoid parent colours overwriting it?
             } else {
-                Serial.printf(F("\tNo parameter_input assigned"));
+                Debug_printf(F("\tNo parameter_input assigned"));
             }
         }
 

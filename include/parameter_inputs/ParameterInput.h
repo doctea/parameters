@@ -83,7 +83,7 @@ class BaseParameterInput {
     virtual void setInverted(bool invert = true) {
       this->inverted = invert;
       #ifdef ENABLE_PRINTF
-        Serial.printf(F("%s: SET INVERTED on an AnalogParameterInput!"), this->name);
+        Debug_printf(F("%s: SET INVERTED on an AnalogParameterInput!"), this->name);
       #endif
     }
 

@@ -22,7 +22,7 @@ void DoubleParameter::set_slot_input(byte slot, char *name) {
     if (inp!=nullptr)
         this->set_slot_input(slot, inp);
     else
-        Serial.printf("WARNING: set_slot_input couldn't find a ParameterInput for name '%s'\n", name);
+        Debug_printf("WARNING: set_slot_input couldn't find a ParameterInput for name '%s'\n", name);
 }
 
 #ifdef ENABLE_SCREEN
@@ -30,7 +30,7 @@ void DoubleParameter::set_slot_input(byte slot, char *name) {
 #endif
 
 void DoubleParameter::set_slot_input(byte slot, BaseParameterInput *parameter_input) {
-    Serial.printf(F("PARAMETERS\tDoubleParameter#set_slot_input in '%s': asked to set slot %i on %s to point to %s\n"), this->label, slot, this->label, parameter_input->name);
+    Debug_printf(F("PARAMETERS\tDoubleParameter#set_slot_input in '%s': asked to set slot %i on %s to point to %s\n"), this->label, slot, this->label, parameter_input->name);
     this->connections[slot].parameter_input = parameter_input;
     #ifdef ENABLE_SCREEN
         if (parameter_input!=nullptr) {
@@ -44,10 +44,10 @@ void DoubleParameter::set_slot_input(byte slot, BaseParameterInput *parameter_in
 #ifdef ENABLE_SCREEN
     // TODO: this is kinda ugly!  should be a better way to do this.
     void DoubleParameter::update_slot_amount_control(byte slot, BaseParameterInput *parameter_input) {
-        Serial.println(F("in update_slot_amount_control (DoubleParameter version)..")); Serial_flush();
+        Debug_println(F("in update_slot_amount_control (DoubleParameter version)..")); Serial_flush();
         //this->update_slot_amount_control(slot, parameter_input->name);
         if (this->connections[slot].amount_control!=nullptr) {
-            Serial.printf(F("Updating colours+label on slot %i on %s\n"), slot, this->connections[slot].amount_control->label);
+            Debug_printf(F("Updating colours+label on slot %i on %s\n"), slot, this->connections[slot].amount_control->label);
             if (parameter_input!=nullptr) {
                 char new_label[7];
                 //sprintf(new_label, "%s", parameter_input->name); //"Amt %s"
@@ -60,7 +60,7 @@ void DoubleParameter::set_slot_input(byte slot, BaseParameterInput *parameter_in
             }
         }
         if (this->connections[slot].input_control!=nullptr) {
-            Serial.printf(F("and updating input_control '%s' actual_index to %i\n"), this->connections[slot].input_control->label, parameter_manager->getInputIndex(parameter_input));
+            Debug_printf(F("and updating input_control '%s' actual_index to %i\n"), this->connections[slot].input_control->label, parameter_manager->getInputIndex(parameter_input));
             this->connections[slot].input_control->update_actual_index(parameter_manager->getInputIndex(parameter_input));
         }
     }
@@ -81,7 +81,7 @@ void DoubleParameter::set_slot_input(byte slot, BaseParameterInput *parameter_in
 char *DoubleParameter::get_input_name_for_slot(byte slot) {
     if (this->connections[slot].parameter_input!=nullptr)
         return this->connections[slot].parameter_input->name;
-    Serial.printf(F("WARNING: get_input_name_for_slot(%i) got an empty slot!"), slot);
+    Debug_printf(F("WARNING: get_input_name_for_slot(%i) got an empty slot!"), slot);
     return (char*)"None";
 }
 
