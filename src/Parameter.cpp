@@ -17,7 +17,7 @@ class BaseParameterInput;
 
 extern ParameterManager *parameter_manager;
 
-void DoubleParameter::set_slot_input(byte slot, char *name) {
+void DoubleParameter::set_slot_input(byte slot, const char *name) {
     BaseParameterInput *inp = parameter_manager->getInputForName(name);
     if (inp!=nullptr)
         this->set_slot_input(slot, inp);
@@ -55,7 +55,7 @@ void DoubleParameter::set_slot_input(byte slot, BaseParameterInput *parameter_in
                 this->connections[slot].amount_control->update_label(new_label);
                 this->connections[slot].amount_control->set_default_colours(parameter_input->colour);
             } else {
-                this->connections[slot].amount_control->update_label((char*)"None");
+                this->connections[slot].amount_control->update_label("None");
                 this->connections[slot].amount_control->set_default_colours(C_WHITE);   // todo: need a GREY colour for disabled items?
             }
         }
@@ -78,11 +78,11 @@ void DoubleParameter::set_slot_input(byte slot, BaseParameterInput *parameter_in
     }*/
 #endif
 
-char *DoubleParameter::get_input_name_for_slot(byte slot) {
+const char *DoubleParameter::get_input_name_for_slot(byte slot) {
     if (this->connections[slot].parameter_input!=nullptr)
         return this->connections[slot].parameter_input->name;
     Debug_printf(F("WARNING: get_input_name_for_slot(%i) got an empty slot!"), slot);
-    return (char*)"None";
+    return "None";
 }
 
 double DoubleParameter::get_amount_for_slot(byte slot) {
