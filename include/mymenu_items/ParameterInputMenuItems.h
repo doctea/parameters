@@ -113,7 +113,7 @@ class ParameterInputSelectorControl : public SelectorControl {
         tft->setTextSize(0);
 
         pos.y = header(label, pos, selected, opened);
-        
+      
         num_values = this->available_parameter_inputs->size(); //NUM_AVAILABLE_PARAMETERS;
         //Serial.printf(F("\tdisplay got num_values %i\n"), num_values); Serial_flush();
 
@@ -130,14 +130,17 @@ class ParameterInputSelectorControl : public SelectorControl {
                 tft->printf((char*)"Selected: none\n");
             }
         } else {
-            // selected, so show the possible values to select from
+            // opened, so show the possible values to select from
             const int current_value = actual_value_index; //this->getter();
             if (selected_value_index==-1) 
                 selected_value_index = actual_value_index;
-            const int start_value = tft->will_x_rows_fit_to_height(selected_value_index) ? actual_value_index : selected_value_index;
+            const int start_value = tft->will_x_rows_fit_to_height(selected_value_index) ? 0 : selected_value_index;
             
             for (int i = start_value ; i < num_values ; i++) {
+                //Serial.printf("%s#display() looping over parameterinput number %i of %i...\n", this->label, i, this->available_parameter_inputs->size()); Serial.flush();
                 const BaseParameterInput *param_input = this->available_parameter_inputs->get(i);
+                //Serial.printf("%s#display() got param_input %p...", param_input); Serial.flush();
+                //Serial.printf("named %s\n", param_input->name); Serial.flush();
                 const bool is_current_value_selected = i==current_value;
                 const int col = is_current_value_selected ? GREEN : param_input->colour;
                 colours(opened && selected_value_index==i, col, BLACK);
