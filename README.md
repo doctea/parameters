@@ -25,10 +25,10 @@ Based on code extracted from my [envor2](https://github.com/doctea/envor2) and [
 
 ## Todo
 
-- Move the MIDICCParameter and MIDICCProxiedParameter stuff out of [usb_midi_clocker](https://github.com/doctea/usb_midi_clocker) into this library
 - *todo*: implement corrected voltage calculation based on https://github.com/pimoroni/ads1015-python/blob/9ae775bc0a4a148771ef1d36a98adb76cc6cf54e/library/ads1015/__init__.py#L375
 - ~~Make the usual analogRead()-based classes work again~~ think done, just needs testing?
 - ~~Make the GateInput classes work again, to trigger on/offs~~ think done, just needs testing?
+- ~~Move the MIDICCParameter and MIDICCProxiedParameter stuff out of [usb_midi_clocker](https://github.com/doctea/usb_midi_clocker) into this library~~
 - Provide scaling logic for eg opamp-scaled inputs
 - Make envor2 and talkie use this library
   - Hmm, adapted envor2 to use this, but doesn't work; suspect requires too much memory for the Nano to handle?
