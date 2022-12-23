@@ -7,7 +7,7 @@
 
     void ParameterManager::addAllParameterInputMenuItems(Menu *menu) {
         Serial.println("ParameterManager#addAllParameterInputMenuItems()...");
-        for (int i = 0 ; i < this->available_inputs.size() ; i++) {
+        for (unsigned int i = 0 ; i < this->available_inputs.size() ; i++) {
             // TODO: probably merge these things into one new type of MenuItem?
             BaseParameterInput *input = this->available_inputs.get(i);
             //Serial.printf("\t%i: doing menu->add for makeMenuItemForParameterInput()..", i);

@@ -27,7 +27,7 @@ class ParameterMixer {
     }
 
     int find_empty_slot() {
-        for (int i = 0 ; i < MAX_CONNECTIONS ; i++) {
+        for (unsigned int i = 0 ; i < MAX_CONNECTIONS ; i++) {
             if (connections[i].parameter_input==nullptr)
                 return i;
         }
@@ -78,7 +78,7 @@ class ParameterMixer {
     double get_modulation_value() {
         // get the modulation amount to use
         double modulation = 0.0f;
-        for (int i = 0 ; i < MAX_CONNECTIONS ; i++) {
+        for (unsigned int i = 0 ; i < MAX_CONNECTIONS ; i++) {
             if (this->connections[i].parameter_input!=nullptr)
                 modulation += (
                     this->connections[i].parameter_input->get_normal_value() * this->connections[i].amount

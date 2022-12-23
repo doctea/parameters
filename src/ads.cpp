@@ -24,7 +24,7 @@ double current_adc_voltage[4] = { 0, 0, 0, 0, };
 }
 
 void read_adc_voltages() {
-  for (int i = 0 ; i < 4 ; i++) {
+  for (unsigned int i = 0 ; i < 4 ; i++) {
     int intermediate = ADS_OBJECT.readADC(i);
     double currentValue = ADS_OBJECT.toVoltage(intermediate);
     current_adc_voltage[i] =  currentValue;

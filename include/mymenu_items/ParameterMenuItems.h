@@ -188,7 +188,7 @@ class ParameterMenuItem : public SubMenuItemBar {
         this->add(new ParameterValueMenuItem((char*)"Value", parameter));
 
         // add the modulation Amount % changers
-        for (int i = 0 ; i < MAX_SLOT_CONNECTIONS ; i++) {
+        for (unsigned int i = 0 ; i < MAX_SLOT_CONNECTIONS ; i++) {
             // todo: make the modulation source part configurable too
             // todo: make the label part dynamically generated on-the-fly by the DirectNumberControl
             char labelnew[8];
@@ -232,7 +232,7 @@ class ParameterMenuItem : public SubMenuItemBar {
     }
 
     void on_add() override {
-        for (int i = 0 ; i < 3 ; i++) {
+        for (unsigned int i = 0 ; i < 3 ; i++) {
             parameter->connections[i].amount_control->set_default_colours(parameter->connections[i].parameter_input->colour);
         }
     }

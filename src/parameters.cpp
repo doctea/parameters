@@ -43,7 +43,7 @@
         p_submenu->add(mi);
 
         // then we set up the slot menus
-        for (int i = 0 ; i < MAX_SLOT_CONNECTIONS ; i++) {
+        for (unsigned int i = 0 ; i < MAX_SLOT_CONNECTIONS ; i++) {
             char slot_label[MAX_LABEL_LENGTH] = "        ";
             //sprintf(slot_label, "%i: Source", i);
             // need new source selector widget!
@@ -158,7 +158,7 @@
 double DoubleParameter::get_modulation_value() {
         double modulation = 0.0f;
         int number_of_modulations = 0;
-        for (int i = 0 ; i < MAX_SLOT_CONNECTIONS ; i++) {
+        for (unsigned int i = 0 ; i < MAX_SLOT_CONNECTIONS ; i++) {
             if (this->connections[i].parameter_input!=nullptr && this->connections[i].amount!=0.0) {
                 modulation += (
                     this->connections[i].parameter_input->get_normal_value() * this->connections[i].amount

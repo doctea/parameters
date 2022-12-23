@@ -125,7 +125,7 @@ class DoubleParameter : public BaseParameter {
     ParameterToInputConnection connections[MAX_SLOT_CONNECTIONS];
 
     virtual int find_empty_slot() {
-        for (int i = 0 ; i < MAX_SLOT_CONNECTIONS ; i++) {
+        for (unsigned int i = 0 ; i < MAX_SLOT_CONNECTIONS ; i++) {
             if (connections[i].parameter_input==nullptr)
                 return i;
         }

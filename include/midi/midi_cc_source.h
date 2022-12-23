@@ -13,7 +13,7 @@ class MIDI_CC_Source {
     // call this when you receive a CC change from your device to update the appropriate attached ParameterInput(s)
     void update_parameter_inputs_cc(uint8_t number, uint8_t value, uint8_t channel) {
         //Serial.printf("update_parameter_inputs_cc received %i, %i, %i\n", number, value, channel);
-        for (int i = 0 ; i < this->parameter_inputs->size() ; i++) {
+        for (unsigned int i = 0 ; i < this->parameter_inputs->size() ; i++) {
             if (this->parameter_inputs->get(i)->responds_to(number, channel)) {
                 this->parameter_inputs->get(i)->receive_control_change(number, value, channel);
             }

@@ -61,7 +61,7 @@ class ParameterManager {
             static LinkedList<BaseParameterInput*> *available_pitch_inputs = new LinkedList<BaseParameterInput*>();
             static bool already_calculated = false;
             if (!already_calculated) {
-                for (int i = 0 ; i < available_inputs->size() ; i++) {
+                for (unsigned int i = 0 ; i < available_inputs->size() ; i++) {
                     if (available_inputs->get(i)->supports_pitch())
                         available_pitch_inputs->add(available_inputs->get(i));
                 }
@@ -101,7 +101,7 @@ class ParameterManager {
         FLASHMEM void addParameters(LinkedList<DoubleParameter*> *parameters) {
             Debug_println(F("ParameterManager#addParameters()..")); Serial_flush();
             Debug_printf(F("\t\tpassed @%p, has size %i\n"), parameters, parameters->size()); Serial_flush();
-            for (int i = 0 ; i < parameters->size() ; i++) {
+            for (unsigned int i = 0 ; i < parameters->size() ; i++) {
                 Debug_printf(F("\t%i: adding from @%p '%s'\n"), i, parameters->get(i), parameters->get(i)->label); Serial_flush();
                 //this->available_parameters->add(parameters->get(i));
                 this->addParameter(parameters->get(i));
@@ -114,7 +114,7 @@ class ParameterManager {
         FLASHMEM void auto_init_devices() {
             Debug_printf(F("ParameterManager#auto_init_devices)\n"));
             //char parameter_input_name = 'A';
-            for (int i = 0 ; i < devices->size() ; i++) {
+            for (unsigned int i = 0 ; i < devices->size() ; i++) {
                 ADCDeviceBase *device = this->devices->get(i);
                 Debug_printf(F("ParameterManager#auto_init_devices calling init() on device %i\n"), i);
                 device->init();
@@ -133,7 +133,7 @@ class ParameterManager {
         }
 
         FASTRUN BaseParameterInput *getInputForName(const char *input_name) {
-            const int size = available_inputs->size();
+            const unsigned int size = available_inputs->size();
             for(int i = 0 ; i < size ; i++) {
                 if (available_inputs->get(i)->matches_label(input_name))
                     return available_inputs->get(i);
@@ -144,7 +144,7 @@ class ParameterManager {
             return nullptr;*/
         }
         FASTRUN int getInputIndexForName(const char *input_name) {
-            const int size = available_inputs->size();
+            const unsigned int size = available_inputs->size();
             for(int i = 0 ; i < size ; i++) {
                 if (available_inputs->get(i)->matches_label(input_name))
                     return i;
@@ -153,8 +153,8 @@ class ParameterManager {
         }
         FASTRUN int getInputIndex(BaseParameterInput *param) {
             if (param==nullptr) return -1;
-            const int size = available_inputs->size();
-            for (int i = 0 ; i < size ; i++) {
+            const unsigned int size = available_inputs->size();
+            for (unsigned int i = 0 ; i < size ; i++) {
                 if (param==this->available_inputs->get(i))
                     return i;
             }
@@ -166,7 +166,7 @@ class ParameterManager {
         FASTRUN void update_voltage_sources() {
             //if (this->debug) Serial.printf(F("ParameterManager#update_voltage_sources()"));
             // round robin reading so they get a chance to settle in between adc reads?
-            const int size = voltage_sources->size();
+            const unsigned int size = voltage_sources->size();
             if (size==0) return;
             static int last_read = 0;
 
@@ -190,7 +190,7 @@ class ParameterManager {
             voltage_sources->get(last_read)->discard_update();   // pre-read the next one so it has a chance to settle?
 
             /*  // simple reading of all of them    
-            for (int i = 0 ; i < voltage_sources->size() ; i++) {
+            for (unsigned int i = 0 ; i < voltage_sources->size() ; i++) {
                 voltage_sources->get(i)->update();
             }*/
         }
@@ -198,7 +198,7 @@ class ParameterManager {
         // update the ParameterInputs with the latest values from the VoltageSources
         FASTRUN void update_inputs() {
             const int available_inputs_size = available_inputs->size();
-            for (int i = 0 ; i < available_inputs_size ; i++) {
+            for (unsigned int i = 0 ; i < available_inputs_size ; i++) {
                 available_inputs->get(i)->loop();
             }
         }
@@ -209,7 +209,7 @@ class ParameterManager {
             // this is going to be pretty intensive; may need to adjust the way this works...
             unsigned long update_mixers_started = micros();
             const uint16_t available_parameters_size = this->available_parameters->size();
-            for (int i = 0 ; i < available_parameters_size ; i++) {
+            for (unsigned int i = 0 ; i < available_parameters_size ; i++) {
                 this->available_parameters->get(i)->update_mixer();
             }
             unsigned long update_mixers_finished = micros();
@@ -218,12 +218,12 @@ class ParameterManager {
 
         FLASHMEM void setDefaultParameterConnections() {
             Debug_printf(F("ParameterManager#setDefaultParameterConnections() has %i parameters to map to %i inputs..\n"), this->available_parameters->size(), this->available_inputs->size());
-            for (int i = 0 ; i < this->available_parameters->size() ; i++) {
+            for (unsigned int i = 0 ; i < this->available_parameters->size() ; i++) {
                 // todo: make this configurable dynamically / load defaults from save file
                 available_parameters->get(i)->set_slot_0_input(available_inputs->get(0));
                 available_parameters->get(i)->set_slot_1_input(available_inputs->get(1));
                 available_parameters->get(i)->set_slot_2_input(available_inputs->get(2));
-                /*for (int i = 0 ; i < MAX_SLOT_CONNECTIONS ; i++) {
+                /*for (unsigned int i = 0 ; i < MAX_SLOT_CONNECTIONS ; i++) {
                     available_parameters->get(i)->connections[i].parameter_input = available_inputs->get(i);
                 }*/
             }
@@ -231,14 +231,14 @@ class ParameterManager {
 
         #ifdef ENABLE_SCREEN
             FLASHMEM void addAllParameterInputMenuItems(Menu *menu, const char *label_prefix = nullptr) {
-                for (int i = 0 ; i < available_inputs->size() ; i++) {
+                for (unsigned int i = 0 ; i < available_inputs->size() ; i++) {
                     this->addParameterInputMenuItems(menu, available_inputs->get(i), label_prefix);
                 }
             }
 
             // add all the available parameters to the main menu
             FLASHMEM void addAllParameterMenuItems(Menu *menu) {
-                for (int i = 0 ; i <this->available_parameters->size() ; i++) {
+                for (unsigned int i = 0 ; i <this->available_parameters->size() ; i++) {
                     LinkedList<MenuItem*> *ctrls = this->makeMenuItemsForParameter(this->available_parameters->get(i));
                     menu->add(ctrls);
                     //delete ctrls;
@@ -255,7 +255,7 @@ class ParameterManager {
                 }
 
                 // then add all the non-modulatable ones as separate rows
-                for (int i = 0 ; i < parameters->size() ; i++) {
+                for (unsigned int i = 0 ; i < parameters->size() ; i++) {
                     if (!parameters->get(i)->is_modulatable()) {
                         Debug_printf("addParameterSubMenuItems() adding non-modulatable item %i aka '%s'\n", i, parameters->get(i)->label);
                         MenuItem *item = this->makeMenuItemForParameter(parameters->get(i));
@@ -273,7 +273,7 @@ class ParameterManager {
                 sprintf(label, "Parameters for %s", submenu_label);
                 //LinkedList<DataParameter*> *parameters = behaviour_craftsynth->get_parameters();
                 SubMenuItem *submenu = new SubMenuItem(label, false);
-                for (int i = 0 ; i < parameters->size() ; i++) {
+                for (unsigned int i = 0 ; i < parameters->size() ; i++) {
                     //char tmp[MENU_C_MAX];
                     //sprintf(tmp, "test item %i", i);
                     //submenu->add(new MenuItem(tmp));
@@ -328,8 +328,8 @@ class ParameterManager {
 
             /*FLASHMEM void *addAllVoltageSourceMenuItems(Menu *menu) {
                 Serial.printf(F("------------\nParameterManager#addAllVoltageSourceMenuItems() has %i VoltageSources to add items for?\n"), this->voltage_sources->size());
-                const int size = this->voltage_sources->size();
-                for (int i = 0 ; i < size ; i++) {
+                const unsigned int size = this->voltage_sources->size();
+                for (unsigned int i = 0 ; i < size ; i++) {
                     Serial.printf(F("\tParameterManager#addAllVoltageSourceMenuItems() for voltage_source %i/%i\n"), i+1, size); Serial_flush();
 
                     VoltageSourceBase *voltage_source = this->voltage_sources->get(i);
@@ -345,11 +345,11 @@ class ParameterManager {
 
             FLASHMEM void addAllVoltageSourceCalibrationMenuItems(Menu *menu) {
                 //Serial.printf(F("------------\nParameterManager#addAllVoltageSourceCalibrationMenuItems() has %i VoltageSources to add items for?\n"), this->voltage_sources->size());
-                const int size = this->voltage_sources->size();
+                const unsigned int size = this->voltage_sources->size();
 
                 SubMenuItem *submenuitem = new SubMenuItem("Voltage Source Calibration", false);
 
-                for (int i = 0 ; i < size ; i++) {
+                for (unsigned int i = 0 ; i < size ; i++) {
                     //Serial.printf(F("\tParameterManager#addAllVoltageSourceCalibrationMenuItems() for voltage_source %i/%i\n"), i+1, size); Serial_flush();
                     
                     VoltageSourceBase *voltage_source = this->voltage_sources->get(i);
@@ -366,7 +366,7 @@ class ParameterManager {
         #endif
 
         virtual int find_slot_for_voltage(VoltageSourceBase *source) {
-            for (int i = 0 ; i < voltage_sources->size() ; i++) {
+            for (unsigned int i = 0 ; i < voltage_sources->size() ; i++) {
                 if (voltage_sources->get(i) == source)
                     return i;
             }

@@ -173,7 +173,7 @@ class InputTypeSelectorControl : public SelectorControl {
         } else {
             int current_value = *target; //actual_value_index;
 
-            for (int i = 0 ; i < num_values ; i++) {
+            for (unsigned int i = 0 ; i < num_values ; i++) {
                 bool is_current_value_selected = i==current_value;
                 int col = is_current_value_selected ? GREEN : this->default_fg;
                 colours(opened && selected_value_index==i, col, BLACK);
