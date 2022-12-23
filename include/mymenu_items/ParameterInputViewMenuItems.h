@@ -27,8 +27,9 @@ class ParameterInputDisplay : public MenuItem {
             if (parameter_input!=nullptr) 
                 this->set_default_colours(parameter_input->colour);
 
-            logged = (memory_log*)malloc(memory_size * sizeof(double));
-            memset(logged, 0, memory_size*sizeof(double));
+            //logged = (memory_log*)malloc(memory_size * sizeof(double));
+            //memset(logged, 0, memory_size*sizeof(double));
+            logged = (memory_log*)calloc(memory_size, sizeof(double));
         }
 
         virtual void configure(BaseParameterInput *parameter_input) {
@@ -174,9 +175,9 @@ class InputTypeSelectorControl : public SelectorControl {
             int current_value = *target; //actual_value_index;
 
             for (unsigned int i = 0 ; i < num_values ; i++) {
-                bool is_current_value_selected = i==current_value;
+                bool is_current_value_selected = (int)i==current_value;
                 int col = is_current_value_selected ? GREEN : this->default_fg;
-                colours(opened && selected_value_index==i, col, BLACK);
+                colours(opened && selected_value_index==(int)i, col, BLACK);
                 tft->setCursor(pos.x, pos.y);
                 tft->printf((char*)"%s\n", (char*)get_label_for_index(i));
                 pos.y = tft->getCursorY();

@@ -136,7 +136,7 @@ class ParameterInputSelectorControl : public SelectorControl {
                 selected_value_index = actual_value_index;
             const int start_value = tft->will_x_rows_fit_to_height(selected_value_index) ? 0 : selected_value_index;
             
-            for (unsigned int i = start_value ; i < num_values ; i++) {
+            for (int i = start_value ; i < (int)num_values ; i++) {
                 //Serial.printf("%s#display() looping over parameterinput number %i of %i...\n", this->label, i, this->available_parameter_inputs->size()); Serial.flush();
                 const BaseParameterInput *param_input = this->available_parameter_inputs->get(i);
                 //Serial.printf("%s#display() got param_input %p...", param_input); Serial.flush();

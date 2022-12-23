@@ -134,7 +134,7 @@ class ParameterManager {
 
         FASTRUN BaseParameterInput *getInputForName(const char *input_name) {
             const unsigned int size = available_inputs->size();
-            for(int i = 0 ; i < size ; i++) {
+            for(unsigned int i = 0 ; i < size ; i++) {
                 if (available_inputs->get(i)->matches_label(input_name))
                     return available_inputs->get(i);
             }
@@ -145,7 +145,7 @@ class ParameterManager {
         }
         FASTRUN int getInputIndexForName(const char *input_name) {
             const unsigned int size = available_inputs->size();
-            for(int i = 0 ; i < size ; i++) {
+            for(unsigned int i = 0 ; i < size ; i++) {
                 if (available_inputs->get(i)->matches_label(input_name))
                     return i;
             }
@@ -168,7 +168,7 @@ class ParameterManager {
             // round robin reading so they get a chance to settle in between adc reads?
             const unsigned int size = voltage_sources->size();
             if (size==0) return;
-            static int last_read = 0;
+            static unsigned int last_read = 0;
 
             //if (this->debug) Serial.printf(F("ParameterManager#update_voltage_sources() about to read from %i\n"), last_read);
             if (this->debug) voltage_sources->get(last_read)->debug = true;
@@ -197,7 +197,7 @@ class ParameterManager {
 
         // update the ParameterInputs with the latest values from the VoltageSources
         FASTRUN void update_inputs() {
-            const int available_inputs_size = available_inputs->size();
+            const unsigned int available_inputs_size = available_inputs->size();
             for (unsigned int i = 0 ; i < available_inputs_size ; i++) {
                 available_inputs->get(i)->loop();
             }
@@ -208,7 +208,7 @@ class ParameterManager {
         FASTRUN void update_mixers() {
             // this is going to be pretty intensive; may need to adjust the way this works...
             unsigned long update_mixers_started = micros();
-            const uint16_t available_parameters_size = this->available_parameters->size();
+            const unsigned int available_parameters_size = this->available_parameters->size();
             for (unsigned int i = 0 ; i < available_parameters_size ; i++) {
                 this->available_parameters->get(i)->update_mixer();
             }
