@@ -186,7 +186,7 @@ class ParameterInputSelectorControl : public SelectorControl {
         //if (selected_value_index>=0)
         snprintf(msg, MENU_C_MAX, "Set %s to %s (%i)", label, name, selected_value_index);
         //Serial.printf("about to set_last_message!");
-        msg[20] = '\0'; // limit the string so we don't overflow set_last_message
+        //msg[20] = '\0'; // limit the string so we don't overflow set_last_message
         menu_set_last_message(msg,GREEN);
 
         return go_back_on_select;
