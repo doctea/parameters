@@ -47,20 +47,20 @@ class MIDIParameterInput : public ParameterInput {
         virtual const char *getInputInfo() {
             static char input_info[20] = "                ";
 
-            sprintf(input_info, "CC%3i Chan%2i", this->cc_number, this->channel);
+            snprintf(input_info, 20, "CC%3i Chan%2i", this->cc_number, this->channel);
             return input_info;
         }
         virtual const char *getInputValue() override {
             static char fmt[20] = "          ";
             //sprintf(fmt, "[%-3i%%]", (int)(this->currentValue*100.0));
-            sprintf(fmt, "[%3i]", this->currentValue);
+            snprintf(fmt, 20, "[%3i]", this->currentValue);
             return fmt;
         }
         // for some reason, this prevents boot if uncommented?!
         virtual const char *getOutputValue() override {
             static char fmt[20] = "          ";
             //sprintf(fmt, "[%-3i%%]", (int)(this->get_normal_value((double)this->currentValue)*100.0));
-            sprintf(fmt, "[%-3i%%]", (int)(this->get_normal_value()*100.0));
+            snprintf(fmt, 20, "[%-3i%%]", (int)(this->get_normal_value()*100.0));
             return fmt;
         }
 

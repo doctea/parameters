@@ -91,7 +91,7 @@ class ParameterInputSelectorControl : public SelectorControl {
         // todo: this is currently unused + untested
         if (index<0)
             return "None";
-        sprintf(label_for_index, "%s", this->available_parameter_inputs->get(index)->name);
+        snprintf(label_for_index, MENU_C_MAX, "%s", this->available_parameter_inputs->get(index)->name);
         return label_for_index;
     }
 
@@ -167,9 +167,9 @@ class ParameterInputSelectorControl : public SelectorControl {
         char txt[MENU_C_MAX];
         if (index_to_display>=0)
             // todo: sprintf to correct number of max_character_width characters
-            sprintf(txt,"%6s", this->available_parameter_inputs->get(index_to_display)->name);
+            snprintf(txt, MENU_C_MAX, "%6s", this->available_parameter_inputs->get(index_to_display)->name);
         else
-            sprintf(txt,"None");
+            snprintf(txt, MENU_C_MAX, "None");
         tft->setTextSize((strlen(txt) < max_character_width/2) ? 2 : 1);
         tft->println(txt);
         return tft->getCursorY();
@@ -180,11 +180,11 @@ class ParameterInputSelectorControl : public SelectorControl {
         //Serial.printf("that is available_values[%i] of %i\n", selected_value_index, available_values[selected_value_index]);
         this->setter(selected_value_index);
 
-        char msg[255];
+        char msg[MENU_C_MAX];
         //Serial.printf("about to build msg string...\n");
         const char *name = selected_value_index>=0 ? this->available_parameter_inputs->get(selected_value_index)->name : "None";
         //if (selected_value_index>=0)
-        sprintf(msg, "Set %s to %s (%i)", label, name, selected_value_index);
+        snprintf(msg, MENU_C_MAX, "Set %s to %s (%i)", label, name, selected_value_index);
         //Serial.printf("about to set_last_message!");
         msg[20] = '\0'; // limit the string so we don't overflow set_last_message
         menu_set_last_message(msg,GREEN);

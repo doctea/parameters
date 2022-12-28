@@ -13,7 +13,7 @@
 
         Debug_printf("MENU_C_MAX is %i\n", MENU_C_MAX);
         char name[MENU_C_MAX];
-        sprintf(name, "Voltage Source %i Calibrator", i);
+        snprintf(name, MENU_C_MAX, "Voltage Source %i Calibrator", i);
         SubMenuItemBar *submenu = new SubMenuItemBar(name);
 
         Debug_println("makeCalibrationControls() creating ctrl1!"); Serial_flush();
@@ -111,7 +111,7 @@
         File myFile;
 
         char filename[255] = "";
-        sprintf(filename, FILEPATH_CALIBRATION_FORMAT, slot); //, preset_number);
+        snprintf(filename, 255, FILEPATH_CALIBRATION_FORMAT, slot); //, preset_number);
         Debug_printf("\tsave_calibration() opening %s\n", filename);
         myFile = SD.open(filename, FILE_WRITE_BEGIN);
 

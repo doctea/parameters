@@ -270,7 +270,7 @@ class ParameterManager {
             // add only the modulatable items to a sub-menu
             FLASHMEM SubMenuItem *getModulatableParameterSubMenuItems(Menu *menu, const char *submenu_label, LinkedList<DoubleParameter*> *parameters) {
                 char label[MAX_LABEL_LENGTH];
-                sprintf(label, "Parameters for %s", submenu_label);
+                snprintf(label, MAX_LABEL_LENGTH, "Parameters for %s", submenu_label);
                 //LinkedList<DataParameter*> *parameters = behaviour_craftsynth->get_parameters();
                 SubMenuItem *submenu = new SubMenuItem(label, false);
                 for (unsigned int i = 0 ; i < parameters->size() ; i++) {
@@ -288,7 +288,7 @@ class ParameterManager {
             FLASHMEM MenuItem *addParameterInputMenuItems(Menu *menu, BaseParameterInput *param_input, const char *label_prefix = "") {
                 // TODO: a new ParameterInputControl that allows to set expected input ranges
                 char label[MENU_C_MAX];
-                sprintf(label, "%s%s", label_prefix, param_input->name);
+                snprintf(label, MENU_C_MAX, "%s%s", label_prefix, param_input->name);
                 //char *label = param_input->name;
 
                 menu->add(new SeparatorMenuItem(label, param_input->colour));

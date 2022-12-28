@@ -25,8 +25,9 @@ class VoltageParameterInput : public AnalogParameterInputBase<double> {
             }
             if (this->supports_pitch()) {
                 static char extra_output[40];
-                sprintf(
+                snprintf(
                     extra_output, 
+                    40,
                     "MIDI pitch for %3.3f is %s\n", 
                     this->voltage_source->get_voltage(), 
                     get_note_name(get_voltage_pitch()).c_str()

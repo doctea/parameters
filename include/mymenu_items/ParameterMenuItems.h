@@ -62,14 +62,12 @@ class ParameterValueMenuItem : public DirectNumberControl<double> {
             if (this->show_output_mode) {
                 return this->getFormattedOutputValue();
             }
-            // todo: can probably skip a sprintf and return it directly from parameter->getFormattedValue()?             //return this->parameter->getFormattedValue();
-            sprintf(fmt, "%-3s", this->parameter->getFormattedValue()); 
-            //Serial.printf("%s#getFormattedValue(): '%s'\n", fmt);
+            snprintf(fmt, 20, "%-3s", this->parameter->getFormattedValue()); 
             return fmt;
         }
         virtual const char *getFormattedOutputValue() {
             static char fmt[20] = "";
-            sprintf(fmt, "%s", this->parameter->getFormattedLastOutputValue());
+            snprintf(fmt, 20, "%s", this->parameter->getFormattedLastOutputValue());
             return fmt;
         }
 

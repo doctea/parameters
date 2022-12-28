@@ -48,7 +48,7 @@
             //sprintf(slot_label, "%i: Source", i);
             // need new source selector widget!
             
-            sprintf(slot_label, "%i: Amount", i);
+            snprintf(slot_label, MAX_LABEL_LENGTH, "%i: Amount", i);
             DirectNumberControl<double> *amt = new DirectNumberControl<double>(
                 (const char*)slot_label, 
                 &this->connections[i].amount, 

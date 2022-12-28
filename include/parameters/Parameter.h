@@ -436,25 +436,25 @@ class DataParameter : public DoubleParameter {
             virtual const char* parseFormattedDataType(double value) {
                 static char fmt[10] = "         ";
                 //sprintf(fmt, "%3i%% (float)",     (int)(100.0*value)); //->getCurrentValue());
-                sprintf(fmt, "%3i%%", (int)(100.0*value)); //->getCurrentValue());
+                snprintf(fmt, 10, "%3i%%", (int)(100.0*value)); //->getCurrentValue());
                 return fmt;
             }
             virtual const char* parseFormattedDataType(unsigned int value) {
                 static char fmt[10] = "         ";
                 //sprintf(fmt, "%5u (unsigned)",   value); // (unsigned int)(this->maximumNormalValue*this->getCurrentNormalValue())); //getCurrentValue());
-                sprintf(fmt, "%5u",   value); // (unsigned int)(this->maximumNormalValue*this->getCurrentNormalValue())); //getCurrentValue());
+                snprintf(fmt, 10, "%5u",   value); // (unsigned int)(this->maximumNormalValue*this->getCurrentNormalValue())); //getCurrentValue());
                 return fmt;
             }
             virtual const char* parseFormattedDataType(int value) {
                 static char fmt[10] = "         ";
                 //sprintf(fmt, "%5i (signed)",     value); // (int)(this->maximumNormalValue*this->getCurrentNormalValue())); //getCurrentValue());
-                sprintf(fmt, "%5i",   value); // (int)(this->maximumNormalValue*this->getCurrentNormalValue())); //getCurrentValue());
+                snprintf(fmt, 10, "%5i",   value); // (int)(this->maximumNormalValue*this->getCurrentNormalValue())); //getCurrentValue());
                 return fmt;
             }
             virtual const char* parseFormattedDataType(byte value) {
                 static char fmt[10] = "         ";
                 //sprintf(fmt, "%5i (signed)",     value); // (int)(this->maximumNormalValue*this->getCurrentNormalValue())); //getCurrentValue());
-                sprintf(fmt, "%3i",  value); // (int)(this->maximumNormalValue*this->getCurrentNormalValue())); //getCurrentValue());
+                snprintf(fmt, 10, "%3i",  value); // (int)(this->maximumNormalValue*this->getCurrentNormalValue())); //getCurrentValue());
                 return fmt;
             }
         #else
@@ -462,13 +462,13 @@ class DataParameter : public DoubleParameter {
             virtual const char* getFormattedValue() override {
                 static char fmt[20] = "              ";
                 if constexpr (std::is_integral<DataType>::value && std::is_same<DataType, bool>::value) {
-                    sprintf(fmt, "%s", this->getCurrentValue()?"On" : "Off");
+                    snprintf(fmt, 20, "%s", this->getCurrentValue()?"On" : "Off");
                 } else if constexpr (std::is_floating_point<DataType>::value) {
-                    sprintf(fmt, "%3i%% (float)",     (int)(100.0*this->getCurrentValue())); //->getCurrentValue());
+                    snprintf(fmt, 20, "%3i%% (float)",     (int)(100.0*this->getCurrentValue())); //->getCurrentValue());
                 } else if constexpr (std::is_unsigned<DataType>::value) {
-                    sprintf(fmt, "%5u (unsigned)",    (unsigned int)(this->maximum_value*this->getCurrentValue())); //getCurrentValue());
+                    snprintf(fmt, 20, "%5u (unsigned)",    (unsigned int)(this->maximum_value*this->getCurrentValue())); //getCurrentValue());
                 } else {
-                    sprintf(fmt, "%5i (signed)",      (int)(this->maximum_value*this->getCurrentValue())); //getCurrentValue());
+                    snprintf(fmt, 20, "%5i (signed)",      (int)(this->maximum_value*this->getCurrentValue())); //getCurrentValue());
                 }
                 //Serial.printf("getFormattedValue: '%s'\n", fmt);
                 return fmt;

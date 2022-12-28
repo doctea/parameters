@@ -65,7 +65,7 @@ class ParameterInputDisplay : public MenuItem {
                 //sprintf(custom_label, "%s: [%s] %-3s >%-3i %-3s>",
                 //sprintf(custom_label, "%s: [%s] %-7s >%-4i %-4s>",
                     //sprintf(custom_label, "%s: %-7s >%-4s ", //%-4s>",
-                sprintf(custom_label, "[%s] %-3s >%-3i %-3s>",
+                snprintf(custom_label, MAX_LABEL_LENGTH*2, "[%s] %-3s >%-3i %-3s>",
                     //label,                    
                     this->parameter_input!=nullptr ? (char*)this->parameter_input->getInputInfo()  : "",
                     this->parameter_input!=nullptr ? (char*)this->parameter_input->getInputValue() : "",
@@ -191,10 +191,10 @@ class InputTypeSelectorControl : public SelectorControl {
     virtual bool button_select() override {
         this->setter(selected_value_index);
 
-        char msg[255];
+        char msg[MENU_MESSAGE_MAX];
         //Serial.printf("about to build msg string...\n");
-        sprintf(msg, "Set type to %i: %s", selected_value_index, get_label_for_index(selected_value_index));
-        msg[tft->get_c_max()] = '\0'; // limit the string so we don't overflow set_last_message
+        snprintf(msg, MENU_MESSAGE_MAX, "Set type to %i: %s", selected_value_index, get_label_for_index(selected_value_index));
+        //msg[tft->get_c_max()] = '\0'; // limit the string so we don't overflow set_last_message
         menu_set_last_message(msg, GREEN);
 
         return go_back_on_select;

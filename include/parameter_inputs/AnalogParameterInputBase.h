@@ -87,20 +87,20 @@ class AnalogParameterInputBase : public ParameterInput {
     virtual const char *getInputInfo() {
       static char input_info[20] = "                ";
 
-      sprintf(input_info, "Anlg %s%s", (this->inverted?"I":""), (this->map_unipolar_to_bipolar?"U":""));
+      snprintf(input_info, 20, "Anlg %s%s", (this->inverted?"I":""), (this->map_unipolar_to_bipolar?"U":""));
       return input_info;
     }
 
     virtual const char *getInputValue() override {
       static char fmt[20] = "          ";
-      sprintf(fmt, "[%-3i%%]", (int)(this->currentValue*100.0));
+      snprintf(fmt, 20, "[%-3i%%]", (int)(this->currentValue*100.0));
       return fmt;
     }
     // for some reason, this prevents boot if uncommented?!
     virtual const char *getOutputValue() override {
       static char fmt[20] = "          ";
       //sprintf(fmt, "[%-3i%%]", (int)(this->get_normal_value((double)this->currentValue)*100.0));
-      sprintf(fmt, "[%-3i%%]", (int)(this->get_normal_value()*100.0));
+      snprintf(fmt, 20, "[%-3i%%]", (int)(this->get_normal_value()*100.0));
       return fmt;
     }
 

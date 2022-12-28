@@ -10,7 +10,7 @@
         //Serial.printf(F("\tpassed i=%i!\n"), i);
 
         char name[MENU_C_MAX];
-        sprintf(name, "Recall Voltage Source %i", i+1);
+        snprintf(name, MENU_C_MAX, "Recall Voltage Source %i", i+1);
         //Serial.printf(F("Creating submenu control for '%s'..\n"), name); Serial_flush();
         SubMenuItemBar *submenu = new SubMenuItemBar(name);
         
