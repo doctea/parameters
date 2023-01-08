@@ -65,6 +65,7 @@ class ParameterManager {
                     if (available_inputs->get(i)->supports_pitch())
                         available_pitch_inputs->add(available_inputs->get(i));
                 }
+                already_calculated = true;
             }
             return available_pitch_inputs;
         }
@@ -161,6 +162,17 @@ class ParameterManager {
             return -1;
             //return this->getInputIndexForName(param->name);
         }
+        /*FASTRUN int getPitchInputIndex(BaseParameterInput *param) {
+            if (param==nullptr) return -1;
+            LinkedList<BaseParameterInput*> *pitch_inputs = this->get_available_pitch_inputs();
+            const unsigned int size = pitch_inputs->size();
+            for (unsigned int i = 0 ; i < size ; i++) {
+                if (param==pitch_inputs->get(i))
+                    return i;
+            }
+            return -1;
+            //return this->getInputIndexForName(param->name);
+        }*/
 
         // read the values, but don't pass them on outside
         FASTRUN void update_voltage_sources() {

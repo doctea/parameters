@@ -1,3 +1,6 @@
+#ifndef PARAMETER_INPUT_MENUITEMS__INCLUDED
+#define PARAMETER_INPUT_MENUITEMS__INCLUDED
+
 #include "menuitems.h"
 
 #include "parameter_inputs/ParameterInput.h"
@@ -6,12 +9,9 @@
 extern ParameterManager *parameter_manager;
 class VoltageParameterInput;
 
-// Selector to choose a ParameterInput from the available list; used by objects/parameters that can only feed from one ParameterInput at a time, eg CVInput
+// Selector to choose a ParameterInput from the available list to use a Source; used by objects/parameters that can only feed from one ParameterInput at a time, eg CVInput
 template<class TargetClass>
 class ParameterInputSelectorControl : public SelectorControl {
-    //void (*setter_func)(BaseParameter *midi_output);
-    //BaseParameterInput *parameter_input = nullptr;
-    //void(BaseParameterInput::*setter_func)(BaseParameter *target_parameter);
     BaseParameterInput *initial_selected_parameter_input = nullptr;
     LinkedList<BaseParameterInput*> *available_parameter_inputs = nullptr;
 
@@ -19,8 +19,6 @@ class ParameterInputSelectorControl : public SelectorControl {
     void(TargetClass::*setter_func)(BaseParameterInput*);
 
     bool show_values = false;   // whether to display the incoming values or not
-
-    //MenuItem* control_to_update = nullptr;
 
     public:
 
@@ -30,7 +28,6 @@ class ParameterInputSelectorControl : public SelectorControl {
         void(TargetClass::*setter_func)(BaseParameterInput*), 
         LinkedList<BaseParameterInput*> *available_parameter_inputs,
         BaseParameterInput *initial_parameter_input = nullptr,
-        //MenuItem* control_to_update = nullptr,
         bool show_values = false
     ) : SelectorControl(label, 0) {
         this->show_values = show_values;
@@ -38,28 +35,40 @@ class ParameterInputSelectorControl : public SelectorControl {
         this->available_parameter_inputs = available_parameter_inputs,
         this->target_object = target_object;
         this->setter_func = setter_func;
-        //this->control_to_update = control_to_update;
         this->num_values = available_parameter_inputs->size();
     };
 
     virtual void configure (LinkedList<BaseParameterInput*> *available_parameter_inputs) {
         this->available_parameter_inputs = available_parameter_inputs;
-        //this->initial_selected_parameter_input = this->parameter_input->target_parameter;
-        /*if (this->initial_selected_parameter_input!=nullptr) {
-            if (this->debug) Serial.printf("ParameterSelectorControl configured control labelled '%s' with initial_selected_parameter '%s'@%p from parameter_input @ %p\n", label, initial_selected_parameter_input->label, initial_selected_parameter_input, parameter_input);
-            //Serial.printf("%u and %u\n", this->initial_selected_parameter, this->setter_func);
-            actual_value_index = this->find_parameter_index_for_label(initial_selected_parameter_input->label);
-            if (actual_value_index>=0) return;
-        }*/
         char *initial_name = (char*)"None";
         if (this->initial_selected_parameter_input!=nullptr)
             initial_name = this->initial_selected_parameter_input->name;
-        actual_value_index = parameter_manager->getInputIndexForName(initial_name);
-                //this->find_parameter_input_index_for_label(initial_name);
+        actual_value_index = this->find_parameter_input_index_for_label(initial_name);
     }
 
     virtual int find_parameter_input_index_for_label(char *name) {
-        return parameter_manager->getInputIndexForName(name);
+        if (this->available_parameter_inputs==nullptr)
+            return -1;
+        unsigned const int size = this->available_parameter_inputs->size();
+        for (unsigned int i = 0 ; i < size ; i++) {
+            if (available_parameter_inputs->get(i)->matches_label(name))
+                return i;
+        }
+        return -1;
+        //return parameter_manager->getInputIndexForName(name);
+    }
+
+    virtual int find_parameter_input_index_for_object(BaseParameterInput *input) {
+        return this->find_parameter_input_index_for_label(input->name);
+        /*if (this->available_parameter_inputs==nullptr)
+            return -1;
+        unsigned const int size = this->available_parameter_inputs->size();
+        for (unsigned int i = 0 ; i < size ; i++) {
+            if (available_parameter_inputs->get(i)==input)
+                return i;
+        }
+        return -1;*/
+        //return parameter_manager->getInputIndexForName(name);
     }
 
     virtual void on_add() override {
@@ -78,7 +87,8 @@ class ParameterInputSelectorControl : public SelectorControl {
         if (initial_selected_parameter_input!=nullptr) {
             //Serial.printf(F("%s#on_add: got non-null initial_selected_parameter_input\n")); Serial_flush();
             //Serial.printf(F("\tand its name is %c\n"), initial_selected_parameter_input->name); Serial_flush();
-            this->actual_value_index = parameter_manager->getInputIndexForName(initial_selected_parameter_input->name); ////this->find_parameter_input_index_for_label(initial_selected_parameter_input->name);
+            //this->actual_value_index = parameter_manager->getInputIndexForName(initial_selected_parameter_input->name); ////this->find_parameter_input_index_for_label(initial_selected_parameter_input->name);
+            this->actual_value_index = this->find_parameter_input_index_for_label(initial_selected_parameter_input->name);
         } else {
             this->actual_value_index = -1;
         }
@@ -95,11 +105,18 @@ class ParameterInputSelectorControl : public SelectorControl {
         return label_for_index;
     }
 
+    // update the control to reflect changes to selection (eg, called when new value is loaded from project file)
+    virtual void update_source(BaseParameterInput *new_source) {
+        //int index = parameter_manager->getPitchInputIndex(new_source);
+        //Serial.printf("update_source got index %i\n", index);
+        int index = this->find_parameter_input_index_for_object(new_source);
+        this->update_actual_index(index);
+    }
+
     virtual void setter (int new_value) {
         //if (this->debug) Serial.printf(F("ParameterSelectorControl changing from %i to %i\n"), this->actual_value_index, new_value);
-        actual_value_index = new_value;
-        selected_value_index = actual_value_index;
-        if(new_value>=0) {
+        selected_value_index = actual_value_index = new_value;
+        if(new_value>=0 && this->target_object!=nullptr && this->setter_func!=nullptr) {
             (this->target_object->*this->setter_func)(this->available_parameter_inputs->get(new_value));
         }
     }
@@ -180,11 +197,11 @@ class ParameterInputSelectorControl : public SelectorControl {
         //Serial.printf("that is available_values[%i] of %i\n", selected_value_index, available_values[selected_value_index]);
         this->setter(selected_value_index);
 
-        char msg[MENU_C_MAX];
+        char msg[MENU_MESSAGE_MAX];
         //Serial.printf("about to build msg string...\n");
         const char *name = selected_value_index>=0 ? this->available_parameter_inputs->get(selected_value_index)->name : "None";
         //if (selected_value_index>=0)
-        snprintf(msg, MENU_C_MAX, "Set %s to %s (%i)", label, name, selected_value_index);
+        snprintf(msg, MENU_MESSAGE_MAX, "Set %s to %s (%i)", label, name, selected_value_index);
         //Serial.printf("about to set_last_message!");
         //msg[20] = '\0'; // limit the string so we don't overflow set_last_message
         menu_set_last_message(msg,GREEN);
@@ -193,3 +210,5 @@ class ParameterInputSelectorControl : public SelectorControl {
     }
 
 };
+
+#endif
