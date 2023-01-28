@@ -34,8 +34,7 @@ void DoubleParameter::set_slot_input(byte slot, BaseParameterInput *parameter_in
     this->connections[slot].parameter_input = parameter_input;
     #ifdef ENABLE_SCREEN
         if (parameter_input!=nullptr) {
-            Serial.println("calling update_slot_amount_control.."); Serial_flush();
-            // todo: add colour, and update the colour of the widget too
+            //Serial.println("calling update_slot_amount_control.."); Serial_flush();
             this->update_slot_amount_control(slot, parameter_input);
         }
     #endif
