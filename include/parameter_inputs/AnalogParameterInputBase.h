@@ -1,6 +1,8 @@
 #ifndef ANALOGPARAMETERINPUTBASE__INCLUDED
 #define ANALOGPARAMETERINPUTBASE__INCLUDED
 
+#include <Arduino.h>
+
 #include "ParameterInput.h"
 
 class Menu;

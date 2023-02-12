@@ -1,7 +1,9 @@
 #include "voltage_sources/ADSVoltageSource.h"
 #include "voltage_sources/ADS24vVoltageSource.h"
 
-#include "SdFat.h"
+#ifdef ENABLE_SD
+    #include "SdFat.h"
+#endif
 
 #ifdef ENABLE_SCREEN
     #include "submenuitem_bar.h"
@@ -62,6 +64,7 @@
 
 
 // todo: different implementation depending on whether file stuff is available or not?
+#ifdef ENABLE_SD
 #ifndef DISABLE_CALIBRATION_STORAGE
     #include "SD.h"
     #define FILEPATH_CALIBRATION_FORMAT       "calibration_voltage_source_%i.txt"
@@ -121,4 +124,5 @@
         myFile.close();
     }
 
+#endif
 #endif
