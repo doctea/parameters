@@ -64,8 +64,7 @@
 
 
 // todo: different implementation depending on whether file stuff is available or not?
-#ifdef ENABLE_SD
-#ifndef DISABLE_CALIBRATION_STORAGE
+#if defined(ENABLE_SD) && !defined(DISABLE_CALIBRATION_STORAGE)
     #include "SD.h"
     #define FILEPATH_CALIBRATION_FORMAT       "calibration_voltage_source_%i.txt"
     
@@ -123,6 +122,4 @@
 
         myFile.close();
     }
-
-#endif
 #endif
