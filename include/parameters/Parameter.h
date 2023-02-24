@@ -260,10 +260,17 @@ class DataParameter : public DoubleParameter {
             //if (getter_func!=nullptr)
             //    this->setInitialValue();
         }
+        DataParameter(const char *label, TargetClass *target, void(TargetClass::*setter_func)(DataType), DataType(TargetClass::*getter_func)(), DataType minimum_value, DataType maximum_value) 
+            : DataParameter(label, target, setter_func, getter_func) /* minimumDataValue(minimum_value), maximumDataValue(maximum_value), */
+            {
+                this->minimumDataValue = minimum_value;
+                this->maximumDataValue = maximum_value;
+            }
         DataParameter(const char *label, TargetClass *target, double initial_value_normal, void(TargetClass::*setter_func)(DataType)) : DataParameter(label, target, setter_func) {
             this->initialNormalValue = initial_value_normal;
             //this->setInitialValueFromNormal(initial_value_normal);
         }
+
 
         /*virtual DataParameter* setMinimumValue(double minimum_value) {
             this->minimum_value = minimum_value;
@@ -395,9 +402,15 @@ class DataParameter : public DoubleParameter {
         // increment the value and update
         virtual void incrementValue() override {
             //this->debug = true;
-            //if (this->debug) Serial.printf(F("Parameter#incrementValue() for '%s', normal %f, data %i about to call updateValueFromData()....\n"), this->label, this->getCurrentNormalValue(), this->getCurrentDataValue());
-            this->updateValueFromData(this->incrementDataValue((DataType)this->getCurrentDataValue()));
-            //if (this->debug) Serial.printf(F("....Parameter#incrementValue() value became normal %f, data %i\n"),this->getCurrentNormalValue(),this->getCurrentDataValue());
+            /*if (this->debug) {
+                Serial.println("--");
+                Serial.printf("Parameter#incrementValue() for '%s', normal %f, data %i about to call updateValueFromData()....\n", this->label, this->getCurrentNormalValue(), this->getCurrentDataValue());
+            */    
+            this->updateValueFromData(this->incrementDataValue((DataType)this->getCurrentDataValue());
+            /*if (this->debug) {
+                Serial.printf("....Parameter#incrementValue() value became normal %f, data %i\n",this->getCurrentNormalValue(),this->getCurrentDataValue());
+                Serial.println("--");
+            }*/
         }
         // decrement the value and update
         virtual void decrementValue() override {
@@ -409,22 +422,28 @@ class DataParameter : public DoubleParameter {
 
         // returns an incremented DataType version of input value (int)
         virtual DataType incrementDataValue(int value) {
-            //if (this->debug) Serial.printf("Parameter#incrementDataValue(%i)..\n", value);
-            int new_value = constrain(++value, this->minimumDataValue, this->maximumDataValue);
-            //if (this->debug) Serial.printf("became %i (after constrain to %i:%i)..\n", new_value, this->minimumDataValue, this->maximumDataValue);
+            //if (this->debug) Serial.printf("Parameter#incrementDataValue(%i)..\n", value); Serial.printf("\ttaking value %i and doing ++ on it..", value);
+            value++;
+            //if (this->debug) Serial.printf("\tgot %i.\n");
+            int new_value = constrain(value, this->minimumDataValue, this->maximumDataValue);
+            //if (this->debug) Serial.printf("\tbecame %i (after constrain to %i:%i)..\n", new_value, this->minimumDataValue, this->maximumDataValue);
             return new_value;
         }
         // returns a decremented DataType version of input value (int)
         virtual DataType decrementDataValue(int value) {
-            return constrain(--value, this->minimumDataValue, this->maximumDataValue);
+            value--;
+            return constrain(value, this->minimumDataValue, this->maximumDataValue);
         }
         // returns an incremented DataType version of input value (float)
         virtual DataType incrementDataValue(float value) {
-            return constrain(value + 0.1, this->minimumDataValue, this->maximumDataValue);
+            //Serial.printf("%s#incrementDataValue(%f) float version\n", this->label, value);
+            value += 0.1;
+            return constrain(value, this->minimumDataValue, this->maximumDataValue);
         }
         // returns a decremented DataType version of input value (float)
         virtual DataType decrementDataValue(float value) {
-            return constrain(value - 0.1, this->minimumDataValue, this->maximumDataValue);
+            value -= 0.1;
+            return constrain(value, this->minimumDataValue, this->maximumDataValue);
         }       
 
         #if !defined(USE_ARX_TYPE_TRAITS)
