@@ -16,7 +16,7 @@ class ParameterInputDisplay : public MenuItem {
         BaseParameterInput *parameter_input = nullptr;
 
         // todo: remember an int type instead of a float, for faster drawing
-        typedef double memory_log;
+        typedef float memory_log;
         unsigned long memory_size;
         memory_log *logged = nullptr;
 
@@ -27,9 +27,9 @@ class ParameterInputDisplay : public MenuItem {
             if (parameter_input!=nullptr) 
                 this->set_default_colours(parameter_input->colour);
 
-            //logged = (memory_log*)malloc(memory_size * sizeof(double));
-            //memset(logged, 0, memory_size*sizeof(double));
-            logged = (memory_log*)calloc(memory_size, sizeof(double));
+            //logged = (memory_log*)malloc(memory_size * sizeof(float));
+            //memset(logged, 0, memory_size*sizeof(float));
+            logged = (memory_log*)calloc(memory_size, sizeof(float));
         }
 
         virtual void configure(BaseParameterInput *parameter_input) {

@@ -5,7 +5,7 @@
 
 //template<class TargetClass>
 class DigitalParameterInput : public BaseParameterInput {
-  //using Callback = void(callback)(double);
+  //using Callback = void(callback)(float);
 
   bool lastValue = false;
   int inputPin = 0;

@@ -8,7 +8,7 @@
 
 #include "ads.h"
 
-class VoltageParameterInput : public AnalogParameterInputBase<double> {
+class VoltageParameterInput : public AnalogParameterInputBase<float> {
     VoltageSourceBase *voltage_source = nullptr;
 
     public:
@@ -49,7 +49,7 @@ class VoltageParameterInput : public AnalogParameterInputBase<double> {
         }
 
         virtual void read() override {
-            double currentValue = this->voltage_source->get_voltage_normal();
+            float currentValue = this->voltage_source->get_voltage_normal();
             
             if (this->is_significant_change(currentValue, this->lastValue)) {
                 this->lastValue = this->currentValue;
@@ -69,7 +69,7 @@ class VoltageParameterInput : public AnalogParameterInputBase<double> {
                 }
                 #endif
 
-                double normal = this->get_normal_value(currentValue);
+                float normal = this->get_normal_value(currentValue);
 
                 #ifdef ENABLE_PRINTF
                 if (this->debug) {

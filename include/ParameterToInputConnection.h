@@ -4,7 +4,7 @@ class ParameterToInputConnection {
     public:
 
     BaseParameterInput *parameter_input = nullptr;
-    double amount = 0.0f;
+    float amount = 0.0f;
 
     char get_input_name() {
         return this->parameter_input!=nullptr ? 

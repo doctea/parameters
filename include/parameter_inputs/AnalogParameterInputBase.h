@@ -7,7 +7,7 @@
 
 class Menu;
 
-template<class DataType = double>
+template<class DataType = float>
 class AnalogParameterInputBase : public ParameterInput {
   public:
     DataType lastValue = 0;
@@ -70,7 +70,7 @@ class AnalogParameterInputBase : public ParameterInput {
       }*/
 
       if (this->inverted) {
-        value = 1.0f - ((double)value); // / this->max_input_value);
+        value = 1.0f - ((float)value); // / this->max_input_value);
       }
 
       /*if (this->debug) {
@@ -101,7 +101,7 @@ class AnalogParameterInputBase : public ParameterInput {
     // for some reason, this prevents boot if uncommented?!
     virtual const char *getOutputValue() override {
       static char fmt[20] = "          ";
-      //sprintf(fmt, "[%-3i%%]", (int)(this->get_normal_value((double)this->currentValue)*100.0));
+      //sprintf(fmt, "[%-3i%%]", (int)(this->get_normal_value((float)this->currentValue)*100.0));
       snprintf(fmt, 20, "[%-3i%%]", (int)(this->get_normal_value()*100.0));
       return fmt;
     }

@@ -17,7 +17,7 @@ int sclPin = PIN_SCL; //PIN_PB2;
 
 float scaler = 0.97;
 
-double current_adc_voltage[4] = { 0, 0, 0, 0, };
+float current_adc_voltage[4] = { 0, 0, 0, 0, };
 
 /*void update_adc() {
   read_adc_voltages();
@@ -26,7 +26,7 @@ double current_adc_voltage[4] = { 0, 0, 0, 0, };
 void read_adc_voltages() {
   for (unsigned int i = 0 ; i < 4 ; i++) {
     int intermediate = ADS_OBJECT.readADC(i);
-    double currentValue = ADS_OBJECT.toVoltage(intermediate);
+    float currentValue = ADS_OBJECT.toVoltage(intermediate);
     current_adc_voltage[i] =  currentValue;
   }
 }
@@ -65,7 +65,7 @@ float read_voltage(int channel) {
 }
 */
 /*
-double get_corrected_voltage (float voltageFromAdc) {
+float get_corrected_voltage (float voltageFromAdc) {
   // TODO: what is the maths behind this?  make configurable, etc 
   // from empirical measuring of received voltage and asked wolfram alpha to figure it out:-
   //  1v: v=1008        = 0.99206349206
@@ -83,21 +83,21 @@ int get_midi_pitch_for_voltage(float voltageFromAdc, int pitch_offset) {
   return pitch;
 }
 
-double get_frequency_for_voltage(float voltageFromAdc, int pitch_offset) { // was 36
+float get_frequency_for_voltage(float voltageFromAdc, int pitch_offset) { // was 36
   // get the tuning root -- Keystep is C1=1.0v, so start on C
   // TODO: configurable tuning from different note / 1.0v = A mode
-  double base_freq = get_frequency_for_pitch(pitch_offset);
+  float base_freq = get_frequency_for_pitch(pitch_offset);
   //Serial.printf("base freq: %u\t", (uint16_t)base_freq);
   //Serial.printf("v=%u, adjv=%u\t", (uint16_t)(voltageFromAdc*1000.0), (uint16_t)(adjusted_voltage*1000.0));
-  double freq = base_freq * (pow(2.0, voltageFromAdc));
+  float freq = base_freq * (pow(2.0, voltageFromAdc));
   //Serial.printf("becomes frequency %u\n", (uint16_t)freq);
   return freq;
 }
 
-double get_frequency_for_pitch(int pitch, int base_pitch) {
-  //double freq = mtof.toFrequency((double)pitch);
+float get_frequency_for_pitch(int pitch, int base_pitch) {
+  //float freq = mtof.toFrequency((float)pitch);
   // tune from 440hz
-  double freq = 440.0 * pow(2.0, ((double)(pitch - base_pitch) / 12.0));
+  float freq = 440.0 * pow(2.0, ((float)(pitch - base_pitch) / 12.0));
   //Serial.printf("get_frequency_for_pitch(%u) return freq %u\n", pitch, (freq));
   return freq;
 }

@@ -29,8 +29,8 @@ class ParameterManager {
         LinkedList<ADCDeviceBase*>      *devices = new LinkedList<ADCDeviceBase*>();  // actual i2c ADC devices, potentially with multiple channels
         LinkedList<VoltageSourceBase*>  *voltage_sources = new LinkedList<VoltageSourceBase*>();  // voltage-measuring channels
         LinkedList<BaseParameterInput*> *available_inputs = new LinkedList<BaseParameterInput*>();  // ParameterInputs, ie wrappers around input mechanism, assignable to a Parameter
-        LinkedList<DoubleParameter*>    *available_parameters = new LinkedList<DoubleParameter*>();        // Parameters, ie wrappers around destination object
-        DoubleParameter *param_none = nullptr;        // 'blank' parameter used as default mapping
+        LinkedList<FloatParameter*>    *available_parameters = new LinkedList<FloatParameter*>();        // Parameters, ie wrappers around destination object
+        FloatParameter *param_none = nullptr;        // 'blank' parameter used as default mapping
 
         uint16_t parameter_input_colours[9] = {
             RED,
@@ -53,8 +53,8 @@ class ParameterManager {
             /*this->devices = new LinkedList<ADCDeviceBase*>();
             this->voltage_sources = new LinkedList<VoltageSourceBase*>();
             this->available_inputs = new LinkedList<BaseParameterInput*>();
-            this->available_parameters = new LinkedList<DoubleParameter*>();*/
-            this->param_none = this->addParameter(new DoubleParameter((char*)"None"));
+            this->available_parameters = new LinkedList<FloatParameter*>();*/
+            this->param_none = this->addParameter(new FloatParameter((char*)"None"));
         }
 
         LinkedList<BaseParameterInput*> *get_available_pitch_inputs() {
@@ -94,12 +94,12 @@ class ParameterManager {
             return input;
         }
 
-        FLASHMEM DoubleParameter *addParameter(DoubleParameter *parameter) {
+        FLASHMEM FloatParameter *addParameter(FloatParameter *parameter) {
             Debug_printf(F("ParameterManager#addParameter(%p), labeled '%s'\n"), parameter, parameter->label);
             this->available_parameters->add(parameter);
             return parameter;
         }
-        FLASHMEM void addParameters(LinkedList<DoubleParameter*> *parameters) {
+        FLASHMEM void addParameters(LinkedList<FloatParameter*> *parameters) {
             Debug_println(F("ParameterManager#addParameters()..")); Serial_flush();
             Debug_printf(F("\t\tpassed @%p, has size %i\n"), parameters, parameters->size()); Serial_flush();
             for (unsigned int i = 0 ; i < parameters->size() ; i++) {
@@ -261,7 +261,7 @@ class ParameterManager {
                 //Serial.println("addAllParameterMenuItems finished"); Serial.flush();
             }
 
-            FLASHMEM SubMenuItem *addParameterSubMenuItems(Menu *menu, const char *submenu_label, LinkedList<DoubleParameter*> *parameters, int16_t default_fg_colour = C_WHITE) {
+            FLASHMEM SubMenuItem *addParameterSubMenuItems(Menu *menu, const char *submenu_label, LinkedList<FloatParameter*> *parameters, int16_t default_fg_colour = C_WHITE) {
                 // first add all the modulatable items into a sub menu
                 SubMenuItem *sub = getModulatableParameterSubMenuItems(menu, submenu_label, parameters);
                 if (sub!=nullptr && sub->items->size()>0) {
@@ -283,7 +283,7 @@ class ParameterManager {
             }
 
             // add only the modulatable items to a sub-menu
-            FLASHMEM SubMenuItem *getModulatableParameterSubMenuItems(Menu *menu, const char *submenu_label, LinkedList<DoubleParameter*> *parameters) {
+            FLASHMEM SubMenuItem *getModulatableParameterSubMenuItems(Menu *menu, const char *submenu_label, LinkedList<FloatParameter*> *parameters) {
                 char label[MAX_LABEL_LENGTH];
                 snprintf(label, MAX_LABEL_LENGTH, "Parameters for %s", submenu_label);
                 //LinkedList<DataParameter*> *parameters = behaviour_craftsynth->get_parameters();
@@ -329,12 +329,12 @@ class ParameterManager {
             }
 
             // create a menuitem for the passed-in parameter; returns nullptr if passed-in parameter is named "None"
-            FLASHMEM MenuItem *makeMenuItemForParameter(DoubleParameter *p, const char *label_prefix = "") {
+            FLASHMEM MenuItem *makeMenuItemForParameter(FloatParameter *p, const char *label_prefix = "") {
                 if (strcmp(p->label,"None")==0) return nullptr;
                 MenuItem *ctrl = p->makeControl();
                 return ctrl;
             }
-            FLASHMEM LinkedList<MenuItem *> *makeMenuItemsForParameter(DoubleParameter *p, const char *label_prefix = "") {
+            FLASHMEM LinkedList<MenuItem *> *makeMenuItemsForParameter(FloatParameter *p, const char *label_prefix = "") {
                 if (strcmp(p->label,"None")==0) 
                     return nullptr;
                 //Debug_println(F("makeMenuItemsForParameter calling makeControls!..")); Serial_flush();

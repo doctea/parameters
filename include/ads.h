@@ -7,17 +7,17 @@
 
 //extern ADS1115 ADS_OBJECT;
 //extern int ads_values[4];
-//extern double current_adc_voltage[4];
+//extern float current_adc_voltage[4];
 
 //void setup_ads();
 
 /*int read_value(int channel);
 float read_voltage(int channel);*/
 
-double get_frequency_for_pitch(int pitch, int pitch_offset = MIDI_NOTE_A440);
+float get_frequency_for_pitch(int pitch, int pitch_offset = MIDI_NOTE_A440);
 int get_midi_pitch_for_voltage(float voltageFromAdc, int pitch_offset = 24);
-double get_frequency_for_voltage(float voltageFromAdc, int pitch_offset = 24);
-//double get_voltage_for_frequency(double frequency, int pitch_offset = 36);
+float get_frequency_for_voltage(float voltageFromAdc, int pitch_offset = 24);
+//float get_voltage_for_frequency(float frequency, int pitch_offset = 36);
 
 //void update_adc();
 

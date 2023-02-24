@@ -48,7 +48,7 @@
         submenu->add(ctrl2);
 
         Debug_println("makeCalibrationControls() creating current_value_disp control!"); Serial_flush();   
-        DirectNumberControl<double> *current_value_disp = new DirectNumberControl<double> 
+        DirectNumberControl<float> *current_value_disp = new DirectNumberControl<float> 
             ("current", &this->current_value, this->current_value, -10.0, 10.0, nullptr);
         current_value_disp->readOnly = true;
         current_value_disp->float_unit = 'v';

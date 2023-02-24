@@ -89,7 +89,7 @@ class BaseParameterInput {
 
     virtual void loop() {}
 
-    virtual double get_normal_value() {
+    virtual float get_normal_value() {
       return 0.0;
     }
 

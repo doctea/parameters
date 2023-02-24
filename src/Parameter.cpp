@@ -3,7 +3,7 @@
 
 extern ParameterManager parameter_manager;
 
-void DoubleParameter::set_slot_input(byte slot, char parameter_input_name) {
+void FloatParameter::set_slot_input(byte slot, char parameter_input_name) {
     this->set_slot_input(
         slot,
         parameter_manager.getInputForName(parameter_input_name)
@@ -17,7 +17,7 @@ class BaseParameterInput;
 
 extern ParameterManager *parameter_manager;
 
-void DoubleParameter::set_slot_input(byte slot, const char *name) {
+void FloatParameter::set_slot_input(byte slot, const char *name) {
     BaseParameterInput *inp = parameter_manager->getInputForName(name);
     if (inp!=nullptr)
         this->set_slot_input(slot, inp);
@@ -29,8 +29,8 @@ void DoubleParameter::set_slot_input(byte slot, const char *name) {
     #include "mymenu_items/ParameterMenuItems.h"
 #endif
 
-void DoubleParameter::set_slot_input(byte slot, BaseParameterInput *parameter_input) {
-    Debug_printf(F("PARAMETERS\tDoubleParameter#set_slot_input in '%s': asked to set slot %i on %s to point to %s\n"), this->label, slot, this->label, parameter_input->name);
+void FloatParameter::set_slot_input(byte slot, BaseParameterInput *parameter_input) {
+    Debug_printf(F("PARAMETERS\tFloatParameter#set_slot_input in '%s': asked to set slot %i on %s to point to %s\n"), this->label, slot, this->label, parameter_input->name);
     this->connections[slot].parameter_input = parameter_input;
     #ifdef ENABLE_SCREEN
         if (parameter_input!=nullptr) {
@@ -42,8 +42,8 @@ void DoubleParameter::set_slot_input(byte slot, BaseParameterInput *parameter_in
 
 #ifdef ENABLE_SCREEN
     // TODO: this is kinda ugly!  should be a better way to do this.
-    void DoubleParameter::update_slot_amount_control(byte slot, BaseParameterInput *parameter_input) {
-        Debug_println(F("in update_slot_amount_control (DoubleParameter version)..")); Serial_flush();
+    void FloatParameter::update_slot_amount_control(byte slot, BaseParameterInput *parameter_input) {
+        Debug_println(F("in update_slot_amount_control (FloatParameter version)..")); Serial_flush();
         //this->update_slot_amount_control(slot, parameter_input->name);
         if (this->connections[slot].amount_control!=nullptr) {
             Debug_printf(F("Updating colours+label on slot %i on %s\n"), slot, this->connections[slot].amount_control->label);
@@ -64,7 +64,7 @@ void DoubleParameter::set_slot_input(byte slot, BaseParameterInput *parameter_in
         }
     }
 
-    /*void DoubleParameter::update_slot_amount_control(byte slot, char name) {
+    /*void FloatParameter::update_slot_amount_control(byte slot, char name) {
         //Serial.println("update_slot_amount_control creating label.."); Serial_flush();
         char new_label[7];
         sprintf(new_label, "Amt %c", name);
@@ -77,13 +77,13 @@ void DoubleParameter::set_slot_input(byte slot, BaseParameterInput *parameter_in
     }*/
 #endif
 
-const char *DoubleParameter::get_input_name_for_slot(byte slot) {
+const char *FloatParameter::get_input_name_for_slot(byte slot) {
     if (this->connections[slot].parameter_input!=nullptr)
         return this->connections[slot].parameter_input->name;
     Debug_printf(F("WARNING: get_input_name_for_slot(%i) got an empty slot!"), slot);
     return "None";
 }
 
-double DoubleParameter::get_amount_for_slot(byte slot) {
+float FloatParameter::get_amount_for_slot(byte slot) {
     return this->connections[slot].amount;
 }

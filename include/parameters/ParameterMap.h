@@ -8,7 +8,7 @@
 struct ParameterToInputConnection {
     //BaseParameter *parameter = nullptr;
     BaseParameterInput *parameter_input = nullptr;
-    double amount = 0.0f;
+    float amount = 0.0f;
     //bool volt_per_octave = false;
 };*/
 
@@ -33,7 +33,7 @@ class ParameterMixer {
         }
         return -1;
     }
-    void connect_input(BaseParameterInput *parameter_input, double amount) {
+    void connect_input(BaseParameterInput *parameter_input, float amount) {
         int slot = find_empty_slot();
         if (slot==-1) return;
 
@@ -47,26 +47,26 @@ class ParameterMixer {
     void set_slot_input(byte slot, BaseParameterInput *parameter_input) {
         this->connections[slot].parameter_input = parameter_input;
     }
-    void set_slot_amount(byte slot, double amount) {
+    void set_slot_amount(byte slot, float amount) {
         this->connections[slot].amount = amount;
     }
 
     void set_slot_0_input(BaseParameterInput *parameter_input) {
         this->set_slot_input(0,parameter_input);
     }
-    void set_slot_0_amount(double amount) {
+    void set_slot_0_amount(float amount) {
         this->set_slot_amount(0, amount);
     }
     void set_slot_1_input(BaseParameterInput *parameter_input) {
         this->set_slot_input(0,parameter_input);
     }
-    void set_slot_1_amount(double amount) {
+    void set_slot_1_amount(float amount) {
         this->set_slot_amount(0, amount);
     }
     void set_slot_2_input(BaseParameterInput *parameter_input) {
         this->set_slot_input(0,parameter_input);
     }
-    void set_slot_2_amount(double amount) {
+    void set_slot_2_amount(float amount) {
         this->set_slot_amount(0, amount);
     }
 
@@ -75,9 +75,9 @@ class ParameterMixer {
     //   // update and send the actual value
     //}
 
-    double get_modulation_value() {
+    float get_modulation_value() {
         // get the modulation amount to use
-        double modulation = 0.0f;
+        float modulation = 0.0f;
         for (unsigned int i = 0 ; i < MAX_CONNECTIONS ; i++) {
             if (this->connections[i].parameter_input!=nullptr)
                 modulation += (

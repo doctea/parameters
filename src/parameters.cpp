@@ -18,7 +18,7 @@
 
 #ifdef MENU_SIMPLE_PARAMETERS
     //old, untested
-    FLASHMEM MenuItem *DoubleParameter::makeControl() {
+    FLASHMEM MenuItem *FloatParameter::makeControl() {
         Serial.printf("DataParameter#makeControl for %s\n", this->label);
 
         //char menu_label[MAX_LABEL_LENGTH];
@@ -49,13 +49,13 @@
             // need new source selector widget!
             
             snprintf(slot_label, MAX_LABEL_LENGTH, "%i: Amount", i);
-            DirectNumberControl<double> *amt = new DirectNumberControl<double>(
+            DirectNumberControl<float> *amt = new DirectNumberControl<float>(
                 (const char*)slot_label, 
                 &this->connections[i].amount, 
                 this->connections[i].amount, 
                 -1.0, 
                 1.0,
-                (void (*)(double,double))nullptr
+                (void (*)(float,float))nullptr
             );
 
             p_submenu->add(amt);
@@ -67,15 +67,15 @@
     #include "mymenu_items/ParameterInputMenuItems.h"
 
     // just main control, with amounts 
-    FLASHMEM MenuItem *DoubleParameter::makeControl() {
-        Debug_printf(F("DoubleParameter#makeControl for %s\n"), this->label);
+    FLASHMEM MenuItem *FloatParameter::makeControl() {
+        Debug_printf(F("FloatParameter#makeControl for %s\n"), this->label);
         // first set up the submenu to hold the values
         ParameterValueMenuItem *menuitem = new ParameterValueMenuItem(this->label, this);
 
         return menuitem;
     }
-    FLASHMEM LinkedList<MenuItem *> *DoubleParameter::makeControls() {
-        Debug_printf(F("DoubleParameter#makeControls for %s - is_modulatable is %s\n"), this->label, this->is_modulatable() ? "true" : "false");
+    FLASHMEM LinkedList<MenuItem *> *FloatParameter::makeControls() {
+        Debug_printf(F("FloatParameter#makeControls for %s - is_modulatable is %s\n"), this->label, this->is_modulatable() ? "true" : "false");
 
         // list for storing all the controls we're about to add
         LinkedList<MenuItem *> *controls = new LinkedList<MenuItem *>();
@@ -103,30 +103,30 @@
         input_selectors_bar->add(spacer1);
 
         // make the three source selector controls
-        ParameterInputSelectorControl<DoubleParameter> *source_selector_1 = new ParameterInputSelectorControl<DoubleParameter>(
+        ParameterInputSelectorControl<FloatParameter> *source_selector_1 = new ParameterInputSelectorControl<FloatParameter>(
             "Input 1", 
             this,
-            &DoubleParameter::set_slot_0_input,
+            &FloatParameter::set_slot_0_input,
             parameter_manager->available_inputs,
             parameter_manager->getInputForName(this->get_input_name_for_slot(0)),
             fullmenuitem->items->get(1)     // second item of ParameterMenuItem is first slot
         );
         source_selector_1->go_back_on_select = true;
 
-        ParameterInputSelectorControl<DoubleParameter> *source_selector_2 = new ParameterInputSelectorControl<DoubleParameter>(
+        ParameterInputSelectorControl<FloatParameter> *source_selector_2 = new ParameterInputSelectorControl<FloatParameter>(
             "Input 2", 
             this,
-            &DoubleParameter::set_slot_1_input,
+            &FloatParameter::set_slot_1_input,
             parameter_manager->available_inputs,
             parameter_manager->getInputForName(this->get_input_name_for_slot(1)),
             fullmenuitem->items->get(2)     // third item of ParameterMenuItem is second slot
         );
         source_selector_2->go_back_on_select = true;
 
-        ParameterInputSelectorControl<DoubleParameter> *source_selector_3 = new ParameterInputSelectorControl<DoubleParameter>(
+        ParameterInputSelectorControl<FloatParameter> *source_selector_3 = new ParameterInputSelectorControl<FloatParameter>(
             "Input 3", 
             this,
-            &DoubleParameter::set_slot_2_input,
+            &FloatParameter::set_slot_2_input,
             parameter_manager->available_inputs,
             parameter_manager->getInputForName(this->get_input_name_for_slot(2)),
             fullmenuitem->items->get(3)     // fourth item of ParameterMenuItem is third slot
@@ -157,8 +157,8 @@
 #endif
 
 // get the modulation amount to use
-double DoubleParameter::get_modulation_value() {
-        double modulation = 0.0f;
+float FloatParameter::get_modulation_value() {
+        float modulation = 0.0f;
         int number_of_modulations = 0;
         for (unsigned int i = 0 ; i < MAX_SLOT_CONNECTIONS ; i++) {
             if (this->connections[i].parameter_input!=nullptr && this->connections[i].amount!=0.0) {

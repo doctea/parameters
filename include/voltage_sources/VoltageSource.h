@@ -16,10 +16,10 @@ class VoltageSourceBase {
     public:
         bool debug = false;
 
-        double current_value = 0.0;
-        double last_value = 0.0;
+        float current_value = 0.0;
+        float last_value = 0.0;
 
-        double maximum_input_voltage;
+        float maximum_input_voltage;
 
         int slot = -1;
         VoltageSourceBase(int slot, bool supports_pitch = false) {
@@ -28,7 +28,7 @@ class VoltageSourceBase {
         }
 
         // actually fetch the current value from ADC, put it in the current_value
-        virtual double fetch_current_voltage();
+        virtual float fetch_current_voltage();
         // update the current voltage values
 
         // read a value from ADC to 'prime' it, but discard it 
@@ -44,12 +44,12 @@ class VoltageSourceBase {
         }
 
         // returns the last read raw voltage value
-        virtual double get_voltage() {
+        virtual float get_voltage() {
             return this->current_value;
         }
 
         // return a normalised version of the last value (ie 0.0-1.0)
-        virtual double get_voltage_normal() {
+        virtual float get_voltage_normal() {
             return this->get_voltage() / this->maximum_input_voltage;
         }
 

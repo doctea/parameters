@@ -21,7 +21,7 @@ class ArduinoPinVoltageSource : public VoltageSourceBase {
         }
 
         // ask the ADC for its current voltage
-        virtual double fetch_current_voltage() {
+        virtual float fetch_current_voltage() {
             //int16_t value = ads_source->readADC(channel);
             int16_t value1 = analogRead(this->pin); //ads_source->readADC(channel);
             int16_t value2 = analogRead(this->pin); 
@@ -29,8 +29,8 @@ class ArduinoPinVoltageSource : public VoltageSourceBase {
 
             int value = (value1+value2+value3) / 3;
 
-            //double voltageFromAdc = ads_source->toVoltage(value);
-            double voltageFromAdc = ((double)value/1024.0) * this->maximum_input_voltage;
+            //float voltageFromAdc = ads_source->toVoltage(value);
+            float voltageFromAdc = ((float)value/1024.0) * this->maximum_input_voltage;
             //if ((int)voltageFromAdc==ADS1X15_INVALID_VOLTAGE)
             //    return 0.0;
             
@@ -38,7 +38,7 @@ class ArduinoPinVoltageSource : public VoltageSourceBase {
         }
 
         // correct for non-linearity
-        double get_corrected_voltage (double voltageFromAdc) {
+        float get_corrected_voltage (float voltageFromAdc) {
             // TODO: what is the maths behind this?  make configurable, etc 
             // from empirical measuring of received voltage and asked wolfram alpha to figure it out:-
             //  1v: v=1008        = 0.99206349206

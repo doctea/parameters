@@ -40,7 +40,7 @@ class MIDIParameterInput : public ParameterInput {
                 this->currentValue = value;
         }
 
-        virtual double get_normal_value() override {
+        virtual float get_normal_value() override {
             return (float)this->currentValue/127.0;
         }
 
@@ -59,7 +59,7 @@ class MIDIParameterInput : public ParameterInput {
         // for some reason, this prevents boot if uncommented?!
         virtual const char *getOutputValue() override {
             static char fmt[20] = "          ";
-            //sprintf(fmt, "[%-3i%%]", (int)(this->get_normal_value((double)this->currentValue)*100.0));
+            //sprintf(fmt, "[%-3i%%]", (int)(this->get_normal_value((float)this->currentValue)*100.0));
             snprintf(fmt, 20, "[%-3i%%]", (int)(this->get_normal_value()*100.0));
             return fmt;
         }

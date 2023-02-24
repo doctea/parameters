@@ -46,7 +46,7 @@ class ADSVoltageSource : public ADSVoltageSourceBase {
         }
 
         // ask the ADC for its current voltage
-        /*virtual double fetch_current_voltage() {
+        /*virtual float fetch_current_voltage() {
             //int16_t value = ads_source->readADC(channel);
             int16_t value1 = ads_source->readADC(channel);
             int16_t value2 = ads_source->readADC(channel);
@@ -54,13 +54,13 @@ class ADSVoltageSource : public ADSVoltageSourceBase {
 
             int value = (value1+value2+value3) / 3;
 
-            double voltageFromAdc = ads_source->toVoltage(value);
+            float voltageFromAdc = ads_source->toVoltage(value);
             if ((int)voltageFromAdc==ADS1X15_INVALID_VOLTAGE)
                 return 0.0;
             
             return this->get_corrected_voltage(voltageFromAdc);
         }*/
-        virtual double fetch_current_voltage() {
+        virtual float fetch_current_voltage() {
             static bool already_succeeded = false;
             if (this->debug) {
                 Debug_println(F("in ADSVoltageSource#fetch_current_voltage().."));
@@ -89,9 +89,9 @@ class ADSVoltageSource : public ADSVoltageSourceBase {
                 Debug_printf(F("ADSVoltageSource channel %i read ADC voltageFromAdc %i\t :"), channel, adcReading); Serial_flush();
             }
 
-            double voltageFromAdc = this->adcread_to_voltage(adcReading);
+            float voltageFromAdc = this->adcread_to_voltage(adcReading);
 
-            double voltageCorrected = this->get_corrected_voltage(voltageFromAdc);
+            float voltageCorrected = this->get_corrected_voltage(voltageFromAdc);
 
             if (this->debug) {
                 Debug_print(F(" after correction stage 2 got "));
@@ -103,15 +103,15 @@ class ADSVoltageSource : public ADSVoltageSourceBase {
             return voltageCorrected;
         }
 
-        virtual double adcread_to_voltage(int16_t adcReading) {
-            double voltageFromAdc = ads_source->toVoltage(adcReading);
+        virtual float adcread_to_voltage(int16_t adcReading) {
+            float voltageFromAdc = ads_source->toVoltage(adcReading);
             if ((int)voltageFromAdc==ADS1X15_INVALID_VOLTAGE)
                 return 0.0;
             return voltageFromAdc;
         }
 
         // correct for non-linearity
-        virtual double get_corrected_voltage(double voltageFromAdc) {
+        virtual float get_corrected_voltage(float voltageFromAdc) {
             // TODO: what is the maths behind this?  make configurable, etc 
             // from empirical measuring of received voltage and asked wolfram alpha to figure it out:-
             //  1v: v=1008        = 0.99206349206

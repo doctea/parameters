@@ -11,14 +11,14 @@
 #include <LinkedList.h>
 
 // direct control over a Parameter from menu
-class ParameterValueMenuItem : public DirectNumberControl<double> {
+class ParameterValueMenuItem : public DirectNumberControl<float> {
     public:
-        DoubleParameter *parameter = nullptr;
+        FloatParameter *parameter = nullptr;
         //Parameter<TargetClass, DataType> *parameter = nullptr;
 
         bool show_output_mode = false;  // true if this widget should show the last post-modulation output value; false if it should show the pre-modulation value
 
-        ParameterValueMenuItem(char *label, DoubleParameter *parameter) : DirectNumberControl(label) {
+        ParameterValueMenuItem(char *label, FloatParameter *parameter) : DirectNumberControl(label) {
             strcpy(this->label, label);
             this->parameter = parameter;
             this->internal_value = parameter->getCurrentNormalValue() * 100.0;
@@ -46,14 +46,14 @@ class ParameterValueMenuItem : public DirectNumberControl<double> {
         }
 
         // normalised integer (0-100)
-        virtual double get_current_value() override {
+        virtual float get_current_value() override {
             if (this->parameter==nullptr)
                 return 0;
             /*if (this->debug) {
                 Serial.printf("ParameterValueMenuItem for %s (parameter %s) has currentValue ", this->label, this->parameter->label);
                 Serial.println(parameter->getCurrentValue());
             }*/
-            //return (int) (parameter->getCurrentNormalValue() * 100.0); //(double)this->maximum_value);    // turn into percentage
+            //return (int) (parameter->getCurrentNormalValue() * 100.0); //(float)this->maximum_value);    // turn into percentage
             return parameter->getCurrentNormalValue();
         }
 
@@ -81,7 +81,7 @@ class ParameterValueMenuItem : public DirectNumberControl<double> {
             return nullptr;
         }
 
-        virtual void set_current_value(double value) override { 
+        virtual void set_current_value(float value) override { 
             //if (this->debug) { Serial.printf(F("ParameterValueMenuItem#set_current_value(%f) on %s\n"), value, this->label); Serial_flush(); }
 
             if (this->parameter==nullptr)
@@ -93,9 +93,9 @@ class ParameterValueMenuItem : public DirectNumberControl<double> {
                 /*if (this->debug) {
                     Serial.printf(F("\tParameterMenuItem#set_current_value(%f): Calling setParamValue %f (max value %i) on Parameter %s\n"), value, value, this->maximum_value, this->parameter->label); Serial_flush();
                 }*/
-                //double v = (double)((double)value / (double)this->maximum_value);
-                //double v = (double)((double)value/(double)this->maximum_value); // / (double)this->maximum_value); // * (double)this->maximum_value);
-                double v = value;
+                //float v = (float)((float)value / (float)this->maximum_value);
+                //float v = (float)((float)value/(float)this->maximum_value); // / (float)this->maximum_value); // * (float)this->maximum_value);
+                float v = value;
 
                 /*if (this->debug) {
                     Serial.print(F("ParameterValueMenuItem#set_current_value() got v to pass: "));                    
@@ -155,9 +155,9 @@ class ParameterValueMenuItem : public DirectNumberControl<double> {
             this->change_value(f);
         }
 
-        virtual void change_value(double new_value) {    // doesn't override, implements for normalled float?
+        virtual void change_value(float new_value) {    // doesn't override, implements for normalled float?
             if (readOnly) return;
-            double last_value = this->get_current_value();
+            float last_value = this->get_current_value();
             //if (this->debug) Serial.printf(F("ParameterValueMenuItem#change_value(%f)\t in %s\tabout to call set_current_value(%f)\n"), new_value, this->label);
             this->set_current_value(new_value);
             //if (this->debug) Serial.printf(F("ParameterValueMenuItem#change_value(%f)\t after set_current_value(%f) get_current_value is \n"), new_value, this->get_current_value());
@@ -177,9 +177,9 @@ class ParameterValueMenuItem : public DirectNumberControl<double> {
 class ParameterMenuItem : public SubMenuItemBar {
     public:
 
-    DoubleParameter *parameter = nullptr;
+    FloatParameter *parameter = nullptr;
 
-    ParameterMenuItem(const char *label, DoubleParameter *parameter) : SubMenuItemBar(label) {
+    ParameterMenuItem(const char *label, FloatParameter *parameter) : SubMenuItemBar(label) {
         this->parameter = parameter;
 
         // add the direct Value changer
@@ -196,7 +196,7 @@ class ParameterMenuItem : public SubMenuItemBar {
             Debug_printf(F("\tfor %s, setting to parameter_input@%p '%s'\n"), label, parameter->connections[i].parameter_input, input_name);
             Serial_flush();
             sprintf(labelnew, "%s", input_name); //"Amt "
-            DirectNumberControl<double> *input_amount_control = new DirectNumberControl<double>(
+            DirectNumberControl<float> *input_amount_control = new DirectNumberControl<float>(
                 labelnew, 
                 &parameter->connections[i].amount, 
                 parameter->connections[i].amount, 

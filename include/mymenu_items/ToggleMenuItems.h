@@ -5,15 +5,15 @@
 #include "ParameterMenuItems.h"
 #include "menuitems.h"
 
-class DoubleParameter;
+class FloatParameter;
 
 class ToggleParameterControl : public ParameterValueMenuItem {
     public:
 
-    double value_on = 1.0;
-    double value_off = 0.0;
+    float value_on = 1.0;
+    float value_off = 0.0;
 
-    ToggleParameterControl(char *label, DoubleParameter *parameter) : ParameterValueMenuItem(label, parameter) {}
+    ToggleParameterControl(char *label, FloatParameter *parameter) : ParameterValueMenuItem(label, parameter) {}
 
     virtual bool action_opened() override {
         Debug_println(F("ToggleParameterControl#action_opened"));
