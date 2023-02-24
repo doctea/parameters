@@ -60,7 +60,7 @@ class VoltageSourceBase {
             return get_midi_pitch_for_voltage(this->get_voltage());
         }
 
-        #if defined(ENABLE_SD) && !defined(DISABLE_CALIBRATION_STORAGE)
+        #if defined(ENABLE_SD) && defined(ENABLE_CALIBRATION_STORAGE)
             virtual void load_calibration() {
                 Serial.printf("VoltageSourceBase: load_calibration for unknown input!");
                 // todo: make VoltageSource know its name so that it knows where to load from
@@ -76,7 +76,7 @@ class VoltageSourceBase {
                 Serial.println(F("makeCalibrationControls() in VoltageSourceBase returning nullptr"));
                 return nullptr;
             }
-            #if !defined(DISABLE_CALIBRATION_STORAGE)
+            #if defined(ENABLE_CALIBRATION_STORAGE)
                 FLASHMEM virtual MenuItem *makeCalibrationLoadSaveControls(int i);
             #endif
         #endif

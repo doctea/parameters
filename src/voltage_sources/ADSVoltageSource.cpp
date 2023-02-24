@@ -9,7 +9,6 @@
     #include "submenuitem_bar.h"
     #include "menuitems_object.h"
     //#include "ParameterManager.h"
-
     FLASHMEM MenuItem *ADSVoltageSourceBase::makeCalibrationControls(int i) {
         Debug_println("makeCalibrationControls() for an ADS24vVoltageSource!"); Serial_flush();
 
@@ -64,7 +63,7 @@
 
 
 // todo: different implementation depending on whether file stuff is available or not?
-#if defined(ENABLE_SD) && !defined(DISABLE_CALIBRATION_STORAGE)
+#if defined(ENABLE_SD) && defined(ENABLE_CALIBRATION_STORAGE)
     #include "SD.h"
     #define FILEPATH_CALIBRATION_FORMAT       "calibration_voltage_source_%i.txt"
     

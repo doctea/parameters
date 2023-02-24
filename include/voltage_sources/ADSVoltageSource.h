@@ -19,12 +19,12 @@ class ADSVoltageSourceBase : public VoltageSourceBase {
 
         ADSVoltageSourceBase(int slot, bool supports_pitch = false) : VoltageSourceBase(slot, supports_pitch) {}
 
-        #if defined(ENABLE_SCREEN) && !defined(DISABLE_CALIBRATION_STORAGE)
+        #if defined(ENABLE_SCREEN)
             FLASHMEM virtual MenuItem *makeCalibrationControls(int i) override;
             //virtual MenuItem *makeCalibrationLoadSaveControls(int i) override;
         #endif
 
-        #if defined(ENABLE_SD) && !defined(DISABLE_CALIBRATION_STORAGE)
+        #if defined(ENABLE_SD) && defined(ENABLE_CALIBRATION_STORAGE)
             virtual void load_calibration() override;
             virtual void save_calibration() override;
         #endif
