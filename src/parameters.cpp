@@ -77,7 +77,7 @@
     FLASHMEM LinkedList<MenuItem *> *DoubleParameter::makeControls() {
         Debug_printf(F("DoubleParameter#makeControls for %s - is_modulatable is %s\n"), this->label, this->is_modulatable() ? "true" : "false");
 
-       // list for storing all the controls we're about to add
+        // list for storing all the controls we're about to add
         LinkedList<MenuItem *> *controls = new LinkedList<MenuItem *>();
 
         if (!this->is_modulatable()) {
@@ -112,6 +112,7 @@
             fullmenuitem->items->get(1)     // second item of ParameterMenuItem is first slot
         );
         source_selector_1->go_back_on_select = true;
+
         ParameterInputSelectorControl<DoubleParameter> *source_selector_2 = new ParameterInputSelectorControl<DoubleParameter>(
             "Input 2", 
             this,
@@ -121,6 +122,7 @@
             fullmenuitem->items->get(2)     // third item of ParameterMenuItem is second slot
         );
         source_selector_2->go_back_on_select = true;
+
         ParameterInputSelectorControl<DoubleParameter> *source_selector_3 = new ParameterInputSelectorControl<DoubleParameter>(
             "Input 3", 
             this,

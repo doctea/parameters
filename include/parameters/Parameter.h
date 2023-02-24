@@ -13,6 +13,7 @@
     #ifndef FLASHMEM
         #define FLASHMEM
     #endif
+    #define USE_ARX_TYPE_TRAITS
     #include <ArxTypeTraits.h>
 #endif
 //#include <stddef.h>
@@ -426,7 +427,7 @@ class DataParameter : public DoubleParameter {
             return constrain(value - 0.1, this->minimumDataValue, this->maximumDataValue);
         }       
 
-        #ifdef CORE_TEENSY
+        #if !defined(USE_ARX_TYPE_TRAITS)
             // use Teensy version of this code that uses overriding functions instead of ArxTypeTraits/constexpr to render values
             virtual const char* getFormattedValue(double normal) override {
                 const char *fmt = this->parseFormattedDataType(this->normalToData(normal));

@@ -253,9 +253,12 @@ class ParameterManager {
                 for (unsigned int i = 0 ; i <this->available_parameters->size() ; i++) {
                     LinkedList<MenuItem*> *ctrls = this->makeMenuItemsForParameter(this->available_parameters->get(i));
                     menu->add(ctrls);
-                    //delete ctrls;
-                    ctrls->clear();
+                    //continue;
+                    //delete ctrls; 
+                    //Serial.printf("about to ctrls->clear()\n"); Serial.flush();
+                    //ctrls->clear();                    
                 }
+                //Serial.println("addAllParameterMenuItems finished"); Serial.flush();
             }
 
             FLASHMEM SubMenuItem *addParameterSubMenuItems(Menu *menu, const char *submenu_label, LinkedList<DoubleParameter*> *parameters, int16_t default_fg_colour = C_WHITE) {
@@ -332,9 +335,12 @@ class ParameterManager {
                 return ctrl;
             }
             FLASHMEM LinkedList<MenuItem *> *makeMenuItemsForParameter(DoubleParameter *p, const char *label_prefix = "") {
-                if (strcmp(p->label,"None")==0) return nullptr;
-                Debug_println(F("makeMenuItemsForParameter calling makeControls!..")); Serial_flush();
+                if (strcmp(p->label,"None")==0) 
+                    return nullptr;
+                //Debug_println(F("makeMenuItemsForParameter calling makeControls!..")); Serial_flush();
+                //Serial.printf("makeMenuItemsForParameter has parameter @%p, doing makeControls\n", p); Serial.flush();
                 LinkedList<MenuItem *> *ctrls = p->makeControls();
+                //Serial.println("returning controls..");
                 return ctrls;
             }
 
@@ -367,6 +373,7 @@ class ParameterManager {
                         
                         VoltageSourceBase *voltage_source = this->voltage_sources->get(i);
                         submenuitem->add(voltage_source->makeCalibrationControls(i));
+                        //Serial.println("addAllVoltageSourceCalibrationMenuItems did makeCalibrationControls!");
                         #if defined(ENABLE_SD) && defined(ENABLE_CALIBRATION_STORAGE)
                             submenuitem->add(voltage_source->makeCalibrationLoadSaveControls(i));
                         #endif

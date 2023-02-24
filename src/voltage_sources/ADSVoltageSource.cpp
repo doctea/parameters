@@ -10,7 +10,7 @@
     #include "menuitems_object.h"
     //#include "ParameterManager.h"
     FLASHMEM MenuItem *ADSVoltageSourceBase::makeCalibrationControls(int i) {
-        Debug_println("makeCalibrationControls() for an ADS24vVoltageSource!"); Serial_flush();
+        Debug_println("makeCalibrationControls() for an ADSVoltageSource!"); Serial_flush();
 
         Debug_printf("MENU_C_MAX is %i\n", MENU_C_MAX);
         char name[MENU_C_MAX];
