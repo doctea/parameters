@@ -371,7 +371,7 @@ class ParameterManager {
                     //Serial.println(F("\t\taddAllVoltageSourceCalibrationMenuItems done!")); Serial_flush();
                     //Serial.printf(F("\tfinished with voltage_source %i\n"), i);
                 }
-                Serial.printf(F("ParameterManager#addAllVoltageSourceCalibrationMenuItems() done!\n------------\n")); Serial_flush();
+                Debug_printf(F("ParameterManager#addAllVoltageSourceCalibrationMenuItems() done!\n------------\n")); Serial_flush();
 
                 menu->add(submenuitem);
             }

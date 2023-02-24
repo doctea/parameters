@@ -51,7 +51,7 @@ class ParameterInputDisplay : public MenuItem {
                 // center is 0.5, range 0 to 1
                 //logged[position] =  ?? nothing
             }
-            if (this->debug) Serial.printf(F("\tupdate_ticks(%i) recorded %f\n"), position, logged[position]);
+            if (this->debug) Debug_printf(F("\tupdate_ticks(%i) recorded %f\n"), position, logged[position]);
         }
 
         virtual int display(Coord pos, bool selected, bool opened) override {
@@ -84,8 +84,13 @@ class ParameterInputDisplay : public MenuItem {
             static float ticks_per_pixel = (float)memory_size / (float)tft->width();
 
             // we're going to use direct access to the underlying Adafruit library here
-            const DisplayTranslator_STeensy *tft2 = (DisplayTranslator_STeensy*)tft;
-            ST7789_t3 *actual = tft2->tft;
+            #ifdef TFT_ST7789_T3
+                const DisplayTranslator_STeensy *tft2 = (DisplayTranslator_STeensy*)tft;
+                ST7789_t3 *actual = tft2->tft;
+            #elif defined(TFT_BODMER)
+                const DisplayTranslator_Bodmer *tft2 = (DisplayTranslator_Bodmer*)tft;
+                TFT_eSprite *actual = tft2->tft;
+            #endif
 
             const int GRAPH_HEIGHT = 50;
 

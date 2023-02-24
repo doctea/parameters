@@ -1,7 +1,9 @@
 #include "Parameter.h"
 
 class MenuItem;
-class ToggleControl;
+//class ToggleParameterControl;
+//class ToggleParameterControl;
+#include "mymenu_items/ToggleMenuItems.h"
 
 template<class TargetClass, class DataType = bool>
 class ToggleParameter : public DataParameter<TargetClass,DataType> {
@@ -105,7 +107,7 @@ class ToggleParameter : public DataParameter<TargetClass,DataType> {
     virtual MenuItem *makeControl() override {
         //Serial.println("ToggleParameter#makeControl()! ############");
         //Serial.printf("ToggleParameter#makeControl for %s\n", this->label);
-        return new ToggleControl(this->label, this);
+        return new ToggleParameterControl(this->label, this);
     }
     #endif
 

@@ -1,17 +1,22 @@
-#include "parameters/Parameter.h"
+#ifndef PARAMETER_TOGGLEMENUITEMS__INCLUDED
+#define PARAMETER_TOGGLEMENUITEMS__INCLUDED
+
+//#include "parameters/Parameter.h"
 #include "ParameterMenuItems.h"
 #include "menuitems.h"
 
-class ToggleControl : public ParameterValueMenuItem {
+class DoubleParameter;
+
+class ToggleParameterControl : public ParameterValueMenuItem {
     public:
 
     double value_on = 1.0;
     double value_off = 0.0;
 
-    ToggleControl(char *label, DoubleParameter *parameter) : ParameterValueMenuItem(label, parameter) {}
+    ToggleParameterControl(char *label, DoubleParameter *parameter) : ParameterValueMenuItem(label, parameter) {}
 
     virtual bool action_opened() override {
-        Debug_println(F("ToggleControl#action_opened"));
+        Debug_println(F("ToggleParameterControl#action_opened"));
         if (parameter->getCurrentNormalValue()<0.5) {
             Debug_println(F("sending value_on"));
             //parameter->setParamValue(value_on);
@@ -25,3 +30,5 @@ class ToggleControl : public ParameterValueMenuItem {
     }
 
 };
+
+#endif

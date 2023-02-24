@@ -1,6 +1,8 @@
 #ifndef ADSVOLTAGESOURCE__INCLUDED
 #define ADSVOLTAGESOURCE__INCLUDED
 
+#include "debug.h"
+
 #include "VoltageSource.h"
 #include "ADS1X15.h"
 
@@ -59,11 +61,11 @@ class ADSVoltageSource : public ADSVoltageSourceBase {
         virtual double fetch_current_voltage() {
             static bool already_succeeded = false;
             if (this->debug) {
-                Serial.println(F("in ADSVoltageSource#fetch_current_voltage().."));
-                Serial.printf(F("\tads_source is @%p, reading from channel %i\n"), this->ads_source, this->channel);
+                Debug_println(F("in ADSVoltageSource#fetch_current_voltage().."));
+                Debug_printf(F("\tads_source is @%p, reading from channel %i\n"), this->ads_source, this->channel);
             }            
             if (!already_succeeded) 
-                Serial.printf(F("ADSVoltageSource#fetch_current_voltage reading from channel %i, check you're using correct address ADC board if crash here!\n"), this->channel);
+                Debug_printf(F("ADSVoltageSource#fetch_current_voltage reading from channel %i, check you're using correct address ADC board if crash here!\n"), this->channel);
 
             #ifndef FAST_VOLTAGE_READS
                 // do three readings from ADC and average them
@@ -78,11 +80,11 @@ class ADSVoltageSource : public ADSVoltageSourceBase {
             #endif
 
             if (!already_succeeded) 
-                Serial.printf(F("ADSVoltageSource#fetch_current_voltage didn't crash on first read, so address is probably ok!\n"), this->channel);
+                Debug_printf(F("ADSVoltageSource#fetch_current_voltage didn't crash on first read, so address is probably ok!\n"), this->channel);
             already_succeeded = true;
 
             if (this->debug) {
-                Serial.printf(F("ADSVoltageSource channel %i read ADC voltageFromAdc %i\t :"), channel, adcReading); Serial_flush();
+                Debug_printf(F("ADSVoltageSource channel %i read ADC voltageFromAdc %i\t :"), channel, adcReading); Serial_flush();
             }
 
             double voltageFromAdc = this->adcread_to_voltage(adcReading);
@@ -90,11 +92,11 @@ class ADSVoltageSource : public ADSVoltageSourceBase {
             double voltageCorrected = this->get_corrected_voltage(voltageFromAdc);
 
             if (this->debug) {
-                Serial.print(F(" after correction stage 2 got "));
-                Serial.println(voltageCorrected);
+                Debug_print(F(" after correction stage 2 got "));
+                Debug_println(voltageCorrected);
             }
 
-            if (this->debug) Serial.printf(F("in ADSVoltageSource#fetch_current_voltage() finishing (and returning %f)\n"), voltageCorrected);
+            if (this->debug) Debug_printf(F("in ADSVoltageSource#fetch_current_voltage() finishing (and returning %f)\n"), voltageCorrected);
 
             return voltageCorrected;
         }

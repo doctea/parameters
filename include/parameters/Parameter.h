@@ -2,9 +2,17 @@
 #define PARAMETER__INCLUDED
 
 #include <Arduino.h>
-#ifdef CORE_TEENSY
+#if defined(CORE_TEENSY)
     // use alternative method if Teensy
+#elif defined(ARDUINO_ARCH_RP2040)
+    #ifndef FLASHMEM
+        #define FLASHMEM
+    #endif
+    // us alternative method if Raspberry Pico
 #else
+    #ifndef FLASHMEM
+        #define FLASHMEM
+    #endif
     #include <ArxTypeTraits.h>
 #endif
 //#include <stddef.h>
