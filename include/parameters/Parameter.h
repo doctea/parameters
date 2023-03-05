@@ -3,20 +3,29 @@
 
 #include <Arduino.h>
 #if defined(CORE_TEENSY)
-    // use alternative method if Teensy
+    // use alternative method if Teensy - no ARXTypeTraits, FLASHMEM
 #elif defined(ARDUINO_ARCH_RP2040)
+    // use alternative method if Raspberry Pico - ARXTypeTraits, no FLASHMEM define
     #ifndef FLASHMEM
         #define FLASHMEM
     #endif
-    // us alternative method if Raspberry Pico
+    /*#ifndef USE_ARX_TYPE_TRAITS
+        #define USE_ARX_TYPE_TRAITS
+    #endif*/
 #else
+    // default arduino - ARXTypeTraits, no FLASHMEM 
     #ifndef FLASHMEM
         #define FLASHMEM
     #endif
-    #define USE_ARX_TYPE_TRAITS
-    #include <ArxTypeTraits.h>
+    #ifndef USE_ARX_TYPE_TRAITS
+        #define USE_ARX_TYPE_TRAITS
+    #endif
 #endif
 //#include <stddef.h>
+
+#ifdef USE_ARX_TYPE_TRAITS
+    #include <ArxTypeTraits.h>
+#endif
 
 #include "debug.h"
 
@@ -80,14 +89,14 @@ class BaseParameter {
 class FloatParameter : public BaseParameter {
     public: 
     
-    float currentNormalValue = 0.0;
-    float lastNormalValue = 0.0;
-    float initialNormalValue = 0.0;
-    float minimumNormalValue = 0.0;
-    float maximumNormalValue = 1.0; //100.0;
+    float currentNormalValue = 0.0f;
+    float lastNormalValue = 0.0f;
+    float initialNormalValue = 0.0f;
+    float minimumNormalValue = 0.0f;
+    float maximumNormalValue = 1.0f; //100.0;
 
-    float lastModulatedNormalValue = 0.0;
-    float lastOutputNormalValue = 0.0;
+    float lastModulatedNormalValue = 0.0f;
+    float lastOutputNormalValue = 0.0f;
 
     FloatParameter(const char *label) : BaseParameter(label) {}
 
@@ -230,13 +239,13 @@ template<class TargetClass, class DataType = float>
 class DataParameter : public FloatParameter {
     public:
 
-        DataType minimumDataValue = 0.0;
-        DataType maximumDataValue = 100.0;
-        DataType lastDataValue = 0;
-        DataType currentDataValue = 0;
-        DataType initialDataValue = 0;
+        DataType minimumDataValue = 0.0f;
+        DataType maximumDataValue = 100.0f;
+        DataType lastDataValue = 0.0f;
+        DataType currentDataValue = 0.f;
+        DataType initialDataValue = 0.f;
 
-        float modulateNormalValue = 0.0;
+        float modulateNormalValue = 0.0f;
 
         TargetClass *target;
         void(TargetClass::*setter_func)(DataType value) = nullptr;// setter_func;
@@ -295,8 +304,8 @@ class DataParameter : public FloatParameter {
             this->currentDataValue = current_value;
             this->initialDataValue = current_value;
 
-            this->minimumNormalValue = 0.0; //minimum_value;
-            this->maximumNormalValue = 1.0; //maximum_value;
+            this->minimumNormalValue = 0.0f; //minimum_value;
+            this->maximumNormalValue = 1.0f; //maximum_value;
             this->currentNormalValue = this->dataToNormal(current_value); //(current_value - minimum_value) / (maximum_value - minimum_value);
             this->initialNormalValue = this->currentNormalValue;
 
@@ -312,7 +321,7 @@ class DataParameter : public FloatParameter {
             }*/
             value = this->constrainNormal(value);
             DataType data = this->minimumDataValue + (value * (float)(this->maximumDataValue - this->minimumDataValue));
-            if (this->debug && value>=0.0) Serial.printf(" => %i\n", data);
+            if (this->debug && value>=0.0f) Serial.printf(" => %i\n", data);
             return data;
         }
         virtual float dataToNormal(DataType value) {
@@ -437,12 +446,12 @@ class DataParameter : public FloatParameter {
         // returns an incremented DataType version of input value (float)
         virtual DataType incrementDataValue(float value) {
             //Serial.printf("%s#incrementDataValue(%f) float version\n", this->label, value);
-            value += 0.1;
+            value += 0.1f;
             return constrain(value, this->minimumDataValue, this->maximumDataValue);
         }
         // returns a decremented DataType version of input value (float)
         virtual DataType decrementDataValue(float value) {
-            value -= 0.1;
+            value -= 0.1f;
             return constrain(value, this->minimumDataValue, this->maximumDataValue);
         }       
 
@@ -464,7 +473,7 @@ class DataParameter : public FloatParameter {
             virtual const char* parseFormattedDataType(float value) {
                 static char fmt[10] = "         ";
                 //sprintf(fmt, "%3i%% (float)",     (int)(100.0*value)); //->getCurrentValue());
-                snprintf(fmt, 10, "%3i%%", (int)(100.0*value)); //->getCurrentValue());
+                snprintf(fmt, 10, "%3i%%", (int)(100.0f*value)); //->getCurrentValue());
                 return fmt;
             }
             virtual const char* parseFormattedDataType(unsigned int value) {
@@ -492,11 +501,13 @@ class DataParameter : public FloatParameter {
                 if constexpr (std::is_integral<DataType>::value && std::is_same<DataType, bool>::value) {
                     snprintf(fmt, 20, "%s", this->getCurrentValue()?"On" : "Off");
                 } else if constexpr (std::is_floating_point<DataType>::value) {
-                    snprintf(fmt, 20, "%3i%% (float)",     (int)(100.0*this->getCurrentValue())); //->getCurrentValue());
+                    snprintf(fmt, 20, "%3i%% (float)",     (int)(100.0f*this->getCurrentDataValue())); //->getCurrentValue());
                 } else if constexpr (std::is_unsigned<DataType>::value) {
-                    snprintf(fmt, 20, "%5u (unsigned)",    (unsigned int)(this->maximum_value*this->getCurrentValue())); //getCurrentValue());
+                    snprintf(fmt, 20, "%5u (unsigned)",    (unsigned int)(this->getCurrentDataValue()));
+                                            //(unsigned int)(this->maximumDataValue*this->getCurrentValue())); //getCurrentValue());
                 } else {
-                    snprintf(fmt, 20, "%5i (signed)",      (int)(this->maximum_value*this->getCurrentValue())); //getCurrentValue());
+                    snprintf(fmt, 20, "%5i (signed)",      (int)(this->getCurrentDataValue())); //getCurrentValue());
+                                            //(int)(this->maximumDataValue*this->getCurrentValue())); //getCurrentValue());
                 }
                 //Serial.printf("getFormattedValue: '%s'\n", fmt);
                 return fmt;

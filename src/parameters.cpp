@@ -156,26 +156,53 @@
 
 #endif
 
-// get the modulation amount to use
-float FloatParameter::get_modulation_value() {
-        float modulation = 0.0f;
-        int number_of_modulations = 0;
-        for (unsigned int i = 0 ; i < MAX_SLOT_CONNECTIONS ; i++) {
-            if (this->connections[i].parameter_input!=nullptr && this->connections[i].amount!=0.0) {
-                modulation += (
-                    this->connections[i].parameter_input->get_normal_value() * this->connections[i].amount
-                );
-                number_of_modulations++;
+
+#ifndef USE_REAL_FLOATS
+    // get the modulation amount to use
+    float FloatParameter::get_modulation_value() {
+            int modulation = 0;
+            int number_of_modulations = 0;
+            for (unsigned int i = 0 ; i < MAX_SLOT_CONNECTIONS ; i++) {
+                if (this->connections[i].parameter_input!=nullptr && this->connections[i].amount!=0.0f) {
+                    int amt_int = this->connections[i].amount * 100;
+                    int nml_int = this->connections[i].parameter_input->get_normal_value() * 100;
+                    modulation += (
+                        amt_int * nml_int
+                        //this->connections[i].parameter_input->get_normal_value() * this->connections[i].amount
+                    );
+                    number_of_modulations++;
+                }
             }
-        }
-        if (this->debug && number_of_modulations>0) 
-            Debug_printf(F("%s#get_modulation_value()\treturning\t%f from\t%i modulations\n"), this->label, modulation, number_of_modulations);
-        /*else {
-            Serial.printf("%s#get_modulation_value() got no modulations\n", this->label);
-        }*/
-        return modulation;
-        //this->parameter->modulateValue(modulation);
-}
+            if (this->debug && number_of_modulations>0) 
+                Debug_printf(F("%s#get_modulation_value()\treturning\t%f from\t%i modulations\n"), this->label, modulation, number_of_modulations);
+            /*else {
+                Serial.printf("%s#get_modulation_value() got no modulations\n", this->label);
+            }*/
+            return ((float)modulation)/100.0f;
+            //this->parameter->modulateValue(modulation);
+    }
+#else
+    // get the modulation amount to use
+    float FloatParameter::get_modulation_value() {
+            float modulation = 0.0f;
+            int number_of_modulations = 0;
+            for (unsigned int i = 0 ; i < MAX_SLOT_CONNECTIONS ; i++) {
+                if (this->connections[i].parameter_input!=nullptr && this->connections[i].amount!=0.0f) {
+                    modulation += (
+                        this->connections[i].parameter_input->get_normal_value() * this->connections[i].amount
+                    );
+                    number_of_modulations++;
+                }
+            }
+            if (this->debug && number_of_modulations>0) 
+                Debug_printf(F("%s#get_modulation_value()\treturning\t%f from\t%i modulations\n"), this->label, modulation, number_of_modulations);
+            /*else {
+                Serial.printf("%s#get_modulation_value() got no modulations\n", this->label);
+            }*/
+            return modulation;
+            //this->parameter->modulateValue(modulation);
+    }
+#endif
 
 
 // todo: merge this with Parameter.cpp
