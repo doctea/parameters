@@ -195,13 +195,13 @@ class ParameterMenuItem : public SubMenuItemBar {
                                 (char*)"None";
             Debug_printf(F("\tfor %s, setting to parameter_input@%p '%s'\n"), label, parameter->connections[i].parameter_input, input_name);
             Serial_flush();
-            sprintf(labelnew, "%s", input_name); //"Amt "
+            snprintf(labelnew, 8, "%s", input_name); //"Amt "
             DirectNumberControl<float> *input_amount_control = new DirectNumberControl<float>(
                 labelnew, 
                 &parameter->connections[i].amount, 
                 parameter->connections[i].amount, 
-                -1.0, 
-                1.0, 
+                -1.0f, 
+                1.0f, 
                 nullptr
             );
             //input_amount_control->default_fg = parameter->connections[i].parameter_input->colour;
