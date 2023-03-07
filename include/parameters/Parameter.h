@@ -193,9 +193,9 @@ class FloatParameter : public BaseParameter {
     }
 
     virtual void reset_mappings() {
-        this->set_slot_0_amount(0.0);
-        this->set_slot_1_amount(0.0);
-        this->set_slot_2_amount(0.0);
+        this->set_slot_0_amount(0.0f);
+        this->set_slot_1_amount(0.0f);
+        this->set_slot_2_amount(0.0f);
     }
 
     // calculate the modulation value based on the inputs * modulation amounts
@@ -247,7 +247,7 @@ class DataParameter : public FloatParameter {
 
         float modulateNormalValue = 0.0f;
 
-        TargetClass *target;
+        TargetClass *target = nullptr;
         void(TargetClass::*setter_func)(DataType value) = nullptr;// setter_func;
         DataType(TargetClass::*getter_func)() = nullptr;// setter_func;
 
