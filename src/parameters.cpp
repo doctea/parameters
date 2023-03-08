@@ -160,9 +160,12 @@
 #ifndef USE_REAL_FLOATS
     // get the modulation amount to use
     float FloatParameter::get_modulation_value() {
-            int modulation = 0;
-            int number_of_modulations = 0;
-            for (unsigned int i = 0 ; i < MAX_SLOT_CONNECTIONS ; i++) {
+            int_fast16_t modulation = 0;
+            int_fast8_t number_of_modulations = 0;
+            if (this->connections[0].amount==0.0f && this->connections[1].amount==0.0f && this->connections[2].amount==0.0f)
+                return 0.0f;
+
+            for (int_fast8_t i = 0 ; i < MAX_SLOT_CONNECTIONS ; i++) {
                 if (this->connections[i].parameter_input!=nullptr && this->connections[i].amount!=0.0f) {
                     int amt_int = this->connections[i].amount * 100;
                     int nml_int = this->connections[i].parameter_input->get_normal_value() * 100;
@@ -185,7 +188,10 @@
     // get the modulation amount to use
     float FloatParameter::get_modulation_value() {
             float modulation = 0.0f;
-            int number_of_modulations = 0;
+            int_fast8_t number_of_modulations = 0;
+            if (this->connections[0].amount==0.0f && this->connections[1].amount==0.0f && this->connections[2].amount==0.0f)
+                return 0.0f;
+
             for (unsigned int i = 0 ; i < MAX_SLOT_CONNECTIONS ; i++) {
                 if (this->connections[i].parameter_input!=nullptr && this->connections[i].amount!=0.0f) {
                     modulation += (

@@ -228,6 +228,16 @@ class ParameterManager {
             this->profile_update_mixers = update_mixers_finished - update_mixers_started;
         }
 
+        FASTRUN void update_mixers_sliced() {
+            static int_fast8_t pos = 0;
+            const int SLICE_SIZE = this->available_parameters->size()/3;
+            const unsigned int available_parameters_size = this->available_parameters->size();
+            for (unsigned int i = pos ; i < available_parameters_size && i < SLICE_SIZE ; i++) {
+                this->available_parameters->get(i)->update_mixer();
+            }
+            if (pos>=available_parameters_size) pos = 0;
+        }
+
         FLASHMEM void setDefaultParameterConnections() {
             Debug_printf(F("ParameterManager#setDefaultParameterConnections() has %i parameters to map to %i inputs..\n"), this->available_parameters->size(), this->available_inputs->size());
             for (unsigned int i = 0 ; i < this->available_parameters->size() ; i++) {
