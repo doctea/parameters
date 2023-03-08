@@ -157,8 +157,9 @@
 #endif
 
 
+#define USE_REAL_FLOATS
 #ifndef USE_REAL_FLOATS
-    // get the modulation amount to use
+    // NOT WORKING PROPERLY !!!! get the modulation amount to use
     float FloatParameter::get_modulation_value() {
             int_fast16_t modulation = 0;
             int_fast8_t number_of_modulations = 0;
