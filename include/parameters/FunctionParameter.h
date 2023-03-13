@@ -1,3 +1,5 @@
+#ifndef FUNCTION_PARAMETER__INCLUDED
+#define FUNCTION_PARAMETER__INCLUDED
 #include "Parameter.h"
 
 //template<class DataType = float>
@@ -15,3 +17,4 @@ class FunctionParameter : public FloatParameter {
             (*this->callback) (value);
     };
 };
+#endif
