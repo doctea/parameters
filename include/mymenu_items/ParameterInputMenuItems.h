@@ -11,7 +11,7 @@ class VoltageParameterInput;
 
 // Selector to choose a ParameterInput from the available list to use a Source; used by objects/parameters that can only feed from one ParameterInput at a time, eg CVInput
 template<class TargetClass>
-class ParameterInputSelectorControl : public SelectorControl {
+class ParameterInputSelectorControl : public SelectorControl<int> {
     BaseParameterInput *initial_selected_parameter_input = nullptr;
     LinkedList<BaseParameterInput*> *available_parameter_inputs = nullptr;
 

@@ -39,7 +39,7 @@ class BaseParameter;
 
 #ifdef ENABLE_SCREEN
     class MenuItem;
-    class SelectorControl;
+    template<class DataType> class SelectorControl;
     class ParameterMenuItem;
     //, ParameterInputSelectorControl;
 #endif
@@ -54,7 +54,7 @@ struct ParameterToInputConnection {
         // done more directly? todo: add colour, and update the colour of the widget too
         // link the parameter mapping back to the screen controls, so that we can update the screen when mapping changes
         MenuItem *amount_control = nullptr;
-        SelectorControl *input_control = nullptr;
+        SelectorControl<int> *input_control = nullptr;
     #endif
     //bool volt_per_octave = false;
 };
@@ -217,7 +217,7 @@ class FloatParameter : public BaseParameter {
         FLASHMEM virtual MenuItem *makeControl();
         FLASHMEM virtual LinkedList<MenuItem *> *makeControls();
 
-        void link_parameter_input_controls_to_connections(MenuItem *amt1, MenuItem *amt2, MenuItem *amt3, SelectorControl *source_selector_1, SelectorControl *source_selector_2, SelectorControl *source_selector_3) {
+        void link_parameter_input_controls_to_connections(MenuItem *amt1, MenuItem *amt2, MenuItem *amt3, SelectorControl<int> *source_selector_1, SelectorControl<int> *source_selector_2, SelectorControl<int> *source_selector_3) {
             this->connections[0].amount_control = amt1;
             this->connections[1].amount_control = amt2;
             this->connections[2].amount_control = amt3;
