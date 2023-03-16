@@ -61,7 +61,7 @@ class ParameterManager {
             static LinkedList<BaseParameterInput*> *available_pitch_inputs = new LinkedList<BaseParameterInput*>();
             static bool already_calculated = false;
             if (!already_calculated) {
-                for (unsigned int i = 0 ; i < available_inputs->size() ; i++) {
+                for (uint_fast8_t i = 0 ; i < available_inputs->size() ; i++) {
                     if (available_inputs->get(i)->supports_pitch())
                         available_pitch_inputs->add(available_inputs->get(i));
                 }
@@ -134,8 +134,8 @@ class ParameterManager {
         }
 
         FASTRUN BaseParameterInput *getInputForName(const char *input_name) {
-            const unsigned int size = available_inputs->size();
-            for(unsigned int i = 0 ; i < size ; i++) {
+            const uint_fast8_t size = available_inputs->size();
+            for(uint_fast8_t i = 0 ; i < size ; i++) {
                 if (available_inputs->get(i)->matches_label(input_name))
                     return available_inputs->get(i);
             }
@@ -145,8 +145,8 @@ class ParameterManager {
             return nullptr;*/
         }
         FASTRUN int getInputIndexForName(const char *input_name) {
-            const unsigned int size = available_inputs->size();
-            for(unsigned int i = 0 ; i < size ; i++) {
+            const uint_fast8_t size = available_inputs->size();
+            for(uint_fast8_t i = 0 ; i < size ; i++) {
                 if (available_inputs->get(i)->matches_label(input_name))
                     return i;
             }
@@ -154,8 +154,8 @@ class ParameterManager {
         }
         FASTRUN int getInputIndex(BaseParameterInput *param) {
             if (param==nullptr) return -1;
-            const unsigned int size = available_inputs->size();
-            for (unsigned int i = 0 ; i < size ; i++) {
+            const uint_fast8_t size = available_inputs->size();
+            for (uint_fast8_t i = 0 ; i < size ; i++) {
                 if (param==this->available_inputs->get(i))
                     return i;
             }
@@ -178,9 +178,9 @@ class ParameterManager {
         FASTRUN void update_voltage_sources() {
             //if (this->debug) Serial.printf(F("ParameterManager#update_voltage_sources()"));
             // round robin reading so they get a chance to settle in between adc reads?
-            const unsigned int size = voltage_sources->size();
+            const uint_fast8_t size = voltage_sources->size();
             if (size==0) return;
-            static unsigned int last_read = 0;
+            static uint_fast8_t last_read = 0;
 
             //if (this->debug) Serial.printf(F("ParameterManager#update_voltage_sources() about to read from %i\n"), last_read);
             if (this->debug) voltage_sources->get(last_read)->debug = true;
@@ -209,8 +209,8 @@ class ParameterManager {
 
         // update the ParameterInputs with the latest values from the VoltageSources
         FASTRUN void update_inputs() {
-            const unsigned int available_inputs_size = available_inputs->size();
-            for (unsigned int i = 0 ; i < available_inputs_size ; i++) {
+            const uint_fast8_t available_inputs_size = available_inputs->size();
+            for (uint_fast8_t i = 0 ; i < available_inputs_size ; i++) {
                 available_inputs->get(i)->loop();
             }
         }
@@ -220,8 +220,8 @@ class ParameterManager {
         FASTRUN void update_mixers() {
             // this is going to be pretty intensive; may need to adjust the way this works...
             unsigned long update_mixers_started = micros();
-            const unsigned int available_parameters_size = this->available_parameters->size();
-            for (unsigned int i = 0 ; i < available_parameters_size ; i++) {
+            const uint_fast8_t available_parameters_size = this->available_parameters->size();
+            for (uint_fast8_t i = 0 ; i < available_parameters_size ; i++) {
                 this->available_parameters->get(i)->update_mixer();
             }
             unsigned long update_mixers_finished = micros();
@@ -229,10 +229,10 @@ class ParameterManager {
         }
 
         FASTRUN void update_mixers_sliced() {
-            static int_fast8_t pos = 0;
-            const int SLICE_SIZE = this->available_parameters->size()/3;
-            const unsigned int available_parameters_size = this->available_parameters->size();
-            for (unsigned int i = pos ; i < available_parameters_size && i < SLICE_SIZE ; i++) {
+            static uint_fast8_t pos = 0;
+            const uint_fast8_t SLICE_SIZE = this->available_parameters->size()/3;
+            const uint_fast8_t available_parameters_size = this->available_parameters->size();
+            for (uint_fast8_t i = pos ; i < available_parameters_size && i < SLICE_SIZE ; i++) {
                 this->available_parameters->get(i)->update_mixer();
             }
             if (pos>=available_parameters_size) pos = 0;
@@ -240,7 +240,7 @@ class ParameterManager {
 
         FLASHMEM void setDefaultParameterConnections() {
             Debug_printf(F("ParameterManager#setDefaultParameterConnections() has %i parameters to map to %i inputs..\n"), this->available_parameters->size(), this->available_inputs->size());
-            for (unsigned int i = 0 ; i < this->available_parameters->size() ; i++) {
+            for (uint_fast8_t i = 0 ; i < this->available_parameters->size() ; i++) {
                 // todo: make this configurable dynamically / load defaults from save file
                 available_parameters->get(i)->set_slot_0_input(available_inputs->get(0));
                 available_parameters->get(i)->set_slot_1_input(available_inputs->get(1));
@@ -260,7 +260,7 @@ class ParameterManager {
 
             // add all the available parameters to the main menu
             FLASHMEM void addAllParameterMenuItems(Menu *menu) {
-                for (unsigned int i = 0 ; i <this->available_parameters->size() ; i++) {
+                for (unsigned int i = 0 ; i < this->available_parameters->size() ; i++) {
                     LinkedList<MenuItem*> *ctrls = this->makeMenuItemsForParameter(this->available_parameters->get(i));
                     menu->add(ctrls);
                     //continue;
