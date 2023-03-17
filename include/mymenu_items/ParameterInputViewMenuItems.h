@@ -10,6 +10,10 @@
 
 #include <LinkedList.h>
 
+#ifndef PARAMETER_INPUT_GRAPH_HEIGHT
+    #define PARAMETER_INPUT_GRAPH_HEIGHT 50
+#endif
+
 //template<unsigned long memory_size>
 class ParameterInputDisplay : public MenuItem {
     public:
@@ -57,7 +61,6 @@ class ParameterInputDisplay : public MenuItem {
         virtual int display(Coord pos, bool selected, bool opened) override {
             //Serial.println("MidiOutputSelectorControl display()!");
             tft->setTextSize(0);
-            colours(false, parameter_input->colour, BLACK);
 
             #define DISPLAY_INFO_IN_LABEL
             #ifdef DISPLAY_INFO_IN_LABEL
@@ -73,12 +76,16 @@ class ParameterInputDisplay : public MenuItem {
                     this->parameter_input!=nullptr ? (int)(this->parameter_input->get_normal_value()*100.0) : 0, 
                     (char*)this->parameter_input->getOutputValue()
                 );
+                colours(selected, parameter_input->colour, BLACK);
                 pos.y = header(custom_label, pos, selected, opened);         
             #else 
                 pos.y = header(label, pos, selected, opened);                      
                 //tft->setCursor(pos.x, pos.y);
             #endif
             pos.y = tft->getCursorY();
+
+            // switch back to colour-on-black for actual display
+            colours(false, parameter_input->colour, BLACK);
 
             const uint16_t base_row = pos.y;
             static float ticks_per_pixel = (float)memory_size / (float)tft->width();
@@ -92,12 +99,10 @@ class ParameterInputDisplay : public MenuItem {
                 TFT_eSprite *actual = tft2->tft;
             #endif
 
-            const int GRAPH_HEIGHT = 50;
-
             int last_y = 0;
             for (int screen_x = 0 ; screen_x < tft->width() ; screen_x++) {
                 const uint16_t tick_for_screen_X = ticks_to_memory_step((int)((float)screen_x * ticks_per_pixel)); // the tick corresponding to this screen position
-                const int y = GRAPH_HEIGHT - ((logged)[tick_for_screen_X] * GRAPH_HEIGHT);
+                const int y = PARAMETER_INPUT_GRAPH_HEIGHT - ((logged)[tick_for_screen_X] * PARAMETER_INPUT_GRAPH_HEIGHT);
                 if (screen_x != 0) {
                     //int last_y = GRAPH_HEIGHT - (this->logged[tick_for_screen_X] * GRAPH_HEIGHT);
                     //actual->drawLine(screen_x-1, base_row + last_y, screen_x, base_row + y, YELLOW);                    
@@ -107,7 +112,7 @@ class ParameterInputDisplay : public MenuItem {
                 last_y = y;
             }
 
-            tft->setCursor(pos.x, pos.y + GRAPH_HEIGHT + 5);    // set cursor to below the graph's output
+            tft->setCursor(pos.x, pos.y + PARAMETER_INPUT_GRAPH_HEIGHT + 5);    // set cursor to below the graph's output
 
             //this->do_extra(this->parameter_input);
             if (this->parameter_input!=nullptr && this->parameter_input->hasExtra())
@@ -193,7 +198,17 @@ class InputTypeSelectorControl : public SelectorControl<int> {
         return tft->getCursorY();
     }
 
+    virtual bool action_opened() override {
+        //if (this->debug) Serial.printf(F("ObjectToggleControl#action_opened on %s\n"), this->label);
+        bool value = !this->getter();
+        //this->internal_value = !this->internal_value;
+
+        this->setter(value); //(bool)this->internal_value);
+        return false;   // don't 'open'
+    }
+
     virtual bool button_select() override {
+        this->selected_value_index = !this->selected_value_index;
         this->setter(selected_value_index);
 
         char msg[MENU_MESSAGE_MAX];

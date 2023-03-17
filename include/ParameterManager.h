@@ -322,7 +322,8 @@ class ParameterManager {
                 menu->add(new ParameterInputDisplay(label, this->memory_size, param_input)); //, LOOP_LENGTH_TICKS));
 
                 if (param_input->supports_bipolar()) {
-                    SubMenuItem *submenu = new SubMenuItem("Input/Output");
+                    //SubMenuItem *submenu = new SubMenuItem("Input/Output");
+                    DualMenuItem *submenu = new DualMenuItem("Input/Output");
                     submenu->set_default_colours(param_input->colour);
                     submenu->show_header = false;
 
