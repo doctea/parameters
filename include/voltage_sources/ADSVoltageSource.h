@@ -24,7 +24,7 @@ class ADSVoltageSourceBase : public VoltageSourceBase {
             //virtual MenuItem *makeCalibrationLoadSaveControls(int i) override;
         #endif
 
-        #if defined(ENABLE_SD) && defined(ENABLE_CALIBRATION_STORAGE)
+        #if defined(ENABLE_CALIBRATION_STORAGE)
             virtual void load_calibration() override;
             virtual void save_calibration() override;
         #endif

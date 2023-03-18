@@ -1,10 +1,6 @@
 #include "voltage_sources/ADSVoltageSource.h"
 #include "voltage_sources/ADS24vVoltageSource.h"
 
-#ifdef ENABLE_SD
-    #include "SdFat.h"
-#endif
-
 #ifdef ENABLE_SCREEN
     #include "submenuitem_bar.h"
     #include "menuitems_object.h"
@@ -61,11 +57,28 @@
 
 #endif
 
+#ifdef ENABLE_SD
+    #define STORAGE SD
+    #include "SdFat.h"
+#endif
+#ifdef ENABLE_LITTLEFS
+    #define STORAGE LittleFS
+    #include <LittleFS.h>
+#endif
 
-// todo: different implementation depending on whether file stuff is available or not?
-#if defined(ENABLE_SD) && defined(ENABLE_CALIBRATION_STORAGE)
+// todo: different implementation depending on what file libraries are enabled?
+#if defined(ENABLE_CALIBRATION_STORAGE)
     #include "SD.h"
-    #define FILEPATH_CALIBRATION_FORMAT       "calibration_voltage_source_%i.txt"
+    #ifdef ENABLE_SD
+        #define FILEPATH_CALIBRATION_FORMAT       "calibration_voltage_source_%i.txt"
+        #define FILE_READ_MODE FILE_READ
+        #define FILE_WRITE_MODE FILE_WRITE_BEGIN
+    #elif defined (ENABLE_LITTLEFS)
+        // LittleFS has maximum filepath length of 31 characters
+        #define FILE_READ_MODE "r"
+        #define FILE_WRITE_MODE "w"
+        #define FILEPATH_CALIBRATION_FORMAT       "calib_volt_src_%i.txt"
+    #endif
     
     FLASHMEM void ADSVoltageSourceBase::load_calibration() {
         // todo: make VoltageSource know its name so that it knows where to load from
@@ -79,14 +92,15 @@
         sprintf(filename, FILEPATH_CALIBRATION_FORMAT, slot); //, preset_number);
         Debug_printf("\tload_calibration() opening '%s' for slot %i\n", filename, slot);
         myFile.setTimeout(0);
-        myFile = SD.open(filename, FILE_READ);
+        myFile = STORAGE.open(filename, FILE_READ_MODE);
 
         if (!myFile) {
-            Debug_printf("Error: Couldn't open %s for reading for slot %i!\n", filename, slot);
+            Debug_printf("\tError: Couldn't open '%s' for reading for slot %i!\n", filename, slot);
             return; // false;
         }
         String line;
-        while (line = myFile.readStringUntil('\n')) {
+        while (myFile.available()) {
+            line = myFile.readStringUntil('\n');
             String key = line.substring(0, line.indexOf("="));
             String value = line.substring(line.indexOf("=")+1);
             Debug_printf("\tfor %s, found value '%s' => %6.6f\n", key.c_str(), value.c_str(), value.toFloat());
@@ -102,23 +116,34 @@
     }
     FLASHMEM void ADSVoltageSourceBase::save_calibration() {
         // todo: make VoltageSource know its name so that it knows where to save to
-        Debug_printf("ADSVoltageSourceBase: save_calibration for slot %i!", slot);
+        Debug_printf("ADSVoltageSourceBase: save_calibration for slot %i!\n", slot);
         //int slot = parameter_manager.find_slot_for_voltage(this);
 
         //parameter_manager->save_voltage_calibration(slot);
 
         Debug_printf("\tfor slot %i, saving calibration values %6.6f : %6.6f\n", slot, this->correction_value_1, this->correction_value_2);
        
-        File myFile;
-
         char filename[255] = "";
         snprintf(filename, 255, FILEPATH_CALIBRATION_FORMAT, slot); //, preset_number);
         Debug_printf("\tsave_calibration() opening %s\n", filename);
-        myFile = SD.open(filename, FILE_WRITE_BEGIN);
 
-        myFile.printf("correction_value_1=%6.6f\n", this->correction_value_1);
-        myFile.printf("correction_value_2=%6.6f\n", this->correction_value_2);
+        if (STORAGE.exists(filename)) {
+            Debug_println("\tfile exists - removing!");
+            STORAGE.remove(filename);
+        }
 
-        myFile.close();
+        File myFile = STORAGE.open(filename, FILE_WRITE_MODE /*FILE_WRITE_BEGIN*/);
+        if (myFile) {
+            myFile.printf("correction_value_1=%6.6f\n", this->correction_value_1);
+            myFile.printf("correction_value_2=%6.6f\n", this->correction_value_2);
+            myFile.close();
+            Debug_printf("\tsaved!\n");
+            //message_log("Saved calibration!");
+        } else {
+            Debug_printf("\tError saving calibration!\n");
+            //message_log("Error saving calibration!");
+        }
+        //myFile.close();
+        Debug_printf("\tEnd of save_calibration.\n");
     }
 #endif

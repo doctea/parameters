@@ -78,7 +78,7 @@ class ParameterManager {
 
         FLASHMEM VoltageSourceBase *addVoltageSource(VoltageSourceBase *voltage_source) {
             Debug_printf(F("ParameterManager#addVoltageSource(%p)\n"), voltage_source);
-            #if defined(LOAD_CALIBRATION_ON_BOOT) && defined(ENABLE_SD) && defined(ENABLE_CALIBRATION_STORAGE)
+            #if defined(LOAD_CALIBRATION_ON_BOOT) && defined(ENABLE_CALIBRATION_STORAGE)
                 Debug_printf(F("Loading calibration for %i!\n"), voltage_source->slot);
                 voltage_source->load_calibration();
             #endif
@@ -385,7 +385,7 @@ class ParameterManager {
                         VoltageSourceBase *voltage_source = this->voltage_sources->get(i);
                         submenuitem->add(voltage_source->makeCalibrationControls(i));
                         //Serial.println("addAllVoltageSourceCalibrationMenuItems did makeCalibrationControls!");
-                        #if defined(ENABLE_SD) && defined(ENABLE_CALIBRATION_STORAGE)
+                        #if defined(ENABLE_CALIBRATION_STORAGE)
                             submenuitem->add(voltage_source->makeCalibrationLoadSaveControls(i));
                         #endif
 
