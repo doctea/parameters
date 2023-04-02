@@ -152,10 +152,8 @@ class InputTypeSelectorControl : public SelectorControl<int> {
     }
 
     virtual void setter (int new_value) {
-        //clock_mode = new_value;
         *target = new_value;
         actual_value_index = new_value;
-        //selected_value_index = clock_mode;
     }
     virtual int getter () {
         //return clock_mode; //selected_value_index;

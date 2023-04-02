@@ -261,14 +261,20 @@ class ParameterManager {
             // add all the available parameters to the main menu
             FLASHMEM void addAllParameterMenuItems(Menu *menu) {
                 for (unsigned int i = 0 ; i < this->available_parameters->size() ; i++) {
-                    LinkedList<MenuItem*> *ctrls = this->makeMenuItemsForParameter(this->available_parameters->get(i));
-                    menu->add(ctrls);
+                    //LinkedList<MenuItem*> *ctrls = this->makeMenuItemsForParameter(this->available_parameters->get(i));
+                    //menu->add(ctrls);
+                    menu->add(this->makeMenuItemsForParameter(this->available_parameters->get(i)));
+                    //Serial.printf("%2i: After adding parameter menu items for (%s),\tfree RAM is \t%u\n", i, this->available_parameters->get(i)->label, rp2040.getFreeHeap());
+                    //ctrls->clear();
+                    //delete ctrls;
                     //continue;
                     //delete ctrls; 
                     //Serial.printf("about to ctrls->clear()\n"); Serial.flush();
                     //ctrls->clear();                    
                 }
                 //Serial.println("addAllParameterMenuItems finished"); Serial.flush();
+                //ctrls->clear();
+                //delete ctrls;
             }
 
             FLASHMEM SubMenuItem *addParameterSubMenuItems(Menu *menu, const char *submenu_label, LinkedList<FloatParameter*> *parameters, int16_t default_fg_colour = C_WHITE) {
@@ -399,7 +405,7 @@ class ParameterManager {
             //#endif
         #endif
 
-        virtual int find_slot_for_voltage(VoltageSourceBase *source) {
+        int find_slot_for_voltage(VoltageSourceBase *source) {
             for (unsigned int i = 0 ; i < voltage_sources->size() ; i++) {
                 if (voltage_sources->get(i) == source)
                     return i;
@@ -411,6 +417,6 @@ class ParameterManager {
         //virtual bool save_voltage_calibration();
 };
 
-//extern ParameterManager *parameter_manager;
+extern ParameterManager *parameter_manager;
 
 #endif
