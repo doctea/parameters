@@ -87,3 +87,76 @@ const char *FloatParameter::get_input_name_for_slot(byte slot) {
 float FloatParameter::get_amount_for_slot(byte slot) {
     return this->connections[slot].amount;
 }
+
+// get the lines required to save the state of this parameter mapping to a file
+void FloatParameter::save_sequence_add_lines(LinkedList<String> *lines) {
+    // save parameter base values (save normalised value; let's hope that this is precise enough to restore from!)
+    lines->add(String("parameter_value_") + String(this->label) + "=" + String(this->getCurrentNormalValue()));
+
+    if (this->is_modulatable()) {
+        #define MAX_SAVELINE 255
+        char line[MAX_SAVELINE];
+        // todo: move handling of this into the Parameter class, or into a third class that can handle saving to different formats..?
+        //          ^^ this could be the SaveableParameter class, used as a wrapper.  would require SaveableParameter to be able to add multiple lines to the save file
+        // todo: make these mappings part of an extra type of thing (like a "preset clip"?), rather than associated with sequence?
+        // todo: move these to be saved with the project instead?
+        for (int slot = 0 ; slot < 3 ; slot++) { // TODO: MAX_CONNECTION_SLOTS...?
+            if (this->connections[slot].parameter_input==nullptr) continue;      // skip if no parameter_input configured in this slot
+            if (this->connections[slot].amount==0.00) continue;                     // skip if no amount configured for this slot
+
+            const char *input_name = this->get_input_name_for_slot(slot);
+
+            // sequence save line looks like: `parameter_Filter Cutoff_0=A|1.000`
+            //                                 ^^head ^^_^^param name^_slot=ParameterInputName|Amount
+            snprintf(line, MAX_SAVELINE, "parameter_%s_%i=%s|%3.3f", 
+                this->label, 
+                slot, 
+                input_name,
+                //'A'+slot, //TODO: implement proper saving of mapping! /*parameter->get_connection_slot_name(slot), */
+                //parameter->connections[slot].parameter_input->name,
+                this->connections[slot].amount
+            );
+            Debug_printf(F("PARAMETERS\t%s: save_sequence_add_lines saving line:\t%s\n"), line);
+            lines->add(String(line));
+        }
+    }
+}
+
+// parse a key+value pair to restore the state 
+bool FloatParameter::load_parse_key_value(String key, String value) {
+    const char *prefix = "parameter_";
+    const char *prefix_base = "parameter_value_";
+    const char separator = '|';
+
+    if (key.startsWith(prefix_base)) {
+        key = key.replace(prefix_base,"");
+        if (key.equals(this->label)) {
+            this->updateValueFromNormal(value.toFloat());
+            return true;
+        }
+        //Serial.printf("WARNING: got a %s%s with value %s, but found no matching Parameter!\n", prefix_base, key.c_str(), value.c_str());
+        return false;
+    }
+
+    // sequence save line looks like: `parameter_Filter Cutoff_0=A|1.000`
+    //                                 ^^head ^^_^^param name^_slot=ParameterInputName|Amount
+    if (!key.startsWith(prefix))
+        return false;
+        
+    key = key.replace(prefix, "");
+    String parameter_name = key.substring(0, key.indexOf('_'));
+
+    if (parameter_name.equals(this->label)) {
+        int slot_number = key.substring(key.indexOf('_')+1).toInt();
+        String input_name = value.substring(0, value.indexOf(separator));
+        float amount = value.substring(value.indexOf(separator)+1).toFloat();
+
+        this->set_slot_input(slot_number, input_name.c_str());
+        this->set_slot_amount(slot_number, amount);
+
+        return true;
+    }
+
+    //Serial.printf(F("PARAMETERS\tWARNING: Couldn't find a Parameter for name %s\n"), parameter_name.c_str());
+    return false;
+}

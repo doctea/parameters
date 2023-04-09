@@ -82,6 +82,8 @@ class BaseParameter {
             return false;
         }
 
+        virtual void save_sequence_add_lines(LinkedList<String> *lines) {}
+
         // called when a BaseParameterInput that was targetting this item release control of this parameter
 };
 
@@ -212,7 +214,9 @@ class FloatParameter : public BaseParameter {
         return this;
     }
 
-
+    virtual void save_sequence_add_lines(LinkedList<String> *lines); 
+    virtual bool load_parse_key_value(String key, String value);
+    
     #ifdef ENABLE_SCREEN
         FLASHMEM virtual MenuItem *makeControl();
         FLASHMEM virtual LinkedList<MenuItem *> *makeControls();
