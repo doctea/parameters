@@ -10,6 +10,8 @@ void FloatParameter::set_slot_input(byte slot, char parameter_input_name) {
     );
 }*/
 
+#include <String>
+
 #include "parameters/Parameter.h"
 #include "ParameterManager.h"
 
@@ -126,10 +128,10 @@ void FloatParameter::save_sequence_add_lines(LinkedList<String> *lines) {
 bool FloatParameter::load_parse_key_value(String key, String value) {
     const char *prefix = "parameter_";
     const char *prefix_base = "parameter_value_";
-    const char separator = '|';
+    const char separator = '_', subseparator = '|';
 
     if (key.startsWith(prefix_base)) {
-        key = key.replace(prefix_base,"");
+        key.replace(prefix_base,"");
         if (key.equals(this->label)) {
             this->updateValueFromNormal(value.toFloat());
             return true;
@@ -143,13 +145,13 @@ bool FloatParameter::load_parse_key_value(String key, String value) {
     if (!key.startsWith(prefix))
         return false;
         
-    key = key.replace(prefix, "");
-    String parameter_name = key.substring(0, key.indexOf('_'));
+    key.replace(prefix, "");
+    String parameter_name = key.substring(0, key.indexOf(separator));
 
     if (parameter_name.equals(this->label)) {
-        int slot_number = key.substring(key.indexOf('_')+1).toInt();
-        String input_name = value.substring(0, value.indexOf(separator));
-        float amount = value.substring(value.indexOf(separator)+1).toFloat();
+        int slot_number =   key.substring(key.indexOf(separator)+1).toInt();
+        String input_name = value.substring(0, value.indexOf(subseparator));
+        float amount =      value.substring(value.indexOf(subseparator)+1).toFloat();
 
         this->set_slot_input(slot_number, input_name.c_str());
         this->set_slot_amount(slot_number, amount);
