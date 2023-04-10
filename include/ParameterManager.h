@@ -29,7 +29,7 @@ class ParameterManager {
         LinkedList<ADCDeviceBase*>      *devices = new LinkedList<ADCDeviceBase*>();  // actual i2c ADC devices, potentially with multiple channels
         LinkedList<VoltageSourceBase*>  *voltage_sources = new LinkedList<VoltageSourceBase*>();  // voltage-measuring channels
         LinkedList<BaseParameterInput*> *available_inputs = new LinkedList<BaseParameterInput*>();  // ParameterInputs, ie wrappers around input mechanism, assignable to a Parameter
-        LinkedList<FloatParameter*>    *available_parameters = new LinkedList<FloatParameter*>();        // Parameters, ie wrappers around destination object
+        LinkedList<FloatParameter*>     *available_parameters = new LinkedList<FloatParameter*>();        // Parameters, ie wrappers around destination object
         FloatParameter *param_none = nullptr;        // 'blank' parameter used as default mapping
 
         uint16_t parameter_input_colours[9] = {
@@ -411,6 +411,67 @@ class ParameterManager {
                     return i;
             }
             return -1;
+        }
+
+        // attempt optimised search + update for passed in key+value, on all parameters or on passed-in list_to_search
+        bool fast_load_parse_key_value(String key, String value, LinkedList<FloatParameter*> *list_to_search = nullptr) {
+            static LinkedList<FloatParameter*> *last_searched = nullptr;
+            static unsigned int last_found_at = 0;
+
+            // first, do all the ParameterInputs (save their input/output type, ie bipolar/unipolar, etc)
+            if (key.startsWith(ParameterInput::prefix)) {
+                for (unsigned int i = 0 ; i < available_inputs->size() ; i++) {
+                    if (available_inputs->get(i)->load_parse_key_value(key, value))
+                        return true;
+                }
+            }
+
+            // use list of all parameters if no other list passed
+            if (list_to_search==nullptr) 
+                list_to_search = this->available_parameters;
+            
+            // if the list we've been given is different to the last list we searched, reset the search start position
+            if (last_searched != list_to_search)
+                last_found_at = 0;
+            last_searched = list_to_search;
+
+            // if we previously found an item at an index, search past the "end" of the list 
+            const unsigned int actual_size = list_to_search->size();    // just the size of the list
+            const unsigned int search_up_to = last_found_at +actual_size;
+
+            // start seach at the last found index, move through past the end of the list and wrap around again to the start
+            for (unsigned int i = last_found_at ; i < search_up_to ; i++) {
+                unsigned int actual_index = i;  
+                if (actual_index>=actual_size)
+                    actual_index -= actual_size;    // wrap around to the start of list to ensure we search all entries
+
+                FloatParameter *parameter = list_to_search->get(actual_index);
+                if (parameter->load_parse_key_value(key, value)) {
+                    last_found_at = actual_index;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // add all the lines from all parameters (or passed-in list_to_save) to the passed-in lines array
+        LinkedList<String> *add_all_save_lines(LinkedList<String> *lines, LinkedList<FloatParameter*> *list_to_save = nullptr) {
+            // use list of all parameters if no other list passed
+            if (list_to_save==nullptr) 
+                list_to_save = this->available_parameters;
+
+            // do the available_parameter_inputs first // TODO: maybe we don't want to always save the ParameterInput settings here, if for example we're saving a passed-in list of Parameters?
+            for (unsigned int i = 0 ; i < available_inputs->size() ; i++) {
+                available_inputs->get(i)->save_sequence_add_lines(lines);
+            }
+
+            // then to the parameters
+            const unsigned int actual_size = list_to_save->size();
+            for (unsigned int i = 0 ; i < actual_size ; i++) {
+                list_to_save->get(i)->save_sequence_add_lines(lines);
+            }
+
+            return lines;
         }
 
         //virtual bool load_voltage_calibration();
