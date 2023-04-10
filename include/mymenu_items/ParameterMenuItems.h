@@ -110,7 +110,7 @@ class ParameterValueMenuItem : public DirectNumberControl<float> {
         // directly increase the parameter's value
         virtual void increase_value() override {
             //this->debug = true;
-            parameter->decrementValue();
+            parameter->incrementValue();
             this->internal_value = parameter->getCurrentNormalValue(); //this->maximum_value;
             //if (this->debug) Serial.printf(F("ParameterValueMenuItem#increase_value updated internal_value to %f (from %f * 100.0)\n"), internal_value, parameter->getCurrentNormalValue());
             //this->debug = false;
@@ -118,13 +118,14 @@ class ParameterValueMenuItem : public DirectNumberControl<float> {
         // directly decrease the parameter's value
         virtual void decrease_value() override {
             //this->debug = true;
-            parameter->incrementValue();
+
+            parameter->decrementValue();
             this->internal_value = parameter->getCurrentNormalValue(); // * 100.0; //this->maximum_value;
             //if (this->debug) Serial.printf(F("ParameterValueMenuItem#decrease_value updated internal_value to %f (from %f * 100.0)\n"), internal_value, parameter->getCurrentNormalValue());
             //this->debug = false;
         }
 
-        virtual bool knob_left() override {
+        /*virtual bool knob_left() override {
             if (readOnly) return false;
             //if (this->debug) Serial.printf(F("------ ParameterValueMenuItem#knob_left, internal_value=%f\n"), internal_value);
             increase_value();
@@ -144,10 +145,12 @@ class ParameterValueMenuItem : public DirectNumberControl<float> {
         }
         virtual bool button_select() override {
             if (readOnly) return true;
+
+            this->internal_value = this->get_current_value();
             change_value(this->internal_value);
             
             return go_back_on_select;
-        }
+        }*/
 
         virtual void change_value(int new_value) { //override { //
             float f = (float)new_value / 100.0;
