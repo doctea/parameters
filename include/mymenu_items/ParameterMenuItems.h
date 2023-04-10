@@ -173,6 +173,38 @@ class ParameterValueMenuItem : public DirectNumberControl<float> {
 #include "submenuitem_bar.h"
 #include "parameter_inputs/ParameterInput.h"
 
+class ParameterMapPercentageControl : public DirectNumberControl<float> {
+    public:
+    FloatParameter *parameter = nullptr;
+    int slot_number;
+    ParameterMapPercentageControl(char *label, FloatParameter *parameter, int slot_number) :
+        DirectNumberControl<float> (
+            label, 
+            &parameter->connections[slot_number].amount, 
+            parameter->connections[slot_number].amount,
+            -1.0f,
+            1.0f,
+            nullptr
+        ), parameter(parameter), slot_number(slot_number)
+        {
+            if (parameter->connections[slot_number].parameter_input!=nullptr) {
+                this->default_fg = parameter->connections[slot_number].parameter_input->colour;
+            }
+        }
+    
+    virtual int renderValue(bool selected, bool opened, uint16_t max_character_width) override {
+        // update the control with the colour from the connected parameter input, if there is one
+        this->default_fg = (parameter!=nullptr && parameter->connections[slot_number].parameter_input!=nullptr)
+                            ? parameter->connections[slot_number].parameter_input->colour
+                            : C_WHITE; 
+        // todo: update label based on connected parameter input.. see thoughts on how best to do this in submenuitem_bar.h!
+        //this->update_label()
+        //Serial.printf("renderValue in ParameterMapPercentageControl\tfor %s,\tgot default_fg colour %04x from slot_number %i colour %04x\n", this->label, this->default_fg, slot_number, parameter->connections[slot_number].parameter_input->colour);
+        return DirectNumberControl::renderValue(selected, opened, max_character_width);
+    }
+
+};
+
 // compound menu item that shows a direct value-setter widget, 3x modulation amount widgets, and the last post-modulation output value
 class ParameterMenuItem : public SubMenuItemBar {
     public:
@@ -196,23 +228,12 @@ class ParameterMenuItem : public SubMenuItemBar {
             Debug_printf(F("\tfor %s, setting to parameter_input@%p '%s'\n"), label, parameter->connections[i].parameter_input, input_name);
             Serial_flush();
             snprintf(labelnew, 8, "%s", input_name); //"Amt "
-            DirectNumberControl<float> *input_amount_control = new DirectNumberControl<float>(
-                labelnew, 
-                &parameter->connections[i].amount, 
-                parameter->connections[i].amount, 
-                -1.0f, 
-                1.0f, 
-                nullptr
+            ParameterMapPercentageControl *input_amount_control = new ParameterMapPercentageControl(
+                labelnew,
+                parameter,
+                i
             );
-            //input_amount_control->default_fg = parameter->connections[i].parameter_input->colour;
-                //input_amount_control->debug = true;
             this->add(input_amount_control);
-            if (parameter->connections[i].parameter_input!=nullptr) {
-                Debug_printf(F("ParameterMenuItem(%s) connection %i got colour %4x from '%s'!\n"), label, i, parameter->connections[i].parameter_input->colour, parameter->connections[i].parameter_input->name);
-                input_amount_control->default_fg = parameter->connections[i].parameter_input->colour; // do this after add to avoid parent colours overwriting it?
-            } else {
-                Debug_printf(F("\tNo parameter_input assigned"));
-            }
         }
 
         // add another small widget to display the last output value (after modulation etc)
@@ -220,19 +241,14 @@ class ParameterMenuItem : public SubMenuItemBar {
         output->setReadOnly();
         output->set_show_output_mode();
         this->add(output); 
-        
-        /*this->add(this->ctrl_amt_1);
-        this->add(this->ctrl_amt_2);
-        this->add(this->ctrl_amt_3);*/
-        //this->add(new SourceSelectorControl("S2", parameter));
-        //this->add(new SourceSelectorControl("S3", parameter));
-        //this->
     }
 
     void on_add() override {
         SubMenuItemBar::on_add();
         for (unsigned int i = 0 ; i < 3 ; i++) {
-            parameter->connections[i].amount_control->set_default_colours(parameter->connections[i].parameter_input->colour);
+            // actually this should be unnecessary now cos its handled in renderValue
+            if (parameter!=nullptr && parameter->connections[i].parameter_input!=nullptr)
+                parameter->connections[i].amount_control->set_default_colours(parameter->connections[i].parameter_input->colour);
         }
     }
 };
