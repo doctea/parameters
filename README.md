@@ -5,20 +5,37 @@ Work-in-progress, classes designed for handling Eurorack inputs in Arduino platf
 Based on code extracted from my [envor2](https://github.com/doctea/envor2) and [talkie](https://github.com/doctea/talkie) projects, currently used by ~~[sidenhancy](https://github.com/doctea/sidenhancy) and~~ [usb_midi_clocker](https://github.com/doctea/usb_midi_clocker) and [Microlidian](https://github.com/Microlidian).
 
 ## Currently working
-- Teensy 4.1
-- 3x analogue inputs using the [Pimoroni +/-24v ADC breakout](https://coolcomponents.co.uk/products/ads1015-24v-adc-breakout) and [Rob Tillaart's ADS1X15 library](https://github.com/RobTillaart/ADS1X15)
+- Teensy 4.1 and RP2040 (Pico/XIAO)
+- 3x analogue inputs using the i2c [Pimoroni +/-24v ADC breakout](https://coolcomponents.co.uk/products/ads1015-24v-adc-breakout) and [Rob Tillaart's ADS1X15 library](https://github.com/RobTillaart/ADS1X15)
+  - Multiple ADCDevices should also work (so getting 6x inputs using two Pimoroni boards on different i2c addresses should be possible)
 - MenuItems for [mymenu](https://github.com/doctea/mymenu) that allow changing Parameter values and ParameterInput-Parameter mappings
   - graph of modulation amount/history
   - selectable 3 ParameterInputs per Parameter
   - change how much each selected ParameterInput affects the Parameter, from -100% to +100%
   - switch between bipolar/unipolar ranges on per-ParameterInput level, for both input and output
-- MIDI CC as a modulation source
+- Incoming MIDI CC as a modulation source
 - Convert incoming analogue level to frequency in 1v/oct fashion and output of corresponding MIDI note
+
+## Classes and structure
+
+- ADCDevices set up a hardware ADC device (eg ADS1x15 library + Pimoroni +/-24v board), possibly with multiple channels
+- VoltageSources read from the ADCDevice, represents one channel of the device
+- ParameterInputs fetches values from VoltageSources (so in theory can have multiple ParameterInputs feeding from the same VoltageSource)
+  - if a ParameterInput supports_pitch then it can also generate a note corresponding to the 1v/oct value for the voltage
+- Parameters fetch values from ParameterInputs (currently up to 3 ParameterInputs can be attached to each Parameter)
+  - Amount % modulation for each connected ParameterInput is mixed together
+  - Result is sent to target objects (eg MIDI output, envelope, variable, etc)
+- ParameterMenuItem is a way to interact directly with that Parameter value.
+  - asks the Parameter how to render the value, how to increment/decrement, etc..
+  - select from available ParameterInputs, and set Amount % modulation
+  - ParameterInputViewItem is a graphical display of input
+
+### Current status
 
 ## Probably working, but untested
 - Analogue inputs via [Rob Tillaart's ADS1X15 library](https://github.com/RobTillaart/ADS1X15)
 
-# Probably not currently working / untested
+## Probably not currently working / untested
 - Arduino
 - analogRead()-based inputs on Arduino analog pins
 - Gate inputs
@@ -36,18 +53,4 @@ Based on code extracted from my [envor2](https://github.com/doctea/envor2) and [
 - ~~Provide a manager class that encapsulates all the annoying stuff like setting up and checking the values (currently need to add code to do this in your app, see sidenhancy and usb_midi_clocker for examples)~~
 - Back port so it can be used by [sidenhancy](https://github.com/doctea/sidenhancy) again
 - Inputs from non-voltage sources, eg network, ~~MIDI~~, LFOs
-
-### Classes and structure
-
-- ADCDevices set up a hardware ADC device (eg ADS1x15 library + Pimoroni +/-24v board), possibly with multiple channels
-- VoltageSources read from the ADCDevice, represents one channel of the device
-- ParameterInputs fetches values from VoltageSources (so in theory can have multiple ParameterInputs feeding from the same VoltageSource)
-  - if a ParameterInput supports_pitch then it can also generate a note corresponding to the 1v/oct value for the voltage
-- Parameters fetch values from ParameterInputs (currently up to 3 ParameterInputs can be attached to each Parameter)
-  - Amount % modulation for each connected ParameterInput is mixed together
-  - Result is sent to target objects (eg MIDI output, envelope, variable, etc)
-- ParameterMenuItem is a way to interact directly with that Parameter value.
-  - asks the Parameter how to render the value, how to increment/decrement, etc..
-  - select from available ParameterInputs, and set Amount % modulation
-  - ParameterInputViewItem is a graphical display of input
 
