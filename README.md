@@ -4,18 +4,6 @@ Work-in-progress, classes designed for handling Eurorack inputs in Arduino platf
 
 Based on code extracted from my [envor2](https://github.com/doctea/envor2) and [talkie](https://github.com/doctea/talkie) projects, currently used by ~~[sidenhancy](https://github.com/doctea/sidenhancy) and~~ [usb_midi_clocker](https://github.com/doctea/usb_midi_clocker) and [Microlidian](https://github.com/Microlidian).
 
-## Currently working
-- Teensy 4.1 and RP2040 (Pico/XIAO)
-- 3x analogue inputs using the i2c [Pimoroni +/-24v ADC breakout](https://coolcomponents.co.uk/products/ads1015-24v-adc-breakout) and [Rob Tillaart's ADS1X15 library](https://github.com/RobTillaart/ADS1X15)
-  - Multiple ADCDevices should also work (so getting 6x inputs using two Pimoroni boards on different i2c addresses should be possible)
-- MenuItems for [mymenu](https://github.com/doctea/mymenu) that allow changing Parameter values and ParameterInput-Parameter mappings
-  - graph of modulation amount/history
-  - selectable 3 ParameterInputs per Parameter
-  - change how much each selected ParameterInput affects the Parameter, from -100% to +100%
-  - switch between bipolar/unipolar ranges on per-ParameterInput level, for both input and output
-- Incoming MIDI CC as a modulation source
-- Convert incoming analogue level to frequency in 1v/oct fashion and output of corresponding MIDI note
-
 ## Classes and structure
 
 - ADCDevices set up a hardware ADC device (eg ADS1x15 library + Pimoroni +/-24v board), possibly with multiple channels
@@ -30,10 +18,22 @@ Based on code extracted from my [envor2](https://github.com/doctea/envor2) and [
   - select from available ParameterInputs, and set Amount % modulation
   - ParameterInputViewItem is a graphical display of input
 
-### Current status
+# Current status
+
+## Currently working
+- Teensy 4.1 and RP2040 (Pico/XIAO)
+- 3x analogue inputs using the i2c [Pimoroni +/-24v ADC breakout](https://coolcomponents.co.uk/products/ads1015-24v-adc-breakout) and [Rob Tillaart's ADS1X15 library](https://github.com/RobTillaart/ADS1X15)
+  - Multiple ADCDevices should also work (so getting 6x inputs using two Pimoroni boards on different i2c addresses should be possible)
+- MenuItems for [mymenu](https://github.com/doctea/mymenu) that allow changing Parameter values and ParameterInput-Parameter mappings
+  - graph of modulation amount/history
+  - selectable 3 ParameterInputs per Parameter
+  - change how much each selected ParameterInput affects the Parameter, from -100% to +100%
+  - switch between bipolar/unipolar ranges on per-ParameterInput level, for both input and output
+- Incoming MIDI CC as a modulation source
+- Convert incoming analogue level to frequency in 1v/oct fashion and output of corresponding MIDI note
 
 ## Probably working, but untested
-- Analogue inputs via [Rob Tillaart's ADS1X15 library](https://github.com/RobTillaart/ADS1X15)
+- Analogue inputs for other boards via [Rob Tillaart's ADS1X15 library](https://github.com/RobTillaart/ADS1X15)
 
 ## Probably not currently working / untested
 - Arduino
