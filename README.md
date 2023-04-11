@@ -2,7 +2,7 @@
 
 Work-in-progress, classes designed for handling Eurorack inputs in Arduino platform projects and mapping values to object-setter functions.
 
-Based on code extracted from my [envor2](https://github.com/doctea/envor2) and [talkie](https://github.com/doctea/talkie) projects, currently used by ~~[sidenhancy](https://github.com/doctea/sidenhancy) and~~ [usb_midi_clocker](https://github.com/doctea/usb_midi_clocker).
+Based on code extracted from my [envor2](https://github.com/doctea/envor2) and [talkie](https://github.com/doctea/talkie) projects, currently used by ~~[sidenhancy](https://github.com/doctea/sidenhancy) and~~ [usb_midi_clocker](https://github.com/doctea/usb_midi_clocker) and [Microlidian](https://github.com/Microlidian).
 
 ## Currently working
 - Teensy 4.1
@@ -39,15 +39,15 @@ Based on code extracted from my [envor2](https://github.com/doctea/envor2) and [
 
 ### Classes and structure
 
-- ADCDevices set up a hardware ADC device (eg ADS1x15 library + Pimoroni +/-24v board)
-- VoltageSources read from the ADCDevice
-- ParameterInputs fetches values from VoltageSources
-  - if supports_pitch then can also generate a corresponding note 1v/oct value for the voltage
-- Parameters fetch values from VoltageSources, apply amount % modulation and mix together
-  - Result sent to target objects (eg MIDI output, envelope, etc)
-
+- ADCDevices set up a hardware ADC device (eg ADS1x15 library + Pimoroni +/-24v board), possibly with multiple channels
+- VoltageSources read from the ADCDevice, represents one channel of the device
+- ParameterInputs fetches values from VoltageSources (so in theory can have multiple ParameterInputs feeding from the same VoltageSource)
+  - if a ParameterInput supports_pitch then it can also generate a note corresponding to the 1v/oct value for the voltage
+- Parameters fetch values from ParameterInputs (currently up to 3 ParameterInputs can be attached to each Parameter)
+  - Amount % modulation for each connected ParameterInput is mixed together
+  - Result is sent to target objects (eg MIDI output, envelope, variable, etc)
 - ParameterMenuItem is a way to interact directly with that Parameter value.
   - asks the Parameter how to render the value, how to increment/decrement, etc..
-  - select from available ParameterInputs and choose depth and mixing
+  - select from available ParameterInputs, and set Amount % modulation
   - ParameterInputViewItem is a graphical display of input
- 
+
