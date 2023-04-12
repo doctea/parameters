@@ -419,11 +419,16 @@ class ParameterManager {
             static unsigned int last_found_at = 0;
 
             // first, do all the ParameterInputs (save their input/output type, ie bipolar/unipolar, etc)
+            // TODO: should probably move this into its own function that can be used to process parameter_inputs separately from parameters
+            //       will probably bring about some gains in wasted searching
             if (key.startsWith(ParameterInput::prefix)) {
                 for (unsigned int i = 0 ; i < available_inputs->size() ; i++) {
                     if (available_inputs->get(i)->load_parse_key_value(key, value))
                         return true;
                 }
+                // we probably want to return early here, since 'parameter_input_' hasn't been handled by any existing parameter_input, 
+                // and probably a waste of time searching through all the parameters asking for it?
+                return false;
             }
 
             // use list of all parameters if no other list passed
