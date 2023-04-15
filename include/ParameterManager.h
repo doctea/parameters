@@ -427,7 +427,7 @@ class ParameterManager {
                         return true;
                 }
                 // we probably want to return early here, since 'parameter_input_' hasn't been handled by any existing parameter_input, 
-                // and probably a waste of time searching through all the parameters asking for it?
+                // and so its probably a waste of time searching through all the parameters asking for it?
                 return false;
             }
 
