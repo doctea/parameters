@@ -21,7 +21,7 @@ class ArduinoPinVoltageSource : public VoltageSourceBase {
         }
 
         // ask the ADC for its current voltage
-        virtual float fetch_current_voltage() {
+        virtual float fetch_current_voltage() override {
             //int16_t value = ads_source->readADC(channel);
             int16_t value1 = analogRead(this->pin); //ads_source->readADC(channel);
             int16_t value2 = analogRead(this->pin); 

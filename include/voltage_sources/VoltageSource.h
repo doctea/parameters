@@ -28,7 +28,7 @@ class VoltageSourceBase {
         }
 
         // actually fetch the current value from ADC, put it in the current_value
-        virtual float fetch_current_voltage();
+        virtual float fetch_current_voltage() = 0;
         // update the current voltage values
 
         // read a value from ADC to 'prime' it, but discard it 
