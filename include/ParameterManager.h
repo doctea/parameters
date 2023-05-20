@@ -32,6 +32,7 @@ class ParameterManager {
         LinkedList<FloatParameter*>     *available_parameters = new LinkedList<FloatParameter*>();        // Parameters, ie wrappers around destination object
         FloatParameter *param_none = nullptr;        // 'blank' parameter used as default mapping
 
+        #ifdef ENABLE_SCREEN
         uint16_t parameter_input_colours[9] = {
             RED,
             YELLOW,
@@ -43,6 +44,7 @@ class ParameterManager {
             (GREEN + RED) / 2,
             (GREEN + ORANGE) / 2
         };
+        #endif
 
         ParameterManager (unsigned long memory_size) {
             this->memory_size = memory_size;
@@ -89,7 +91,9 @@ class ParameterManager {
 
         FLASHMEM BaseParameterInput *addInput(BaseParameterInput *input) {
             Debug_printf(F("ParameterManager#addInput(%p)\n"), input);
-            input->colour = parameter_input_colours[this->available_inputs->size() % (sizeof(parameter_input_colours)/2)];
+            #ifdef ENABLE_SCREEN
+                input->colour = parameter_input_colours[this->available_inputs->size() % (sizeof(parameter_input_colours)/2)];
+            #endif
             this->available_inputs->add(input);
             return input;
         }

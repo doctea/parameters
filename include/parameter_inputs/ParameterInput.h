@@ -8,6 +8,8 @@
 
 #include "debug.h"
 
+#include "LinkedList.h"
+
 #ifdef ENABLE_SCREEN
   #include "menu.h"
 #endif
