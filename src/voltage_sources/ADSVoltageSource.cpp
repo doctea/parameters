@@ -68,8 +68,9 @@
 
 // todo: different implementation depending on what file libraries are enabled?
 #if defined(ENABLE_CALIBRATION_STORAGE)
-    #include "SD.h"
+    //#include "SD.h"
     #ifdef ENABLE_SD
+        #include "SD.h"
         #define FILEPATH_CALIBRATION_FORMAT       "calibration_voltage_source_%i.txt"
         #define FILE_READ_MODE FILE_READ
         #define FILE_WRITE_MODE FILE_WRITE_BEGIN
