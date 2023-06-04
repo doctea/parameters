@@ -329,7 +329,11 @@ class ParameterManager {
                 menu->add(new SeparatorMenuItem(label, param_input->colour));
 
                 Debug_printf(F("\tdoing menu->add for ParameterInputDisplay with label '%s'\n"), label);
-                menu->add(new ParameterInputDisplay(label, this->memory_size, param_input)); //, LOOP_LENGTH_TICKS));
+                ParameterInputDisplay *parameter_input_display = new ParameterInputDisplay(label, this->memory_size, param_input);
+                #ifdef PARAMETER_INPUTS_USE_CALLBACKS
+                    param_input->add_parameter_input_callback_receiver(parameter_input_display);
+                #endif
+                menu->add(parameter_input_display);
 
                 if (param_input->supports_bipolar()) {
                     //SubMenuItem *submenu = new SubMenuItem("Input/Output");

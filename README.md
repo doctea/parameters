@@ -18,6 +18,10 @@ Based on code extracted from my [envor2](https://github.com/doctea/envor2) and [
   - select from available ParameterInputs, and set Amount % modulation
   - ParameterInputViewItem is a graphical display of input
 
+## Options
+
+- -DPARAMETER_INPUTS_USE_CALLBACKS to use callbacks for parameter input value changes in ParameterInputDisplay, instead of polling from menu
+
 # Current status
 
 ## Currently working

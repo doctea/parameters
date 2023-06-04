@@ -14,8 +14,14 @@
     #define PARAMETER_INPUT_GRAPH_HEIGHT 50
 #endif
 
+#include "bpm.h"    // because we need to know the current ticks
+
 //template<unsigned long memory_size>
-class ParameterInputDisplay : public MenuItem {
+class ParameterInputDisplay : public MenuItem
+#ifdef PARAMETER_INPUTS_USE_CALLBACKS
+    , public ParameterInputCallbackReceiver 
+#endif
+{
     public:
         BaseParameterInput *parameter_input = nullptr;
 
@@ -44,18 +50,59 @@ class ParameterInputDisplay : public MenuItem {
             return ( ticks % memory_size );
         }
 
+        /*unsigned long last_position_updated;
         virtual void update_ticks(unsigned long ticks) {
             // update internal log of values
+            if (ticks==last_position_updated)
+                return;
             unsigned int position = ticks % memory_size;
-            (logged)[position] = this->parameter_input->get_normal_value(); 
+            float value = this->parameter_input->get_normal_value();
+            last_position_updated = ticks;
+
             if (this->parameter_input->output_type==BIPOLAR) {
                 // center is 0, range -1 to +1, so re-center display
-                (logged)[position] = (0.5) + ((logged)[position] / 2);
+                (logged)[position] = (0.5) + (value / 2);
             } else if (this->parameter_input->output_type==UNIPOLAR) {
-                // center is 0.5, range 0 to 1
-                //logged[position] =  ?? nothing
+                // center is 0.5, range 0 to 1.. dont modif 
+                (logged)[position] = value;
             }
             if (this->debug) Debug_printf(F("\tupdate_ticks(%i) recorded %f\n"), position, logged[position]);
+        }*/
+        /*unsigned long ticks;
+        virtual void update_ticks(unsigned long ticks) {
+            this->ticks = ticks;
+        }*/
+
+        #ifndef PARAMETER_INPUTS_USE_CALLBACKS
+            // not using callbacks when input values change, so update every menu tick instead
+            virtual void update_ticks(unsigned long ticks) {
+                this->receive_value_update(this->parameter_input->get_normal_value());
+            }
+        #endif
+
+        uint_fast16_t last_position_updated;
+        virtual void receive_value_update(float value) {
+            uint_fast16_t position = ticks_to_memory_step(ticks);
+
+            if (position==last_position_updated)
+                return;
+
+            // convert value according to the input/output settings
+            if (this->parameter_input->output_type==BIPOLAR) {
+                // center is 0, range -1 to +1, so re-center display
+                (logged)[position] = (0.5) + (value / 2);
+            } else if (this->parameter_input->output_type==UNIPOLAR) {
+                // center is 0.5, range 0 to 1.. dont modif 
+                (logged)[position] = value;
+            }
+
+            // do a simple backfill of values we missed
+            if (last_position_updated < position && (last_position_updated) - position > 1) {
+                for (uint_fast16_t i = last_position_updated+1 ; i < position ; i++)
+                    (logged)[i] = (logged)[position];
+            }
+
+            last_position_updated = position;
         }
 
         virtual int display(Coord pos, bool selected, bool opened) override {

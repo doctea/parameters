@@ -80,6 +80,10 @@ class VoltageParameterInput : public AnalogParameterInputBase<float> {
                 }
                 #endif
 
+                #ifdef PARAMETER_INPUTS_USE_CALLBACKS
+                    this->on_value_read(normal);
+                #endif
+
                 if (this->callback != nullptr) {
                     if (this->debug) {
                         Debug_print(this->name);

@@ -119,6 +119,9 @@ class AnalogParameterInputBase : public ParameterInput {
         this->currentValue = currentValue;
 
         float normal = get_normal_value(currentValue);
+        #ifdef PARAMETER_INPUTS_USE_CALLBACKS
+          this->on_value_read(currentValue);
+        #endif
         if (callback != NULL) {
           Debug_print(this->name);
           Debug_print(F(": calling callback("));
