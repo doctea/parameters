@@ -430,7 +430,8 @@ class ParameterManager {
             // TODO: should probably move this into its own function that can be used to process parameter_inputs separately from parameters
             //       will probably bring about some gains in wasted searching
             if (key.startsWith(ParameterInput::prefix)) {
-                for (unsigned int i = 0 ; i < available_inputs->size() ; i++) {
+                const uint_fast16_t available_inputs_count = available_inputs->size();
+                for (uint_fast16_t i = 0 ; i < available_inputs_count ; i++) {
                     if (available_inputs->get(i)->load_parse_key_value(key, value))
                         return true;
                 }
@@ -449,12 +450,12 @@ class ParameterManager {
             last_searched = list_to_search;
 
             // if we previously found an item at an index, search past the "end" of the list 
-            const unsigned int actual_size = list_to_search->size();    // just the size of the list
-            const unsigned int search_up_to = last_found_at +actual_size;
+            const uint_fast16_t actual_size = list_to_search->size();    // just the size of the list
+            const uint_fast16_t search_up_to = last_found_at + actual_size;
 
             // start seach at the last found index, move through past the end of the list and wrap around again to the start
-            for (unsigned int i = last_found_at ; i < search_up_to ; i++) {
-                unsigned int actual_index = i;  
+            for (uint_fast16_t i = last_found_at ; i < search_up_to ; i++) {
+                uint_fast16_t actual_index = i;  
                 if (actual_index>=actual_size)
                     actual_index -= actual_size;    // wrap around to the start of list to ensure we search all entries
 
