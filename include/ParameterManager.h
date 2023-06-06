@@ -138,6 +138,7 @@ class ParameterManager {
         }
 
         FASTRUN BaseParameterInput *getInputForName(const char *input_name) {
+            // todo: could perhaps mildly optimise this so that search starts at the last found entry, for very mild speedup when loading from save files?
             const uint_fast8_t size = available_inputs->size();
             for(uint_fast8_t i = 0 ; i < size ; i++) {
                 if (available_inputs->get(i)->matches_label(input_name))
@@ -424,14 +425,14 @@ class ParameterManager {
         // attempt optimised search + update for passed in key+value, on all parameters or on passed-in list_to_search
         bool fast_load_parse_key_value(String key, String value, LinkedList<FloatParameter*> *list_to_search = nullptr) {
             static LinkedList<FloatParameter*> *last_searched = nullptr;
-            static unsigned int last_found_at = 0;
+            static uint_fast8_t last_found_at = 0;
 
             // first, do all the ParameterInputs (save their input/output type, ie bipolar/unipolar, etc)
             // TODO: should probably move this into its own function that can be used to process parameter_inputs separately from parameters
             //       will probably bring about some gains in wasted searching
             if (key.startsWith(ParameterInput::prefix)) {
-                const uint_fast16_t available_inputs_count = available_inputs->size();
-                for (uint_fast16_t i = 0 ; i < available_inputs_count ; i++) {
+                const uint_fast8_t available_inputs_count = available_inputs->size();
+                for (uint_fast8_t i = 0 ; i < available_inputs_count ; i++) {
                     if (available_inputs->get(i)->load_parse_key_value(key, value))
                         return true;
                 }

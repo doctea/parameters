@@ -131,8 +131,9 @@ bool FloatParameter::load_parse_key_value(String key, String value) {
     const char separator = '_', subseparator = '|';
 
     if (key.startsWith(prefix_base)) {
-        key.replace(prefix_base,"");
-        if (key.equals(this->label)) {
+        //key.replace(prefix_base,"");
+        //key = key.substring(strlen(prefix_base));
+        if (key.substring(strlen(prefix_base)).equals(this->label)) {
             this->updateValueFromNormal(value.toFloat());
             return true;
         }
@@ -146,12 +147,16 @@ bool FloatParameter::load_parse_key_value(String key, String value) {
         return false;
         
     key.replace(prefix, "");
-    String parameter_name = key.substring(0, key.indexOf(separator));
+    //key = key.substring(strlen(prefix));
+    const uint_fast8_t separator_1_position = key.indexOf(separator);
+    String parameter_name = key.substring(0, separator_1_position);
 
     if (parameter_name.equals(this->label)) {
-        int slot_number =   key.substring(key.indexOf(separator)+1).toInt();
-        String input_name = value.substring(0, value.indexOf(subseparator));
-        float amount =      value.substring(value.indexOf(subseparator)+1).toFloat();
+        uint_fast8_t slot_number = key.substring(separator_1_position+1).toInt();
+
+        const uint_fast8_t separator_2_position = value.lastIndexOf(subseparator);
+        String input_name = value.substring(0, separator_2_position);
+        const float amount = value.substring(separator_2_position+1).toFloat();
 
         this->set_slot_input(slot_number, input_name.c_str());
         this->set_slot_amount(slot_number, amount);
