@@ -72,7 +72,8 @@ class VoltageSourceBase {
         #endif
 
         #ifdef ENABLE_SCREEN
-            FLASHMEM virtual MenuItem *makeCalibrationControls(int i) {
+            //FLASHMEM 
+            virtual MenuItem *makeCalibrationControls(int i) {
                 Serial.println(F("makeCalibrationControls() in VoltageSourceBase returning nullptr"));
                 return nullptr;
             }

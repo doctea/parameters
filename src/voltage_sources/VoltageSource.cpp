@@ -6,7 +6,8 @@
     #include "submenuitem_bar.h"
 
     #if defined(ENABLE_CALIBRATION_STORAGE)
-        FLASHMEM MenuItem *VoltageSourceBase::makeCalibrationLoadSaveControls(int i) {
+        FLASHMEM 
+        MenuItem *VoltageSourceBase::makeCalibrationLoadSaveControls(int i) {
             Serial.println(F("makeCalibrationLoadSaveControls() in VoltageSourceBase!")); Serial_flush();
             //Serial.printf(F("\tpassed i=%i!\n"), i);
 
