@@ -137,25 +137,14 @@ class ParameterInputDisplay : public MenuItem
             const uint16_t base_row = pos.y;
             static float ticks_per_pixel = (float)memory_size / (float)tft->width();
 
-            // we're going to use direct access to the underlying Adafruit library here
-            #ifdef TFT_ST7789_T3
-                const DisplayTranslator_STeensy *tft2 = (DisplayTranslator_STeensy*)tft;
-                ST7789_t3 *actual = tft2->tft;
-            #elif defined(TFT_BODMER)
-                const DisplayTranslator_Bodmer *tft2 = (DisplayTranslator_Bodmer*)tft;
-                TFT_eSprite *actual = tft2->tft;
-            #endif
-
             int last_y = 0;
             for (int screen_x = 0 ; screen_x < tft->width() ; screen_x++) {
                 const uint16_t tick_for_screen_X = ticks_to_memory_step((int)((float)screen_x * ticks_per_pixel)); // the tick corresponding to this screen position
                 const int y = PARAMETER_INPUT_GRAPH_HEIGHT - ((logged)[tick_for_screen_X] * PARAMETER_INPUT_GRAPH_HEIGHT);
                 if (screen_x != 0) {
                     //int last_y = GRAPH_HEIGHT - (this->logged[tick_for_screen_X] * GRAPH_HEIGHT);
-                    //actual->drawLine(screen_x-1, base_row + last_y, screen_x, base_row + y, YELLOW);                    
-                    actual->drawLine(screen_x-1, base_row + last_y, screen_x, base_row + y, parameter_input->colour);                    
+                    tft->drawLine(screen_x-1, base_row + last_y, screen_x, base_row + y, parameter_input->colour);                    
                 }
-                //actual->drawFastHLine(screen_x, base_row + y, 1, GREEN);
                 last_y = y;
             }
 
@@ -229,7 +218,7 @@ class InputTypeSelectorControl : public SelectorControl<int> {
         } else {
             int current_value = *target; //actual_value_index;
 
-            for (unsigned int i = 0 ; i < num_values ; i++) {
+            for (int i = 0 ; i < num_values ; i++) {
                 bool is_current_value_selected = (int)i==current_value;
                 int col = is_current_value_selected ? GREEN : this->default_fg;
                 colours(opened && selected_value_index==(int)i, col, BLACK);
