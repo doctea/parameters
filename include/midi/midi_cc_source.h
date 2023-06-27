@@ -1,10 +1,14 @@
+#ifndef MIDI_CC_SOURCE__INCLUDED
+#define MIDI_CC_SOURCE__INCLUDED
+
 #include "LinkedList.h"
 #include "parameter_inputs/MIDIParameterInput.h"
 
 #include "ParameterManager.h"
 extern ParameterManager *parameter_manager;
 
-// make an instance of this object, or inherit from it in your object that receives MIDI events
+// update parameter inputs from MIDI CC events
+// make an instance of this object, or inherit from it in your object that receives MIDI events, and feed it via update_parameter_inputs_cc
 class MIDI_CC_Source {
     public:
     
@@ -29,3 +33,5 @@ class MIDI_CC_Source {
         this->addParameterInput(new MIDIParameterInput((char*)name, number, channel));
     }
 };
+
+#endif

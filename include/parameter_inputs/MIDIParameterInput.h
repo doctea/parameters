@@ -1,3 +1,6 @@
+#ifndef MIDIPARAMETERINPUT__INCLUDED
+#define MIDIPARAMETERINPUT__INCLUDED
+
 #include <Arduino.h>
 
 #include "ParameterInput.h"
@@ -65,3 +68,5 @@ class MIDIParameterInput : public ParameterInput {
         }
 
 };
+
+#endif
