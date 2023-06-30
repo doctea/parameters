@@ -248,11 +248,13 @@ class ParameterMenuItem : public SubMenuItemBar {
 
     void on_add() override {
         SubMenuItemBar::on_add();
-        for (unsigned int i = 0 ; i < 3 ; i++) {
-            // actually this should be unnecessary now cos its handled in renderValue
-            if (parameter!=nullptr && parameter->connections[i].parameter_input!=nullptr)
-                parameter->connections[i].amount_control->set_default_colours(parameter->connections[i].parameter_input->colour);
-        }
+        #ifdef ENABLE_SCREEN
+            for (unsigned int i = 0 ; i < 3 ; i++) {
+                // actually this should be unnecessary now cos its handled in renderValue
+                if (parameter!=nullptr && parameter->connections[i].parameter_input!=nullptr)
+                    parameter->connections[i].amount_control->set_default_colours(parameter->connections[i].parameter_input->colour);
+            }
+        #endif
     }
 };
 
