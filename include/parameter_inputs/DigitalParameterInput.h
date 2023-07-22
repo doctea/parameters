@@ -21,7 +21,8 @@ class DigitalParameterInput : public BaseParameterInput {
 
     //BaseParameter *target_parameter = nullptr;
 
-    DigitalParameterInput(int inputPin) : BaseParameterInput() { 
+    DigitalParameterInput(int inputPin, const char *group_name = "General") : BaseParameterInput() { 
+      this->group_name = group_name;
       this->inputPin = inputPin;
       pinMode(inputPin, INPUT);
     }

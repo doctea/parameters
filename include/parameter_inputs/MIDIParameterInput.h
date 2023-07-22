@@ -13,7 +13,7 @@ class MIDIParameterInput : public ParameterInput {
 
         int8_t currentValue = 0;
 
-        MIDIParameterInput(char *name, byte cc_number, byte channel = 0) : ParameterInput(name) {
+        MIDIParameterInput(char *name, const char *group_name, byte cc_number, byte channel = 0) : ParameterInput(name, group_name) {
             this->cc_number = cc_number;
             //this->value = value;
             this->channel = channel;

@@ -84,7 +84,8 @@
     
     FLASHMEM void ADSVoltageSourceBase::load_calibration() {
         // todo: make VoltageSource know its name so that it knows where to load from
-        Debug_printf("ADSVoltageSourceBase: load_calibration for slot!\n", slot);
+        //Debug_printf("ADSVoltageSourceBase: load_calibration for slot!\n", slot);
+        Serial.printf("ADSVoltageSourceBase: load_calibration for slot %i!\n", slot);
         //int slot = parameter_manager.find_slot_for_voltage(this);
 
         //parameter_manager->load_voltage_calibration(slot); //, this);
@@ -97,7 +98,8 @@
         myFile = STORAGE.open(filename, FILE_READ_MODE);
 
         if (!myFile) {
-            Debug_printf("\tError: Couldn't open '%s' for reading for slot %i!\n", filename, slot);
+            //Debug_printf("\tError: Couldn't open '%s' for reading for slot %i!\n", filename, slot);
+            Serial.printf("\tError: Couldn't open '%s' for reading for slot %i!\n", filename, slot);
             return; // false;
         }
         String line;

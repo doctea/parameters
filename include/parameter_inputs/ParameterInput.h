@@ -38,6 +38,7 @@ class BaseParameterInput {
       this->debug =! this->debug;
     }
 
+    const char *group_name = "General";
     char name[MAX_INPUT_NAME] = "Unnamed";
 
     //BaseParameter *target_parameter = nullptr;
@@ -49,9 +50,9 @@ class BaseParameterInput {
     uint8_t output_type = UNIPOLAR;
 
     uint16_t colour = 0xFFFF;
-
-    BaseParameterInput(char *name) {
+    BaseParameterInput(char *name, const char *group_name = "General") {
       strcpy(this->name, name);
+      this->group_name = group_name;
       //this->name = ++NEXT_PARAMETER_NAME;
     }
     virtual ~BaseParameterInput() = default;
@@ -166,7 +167,7 @@ class BaseParameterInput {
 
 class ParameterInput : public BaseParameterInput {
   public:
-    ParameterInput(char *name) : BaseParameterInput(name) {}
+    ParameterInput(char *name, const char* group_name = "General") : BaseParameterInput(name, group_name) {}
 
     virtual void read() {};
     virtual void loop() {
