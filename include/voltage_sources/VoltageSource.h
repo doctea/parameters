@@ -21,9 +21,9 @@ class VoltageSourceBase {
 
         float maximum_input_voltage;
 
-        int slot = -1;
-        VoltageSourceBase(int slot, bool supports_pitch = false) {
-            this->slot = slot;
+        int global_slot = -1;
+        VoltageSourceBase(int global_slot, bool supports_pitch = false) {
+            this->global_slot = global_slot;
             this->has_pitch_capability = supports_pitch;
         }
 

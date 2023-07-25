@@ -6,12 +6,12 @@
     #include "menuitems_object.h"
     //#include "ParameterManager.h"
     //FLASHMEM 
-    MenuItem *ADSVoltageSourceBase::makeCalibrationControls(int i) {
+    MenuItem *ADSVoltageSourceBase::makeCalibrationControls(int global_slot) {
         Debug_println("makeCalibrationControls() for an ADSVoltageSource!"); Serial_flush();
 
         Debug_printf("MENU_C_MAX is %i\n", MENU_C_MAX);
         char name[MENU_C_MAX];
-        snprintf(name, MENU_C_MAX, "Voltage Source %i Calibrator", i);
+        snprintf(name, MENU_C_MAX, "Voltage Source %i Calibrator", global_slot);
         SubMenuItemBar *submenu = new SubMenuItemBar(name);
 
         Debug_println("makeCalibrationControls() creating ctrl1!"); Serial_flush();
@@ -85,21 +85,21 @@
     FLASHMEM void ADSVoltageSourceBase::load_calibration() {
         // todo: make VoltageSource know its name so that it knows where to load from
         //Debug_printf("ADSVoltageSourceBase: load_calibration for slot!\n", slot);
-        Serial.printf("ADSVoltageSourceBase: load_calibration for slot %i!\n", slot);
+        Serial.printf("ADSVoltageSourceBase: load_calibration for slot %i!\n", global_slot);
         //int slot = parameter_manager.find_slot_for_voltage(this);
 
         //parameter_manager->load_voltage_calibration(slot); //, this);
         File myFile;
 
         char filename[255] = "";
-        sprintf(filename, FILEPATH_CALIBRATION_FORMAT, slot); //, preset_number);
-        Debug_printf("\tload_calibration() opening '%s' for slot %i\n", filename, slot);
+        sprintf(filename, FILEPATH_CALIBRATION_FORMAT, global_slot); //, preset_number);
+        Debug_printf("\tload_calibration() opening '%s' for global slot %i\n", filename, global_slot);
         myFile.setTimeout(0);
         myFile = STORAGE.open(filename, FILE_READ_MODE);
 
         if (!myFile) {
             //Debug_printf("\tError: Couldn't open '%s' for reading for slot %i!\n", filename, slot);
-            Serial.printf("\tError: Couldn't open '%s' for reading for slot %i!\n", filename, slot);
+            Serial.printf("\tError: Couldn't open '%s' for reading for global slot %i!\n", filename, global_slot);
             return; // false;
         }
         String line;
@@ -116,19 +116,19 @@
         }
         myFile.close();
 
-        Debug_printf("for slot %i, got calibration values %6.6f : %6.6f\n", slot, this->correction_value_1, this->correction_value_2);
+        Debug_printf("for slot %i, got calibration values %6.6f : %6.6f\n", global_slot, this->correction_value_1, this->correction_value_2);
     }
     FLASHMEM void ADSVoltageSourceBase::save_calibration() {
         // todo: make VoltageSource know its name so that it knows where to save to
-        Debug_printf("ADSVoltageSourceBase: save_calibration for slot %i!\n", slot);
+        Debug_printf("ADSVoltageSourceBase: save_calibration for slot %i!\n", global_slot);
         //int slot = parameter_manager.find_slot_for_voltage(this);
 
         //parameter_manager->save_voltage_calibration(slot);
 
-        Debug_printf("\tfor slot %i, saving calibration values %6.6f : %6.6f\n", slot, this->correction_value_1, this->correction_value_2);
+        Debug_printf("\tfor slot %i, saving calibration values %6.6f : %6.6f\n", global_slot, this->correction_value_1, this->correction_value_2);
        
         char filename[255] = "";
-        snprintf(filename, 255, FILEPATH_CALIBRATION_FORMAT, slot); //, preset_number);
+        snprintf(filename, 255, FILEPATH_CALIBRATION_FORMAT, global_slot); //, preset_number);
         Debug_printf("\tsave_calibration() opening %s\n", filename);
 
         if (STORAGE.exists(filename)) {

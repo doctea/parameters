@@ -82,7 +82,7 @@ class ParameterManager {
             Debug_printf(F("ParameterManager#addVoltageSource(%p)\n"), voltage_source);
             #if defined(LOAD_CALIBRATION_ON_BOOT) && defined(ENABLE_CALIBRATION_STORAGE)
                 //Debug_printf(F("Loading calibration for %i!\n"), voltage_source->slot);
-                Serial.printf(F("Loading calibration for %i!\n"), voltage_source->slot);
+                Debug_printf("Loading calibration for %i!\n", voltage_source->slot);
                 voltage_source->load_calibration();
             #endif
 
@@ -90,7 +90,8 @@ class ParameterManager {
             return voltage_source;
         }
 
-        FLASHMEM BaseParameterInput *addInput(BaseParameterInput *input) {
+        //FLASHMEM 
+        BaseParameterInput *addInput(BaseParameterInput *input) {
             Debug_printf(F("ParameterManager#addInput(%p)\n"), input);
             #ifdef ENABLE_SCREEN
                 input->colour = parameter_input_colours[this->available_inputs->size() % (sizeof(parameter_input_colours)/2)];
@@ -122,16 +123,16 @@ class ParameterManager {
             //char parameter_input_name = 'A';
             for (unsigned int i = 0 ; i < devices->size() ; i++) {
                 ADCDeviceBase *device = this->devices->get(i);
-                Debug_printf(F("ParameterManager#auto_init_devices calling init() on device %i\n"), i);
+                Serial.printf(F("ParameterManager#auto_init_devices calling init() on device %i of %i\n"), i+1, devices->size());
                 device->init();
 
                 VoltageSourceBase *vs = device->make_voltage_source();
                 int counter = 0;
                 while (vs != nullptr) {
-                    Debug_printf(F("\tParameterManager#auto_init_devices adding voltage source count %i\n"), counter);
+                    Serial.printf(F("\tParameterManager#auto_init_devices adding voltage source count %i\n"), counter);
                     this->addVoltageSource(vs);
                     //this->addInput(device->make_input_for_source(parameter_input_name++, vs));
-                    Debug_printf(F("\tParameterManager#auto_init_devices calling make_voltage_source on count %i\n"), counter);
+                    Serial.printf(F("\tParameterManager#auto_init_devices calling make_voltage_source on count %i\n"), counter);
                     vs = device->make_voltage_source();
                     counter++;
                 }
@@ -262,7 +263,7 @@ class ParameterManager {
                 const char *last_group_name = nullptr;
                 for (unsigned int i = 0 ; i < available_inputs->size() ; i++) {
                     BaseParameterInput *parameter_input = available_inputs->get(i);
-                    Serial.printf("!!! Adding parameter menu items for %s\tfrom %s!\n", parameter_input->name, parameter_input->group_name);
+                    //Serial.printf("!!! Adding parameter menu items for %s\tfrom %s!\n", parameter_input->name, parameter_input->group_name);
                     char label[MENU_C_MAX];
                     if (last_group_name!=parameter_input->group_name) {                        
                         snprintf(label, MENU_C_MAX, "%s inputs", parameter_input->group_name);
@@ -325,7 +326,7 @@ class ParameterManager {
                     //sprintf(tmp, "test item %i", i);
                     //submenu->add(new MenuItem(tmp));
                     if (parameters->get(i)->is_modulatable()) {
-                        Debug_printf(F("getModulatableParameterSubMenuItems(menu, '%s') processing parameter %i\n"), label, i);
+                        Debug_printf("getModulatableParameterSubMenuItems(menu, '%s') processing parameter %i\n", label, i);
                         submenu->add(this->makeMenuItemsForParameter(parameters->get(i)));
                     }
                 }
@@ -407,7 +408,7 @@ class ParameterManager {
                     submenuitem->debug = true;
 
                     for (unsigned int i = 0 ; i < size ; i++) {
-                        Serial.printf(F("\tParameterManager#addAllVoltageSourceCalibrationMenuItems() for voltage_source %i/%i\n"), i+1, size); Serial_flush();
+                        //Serial.printf(F("\tParameterManager#addAllVoltageSourceCalibrationMenuItems() for voltage_source %i/%i\n"), i+1, size); Serial_flush();
                         
                         VoltageSourceBase *voltage_source = this->voltage_sources->get(i);
                         submenuitem->add(voltage_source->makeCalibrationControls(i));
@@ -421,7 +422,7 @@ class ParameterManager {
                         //Serial.println(F("\t\taddAllVoltageSourceCalibrationMenuItems done!")); Serial_flush();
                         //Serial.printf(F("\tfinished with voltage_source %i\n"), i);
                     }
-                    Serial.printf(F("ParameterManager#addAllVoltageSourceCalibrationMenuItems() done!\n------------\n")); Serial_flush();
+                    //Serial.printf(F("ParameterManager#addAllVoltageSourceCalibrationMenuItems() done!\n------------\n")); Serial_flush();
 
                     menu->add(submenuitem);
                 }

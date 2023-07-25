@@ -38,7 +38,6 @@ class VoltageParameterInput : public AnalogParameterInputBase<float> {
         }
 
         virtual bool supports_pitch() override {
-            //return this->voltage_source->supports_pitch();
             return this->voltage_source->supports_pitch();
         }
         virtual uint8_t get_voltage_pitch() {

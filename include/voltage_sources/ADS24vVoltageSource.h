@@ -13,8 +13,8 @@ class ADS24vVoltageSource : public ADSVoltageSource<ADS1X15Type> {
         //float correction_value_1 = 1182.0;
         //float correction_value_2 = 0.041;
 
-        ADS24vVoltageSource(int slot, ADS1X15Type *ads_source, byte channel, float maximum_input_voltage = 10.0) :
-            ADSVoltageSource<ADS1X15Type>(slot, ads_source, channel, maximum_input_voltage, true) {
+        ADS24vVoltageSource(int global_slot, ADS1X15Type *ads_source, byte channel, float maximum_input_voltage = 10.0) :
+            ADSVoltageSource<ADS1X15Type>(global_slot, ads_source, channel, maximum_input_voltage, true) {
                 // note this passes 'true' as the last argument above, because this can support 1v/oct
                 //this->debug = true;
                 this->correction_value_1 = 1182.0;

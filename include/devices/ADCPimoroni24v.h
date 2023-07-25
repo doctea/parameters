@@ -7,7 +7,7 @@
 #define MAX_INPUT_VOLTAGE_24V   10
 #define ADSDeviceClass ADS1015
 
-ADS1015 ADS_OBJECT_24V(ENABLE_CV_INPUT);
+//ADS1015 ADS_OBJECT_24V(ENABLE_CV_INPUT);
 
 //template<class ADSDeviceClass>
 class ADCPimoroni24v : public ADCDeviceBase {
@@ -20,6 +20,8 @@ class ADCPimoroni24v : public ADCDeviceBase {
 
         ADSDeviceClass *actual_device = nullptr;
 
+        int initialised_sources = 0;
+
         ADCPimoroni24v () : ADCDeviceBase () {}
 
         ADCPimoroni24v (uint8_t address, int max_input_voltage = MAX_INPUT_VOLTAGE_24V, uint8_t gain = 2) : ADCPimoroni24v () {
@@ -29,30 +31,31 @@ class ADCPimoroni24v : public ADCDeviceBase {
         }
 
         virtual void init() override {
-            Debug_println(F("ADCPimoroni24v#init() initialising!"));
+            Serial.println(F("ADCPimoroni24v#init() initialising!"));
             if (this->actual_device!=nullptr) {
-                Debug_println(F("\t..already has actual_device set, returning without doing anything"));
+                Serial.println(F("\t..already has actual_device set, returning without doing anything"));
                 return;
             }
             if (this->initialised) {
-                Debug_println(F("\ti..nitialised flag already set, returning without doing anything"));
+                Serial.println(F("\t..initialised flag already set, returning without doing anything"));
                 return;
             }                
 
-            Debug_println(F("\t..instantiating an object of ADSDeviceClass.."));
-            this->actual_device = &ADS_OBJECT_24V; //new ADSDeviceClass(address);
+            Serial.printf(F("\t..instantiating an object of ADSDeviceClass with address %02x..\n"), this->address);
+            //this->actual_device = &ADS_OBJECT_24V; //new ADSDeviceClass(address);
+            this->actual_device = new ADSDeviceClass(address);
             this->actual_device->begin();
             this->actual_device->setGain(gain);
             this->initialised = true;
-            Debug_println(F("\t..instantiated!")); // an object of ADSDeviceClass");
+            Serial.println(F("\t..instantiated!")); // an object of ADSDeviceClass");
         }
 
-        virtual VoltageSourceBase *make_voltage_source(int i) override {
-            Debug_printf(F("ADCPimoroni24v#make_voltage_source(%i)..\n"), i);
+        virtual VoltageSourceBase *make_voltage_source(int global_slot) override {
+            Serial.printf(F("ADCPimoroni24v#make_voltage_source(global_slot=%i)..\n"), global_slot);
             if (!this->initialised)
                 this->init();
-            if (i<MAX_CHANNELS)
-                return new ADS24vVoltageSource<ADSDeviceClass>(i, this->actual_device, i, max_input_voltage);
+            if (initialised_sources<MAX_CHANNELS)
+                return new ADS24vVoltageSource<ADSDeviceClass>(global_slot, this->actual_device, initialised_sources++, max_input_voltage);
             else 
                 return nullptr;
         }

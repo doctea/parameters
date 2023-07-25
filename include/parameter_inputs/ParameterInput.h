@@ -51,7 +51,7 @@ class BaseParameterInput {
 
     uint16_t colour = 0xFFFF;
     BaseParameterInput(char *name, const char *group_name = "General") {
-      strcpy(this->name, name);
+      strncpy(this->name, name, MAX_INPUT_NAME);
       this->group_name = group_name;
       //this->name = ++NEXT_PARAMETER_NAME;
     }
