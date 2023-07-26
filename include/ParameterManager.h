@@ -39,7 +39,7 @@ class ParameterManager {
             BLUE,
             PURPLE,
             ORANGE,
-            32 + ((YELLOW + BLUE) / 2),
+            32 + ((YELLOW + BLUE) / 3),
             (ORANGE + BLUE) / 2,
             (GREEN + RED) / 2,
             (GREEN + ORANGE) / 2
