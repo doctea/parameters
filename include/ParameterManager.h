@@ -123,16 +123,16 @@ class ParameterManager {
             //char parameter_input_name = 'A';
             for (unsigned int i = 0 ; i < devices->size() ; i++) {
                 ADCDeviceBase *device = this->devices->get(i);
-                Serial.printf(F("ParameterManager#auto_init_devices calling init() on device %i of %i\n"), i+1, devices->size());
+                Debug_printf(F("ParameterManager#auto_init_devices calling init() on device %i of %i\n"), i+1, devices->size());
                 device->init();
 
                 VoltageSourceBase *vs = device->make_voltage_source();
                 int counter = 0;
                 while (vs != nullptr) {
-                    Serial.printf(F("\tParameterManager#auto_init_devices adding voltage source count %i\n"), counter);
+                    Debug_printf(F("\tParameterManager#auto_init_devices adding voltage source count %i\n"), counter);
                     this->addVoltageSource(vs);
                     //this->addInput(device->make_input_for_source(parameter_input_name++, vs));
-                    Serial.printf(F("\tParameterManager#auto_init_devices calling make_voltage_source on count %i\n"), counter);
+                    Debug_printf(F("\tParameterManager#auto_init_devices calling make_voltage_source on count %i\n"), counter);
                     vs = device->make_voltage_source();
                     counter++;
                 }
@@ -246,7 +246,7 @@ class ParameterManager {
         }
 
         FLASHMEM void setDefaultParameterConnections() {
-            Debug_printf(F("ParameterManager#setDefaultParameterConnections() has %i parameters to map to %i inputs..\n"), this->available_parameters->size(), this->available_inputs->size());
+            //Debug_printf(F("ParameterManager#setDefaultParameterConnections() has %i parameters to map to %i inputs..\n"), this->available_parameters->size(), this->available_inputs->size());
             for (uint_fast8_t i = 0 ; i < this->available_parameters->size() ; i++) {
                 // todo: make this configurable dynamically / load defaults from save file
                 available_parameters->get(i)->set_slot_0_input(available_inputs->get(0));
@@ -341,7 +341,7 @@ class ParameterManager {
 
                 menu->add(new SeparatorMenuItem(label, param_input->colour));
 
-                Debug_printf(F("\tdoing menu->add for ParameterInputDisplay with label '%s'\n"), label);
+                //Debug_printf(F("\tdoing menu->add for ParameterInputDisplay with label '%s'\n"), label);
                 ParameterInputDisplay *parameter_input_display = new ParameterInputDisplay(label, this->memory_size, param_input);
                 #ifdef PARAMETER_INPUTS_USE_CALLBACKS
                     param_input->add_parameter_input_callback_receiver(parameter_input_display);

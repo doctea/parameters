@@ -31,27 +31,27 @@ class ADCPimoroni24v : public ADCDeviceBase {
         }
 
         virtual void init() override {
-            Serial.println(F("ADCPimoroni24v#init() initialising!"));
+            Debug_println(F("ADCPimoroni24v#init() initialising!"));
             if (this->actual_device!=nullptr) {
-                Serial.println(F("\t..already has actual_device set, returning without doing anything"));
+                Debug_println(F("\t..already has actual_device set, returning without doing anything"));
                 return;
             }
             if (this->initialised) {
-                Serial.println(F("\t..initialised flag already set, returning without doing anything"));
+                Debug_println(F("\t..initialised flag already set, returning without doing anything"));
                 return;
             }                
 
-            Serial.printf(F("\t..instantiating an object of ADSDeviceClass with address %02x..\n"), this->address);
+            Debug_printf(F("\t..instantiating an object of ADSDeviceClass with address %02x..\n"), this->address);
             //this->actual_device = &ADS_OBJECT_24V; //new ADSDeviceClass(address);
             this->actual_device = new ADSDeviceClass(address);
             this->actual_device->begin();
             this->actual_device->setGain(gain);
             this->initialised = true;
-            Serial.println(F("\t..instantiated!")); // an object of ADSDeviceClass");
+            Debug_println(F("\t..instantiated!")); // an object of ADSDeviceClass");
         }
 
         virtual VoltageSourceBase *make_voltage_source(int global_slot) override {
-            Serial.printf(F("ADCPimoroni24v#make_voltage_source(global_slot=%i)..\n"), global_slot);
+            Debug_printf(F("ADCPimoroni24v#make_voltage_source(global_slot=%i)..\n"), global_slot);
             if (!this->initialised)
                 this->init();
             if (initialised_sources<MAX_CHANNELS)
