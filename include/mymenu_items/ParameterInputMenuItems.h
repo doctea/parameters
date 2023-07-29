@@ -9,6 +9,8 @@
 extern ParameterManager *parameter_manager;
 class VoltageParameterInput;
 
+// TODO: allow to deselect a selector (ie set None)
+
 // Selector to choose a ParameterInput from the available list to use a Source; used by objects/parameters that can only feed from one ParameterInput at a time, eg CVInput
 template<class TargetClass>
 class ParameterInputSelectorControl : public SelectorControl<int> {
@@ -35,7 +37,7 @@ class ParameterInputSelectorControl : public SelectorControl<int> {
         this->available_parameter_inputs = available_parameter_inputs,
         this->target_object = target_object;
         this->setter_func = setter_func;
-        this->num_values = available_parameter_inputs->size();
+        this->num_values = available_parameter_inputs->size() + 1;  // + 1 for None optino .. 
     };
 
     virtual void configure (LinkedList<BaseParameterInput*> *available_parameter_inputs) {
@@ -47,6 +49,8 @@ class ParameterInputSelectorControl : public SelectorControl<int> {
     }
 
     virtual int find_parameter_input_index_for_label(char *name) {
+        if (strcmp(name, "None")==0)
+            return num_values;
         if (this->available_parameter_inputs==nullptr)
             return -1;
         unsigned const int size = this->available_parameter_inputs->size();
@@ -99,7 +103,7 @@ class ParameterInputSelectorControl : public SelectorControl<int> {
     virtual const char *get_label_for_index(int index) {
         static char label_for_index[MENU_C_MAX];
         // todo: this is currently unused + untested
-        if (index<0)
+        if (index<0 || index>=available_parameter_inputs->size())
             return "None";
         snprintf(label_for_index, MENU_C_MAX, "%s", this->available_parameter_inputs->get(index)->name);
         return label_for_index;
@@ -109,15 +113,22 @@ class ParameterInputSelectorControl : public SelectorControl<int> {
     virtual void update_source(BaseParameterInput *new_source) {
         //int index = parameter_manager->getPitchInputIndex(new_source);
         //Serial.printf("update_source got index %i\n", index);
-        int index = this->find_parameter_input_index_for_object(new_source);
-        this->update_actual_index(index);
+        if (new_source==nullptr) {
+            this->update_actual_index(-1);
+        } else {
+            int index = this->find_parameter_input_index_for_object(new_source);
+            this->update_actual_index(index);
+        }
     }
 
     virtual void setter (int new_value) {
         //if (this->debug) Serial.printf(F("ParameterSelectorControl changing from %i to %i\n"), this->actual_value_index, new_value);
         selected_value_index = actual_value_index = new_value;
         if(new_value>=0 && this->target_object!=nullptr && this->setter_func!=nullptr) {
-            (this->target_object->*this->setter_func)(this->available_parameter_inputs->get(new_value));
+            if (new_value < (int)this->available_parameter_inputs->size())
+                (this->target_object->*this->setter_func)(this->available_parameter_inputs->get(new_value));
+            else
+                (this->target_object->*this->setter_func)(nullptr);
         }
     }
     virtual int getter () {
@@ -131,7 +142,7 @@ class ParameterInputSelectorControl : public SelectorControl<int> {
 
         pos.y = header(label, pos, selected, opened);
       
-        num_values = this->available_parameter_inputs->size(); //NUM_AVAILABLE_PARAMETERS;
+        int num_values = this->available_parameter_inputs->size(); //NUM_AVAILABLE_PARAMETERS;
         //Serial.printf(F("\tdisplay got num_values %i\n"), num_values); Serial_flush();
 
         if (!opened) {
@@ -139,7 +150,7 @@ class ParameterInputSelectorControl : public SelectorControl<int> {
             //Serial.printf("\tnot opened\n"); Serial_flush();
             colours(selected, this->default_fg, BLACK);
 
-            if (this->actual_value_index>=0) {
+            if (this->actual_value_index>=0 && this->actual_value_index < this->available_parameter_inputs->size()) {
                 //Serial.printf(F("\tactual value index %i\n"), this->actual_value_index); Serial_flush();
                 tft->printf((char*)"Selected: %s\n", (char*)this->get_label_for_index(this->actual_value_index));
                 //Serial.printf(F("\tdrew selected %i\n"), this->actual_value_index); Serial_flush();
@@ -153,7 +164,8 @@ class ParameterInputSelectorControl : public SelectorControl<int> {
                 selected_value_index = actual_value_index;
             const int start_value = tft->will_x_rows_fit_to_height(selected_value_index) ? 0 : selected_value_index;
             
-            for (int i = start_value ; i < (int)num_values ; i++) {
+            int i = 0;
+            for (/*int */i = start_value ; i < (int)num_values ; i++) {
                 //Serial.printf("%s#display() looping over parameterinput number %i of %i...\n", this->label, i, this->available_parameter_inputs->size()); Serial.flush();
                 const BaseParameterInput *param_input = this->available_parameter_inputs->get(i);
                 //Serial.printf("%s#display() got param_input %p...", param_input); Serial.flush();
@@ -168,9 +180,15 @@ class ParameterInputSelectorControl : public SelectorControl<int> {
                 if (tft->getCursorY()>tft->height()) 
                     break;
             }
+            const bool is_current_value_selected = i==current_value;
+            const int col = is_current_value_selected ? GREEN : C_WHITE;
+            colours(opened && selected_value_index==i, col, BLACK);
+            tft->println((const char*)"None");
+
             if (tft->getCursorX()>0) // if we haven't wrapped onto next line then do it manually
                 tft->println(); //(char*)"\n");
         }
+        //Serial.println(F("ParameterInputSelectorControl display() returning!")); Serial_flush();
         return tft->getCursorY();
     }
 
@@ -182,7 +200,7 @@ class ParameterInputSelectorControl : public SelectorControl<int> {
         
         colours(selected, col, BLACK);
         char txt[MENU_C_MAX];
-        if (index_to_display>=0)
+        if (index_to_display>=0 && index_to_display < this->available_parameter_inputs->size())
             // todo: sprintf to correct number of max_character_width characters
             snprintf(txt, MENU_C_MAX, "%6s", this->available_parameter_inputs->get(index_to_display)->name);
         else
@@ -199,7 +217,11 @@ class ParameterInputSelectorControl : public SelectorControl<int> {
 
         char msg[MENU_MESSAGE_MAX];
         //Serial.printf("about to build msg string...\n");
-        const char *name = selected_value_index>=0 ? this->available_parameter_inputs->get(selected_value_index)->name : "None";
+        const char *name = selected_value_index>=0 && selected_value_index < this->available_parameter_inputs->size() 
+                            ? 
+                            this->available_parameter_inputs->get(selected_value_index)->name 
+                            : 
+                            "None";
         //if (selected_value_index>=0)
         snprintf(msg, MENU_MESSAGE_MAX, "Set %s to %s (%i)", label, name, selected_value_index);
         //Serial.printf("about to set_last_message!");

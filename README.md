@@ -58,4 +58,4 @@ Based on code extracted from my [envor2](https://github.com/doctea/envor2) and [
 - Back port so it can be used by [sidenhancy](https://github.com/doctea/sidenhancy) again
 - Inputs from non-voltage sources, eg network, ~~MIDI~~, LFOs
 - Better handling of how calibration is saved + loaded, ie more rigorously defined slots
-
+- ~~Allow to de-select (ie set to None) from a ParameterInputSelectorControl~~
