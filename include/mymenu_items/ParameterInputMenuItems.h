@@ -103,7 +103,7 @@ class ParameterInputSelectorControl : public SelectorControl<int> {
     virtual const char *get_label_for_index(int index) {
         static char label_for_index[MENU_C_MAX];
         // todo: this is currently unused + untested
-        if (index<0 || index>=available_parameter_inputs->size())
+        if (index<0 || index>=(int)available_parameter_inputs->size())
             return "None";
         snprintf(label_for_index, MENU_C_MAX, "%s", this->available_parameter_inputs->get(index)->name);
         return label_for_index;
@@ -150,7 +150,7 @@ class ParameterInputSelectorControl : public SelectorControl<int> {
             //Serial.printf("\tnot opened\n"); Serial_flush();
             colours(selected, this->default_fg, BLACK);
 
-            if (this->actual_value_index>=0 && this->actual_value_index < this->available_parameter_inputs->size()) {
+            if (this->actual_value_index>=0 && this->actual_value_index < (int)this->available_parameter_inputs->size()) {
                 //Serial.printf(F("\tactual value index %i\n"), this->actual_value_index); Serial_flush();
                 tft->printf((char*)"Selected: %s\n", (char*)this->get_label_for_index(this->actual_value_index));
                 //Serial.printf(F("\tdrew selected %i\n"), this->actual_value_index); Serial_flush();
@@ -200,7 +200,7 @@ class ParameterInputSelectorControl : public SelectorControl<int> {
         
         colours(selected, col, BLACK);
         char txt[MENU_C_MAX];
-        if (index_to_display>=0 && index_to_display < this->available_parameter_inputs->size())
+        if (index_to_display>=0 && index_to_display < (int)this->available_parameter_inputs->size())
             // todo: sprintf to correct number of max_character_width characters
             snprintf(txt, MENU_C_MAX, "%6s", this->available_parameter_inputs->get(index_to_display)->name);
         else
@@ -217,7 +217,7 @@ class ParameterInputSelectorControl : public SelectorControl<int> {
 
         char msg[MENU_MESSAGE_MAX];
         //Serial.printf("about to build msg string...\n");
-        const char *name = selected_value_index>=0 && selected_value_index < this->available_parameter_inputs->size() 
+        const char *name = selected_value_index>=0 && selected_value_index < (int)this->available_parameter_inputs->size() 
                             ? 
                             this->available_parameter_inputs->get(selected_value_index)->name 
                             : 
