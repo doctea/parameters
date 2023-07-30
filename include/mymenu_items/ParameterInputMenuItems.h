@@ -196,7 +196,9 @@ class ParameterInputSelectorControl : public SelectorControl<int> {
         const int index_to_display = opened ? selected_value_index : actual_value_index;
         const int col = selected_value_index==this->actual_value_index && opened ? 
                 GREEN : 
-                (index_to_display>=0 ? this->available_parameter_inputs->get(index_to_display)->colour : YELLOW/2);
+                (index_to_display>=0 && index_to_display<(int)this->available_parameter_inputs->size() ? 
+                    this->available_parameter_inputs->get(index_to_display)->colour : 
+                    YELLOW/2);
         
         colours(selected, col, BLACK);
         char txt[MENU_C_MAX];
