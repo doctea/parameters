@@ -63,6 +63,9 @@ class BaseParameter {
     public:
         bool debug = false;
 
+        const char *label_on = "On";
+        const char *label_off = "Off";
+
         char label[20];
 
         BaseParameter(const char *label) {
@@ -472,7 +475,7 @@ class DataParameter : public FloatParameter {
                 return fmt;
             };
             virtual const char* parseFormattedDataType(bool value) {
-                return value ? "On" : "Off";
+                return value ? label_on : label_off;
             }
             virtual const char* parseFormattedDataType(float value) {
                 static char fmt[10] = "         ";

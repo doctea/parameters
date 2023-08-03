@@ -98,9 +98,7 @@ class ToggleParameter : public DataParameter<TargetClass,DataType> {
     }
 
     virtual const char* getFormattedValue() {
-        const char *label_on = "On";
-        const char *label_off = "Off";
-        return this->currentValue ? label_on : label_off;
+        return this->currentValue ? BaseParameter::label_on : BaseParameter::label_off;
     }
 
     #ifdef ENABLE_SCREEN
