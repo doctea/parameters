@@ -203,6 +203,9 @@ class FloatParameter : public BaseParameter {
         this->set_slot_2_amount(0.0f);
     }
 
+    // account for rounding errors that are causing spurious modulation
+    virtual bool is_modulation_slot_active(int slot);
+
     // calculate the modulation value based on the inputs * modulation amounts
     virtual float get_modulation_value();
 

@@ -199,7 +199,11 @@ class ParameterMapPercentageControl : public DirectNumberControl<float> {
         // update the control with the colour from the connected parameter input, if there is one
         this->default_fg = (parameter!=nullptr && parameter->connections[slot_number].parameter_input!=nullptr)
                             ? parameter->connections[slot_number].parameter_input->colour
-                            : C_WHITE; 
+                            : C_WHITE;
+
+        if (!parameter->is_modulation_slot_active(slot_number))
+            this->default_fg = tft->halfbright_565(this->default_fg);
+            
         // todo: update label based on connected parameter input.. see thoughts on how best to do this in submenuitem_bar.h!
         //this->update_label()
         //Serial.printf("renderValue in ParameterMapPercentageControl\tfor %s,\tgot default_fg colour %04x from slot_number %i colour %04x\n", this->label, this->default_fg, slot_number, parameter->connections[slot_number].parameter_input->colour);

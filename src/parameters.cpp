@@ -188,15 +188,19 @@
             //this->parameter->modulateValue(modulation);
     }
 #else
+    // account for rounding errors that are causing spurious modulation
+    bool FloatParameter::is_modulation_slot_active(int slot) {
+        return (abs(this->connections[slot].amount) > 0.02);
+    }
     // get the modulation amount to use
     float FloatParameter::get_modulation_value() {
             float modulation = 0.0f;
             int_fast8_t number_of_modulations = 0;
-            if (this->connections[0].amount==0.0f && this->connections[1].amount==0.0f && this->connections[2].amount==0.0f)
+            if (!is_modulation_slot_active(0) && !is_modulation_slot_active(1) && !is_modulation_slot_active(2))
                 return 0.0f;
 
             for (unsigned int i = 0 ; i < MAX_SLOT_CONNECTIONS ; i++) {
-                if (this->connections[i].parameter_input!=nullptr && this->connections[i].amount!=0.0f) {
+                if (this->connections[i].parameter_input!=nullptr && is_modulation_slot_active(i)) {
                     modulation += (
                         this->connections[i].parameter_input->get_normal_value() * this->connections[i].amount
                     );
