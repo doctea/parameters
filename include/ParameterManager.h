@@ -355,7 +355,7 @@ class ParameterManager {
                     const unsigned int size = this->voltage_sources->size();
 
                     SubMenuItem *submenuitem = new SubMenuItem("Voltage Source Calibration", false);
-                    submenuitem->debug = true;
+                    //submenuitem->debug = true;
 
                     for (unsigned int i = 0 ; i < size ; i++) {
                         //Serial.printf(F("\tParameterManager#addAllVoltageSourceCalibrationMenuItems() for voltage_source %i/%i\n"), i+1, size); Serial_flush();
