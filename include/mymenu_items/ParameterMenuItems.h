@@ -62,12 +62,13 @@ class ParameterValueMenuItem : public DirectNumberControl<float> {
             if (this->show_output_mode) {
                 return this->getFormattedOutputValue();
             }
-            snprintf(fmt, 20, "%-3s", this->parameter->getFormattedValue()); 
+            snprintf(fmt, 20, "%3s", this->parameter->getFormattedValue()); 
             return fmt;
         }
         virtual const char *getFormattedOutputValue() {
             static char fmt[20] = "";
-            snprintf(fmt, 20, "%s", this->parameter->getFormattedLastOutputValue());
+            //snprintf(fmt, 20, "%s", this->parameter->getFormattedLastOutputValue());
+            snprintf(fmt, 20, this->parameter->getFormattedLastOutputValue());
             return fmt;
         }
 
@@ -206,7 +207,7 @@ class ParameterMapPercentageControl : public DirectNumberControl<float> {
             
         // todo: update label based on connected parameter input.. see thoughts on how best to do this in submenuitem_bar.h!
         //this->update_label()
-        //Serial.printf("renderValue in ParameterMapPercentageControl\tfor %s,\tgot default_fg colour %04x from slot_number %i colour %04x\n", this->label, this->default_fg, slot_number, parameter->connections[slot_number].parameter_input->colour);
+        //Serial.printf("renderValue in ParameterMapPercentageControl\tfor %s,\tgot default_fg colour %04x from slot_number %i colour %04x, max_character_width=%i\n", this->label, this->default_fg, slot_number, parameter->connections[slot_number].parameter_input->colour, max_character_width);
         return DirectNumberControl::renderValue(selected, opened, max_character_width);
     }
 
@@ -225,7 +226,7 @@ class ParameterMenuItem : public SubMenuItemBar {
         this->add(new ParameterValueMenuItem((char*)"Value", parameter));
 
         // add the modulation Amount % changers
-        for (unsigned int i = 0 ; i < MAX_SLOT_CONNECTIONS ; i++) {
+        for (uint_fast8_t i = 0 ; i < MAX_SLOT_CONNECTIONS ; i++) {
             // todo: make the modulation source part configurable too
             // todo: make the label part dynamically generated on-the-fly by the DirectNumberControl
             char labelnew[8];
@@ -246,6 +247,7 @@ class ParameterMenuItem : public SubMenuItemBar {
         // add another small widget to display the last output value (after modulation etc)
         ParameterValueMenuItem *output = new ParameterValueMenuItem((char*)"Output", parameter);
         output->setReadOnly();
+        output->selectable = false;
         output->set_show_output_mode();
         this->add(output); 
     }
