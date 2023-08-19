@@ -305,10 +305,10 @@ class ParameterManager {
                     submenu->show_header = false;
 
                     //sprintf(label, "Input type for %s", param_input->name);
-                    submenu->add(new InputTypeSelectorControl("Input type"/*label*/, &param_input->input_type));
+                    submenu->add(new InputTypeSelectorControl("Input"/*label*/, &param_input->input_type)); // Input type
 
                     //sprintf(label, "Out type for %s", param_input->name);
-                    submenu->add(new InputTypeSelectorControl("Output type"/*label*/, &param_input->output_type));
+                    submenu->add(new InputTypeSelectorControl("Output"/*label*/, &param_input->output_type));   // Output type
 
                     menu->add(submenu);
                     return submenu; // was nullptr
