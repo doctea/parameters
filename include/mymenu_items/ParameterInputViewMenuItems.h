@@ -177,7 +177,7 @@ class InputTypeSelectorControl : public SelectorControl<int> {
         this->selected_value_index = this->actual_value_index = this->getter();
     };
 
-    virtual const char* get_label_for_index(int index) {
+    virtual const char* get_label_for_value(int index) override {
         if (index==BIPOLAR)
             return "Bipolar";
         if (index==UNIPOLAR)
@@ -200,12 +200,14 @@ class InputTypeSelectorControl : public SelectorControl<int> {
     virtual int display(Coord pos, bool selected, bool opened) override {
         //Serial.println("MidiOutputSelectorControl display()!");
 
-        pos.y = header(label, pos, selected, opened);
-        tft->setTextSize(2);
+        //int textSize = tft->get_textsize_for_width(label, tft->width()/2);
+        int textSize = 0;
+        pos.y = header(label, pos, selected, opened, textSize);
+        //tft->setTextSize(2);
 
         num_values = 2; //NUM_CLOCK_SOURCES;
 
-        tft->setTextSize(2);
+        //tft->setTextSize(2);
 
         tft->setCursor(pos.x, pos.y);
 
@@ -213,7 +215,7 @@ class InputTypeSelectorControl : public SelectorControl<int> {
             // not opened, so just show the current value
             //colours(opened && selected_value_index==i, col, BLACK);
 
-            tft->printf((char*)"%s", (char*)get_label_for_index(*target)); //selected_value_index));
+            tft->printf((char*)"%s", (char*)get_label_for_value(*target)); //selected_value_index));
             tft->println((char*)"");
         } else {
             int current_value = *target; //actual_value_index;
@@ -223,7 +225,9 @@ class InputTypeSelectorControl : public SelectorControl<int> {
                 int col = is_current_value_selected ? GREEN : this->default_fg;
                 colours(opened && selected_value_index==(int)i, col, BLACK);
                 tft->setCursor(pos.x, pos.y);
-                tft->printf((char*)"%s\n", (char*)get_label_for_index(i));
+                const char *label = get_label_for_value(i);
+                tft->setTextSize(tft->get_textsize_for_width(label, tft->width()/2));
+                tft->printf((char*)"%s\n", (char*)label);
                 pos.y = tft->getCursorY();
             }
             if (tft->getCursorX()>0) // if we haven't wrapped onto next line then do it manually
@@ -247,7 +251,7 @@ class InputTypeSelectorControl : public SelectorControl<int> {
 
         char msg[MENU_MESSAGE_MAX];
         //Serial.printf("about to build msg string...\n");
-        snprintf(msg, MENU_MESSAGE_MAX, "Set type to %i: %s", selected_value_index, get_label_for_index(selected_value_index));
+        snprintf(msg, MENU_MESSAGE_MAX, "Set type to %i: %s", selected_value_index, get_label_for_value(selected_value_index));
         //msg[tft->get_c_max()] = '\0'; // limit the string so we don't overflow set_last_message
         menu_set_last_message(msg, GREEN);
 

@@ -15,7 +15,7 @@
 #include <LinkedList.h>
 
 #ifdef ENABLE_SCREEN
-  #include "submenuitem.h"
+  #include "submenuitem_bar.h"
   #include "mymenu_items/ParameterInputViewMenuItems.h"
   #include "colours.h"
 #endif
