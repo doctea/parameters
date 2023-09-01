@@ -185,9 +185,10 @@ class ParameterManager {
             this->profile_update_mixers = update_mixers_finished - update_mixers_started;
         }
 
-        FASTRUN void update_mixers_sliced() {
+        // update X mixers at a time
+        FASTRUN void update_mixers_sliced(int_fast8_t proportion = 3) {
             static uint_fast8_t pos = 0;
-            const uint_fast8_t SLICE_SIZE = this->available_parameters->size()/3;
+            const uint_fast8_t SLICE_SIZE = this->available_parameters->size() / proportion;
             const uint_fast8_t available_parameters_size = this->available_parameters->size();
             for (uint_fast8_t i = pos ; i < available_parameters_size && i < SLICE_SIZE ; i++) {
                 this->available_parameters->get(i)->update_mixer();
@@ -456,6 +457,62 @@ class ParameterManager {
 
         //virtual bool load_voltage_calibration();
         //virtual bool save_voltage_calibration();
+
+        /* functions for handling updates of cv data */
+
+        unsigned long time_of_last_param_update = 0;
+
+        bool ready_for_next_update(unsigned int time_between_cv_input_updates = 5) {
+            return millis() - time_of_last_param_update > time_between_cv_input_updates;
+        }
+
+        // handle slicing stages of update and throttling updates
+        void throttled_update_cv_input(bool slice_stages = false, int time_between_cv_input_updates = 5, bool slice_mixers = false) {
+            if (ready_for_next_update()) {
+                if (slice_stages) {
+                    static int_fast8_t current_mode = 0;
+                    if(debug_flag) {
+                        this->debug = true;
+                        Serial.println(F("about to do parameter_manager->update_voltage_sources()..")); Serial_flush();
+                    }
+                    switch (current_mode) {
+                        case 0:
+                            this->update_voltage_sources();
+                            current_mode++;
+                            break;
+                        case 1:
+                            //if(debug) Serial.println("just did parameter_manager->update_voltage_sources().."); Serial_flush();
+                            //if(debug) Serial.println("about to do parameter_manager->update_inputs().."); Serial_flush();
+                            this->update_inputs();
+                            //if(debug) Serial.println("about to do parameter_manager->update_mixers().."); Serial_flush();
+                            current_mode++;
+                            break;
+                        case 2:
+                            if (slice_mixers)
+                                this->update_mixers_sliced();
+                            else
+                                this->update_mixers();
+                            if(debug_flag) Serial.println(F("just did parameter_manager->update_inputs()..")); Serial_flush();
+                            current_mode = 0;
+                            break;
+                    }
+                } else {
+                    if(debug_flag) this->debug = true;
+                    if(debug_flag) Serial.println(F("about to do parameter_manager->update_voltage_sources()..")); Serial_flush();
+                    this->update_voltage_sources();
+                    //if(debug) Serial.println("just did parameter_manager->update_voltage_sources().."); Serial_flush();
+                    //if(debug) Serial.println("about to do parameter_manager->update_inputs().."); Serial_flush();
+                    this->update_inputs();
+                    //if(debug) Serial.println("about to do parameter_manager->update_mixers().."); Serial_flush();
+                    if (slice_mixers)
+                        this->update_mixers_sliced();
+                    else
+                        this->update_mixers();
+                    if(debug_flag) Serial.println(F("just did parameter_manager->update_inputs()..")); Serial_flush();
+                }
+                time_of_last_param_update = millis();
+            }
+        }
 };
 
 extern ParameterManager *parameter_manager;
