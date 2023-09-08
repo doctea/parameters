@@ -196,7 +196,8 @@ class ParameterManager {
             if (pos>=available_parameters_size) pos = 0;
         }
 
-        FLASHMEM void setDefaultParameterConnections() {
+        FLASHMEM // causes a section type conflict with 'void setup_cv_input()'
+        void setDefaultParameterConnections() {
             //Debug_printf(F("ParameterManager#setDefaultParameterConnections() has %i parameters to map to %i inputs..\n"), this->available_parameters->size(), this->available_inputs->size());
             for (uint_fast8_t i = 0 ; i < this->available_parameters->size() ; i++) {
                 // todo: make this configurable dynamically / load defaults from save file
@@ -351,7 +352,8 @@ class ParameterManager {
             }*/
 
             //#if defined(ENABLE_SD) && !defined(DISABLE_CALIBRATION_STORAGE)
-                FLASHMEM void addAllVoltageSourceCalibrationMenuItems(Menu *menu) {
+                //FLASHMEM causes a section type conflict with 'void setup_cv_input()'
+                void addAllVoltageSourceCalibrationMenuItems(Menu *menu) {
                     //Serial.printf(F("------------\nParameterManager#addAllVoltageSourceCalibrationMenuItems() has %i VoltageSources to add items for?\n"), this->voltage_sources->size());
                     const unsigned int size = this->voltage_sources->size();
 
@@ -492,13 +494,13 @@ class ParameterManager {
                                 this->update_mixers_sliced();
                             else
                                 this->update_mixers();
-                            if(debug_flag) Serial.println(F("just did parameter_manager->update_inputs()..")); Serial_flush();
+                            if(debug_flag) { Serial.println(F("just did parameter_manager->update_inputs()..")); Serial_flush(); }
                             current_mode = 0;
                             break;
                     }
                 } else {
                     if(debug_flag) this->debug = true;
-                    if(debug_flag) Serial.println(F("about to do parameter_manager->update_voltage_sources()..")); Serial_flush();
+                    if(debug_flag) { Serial.println(F("about to do parameter_manager->update_voltage_sources()..")); Serial_flush(); }
                     this->update_voltage_sources();
                     //if(debug) Serial.println("just did parameter_manager->update_voltage_sources().."); Serial_flush();
                     //if(debug) Serial.println("about to do parameter_manager->update_inputs().."); Serial_flush();
@@ -508,7 +510,7 @@ class ParameterManager {
                         this->update_mixers_sliced();
                     else
                         this->update_mixers();
-                    if(debug_flag) Serial.println(F("just did parameter_manager->update_inputs()..")); Serial_flush();
+                    if(debug_flag) { Serial.println(F("just did parameter_manager->update_inputs()..")); Serial_flush(); }
                 }
                 time_of_last_param_update = millis();
             }
