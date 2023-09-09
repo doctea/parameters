@@ -154,8 +154,17 @@ class FloatParameter : public BaseParameter {
         }
         return -1;
     }
+    // TODO: verify if this is actually working properly?!
+    virtual int find_connected_or_next_empty_slot(BaseParameterInput *parameter_input) {
+        for (unsigned int i = 0 ; i < MAX_SLOT_CONNECTIONS ; i++) {
+            if (connections[i].parameter_input==parameter_input)
+                return i;
+        }
+        return find_empty_slot();
+    }
     virtual bool connect_input(BaseParameterInput *parameter_input, float amount) {
-        int slot = find_empty_slot();
+        //int slot = find_empty_slot();
+        int slot = find_connected_or_next_empty_slot(parameter_input);
         if (slot==-1) 
             return false;
 
@@ -163,6 +172,13 @@ class FloatParameter : public BaseParameter {
         set_slot_amount(slot, amount);
 
         return true;
+    }
+    virtual bool connect_input(int slot_number, float amount) {
+        if (slot_number < 3) {
+            set_slot_amount(slot_number, amount);
+            return true;
+        }
+        return false;
     }
     virtual bool disconnect_input(byte slot) { 
         this->connections[slot].parameter_input = nullptr;

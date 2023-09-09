@@ -26,17 +26,20 @@ class MIDICCParameter : public DataParameter<TargetClass,DataType> {
     public:
         byte cc_number = 0, channel = 0;
 
-        MIDICCParameter(const char* label, TargetClass *target, byte cc_number, byte channel)
+        bool configurable = false;
+
+        MIDICCParameter(const char* label, TargetClass *target, byte cc_number, byte channel, bool configurable = false)
             : DataParameter<TargetClass,DataType>(label, target) {
                 this->cc_number = cc_number;
                 this->channel = channel;
                 this->minimumDataValue = 0;
                 this->maximumDataValue = 127;
+                this->configurable = configurable;
                 //this->debug = true;
         }
 
-        MIDICCParameter(const char* label, TargetClass *target, byte cc_number, byte channel, byte maximum_value) 
-            : MIDICCParameter(label, target, cc_number, channel) {
+        MIDICCParameter(const char* label, TargetClass *target, byte cc_number, byte channel, byte maximum_value, bool configurable = false) 
+            : MIDICCParameter(label, target, cc_number, channel, configurable) {
                 this->maximumDataValue = maximum_value;
         }
 
@@ -51,13 +54,36 @@ class MIDICCParameter : public DataParameter<TargetClass,DataType> {
             static byte last_value = -1;
             
             if (this->target!=nullptr) {
-                if (this->debug) Serial.printf(F("MIDICCParameter#setTargetValueFromData(%i, %i, %i)\n"), cc_number, value, this->channel);
+                if (this->debug) Serial.printf("MIDICCParameter#setTargetValueFromData(%i, %i, %i)\n", cc_number, value, this->channel);
                 if (last_value!=value || force)
                     this->target->sendControlChange(this->cc_number, value, this->channel);
                 last_value = value;
             } else {
-                if (this->debug) Serial.printf(F("WARNING: No target set in MIDICCParameter#setTargetValueFromData in '%s'!\n"), this->label);
+                if (this->debug) Serial.printf("WARNING: No target set in MIDICCParameter#setTargetValueFromData in '%s'!\n", this->label);
             }
+        }
+
+        bool load_parse_key_value(String key, String value) override {
+            if (this->configurable) {
+                String prefix = String("midi_cc_parameter_value_") + String(this->label) + String("_");
+                if (key.startsWith(prefix)) {
+                    if (key.endsWith("_channel")) {
+                        this->channel = value.toInt();
+                        return true;
+                    } else if (key.endsWith("_cc")) {
+                        this->cc_number = value.toInt();
+                        return true;
+                    }
+                }
+            }
+            return FloatParameter::load_parse_key_value(key, value);
+        }
+        void save_sequence_add_lines(LinkedList<String> *lines) override {
+            if (this->configurable) {
+                lines->add(String("midi_cc_parameter_value_") + String(this->label) + String("_channel=") + String(this->channel));
+                lines->add(String("midi_cc_parameter_value_") + String(this->label) + String("_cc=") + String(this->cc_number));
+            }
+            FloatParameter::save_sequence_add_lines(lines);
         }
 };
 
@@ -78,12 +104,12 @@ class MIDICCProxyParameter : public MIDICCParameter<TargetClass,DataType> {
             static byte last_value = -1;
             
             if (this->target!=nullptr) {
-                if (this->debug) Serial.printf(F("MIDICCProxyParameter#setTargetValueFromData(%i, %i, %i)\n"), this->cc_number, value, this->channel);
+                if (this->debug) Serial.printf("MIDICCProxyParameter#setTargetValueFromData(%i, %i, %i)\n", this->cc_number, value, this->channel);
                 if (last_value!=value || force)
                     this->target->sendProxiedControlChange(this->cc_number, (byte)value, this->channel);
                 last_value = value;
             } else {
-                if (this->debug) Serial.printf(F("WARNING: No target set in MIDICCProxyParameter#setTargetValueFromData in '%s'!\n"), this->label);
+                if (this->debug) Serial.printf("WARNING: No target set in MIDICCProxyParameter#setTargetValueFromData in '%s'!\n", this->label);
             }
         }
 };
