@@ -59,6 +59,8 @@ struct ParameterToInputConnection {
     //bool volt_per_octave = false;
 };
 
+const size_t MAX_PARAMETER_NAME_LENGTH = 20;
+
 class BaseParameter { 
     public:
         bool debug = false;
@@ -66,10 +68,10 @@ class BaseParameter {
         const char *label_on = "On";
         const char *label_off = "Off";
 
-        char label[20];
+        char label[MAX_PARAMETER_NAME_LENGTH];
 
         BaseParameter(const char *label) {
-            strcpy(this->label, label);
+            strncpy(this->label, label, MAX_PARAMETER_NAME_LENGTH);
         };
         virtual void updateValueFromNormal(float value/*, float range = 1.0*/) {};
         virtual void modulateValue(float value) {};
@@ -523,16 +525,16 @@ class DataParameter : public FloatParameter {
         #else
             // use version for 1284p that utilise ArxTypeTraits and constexpr to render values
             virtual const char* getFormattedValue() override {
-                static char fmt[20] = "              ";
+                static char fmt[MAX_PARAMETER_NAME_LENGTH] = "              ";
                 if constexpr (std::is_integral<DataType>::value && std::is_same<DataType, bool>::value) {
-                    snprintf(fmt, 20, "%s", this->getCurrentValue()?"On" : "Off");
+                    snprintf(fmt, MAX_PARAMETER_NAME_LENGTH, "%s", this->getCurrentValue()?"On" : "Off");
                 } else if constexpr (std::is_floating_point<DataType>::value) {
-                    snprintf(fmt, 20, "%3i%% (float)",     (int)(100.0f*this->getCurrentDataValue())); //->getCurrentValue());
+                    snprintf(fmt, MAX_PARAMETER_NAME_LENGTH, "%3i%% (float)",     (int)(100.0f*this->getCurrentDataValue())); //->getCurrentValue());
                 } else if constexpr (std::is_unsigned<DataType>::value) {
-                    snprintf(fmt, 20, "%5u (unsigned)",    (unsigned int)(this->getCurrentDataValue()));
+                    snprintf(fmt, MAX_PARAMETER_NAME_LENGTH, "%5u (unsigned)",    (unsigned int)(this->getCurrentDataValue()));
                                             //(unsigned int)(this->maximumDataValue*this->getCurrentValue())); //getCurrentValue());
                 } else {
-                    snprintf(fmt, 20, "%5i (signed)",      (int)(this->getCurrentDataValue())); //getCurrentValue());
+                    snprintf(fmt, MAX_PARAMETER_NAME_LENGTH, "%5i (signed)",      (int)(this->getCurrentDataValue())); //getCurrentValue());
                                             //(int)(this->maximumDataValue*this->getCurrentValue())); //getCurrentValue());
                 }
                 //Serial.printf("getFormattedValue: '%s'\n", fmt);

@@ -19,7 +19,7 @@ class ParameterValueMenuItem : public DirectNumberControl<float> {
         bool show_output_mode = false;  // true if this widget should show the last post-modulation output value; false if it should show the pre-modulation value
 
         ParameterValueMenuItem(char *label, FloatParameter *parameter) : DirectNumberControl(label) {
-            strcpy(this->label, label);
+            strncpy(this->label, label, 20);
             this->parameter = parameter;
             this->internal_value = parameter->getCurrentNormalValue() * 100.0;
             this->minimum_value = 0.0f; 
