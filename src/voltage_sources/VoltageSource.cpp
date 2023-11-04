@@ -4,6 +4,8 @@
 
     #include "voltage_sources/VoltageSource.h"
     #include "submenuitem_bar.h"
+    #include "menuitems_lambda.h"
+    #include "functional-vlpp.h"
 
     #if defined(ENABLE_CALIBRATION_STORAGE)
         FLASHMEM 
@@ -17,20 +19,22 @@
             SubMenuItemBar *submenu = new SubMenuItemBar(name);
             
             //Serial.printf(F("Creating load control for '%s'..\n"), name); Serial_flush();
-            ObjectActionConfirmItem<VoltageSourceBase> *load = new ObjectActionConfirmItem<VoltageSourceBase> (
+            /*ObjectActionConfirmItem<VoltageSourceBase> *load = new ObjectActionConfirmItem<VoltageSourceBase> (
                 "Load", 
                 this,
                 &VoltageSourceBase::load_calibration
-            );
+            );*/
+            LambdaActionConfirmItem *load = new LambdaActionConfirmItem("Load", [=]() -> void { this->load_calibration(); });
             //load->show_header = false;
             submenu->add(load);
 
             //Serial.printf(F("Creating save control for '%s'\n"), name);Serial_flush();
-            ObjectActionConfirmItem<VoltageSourceBase> *save = new ObjectActionConfirmItem<VoltageSourceBase> (
+            /*ObjectActionConfirmItem<VoltageSourceBase> *save = new ObjectActionConfirmItem<VoltageSourceBase> (
                 "Save", 
                 this,
                 &VoltageSourceBase::save_calibration
-            );
+            );*/
+            LambdaActionConfirmItem *save = new LambdaActionConfirmItem("Save", [=]() -> void { this->save_calibration(); });
             //save->show_header = false;
             submenu->add(save);
 
