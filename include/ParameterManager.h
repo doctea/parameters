@@ -1,6 +1,11 @@
 #ifndef PARAMETERMANAGER__INCLUDED
 #define PARAMETERMANAGER__INCLUDED
 
+#if defined(USE_UCLOCK) && defined(CORE_TEENSY)
+  #include <util/atomic.h>
+  #define USE_ATOMIC
+#endif
+
 //#include "Config.h"
 
 #include "debug.h"
@@ -470,49 +475,54 @@ class ParameterManager {
 
         // handle slicing stages of update and throttling updates
         void throttled_update_cv_input(bool slice_stages = false, int time_between_cv_input_updates = 5, bool slice_mixers = false) {
-            if (ready_for_next_update()) {
-                if (slice_stages) {
-                    static int_fast8_t current_mode = 0;
-                    if(debug_flag) {
-                        this->debug = true;
-                        Serial.println(F("about to do parameter_manager->update_voltage_sources()..")); Serial_flush();
+            #ifdef USE_ATOMIC
+            ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+            #endif
+            {
+                if (ready_for_next_update()) {
+                    if (slice_stages) {
+                        static int_fast8_t current_mode = 0;
+                        if(debug_flag) {
+                            this->debug = true;
+                            Serial.println(F("about to do parameter_manager->update_voltage_sources()..")); Serial_flush();
+                        }
+                        switch (current_mode) {
+                            case 0:
+                                this->update_voltage_sources();
+                                current_mode++;
+                                break;
+                            case 1:
+                                //if(debug) Serial.println("just did parameter_manager->update_voltage_sources().."); Serial_flush();
+                                //if(debug) Serial.println("about to do parameter_manager->update_inputs().."); Serial_flush();
+                                this->update_inputs();
+                                //if(debug) Serial.println("about to do parameter_manager->update_mixers().."); Serial_flush();
+                                current_mode++;
+                                break;
+                            case 2:
+                                if (slice_mixers)
+                                    this->update_mixers_sliced();
+                                else
+                                    this->update_mixers();
+                                if(debug_flag) { Serial.println(F("just did parameter_manager->update_inputs()..")); Serial_flush(); }
+                                current_mode = 0;
+                                break;
+                        }
+                    } else {
+                        if(debug_flag) this->debug = true;
+                        if(debug_flag) { Serial.println(F("about to do parameter_manager->update_voltage_sources()..")); Serial_flush(); }
+                        this->update_voltage_sources();
+                        //if(debug) Serial.println("just did parameter_manager->update_voltage_sources().."); Serial_flush();
+                        //if(debug) Serial.println("about to do parameter_manager->update_inputs().."); Serial_flush();
+                        this->update_inputs();
+                        //if(debug) Serial.println("about to do parameter_manager->update_mixers().."); Serial_flush();
+                        if (slice_mixers)
+                            this->update_mixers_sliced();
+                        else
+                            this->update_mixers();
+                        if(debug_flag) { Serial.println(F("just did parameter_manager->update_inputs()..")); Serial_flush(); }
                     }
-                    switch (current_mode) {
-                        case 0:
-                            this->update_voltage_sources();
-                            current_mode++;
-                            break;
-                        case 1:
-                            //if(debug) Serial.println("just did parameter_manager->update_voltage_sources().."); Serial_flush();
-                            //if(debug) Serial.println("about to do parameter_manager->update_inputs().."); Serial_flush();
-                            this->update_inputs();
-                            //if(debug) Serial.println("about to do parameter_manager->update_mixers().."); Serial_flush();
-                            current_mode++;
-                            break;
-                        case 2:
-                            if (slice_mixers)
-                                this->update_mixers_sliced();
-                            else
-                                this->update_mixers();
-                            if(debug_flag) { Serial.println(F("just did parameter_manager->update_inputs()..")); Serial_flush(); }
-                            current_mode = 0;
-                            break;
-                    }
-                } else {
-                    if(debug_flag) this->debug = true;
-                    if(debug_flag) { Serial.println(F("about to do parameter_manager->update_voltage_sources()..")); Serial_flush(); }
-                    this->update_voltage_sources();
-                    //if(debug) Serial.println("just did parameter_manager->update_voltage_sources().."); Serial_flush();
-                    //if(debug) Serial.println("about to do parameter_manager->update_inputs().."); Serial_flush();
-                    this->update_inputs();
-                    //if(debug) Serial.println("about to do parameter_manager->update_mixers().."); Serial_flush();
-                    if (slice_mixers)
-                        this->update_mixers_sliced();
-                    else
-                        this->update_mixers();
-                    if(debug_flag) { Serial.println(F("just did parameter_manager->update_inputs()..")); Serial_flush(); }
+                    time_of_last_param_update = millis();
                 }
-                time_of_last_param_update = millis();
             }
         }
 };

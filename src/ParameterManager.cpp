@@ -39,6 +39,8 @@ bool ParameterManager::save_voltage_calibration(int slot) {
 
 }*/
 
+#include <Arduino.h>
+
 #include "ParameterManager.h"
 
 LinkedList<BaseParameterInput*> *ParameterManager::get_available_pitch_inputs() {
