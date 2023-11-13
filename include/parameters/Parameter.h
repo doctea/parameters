@@ -292,17 +292,18 @@ class DataParameter : public FloatParameter {
             this->setter_func = setter_func;
         }
         DataParameter(const char *label, TargetClass *target, void(TargetClass::*setter_func)(DataType), DataType(TargetClass::*getter_func)()) 
-            : DataParameter<TargetClass,DataType>(label, target, setter_func) {
+            : DataParameter<TargetClass,DataType>(label, target, setter_func)
+        {
             this->getter_func = getter_func;
             //if (getter_func!=nullptr)
             //    this->setInitialValue();
         }
         DataParameter(const char *label, TargetClass *target, void(TargetClass::*setter_func)(DataType), DataType(TargetClass::*getter_func)(), DataType minimum_value, DataType maximum_value) 
             : DataParameter(label, target, setter_func, getter_func) /* minimumDataValue(minimum_value), maximumDataValue(maximum_value), */
-            {
-                this->minimumDataValue = minimum_value;
-                this->maximumDataValue = maximum_value;
-            }
+        {
+            this->minimumDataValue = minimum_value;
+            this->maximumDataValue = maximum_value;
+        }
         DataParameter(const char *label, TargetClass *target, float initial_value_normal, void(TargetClass::*setter_func)(DataType)) : DataParameter(label, target, setter_func) {
             this->initialNormalValue = initial_value_normal;
             //this->setInitialValueFromNormal(initial_value_normal);
@@ -321,10 +322,7 @@ class DataParameter : public FloatParameter {
             DataType current_value = 0;
             if (this->getter_func!=nullptr) 
                 current_value = (this->target->*getter_func)();
-                //current_value_normal = (this->target->*getter_func)() / maximum_value;
-            //this->setParamValue(current_value_normal);
             return this->initialise_values(minimum_value, maximum_value, current_value);
-            //return this; //this->initialise_values(minimum_value, maximum_value, current_value_normal);
         }
         virtual DataParameter* initialise_values(DataType minimum_value, DataType maximum_value, DataType current_value) {
             this->minimumDataValue = minimum_value;
@@ -337,7 +335,6 @@ class DataParameter : public FloatParameter {
             this->currentNormalValue = this->dataToNormal(current_value); //(current_value - minimum_value) / (maximum_value - minimum_value);
             this->initialNormalValue = this->currentNormalValue;
 
-            //this->updateValueFromNormal(current_value);
             return this;
         }
 
