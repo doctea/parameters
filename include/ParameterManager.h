@@ -227,7 +227,7 @@ class ParameterManager {
                             snprintf(label, MENU_C_MAX, "%s: %s", parameter_input->group_name, parameter_input->name);
                         else
                             snprintf(label, MENU_C_MAX, "%s inputs", parameter_input->group_name);
-                        menu->add_page(label);
+                        menu->add_page(label, parameter_input->colour);
                         last_group_name = parameter_input->group_name;
                         snprintf(label, MENU_C_MAX, "%s ", last_group_name);
                     }
@@ -361,31 +361,50 @@ class ParameterManager {
 
             //#if defined(ENABLE_SD) && !defined(DISABLE_CALIBRATION_STORAGE)
                 //FLASHMEM causes a section type conflict with 'void setup_cv_input()'
-                void addAllVoltageSourceCalibrationMenuItems(Menu *menu) {
+                void addAllVoltageSourceCalibrationMenuItems(Menu *menu, bool make_own_page = false) {
                     //Serial.printf(F("------------\nParameterManager#addAllVoltageSourceCalibrationMenuItems() has %i VoltageSources to add items for?\n"), this->voltage_sources->size());
                     const unsigned int size = this->voltage_sources->size();
 
-                    SubMenuItem *submenuitem = new SubMenuItem("Voltage Source Calibration", false);
-                    //submenuitem->debug = true;
+                    if (!make_own_page) {
+                        SubMenuItem *submenuitem = new SubMenuItem("Voltage Source Calibration", false);
+                        //submenuitem->debug = true;
 
-                    for (unsigned int i = 0 ; i < size ; i++) {
-                        //Serial.printf(F("\tParameterManager#addAllVoltageSourceCalibrationMenuItems() for voltage_source %i/%i\n"), i+1, size); Serial_flush();
-                        
-                        VoltageSourceBase *voltage_source = this->voltage_sources->get(i);
-                        submenuitem->add(voltage_source->makeCalibrationControls(i));
-                        //Serial.println("addAllVoltageSourceCalibrationMenuItems did makeCalibrationControls!");
-                        #if defined(ENABLE_CALIBRATION_STORAGE)
-                            submenuitem->add(voltage_source->makeCalibrationLoadSaveControls(i));
-                        #endif
+                        for (unsigned int i = 0 ; i < size ; i++) {
+                            //Serial.printf(F("\tParameterManager#addAllVoltageSourceCalibrationMenuItems() for voltage_source %i/%i\n"), i+1, size); Serial_flush();
+                            
+                            VoltageSourceBase *voltage_source = this->voltage_sources->get(i);
+                            submenuitem->add(voltage_source->makeCalibrationControls(i));
+                            //Serial.println("addAllVoltageSourceCalibrationMenuItems did makeCalibrationControls!");
+                            #if defined(ENABLE_CALIBRATION_STORAGE)
+                                submenuitem->add(voltage_source->makeCalibrationLoadSaveControls(i));
+                            #endif
 
-                        //submenuitem->add(new MenuItem("Test"));
+                            //submenuitem->add(new MenuItem("Test"));
 
-                        //Serial.println(F("\t\taddAllVoltageSourceCalibrationMenuItems done!")); Serial_flush();
-                        //Serial.printf(F("\tfinished with voltage_source %i\n"), i);
+                            //Serial.println(F("\t\taddAllVoltageSourceCalibrationMenuItems done!")); Serial_flush();
+                            //Serial.printf(F("\tfinished with voltage_source %i\n"), i);
+                        }
+                        //Serial.printf(F("ParameterManager#addAllVoltageSourceCalibrationMenuItems() done!\n------------\n")); Serial_flush();
+
+                        menu->add(submenuitem);
+                    } else {
+                        menu->add_page("Calibration");
+                        for (unsigned int i = 0 ; i < size ; i++) {
+                            //Serial.printf(F("\tParameterManager#addAllVoltageSourceCalibrationMenuItems() for voltage_source %i/%i\n"), i+1, size); Serial_flush();
+                            
+                            VoltageSourceBase *voltage_source = this->voltage_sources->get(i);
+                            menu->add(voltage_source->makeCalibrationControls(i));
+                            //Serial.println("addAllVoltageSourceCalibrationMenuItems did makeCalibrationControls!");
+                            #if defined(ENABLE_CALIBRATION_STORAGE)
+                                menu->add(voltage_source->makeCalibrationLoadSaveControls(i));
+                            #endif
+
+                            //submenuitem->add(new MenuItem("Test"));
+
+                            //Serial.println(F("\t\taddAllVoltageSourceCalibrationMenuItems done!")); Serial_flush();
+                            //Serial.printf(F("\tfinished with voltage_source %i\n"), i);
+                        }
                     }
-                    //Serial.printf(F("ParameterManager#addAllVoltageSourceCalibrationMenuItems() done!\n------------\n")); Serial_flush();
-
-                    menu->add(submenuitem);
                 }
             //#endif
         #endif
