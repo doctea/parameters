@@ -216,14 +216,17 @@ class ParameterManager {
         }
 
         #ifdef ENABLE_SCREEN
-            FLASHMEM void addAllParameterInputMenuItems(Menu *menu, const char *label_prefix = nullptr) {
+            FLASHMEM void addAllParameterInputMenuItems(Menu *menu, bool page_per_input = false) {
                 const char *last_group_name = nullptr;
                 for (unsigned int i = 0 ; i < available_inputs->size() ; i++) {
                     BaseParameterInput *parameter_input = available_inputs->get(i);
                     //Serial.printf("!!! Adding parameter menu items for %s\tfrom %s!\n", parameter_input->name, parameter_input->group_name);
                     char label[MENU_C_MAX];
-                    if (last_group_name!=parameter_input->group_name) {                        
-                        snprintf(label, MENU_C_MAX, "%s inputs", parameter_input->group_name);
+                    if (last_group_name!=parameter_input->group_name || page_per_input) {                        
+                        if (page_per_input)
+                            snprintf(label, MENU_C_MAX, "%s: %s", parameter_input->group_name, parameter_input->name);
+                        else
+                            snprintf(label, MENU_C_MAX, "%s inputs", parameter_input->group_name);
                         menu->add_page(label);
                         last_group_name = parameter_input->group_name;
                         snprintf(label, MENU_C_MAX, "%s ", last_group_name);

@@ -6,6 +6,8 @@
 
 #include "../voltage_sources/VoltageSource.h"
 
+#include "midi_helpers.h"
+
 #include "ads.h"
 
 class VoltageParameterInput : public AnalogParameterInputBase<float> {
