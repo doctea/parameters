@@ -76,13 +76,13 @@ class ParameterManager {
         FLASHMEM void auto_init_devices() {
             Debug_printf(F("ParameterManager#auto_init_devices)\n"));
             //char parameter_input_name = 'A';
-            for (unsigned int i = 0 ; i < devices->size() ; i++) {
+            for (uint_least8_t i = 0 ; i < devices->size() ; i++) {
                 ADCDeviceBase *device = this->devices->get(i);
                 Debug_printf(F("ParameterManager#auto_init_devices calling init() on device %i of %i\n"), i+1, devices->size());
                 device->init();
 
                 VoltageSourceBase *vs = device->make_voltage_source();
-                int counter = 0;
+                uint_least8_t counter = 0;
                 while (vs != nullptr) {
                     Debug_printf(F("\tParameterManager#auto_init_devices adding voltage source count %i\n"), counter);
                     this->addVoltageSource(vs);
@@ -456,7 +456,7 @@ class ParameterManager {
                     actual_index -= actual_size;    // wrap around to the start of list to ensure we search all entries
 
                 FloatParameter *parameter = list_to_search->get(actual_index);
-                if (parameter->load_parse_key_value(key, value)) {
+                if (parameter!=nullptr && parameter->load_parse_key_value(key, value)) {
                     last_found_at = actual_index;
                     return true;
                 }

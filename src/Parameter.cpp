@@ -19,7 +19,7 @@ class BaseParameterInput;
 
 extern ParameterManager *parameter_manager;
 
-void FloatParameter::set_slot_input(byte slot, const char *name) {
+void FloatParameter::set_slot_input(int8_t slot, const char *name) {
     BaseParameterInput *inp = parameter_manager->getInputForName(name);
     if (inp!=nullptr)
         this->set_slot_input(slot, inp);
@@ -31,8 +31,12 @@ void FloatParameter::set_slot_input(byte slot, const char *name) {
     #include "mymenu_items/ParameterMenuItems.h"
 #endif
 
-void FloatParameter::set_slot_input(byte slot, BaseParameterInput *parameter_input) {
+void FloatParameter::set_slot_input(int8_t slot, BaseParameterInput *parameter_input) {
     Debug_printf(F("PARAMETERS\tFloatParameter#set_slot_input in '%s': asked to set slot %i on %s to point to %s\n"), this->label, slot, this->label, parameter_input->name);
+    if (!this->is_valid_slot(slot)) {
+        Serial.printf("%s#set_slot_input(%i) isn't a valid slot number!\n", this->label, slot);
+        return;
+    }
     this->connections[slot].parameter_input = parameter_input;
     #ifdef ENABLE_SCREEN
         if (parameter_input!=nullptr) {
@@ -44,9 +48,11 @@ void FloatParameter::set_slot_input(byte slot, BaseParameterInput *parameter_inp
 
 #ifdef ENABLE_SCREEN
     // TODO: this is kinda ugly!  should be a better way to do this.
-    void FloatParameter::update_slot_amount_control(byte slot, BaseParameterInput *parameter_input) {
+    void FloatParameter::update_slot_amount_control(int8_t slot, BaseParameterInput *parameter_input) {
         Debug_println(F("in update_slot_amount_control (FloatParameter version)..")); Serial_flush();
-        //this->update_slot_amount_control(slot, parameter_input->name);
+
+        if (!is_valid_slot(slot)) return;
+        
         if (this->connections[slot].amount_control!=nullptr) {
             Debug_printf(F("Updating colours+label on slot %i on %s\n"), slot, this->connections[slot].amount_control->label);
             if (parameter_input!=nullptr) {
@@ -79,14 +85,16 @@ void FloatParameter::set_slot_input(byte slot, BaseParameterInput *parameter_inp
     }*/
 #endif
 
-const char *FloatParameter::get_input_name_for_slot(byte slot) {
+const char *FloatParameter::get_input_name_for_slot(int8_t slot) {
+    if (!is_valid_slot(slot)) return "[invalid]";
     if (this->connections[slot].parameter_input!=nullptr)
         return this->connections[slot].parameter_input->name;
     Debug_printf(F("WARNING: get_input_name_for_slot(%i) got an empty slot!"), slot);
     return "None";
 }
 
-float FloatParameter::get_amount_for_slot(byte slot) {
+float FloatParameter::get_amount_for_slot(int8_t slot) {
+    if (!is_valid_slot(slot)) return 0.0f;
     return this->connections[slot].amount;
 }
 
@@ -102,7 +110,7 @@ void FloatParameter::save_sequence_add_lines(LinkedList<String> *lines) {
         //          ^^ this could be the SaveableParameter class, used as a wrapper.  would require SaveableParameter to be able to add multiple lines to the save file
         // todo: make these mappings part of an extra type of thing (like a "preset clip"?), rather than associated with sequence?
         // todo: move these to be saved with the project instead?
-        for (int slot = 0 ; slot < 3 ; slot++) { // TODO: MAX_CONNECTION_SLOTS...?
+        for (int slot = 0 ; slot < MAX_SLOT_CONNECTIONS ; slot++) { // TODO: MAX_CONNECTION_SLOTS...?
             if (this->connections[slot].parameter_input==nullptr) continue;      // skip if no parameter_input configured in this slot
             if (this->connections[slot].amount==0.00) continue;                     // skip if no amount configured for this slot
 
@@ -125,10 +133,13 @@ void FloatParameter::save_sequence_add_lines(LinkedList<String> *lines) {
 }
 
 // parse a key+value pair to restore the state 
-bool FloatParameter::load_parse_key_value(String key, String value) {
+bool FloatParameter::load_parse_key_value(const String incoming_key, String value) {
+
     const char *prefix = "parameter_";
     const char *prefix_base = "parameter_value_";
     const char separator = '_', subseparator = '|';
+
+    String key = String(incoming_key.c_str());
 
     if (key.startsWith(prefix_base)) {
         //key.replace(prefix_base,"");
@@ -145,18 +156,34 @@ bool FloatParameter::load_parse_key_value(String key, String value) {
     //                                 ^^head ^^_^^param name^_slot=ParameterInputName|Amount
     if (!key.startsWith(prefix))
         return false;
-        
+
     key.replace(prefix, "");
     //key = key.substring(strlen(prefix));
     const uint_fast8_t separator_1_position = key.indexOf(separator);
-    String parameter_name = key.substring(0, separator_1_position);
+
+    if (separator_1_position<0) {
+        Serial.printf("WARNING: in %s,\t didn't find separator_1 to split in key '%s', garbled line with value '%s'?", this->label, incoming_key.c_str(), value.c_str());
+        return false;
+    }
+
+    const String parameter_name = key.substring(0, separator_1_position);
 
     if (parameter_name.equals(this->label)) {
-        uint_fast8_t slot_number = key.substring(separator_1_position+1).toInt();
+        const uint_fast8_t slot_number = key.substring(separator_1_position+1).toInt();
+
+        if (!is_valid_slot(slot_number)) {
+            Serial.printf("ERROR: in %s,\t got invalid slot number from '%s=%s'\n", this->label, incoming_key.c_str(), value.c_str());
+            return false;
+        }
 
         const uint_fast8_t separator_2_position = value.lastIndexOf(subseparator);
-        String input_name = value.substring(0, separator_2_position);
+        if (separator_2_position<0)
+            Serial.printf("WARNING: in %s,\t didn't find separator_2 to split in key '%s', garbled line with value '%s'?", this->label, incoming_key.c_str(), value.c_str());
+
+        const String input_name = value.substring(0, separator_2_position);
         const float amount = value.substring(separator_2_position+1).toFloat();
+
+        Serial.printf("NOTICE: in %s,\t Got split string '%s', slot_number %i and amount %3.3f\n", this->label, input_name.c_str(), slot_number, amount);
 
         this->set_slot_input(slot_number, input_name.c_str());
         this->set_slot_amount(slot_number, amount);

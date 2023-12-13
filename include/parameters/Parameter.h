@@ -149,6 +149,10 @@ class FloatParameter : public BaseParameter {
     // parameter input mixing / modulation stuff
     ParameterToInputConnection connections[MAX_SLOT_CONNECTIONS];
 
+    virtual bool is_valid_slot(int8_t slot) {
+        return(slot>=0 && slot < MAX_SLOT_CONNECTIONS);
+    }
+
     virtual int find_empty_slot() {
         for (unsigned int i = 0 ; i < MAX_SLOT_CONNECTIONS ; i++) {
             if (connections[i].parameter_input==nullptr)
@@ -167,7 +171,7 @@ class FloatParameter : public BaseParameter {
     virtual bool connect_input(BaseParameterInput *parameter_input, float amount) {
         //int slot = find_empty_slot();
         int slot = find_connected_or_next_empty_slot(parameter_input);
-        if (slot==-1) 
+        if (!is_valid_slot(slot))
             return false;
 
         set_slot_input(slot, parameter_input);
@@ -176,23 +180,28 @@ class FloatParameter : public BaseParameter {
         return true;
     }
     virtual bool connect_input(int slot_number, float amount) {
-        if (slot_number < 3) {
-            set_slot_amount(slot_number, amount);
-            return true;
-        }
-        return false;
+        if (!is_valid_slot(slot_number))
+            return false;
+        set_slot_amount(slot_number, amount);
+        return true;
     }
-    virtual bool disconnect_input(byte slot) { 
+    virtual bool disconnect_input(int8_t slot) { 
+        if (!is_valid_slot(slot))
+            return false;
         this->connections[slot].parameter_input = nullptr;
         return true;
     }
 
-    virtual const char *get_input_name_for_slot(byte slot);
-    float get_amount_for_slot(byte slot);
+    virtual const char *get_input_name_for_slot(int8_t slot);
+    float get_amount_for_slot(int8_t slot);
 
-    virtual void set_slot_input(byte slot, const char *parameter_input_name);
-    virtual void set_slot_input(byte slot, BaseParameterInput *parameter_input);
-    virtual void set_slot_amount(byte slot, float amount) {
+    virtual void set_slot_input(int8_t slot, const char *parameter_input_name);
+    virtual void set_slot_input(int8_t slot, BaseParameterInput *parameter_input);
+    virtual void set_slot_amount(int8_t slot, float amount) {
+        if (!is_valid_slot(slot)) {
+            Serial.printf("WARNING: in '%s', set_slot_amount with invalid slot number %i\n", this->label, slot);
+            return;
+        }
         this->connections[slot].amount = amount;
     }
 
@@ -255,7 +264,7 @@ class FloatParameter : public BaseParameter {
         }
 
         // update the slot's menu control to represent the newly set parameter input source
-        void update_slot_amount_control(byte slot, BaseParameterInput *parameter_input);
+        void update_slot_amount_control(int8_t slot, BaseParameterInput *parameter_input);
         //void update_slot_amount_control(byte slot, char name);
     #endif
 };
@@ -540,9 +549,9 @@ class DataParameter : public FloatParameter {
         #endif
 
         // actually set the target from data, do the REAL setter call on target
+        DataType last_sent_value = -1;
         virtual void setTargetValueFromData(DataType value, bool force = false) {
             // early return if this value is the same as last one and we aren't being asked to force it
-            static DataType last_sent_value = -1;
             if (!force && last_sent_value==value)
                 return;
 
@@ -554,7 +563,15 @@ class DataParameter : public FloatParameter {
                         Serial.print(value);
                         Serial.println(')');
                     }*/
-                #endif   
+                #endif
+                if (target==nullptr) {
+                    Serial.printf("WARNING: setTargetValueFromData() avoided calling setter_func on nullptr in %s!\n", this->label); Serial_flush();
+                    return;
+                }
+                if (setter_func==nullptr) {
+                    Serial.printf("WARNING: setTargetValueFromData() avoided calling null setter_func in %s!\n", this->label); Serial_flush();
+                    return;
+                }
                 (this->target->*setter_func)((DataType)value);
             } else {
                 /*#ifdef ENABLE_PRINTF
@@ -567,7 +584,8 @@ class DataParameter : public FloatParameter {
             value = this->constrainNormal(value);
             this->lastModulatedNormalValue = value;
             this->lastOutputNormalValue = this->lastModulatedNormalValue; // = value;
-            this->setTargetValueFromData(this->normalToData(lastOutputNormalValue), force);
+            DataType value_to_send = this->normalToData(lastOutputNormalValue);
+            this->setTargetValueFromData(value_to_send, force);
         }
 
         virtual float constrainNormal(float value) {
