@@ -181,21 +181,24 @@ class ParameterManager {
         // update every parameter's values based on the mixed ParameterInputs
         FASTRUN void update_mixers() {
             // this is going to be pretty intensive; may need to adjust the way this works...
-            unsigned long update_mixers_started = micros();
-            const uint_fast8_t available_parameters_size = this->available_parameters->size();
-            for (uint_fast8_t i = 0 ; i < available_parameters_size ; i++) {
-                this->available_parameters->get(i)->update_mixer();
-            }
-            unsigned long update_mixers_finished = micros();
-            this->profile_update_mixers = update_mixers_finished - update_mixers_started;
+            //unsigned long update_mixers_started = micros();
+            //ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+                const uint_fast16_t available_parameters_size = this->available_parameters->size();
+                for (uint_fast16_t i = 0 ; i < available_parameters_size ; i++) {
+                    if (this->available_parameters->get(i)!=nullptr)
+                        this->available_parameters->get(i)->update_mixer();
+                }
+            //}
+            //unsigned long update_mixers_finished = micros();
+            //this->profile_update_mixers = update_mixers_finished - update_mixers_started;
         }
 
         // update X mixers at a time
         FASTRUN void update_mixers_sliced(int_fast8_t proportion = 3) {
-            static uint_fast8_t pos = 0;
-            const uint_fast8_t SLICE_SIZE = this->available_parameters->size() / proportion;
-            const uint_fast8_t available_parameters_size = this->available_parameters->size();
-            for (uint_fast8_t i = pos ; i < available_parameters_size && i < SLICE_SIZE ; i++) {
+            static uint_fast16_t pos = 0;
+            const uint_fast16_t SLICE_SIZE = this->available_parameters->size() / proportion;
+            const uint_fast16_t available_parameters_size = this->available_parameters->size();
+            for (uint_fast16_t i = pos ; i < available_parameters_size && i < SLICE_SIZE ; i++) {
                 this->available_parameters->get(i)->update_mixer();
             }
             if (pos>=available_parameters_size) pos = 0;
@@ -495,8 +498,22 @@ class ParameterManager {
             return millis() - time_of_last_param_update > time_between_cv_input_updates;
         }
 
-        // handle slicing stages of update and throttling updates
-        void throttled_update_cv_input(bool slice_stages = false, int time_between_cv_input_updates = 5, bool slice_mixers = false) {
+        // update inputs WITHOUT also updating mixers
+        void throttled_update_cv_inputs(int time_between_cv_input_updates = 5) {
+            #ifdef USE_ATOMIC
+            ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+            #endif
+            {
+                if (ready_for_next_update(time_between_cv_input_updates)) {
+                    this->update_voltage_sources();
+                    this->update_inputs();
+                    time_of_last_param_update = millis();
+                }
+            }
+        }
+
+        // handle slicing stages of update and throttling updates - also update mixers
+        void throttled_update_cv_input__all(int time_between_cv_input_updates = 5, bool slice_stages = false, bool slice_mixers = false) {
             #ifdef USE_ATOMIC
             ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
             #endif
