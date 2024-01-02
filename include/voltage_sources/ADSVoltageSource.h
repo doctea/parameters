@@ -60,8 +60,8 @@ class ADSVoltageSource : public ADSVoltageSourceBase {
             
             return this->get_corrected_voltage(voltageFromAdc);
         }*/
+        bool already_succeeded = false;
         virtual float fetch_current_voltage() override {
-            static bool already_succeeded = false;
             if (this->debug) {
                 Debug_println(F("in ADSVoltageSource#fetch_current_voltage().."));
                 Debug_printf(F("\tads_source is @%p, reading from channel %i\n"), this->ads_source, this->channel);
