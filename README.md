@@ -34,10 +34,11 @@ Based on code extracted from my [envor2](https://github.com/doctea/envor2) and [
   - change how much each selected ParameterInput affects the Parameter, from -100% to +100%
   - switch between bipolar/unipolar ranges on per-ParameterInput level, for both input and output
 - Incoming MIDI CC as a modulation source
-- Convert incoming analogue level to frequency in 1v/oct fashion and output of corresponding MIDI note
+- Convert incoming analogue level to frequency in 1v/oct fashion, and output of corresponding MIDI note (with [midihelpers](https://github.com/doctea/midihelpers))
 
 ## Probably working, but untested
 - Analogue inputs for other boards via [Rob Tillaart's ADS1X15 library](https://github.com/RobTillaart/ADS1X15)
+  - *todo*: write a class in 'devices' to set this up, based on *include/devices/ADCPimoroni24v.h*
 
 ## Probably not currently working / untested
 - Arduino
