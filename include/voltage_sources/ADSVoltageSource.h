@@ -69,6 +69,10 @@ class ADSVoltageSource : public ADSVoltageSourceBase {
             if (!already_succeeded) 
                 Debug_printf(F("ADSVoltageSource#fetch_current_voltage reading from channel %i, check you're using correct address ADC board if crash here!\n"), this->channel);
 
+            if (!ads_source->isConnected()) {
+                return 0.0f;
+            }
+
             #ifndef FAST_VOLTAGE_READS
                 // do three readings from ADC and average them
                 //int16_t adcReading = ads_source->readADC(channel);

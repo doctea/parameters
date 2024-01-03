@@ -4,12 +4,11 @@
 
 #include "debug.h"
 
+#include "Wire.h"
+
 #define MAX_INPUT_VOLTAGE_24V   10
 #define ADSDeviceClass ADS1015
 
-//ADS1015 ADS_OBJECT_24V(ENABLE_CV_INPUT);
-
-//template<class ADSDeviceClass>
 class ADCPimoroni24v : public ADCDeviceBase {
     public:
         bool initialised = false;
@@ -19,15 +18,17 @@ class ADCPimoroni24v : public ADCDeviceBase {
         uint8_t MAX_CHANNELS = 3;
 
         ADSDeviceClass *actual_device = nullptr;
+        TwoWire *_wire = nullptr;
 
         int initialised_sources = 0;
 
         ADCPimoroni24v () : ADCDeviceBase () {}
 
-        ADCPimoroni24v (uint8_t address, int max_input_voltage = MAX_INPUT_VOLTAGE_24V, uint8_t gain = 2) : ADCPimoroni24v () {
+        ADCPimoroni24v (uint8_t address, TwoWire *_wire, int max_input_voltage = MAX_INPUT_VOLTAGE_24V, uint8_t gain = 2) : ADCPimoroni24v () {
             this->address = address;
             this->max_input_voltage = max_input_voltage;
             this->gain = gain;
+            this->_wire = _wire;
         }
 
         virtual void init() override {
@@ -43,7 +44,7 @@ class ADCPimoroni24v : public ADCDeviceBase {
 
             Debug_printf(F("\t..instantiating an object of ADSDeviceClass with address %02x..\n"), this->address);
             //this->actual_device = &ADS_OBJECT_24V; //new ADSDeviceClass(address);
-            this->actual_device = new ADSDeviceClass(address);
+            this->actual_device = new ADSDeviceClass(address, _wire);
             this->actual_device->begin();
             this->actual_device->setGain(gain);
             this->initialised = true;
