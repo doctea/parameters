@@ -521,10 +521,7 @@ class ParameterManager {
                 if (ready_for_next_update()) {
                     if (slice_stages) {
                         static int_fast8_t current_mode = 0;
-                        if(debug_flag) {
-                            this->debug = true;
-                            Serial.println(F("about to do parameter_manager->update_voltage_sources()..")); Serial_flush();
-                        }
+                        if(debug) { Serial.println(F("about to do parameter_manager->update_voltage_sources()..")); Serial_flush(); }
                         switch (current_mode) {
                             case 0:
                                 this->update_voltage_sources();
@@ -542,13 +539,12 @@ class ParameterManager {
                                     this->update_mixers_sliced();
                                 else
                                     this->update_mixers();
-                                if(debug_flag) { Serial.println(F("just did parameter_manager->update_inputs()..")); Serial_flush(); }
+                                if(debug) { Serial.println(F("just did parameter_manager->update_inputs()..")); Serial_flush(); }
                                 current_mode = 0;
                                 break;
                         }
                     } else {
-                        if(debug_flag) this->debug = true;
-                        if(debug_flag) { Serial.println(F("about to do parameter_manager->update_voltage_sources()..")); Serial_flush(); }
+                        if(debug) { Serial.println(F("about to do parameter_manager->update_voltage_sources()..")); Serial_flush(); }
                         this->update_voltage_sources();
                         //if(debug) Serial.println("just did parameter_manager->update_voltage_sources().."); Serial_flush();
                         //if(debug) Serial.println("about to do parameter_manager->update_inputs().."); Serial_flush();
@@ -558,7 +554,7 @@ class ParameterManager {
                             this->update_mixers_sliced();
                         else
                             this->update_mixers();
-                        if(debug_flag) { Serial.println(F("just did parameter_manager->update_inputs()..")); Serial_flush(); }
+                        if(debug) { Serial.println(F("just did parameter_manager->update_inputs()..")); Serial_flush(); }
                     }
                     time_of_last_param_update = millis();
                 }
