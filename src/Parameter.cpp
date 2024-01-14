@@ -34,7 +34,7 @@ void FloatParameter::set_slot_input(int8_t slot, const char *name) {
 void FloatParameter::set_slot_input(int8_t slot, BaseParameterInput *parameter_input) {
     Debug_printf(F("PARAMETERS\tFloatParameter#set_slot_input in '%s': asked to set slot %i on %s to point to %s\n"), this->label, slot, this->label, parameter_input->name);
     if (!this->is_valid_slot(slot)) {
-        Serial.printf("%s#set_slot_input(%i) isn't a valid slot number!\n", this->label, slot);
+        if (Serial) Serial.printf("%s#set_slot_input(%i) isn't a valid slot number!\n", this->label, slot);
         return;
     }
     this->connections[slot].parameter_input = parameter_input;
@@ -162,7 +162,7 @@ bool FloatParameter::load_parse_key_value(const String incoming_key, String valu
     const uint_fast8_t separator_1_position = key.indexOf(separator);
 
     if (separator_1_position<0) {
-        Serial.printf("WARNING: in %s,\t didn't find separator_1 to split in key '%s', garbled line with value '%s'?", this->label, incoming_key.c_str(), value.c_str());
+        //if (Serial) Serial.printf("WARNING: in %s,\t didn't find separator_1 to split in key '%s', garbled line with value '%s'?", this->label, incoming_key.c_str(), value.c_str());
         return false;
     }
 
@@ -172,18 +172,20 @@ bool FloatParameter::load_parse_key_value(const String incoming_key, String valu
         const uint_fast8_t slot_number = key.substring(separator_1_position+1).toInt();
 
         if (!is_valid_slot(slot_number)) {
-            Serial.printf("ERROR: in %s,\t got invalid slot number from '%s=%s'\n", this->label, incoming_key.c_str(), value.c_str());
+            //if (Serial) Serial.printf("ERROR: in %s,\t got invalid slot number from '%s=%s'\n", this->label, incoming_key.c_str(), value.c_str());
             return false;
         }
 
         const uint_fast8_t separator_2_position = value.lastIndexOf(subseparator);
-        if (separator_2_position<0)
-            Serial.printf("WARNING: in %s,\t didn't find separator_2 to split in key '%s', garbled line with value '%s'?", this->label, incoming_key.c_str(), value.c_str());
+        if (separator_2_position<0) {
+            //if (Serial) Serial.printf("WARNING: in %s,\t didn't find separator_2 to split in key '%s', garbled line with value '%s'?", this->label, incoming_key.c_str(), value.c_str());
+            return false;
+        }
 
         const String input_name = value.substring(0, separator_2_position);
         const float amount = value.substring(separator_2_position+1).toFloat();
 
-        Serial.printf("NOTICE: in %s,\t Got split string '%s', slot_number %i and amount %3.3f\n", this->label, input_name.c_str(), slot_number, amount);
+        //if (Serial) Serial.printf("NOTICE: in %s,\t Got split string '%s', slot_number %i and amount %3.3f\n", this->label, input_name.c_str(), slot_number, amount);
 
         this->set_slot_input(slot_number, input_name.c_str());
         this->set_slot_amount(slot_number, amount);
