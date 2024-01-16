@@ -195,7 +195,21 @@ class ParameterMapPercentageControl : public DirectNumberControl<float> {
                 this->default_fg = parameter->connections[slot_number].parameter_input->colour;
             }
         }
-    
+
+    virtual int header(const char *text, Coord pos, bool selected = false, bool opened = false, int textSize = 0) override {
+        if (parameter->connections[slot_number].parameter_input!=nullptr) {
+            return DirectNumberControl::header(parameter->connections[slot_number].parameter_input->name, pos, selected, opened, textSize);
+        } else {
+            return DirectNumberControl::header(text, pos, selected, opened, textSize);
+        }
+    }
+
+    virtual const char *get_label() {
+        return parameter->connections[slot_number].parameter_input!=nullptr ? 
+               parameter->connections[slot_number].parameter_input->name : 
+               (char*)"None";
+    }
+       
     virtual int renderValue(bool selected, bool opened, uint16_t max_character_width) override {
         // update the control with the colour from the connected parameter input, if there is one
         this->default_fg = (parameter!=nullptr && parameter->connections[slot_number].parameter_input!=nullptr)
@@ -206,7 +220,6 @@ class ParameterMapPercentageControl : public DirectNumberControl<float> {
             this->default_fg = tft->halfbright_565(this->default_fg);
             
         // todo: update label based on connected parameter input.. see thoughts on how best to do this in submenuitem_bar.h!
-        //this->update_label()
         //Serial.printf("renderValue in ParameterMapPercentageControl\tfor %s,\tgot default_fg colour %04x from slot_number %i colour %04x, max_character_width=%i\n", this->label, this->default_fg, slot_number, parameter->connections[slot_number].parameter_input->colour, max_character_width);
         return DirectNumberControl::renderValue(selected, opened, max_character_width);
     }
@@ -229,6 +242,7 @@ class ParameterMenuItem : public SubMenuItemBar {
         for (uint_fast8_t i = 0 ; i < MAX_SLOT_CONNECTIONS ; i++) {
             // todo: make the modulation source part configurable too
             // todo: make the label part dynamically generated on-the-fly by the DirectNumberControl
+            // todo: 
             char labelnew[8];
             char *input_name =  parameter->connections[i].parameter_input!=nullptr ? 
                                 parameter->connections[i].parameter_input->name : 
