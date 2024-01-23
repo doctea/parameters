@@ -269,11 +269,8 @@ class FloatParameter : public BaseParameter {
     #endif
 };
 
-
-
-// an object that can be targeted by a ParameterInput, calls setter method on final target object
-template<class TargetClass, class DataType = float>
-class DataParameter : public FloatParameter {
+template<class DataType = float>
+class DataParameterBase : public FloatParameter {
     public:
 
         DataType minimumDataValue = 0.0f;
@@ -284,56 +281,17 @@ class DataParameter : public FloatParameter {
 
         float modulateNormalValue = 0.0f;
 
-        TargetClass *target = nullptr;
-        void(TargetClass::*setter_func)(DataType value) = nullptr;// setter_func;
-        DataType(TargetClass::*getter_func)() = nullptr;// setter_func;
+        DataParameterBase(const char *label) : FloatParameter(label) {}
 
-        //ParameterMixer *mixer = nullptr;
+        virtual DataType getter() = 0 ; //{}
 
-        DataParameter(const char *label, TargetClass *target) : FloatParameter(label) {
-            this->target = target;
-            //this->mixer = new ParameterMixer(); //this);
-        }
-        DataParameter(const char *label, TargetClass *target, DataType initial_value_normal) : DataParameter(label, target) {
-            this->initialNormalValue = initial_value_normal;
-        }
-        DataParameter(const char *label, TargetClass *target, void(TargetClass::*setter_func)(DataType)) : DataParameter(label, target) {
-            this->setter_func = setter_func;
-        }
-        DataParameter(const char *label, TargetClass *target, void(TargetClass::*setter_func)(DataType), DataType(TargetClass::*getter_func)()) 
-            : DataParameter<TargetClass,DataType>(label, target, setter_func)
-        {
-            this->getter_func = getter_func;
-            //if (getter_func!=nullptr)
-            //    this->setInitialValue();
-        }
-        DataParameter(const char *label, TargetClass *target, void(TargetClass::*setter_func)(DataType), DataType(TargetClass::*getter_func)(), DataType minimum_value, DataType maximum_value) 
-            : DataParameter(label, target, setter_func, getter_func) /* minimumDataValue(minimum_value), maximumDataValue(maximum_value), */
-        {
-            this->minimumDataValue = minimum_value;
-            this->maximumDataValue = maximum_value;
-        }
-        DataParameter(const char *label, TargetClass *target, float initial_value_normal, void(TargetClass::*setter_func)(DataType)) : DataParameter(label, target, setter_func) {
-            this->initialNormalValue = initial_value_normal;
-            //this->setInitialValueFromNormal(initial_value_normal);
-        }
+        virtual DataParameterBase* initialise_values(DataType minimum_value, DataType maximum_value) { //float minimum_value = 0.0, float maximum_value = 100.0) {
+            DataType current_value = minimumDataValue;
+            current_value = this->getter();
 
-
-        /*virtual DataParameter* setMinimumValue(float minimum_value) {
-            this->minimum_value = minimum_value;
-            return this;
-        }
-        virtual DataParameter* setMaximumValue(float minimum_value) {
-            this->minimum_value = minimum_value;
-            return this;
-        }*/
-        virtual DataParameter* initialise_values(DataType minimum_value, DataType maximum_value) { //float minimum_value = 0.0, float maximum_value = 100.0) {
-            DataType current_value = 0;
-            if (this->getter_func!=nullptr) 
-                current_value = (this->target->*getter_func)();
             return this->initialise_values(minimum_value, maximum_value, current_value);
         }
-        virtual DataParameter* initialise_values(DataType minimum_value, DataType maximum_value, DataType current_value) {
+        virtual DataParameterBase* initialise_values(DataType minimum_value, DataType maximum_value, DataType current_value) {
             this->minimumDataValue = minimum_value;
             this->maximumDataValue = maximum_value;
             this->currentDataValue = current_value;
@@ -355,7 +313,7 @@ class DataParameter : public FloatParameter {
             }*/
             value = this->constrainNormal(value);
             DataType data = this->minimumDataValue + (value * (float)(this->maximumDataValue - this->minimumDataValue));
-            if (this->debug && value>=0.0f) Serial.printf(" => %i\n", data);
+            if (this->debug && value>=0.0f) if (Serial) Serial.printf(" => %i\n", data);
             return data;
         }
         virtual float dataToNormal(DataType value) {
@@ -383,11 +341,6 @@ class DataParameter : public FloatParameter {
         virtual void setInitialValueFromData(DataType value) {
             this->currentNormalValue = this->initialNormalValue = this->dataToNormal(value); 
             this->currentDataValue = this->initialDataValue = value;
-        }
-
-        virtual void setInitialValue() {
-            if (this->getter_func!=nullptr)
-                this->setInitialValueFromData((this->target->*getter_func)());
         }
 
         // update internal param and call setter on target
@@ -548,6 +501,88 @@ class DataParameter : public FloatParameter {
             };
         #endif
 
+
+        // set the target from normalised post-modulation value
+        virtual void setTargetValueFromNormal(float value, bool force = false) {
+            value = this->constrainNormal(value);
+            this->lastModulatedNormalValue = value;
+            this->lastOutputNormalValue = this->lastModulatedNormalValue; // = value;
+            DataType value_to_send = this->normalToData(lastOutputNormalValue);
+            this->setTargetValueFromData(value_to_send, force);
+        }
+
+        virtual void setTargetValueFromData(DataType value, bool force = false) = 0;
+
+        virtual float constrainNormal(float value) {
+            // TODO: check if polar/bipolar?
+            /*if (this->debug) Serial.printf("in %s,\tconstraining %f to %f:%f => %f \n", 
+                this->label, 
+                value, 
+                this->minimumNormalValue, 
+                this->maximumNormalValue, 
+                constrain(value, this->minimumNormalValue, this->maximumNormalValue)
+            );*/
+            return constrain(value, this->minimumNormalValue, this->maximumNormalValue);
+        }
+
+
+};
+
+
+template<class TargetClass, class DataType = float>
+class DataParameter : public DataParameterBase<DataType> {
+    public:
+
+        TargetClass *target = nullptr;
+        void(TargetClass::*setter_func)(DataType value) = nullptr;// setter_func;
+        DataType(TargetClass::*getter_func)() = nullptr;// setter_func;
+
+        //ParameterMixer *mixer = nullptr;
+
+        DataParameter(const char *label, TargetClass *target) 
+            : DataParameterBase<DataType>(label) {
+            this->target = target;
+            //this->mixer = new ParameterMixer(); //this);
+        }
+        DataParameter(const char *label, TargetClass *target, DataType initial_value_normal) 
+            : DataParameter<TargetClass,DataType>(label, target) {
+            this->initialNormalValue = initial_value_normal;
+        }
+        DataParameter(const char *label, TargetClass *target, void(TargetClass::*setter_func)(DataType)) 
+            : DataParameter<TargetClass,DataType>(label, target) {
+            this->setter_func = setter_func;
+        }
+        DataParameter(const char *label, TargetClass *target, void(TargetClass::*setter_func)(DataType), DataType(TargetClass::*getter_func)()) 
+            : DataParameter<TargetClass,DataType>(label, target, setter_func)
+        {
+            this->getter_func = getter_func;
+            //if (getter_func!=nullptr)
+            //    this->setInitialValue();
+        }
+        DataParameter(const char *label, TargetClass *target, void(TargetClass::*setter_func)(DataType), DataType(TargetClass::*getter_func)(), DataType minimum_value, DataType maximum_value) 
+            : DataParameter<TargetClass,DataType>(label, target, setter_func, getter_func) /* minimumDataValue(minimum_value), maximumDataValue(maximum_value), */
+        {
+            this->minimumDataValue = minimum_value;
+            this->maximumDataValue = maximum_value;
+        }
+        DataParameter(const char *label, TargetClass *target, float initial_value_normal, void(TargetClass::*setter_func)(DataType)) 
+            : DataParameter<TargetClass,DataType>(label, target, setter_func) {
+            this->initialNormalValue = initial_value_normal;
+            //this->setInitialValueFromNormal(initial_value_normal);
+        }
+
+        virtual DataType getter() override {
+            DataType current_value = this->minimumDataValue;
+            if (this->getter_func!=nullptr) 
+                current_value = (this->target->*getter_func)();
+            return current_value;            
+        }
+
+        virtual void setInitialValue() {
+            if (this->getter_func!=nullptr)
+                this->setInitialValueFromData((this->target->*getter_func)());
+        }
+
         // actually set the target from data, do the REAL setter call on target
         DataType last_sent_value = -1;
         virtual void setTargetValueFromData(DataType value, bool force = false) {
@@ -578,26 +613,6 @@ class DataParameter : public FloatParameter {
                     Serial.printf(F("WARNING: no target / no setter_func in %s!\n"), this->label);
                 #endif*/
             }
-        }
-        // set the target from normalised post-modulation value
-        virtual void setTargetValueFromNormal(float value, bool force = false) {
-            value = this->constrainNormal(value);
-            this->lastModulatedNormalValue = value;
-            this->lastOutputNormalValue = this->lastModulatedNormalValue; // = value;
-            DataType value_to_send = this->normalToData(lastOutputNormalValue);
-            this->setTargetValueFromData(value_to_send, force);
-        }
-
-        virtual float constrainNormal(float value) {
-            // TODO: check if polar/bipolar?
-            /*if (this->debug) Serial.printf("in %s,\tconstraining %f to %f:%f => %f \n", 
-                this->label, 
-                value, 
-                this->minimumNormalValue, 
-                this->maximumNormalValue, 
-                constrain(value, this->minimumNormalValue, this->maximumNormalValue)
-            );*/
-            return constrain(value, this->minimumNormalValue, this->maximumNormalValue);
         }
 
         virtual void set_target_object(TargetClass *target) {
