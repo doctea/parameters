@@ -466,13 +466,15 @@ class DataParameterBase : public FloatParameter {
             virtual const char* parseFormattedDataType(unsigned int value) {
                 static char fmt[10] = "         ";
                 //sprintf(fmt, "%5u (unsigned)",   value); // (unsigned int)(this->maximumNormalValue*this->getCurrentNormalValue())); //getCurrentValue());
-                snprintf(fmt, 10, "%5u",   value); // (unsigned int)(this->maximumNormalValue*this->getCurrentNormalValue())); //getCurrentValue());
+                snprintf(fmt, 10, "%u",   value); // (unsigned int)(this->maximumNormalValue*this->getCurrentNormalValue())); //getCurrentValue());
+                // was "%5u"
                 return fmt;
             }
             virtual const char* parseFormattedDataType(int value) {
                 static char fmt[10] = "         ";
                 //sprintf(fmt, "%5i (signed)",     value); // (int)(this->maximumNormalValue*this->getCurrentNormalValue())); //getCurrentValue());
-                snprintf(fmt, 10, "%5i",   value); // (int)(this->maximumNormalValue*this->getCurrentNormalValue())); //getCurrentValue());
+                snprintf(fmt, 10, "%i",   value); // (int)(this->maximumNormalValue*this->getCurrentNormalValue())); //getCurrentValue());
+                // was "%5i"
                 return fmt;
             }
             virtual const char* parseFormattedDataType(byte value) {
