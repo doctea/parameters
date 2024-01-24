@@ -122,7 +122,7 @@ class FloatParameter : public BaseParameter {
         return "[NaN]";
     }
     virtual const char* getFormattedValue() {
-        return this->getFormattedValue(this->currentNormalValue);
+        return this->getFormattedValue(this->getCurrentNormalValue());
     }
     virtual const char* getFormattedLastOutputValue() {
         return this->getFormattedValue(this->lastOutputNormalValue);
@@ -352,7 +352,7 @@ class DataParameterBase : public FloatParameter {
             if (this->currentDataValue==value)
                 return;
 
-            this->lastDataValue = this->currentDataValue;
+            this->lastDataValue = this->getCurrentDataValue();
             this->lastNormalValue = this->lastNormalValue;
 
             this->currentDataValue = value;
@@ -379,7 +379,7 @@ class DataParameterBase : public FloatParameter {
         }*/
 
         virtual void sendCurrentTargetValue() {
-            float value = this->currentNormalValue + this->modulateNormalValue;
+            float value = this->getCurrentNormalValue() + this->modulateNormalValue;
             //if (this->debug) Serial.printf(F("\tin %s, got modulated value to set: %f\n"), this->label, value);
             this->setTargetValueFromNormal(value);
         }
