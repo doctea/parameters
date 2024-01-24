@@ -32,10 +32,14 @@ class ProxyParameter : public DataParameterBase<DataType> {
     }
 
     virtual void updateValueFromNormal(float v) override {
-        *this->target = this->normalToData(v);
+        *this->target = *this->source = this->normalToData(v);
     }
     virtual void updateValueFromData(DataType v) override {
-        *this->target = v;
+        /*if (Serial) { 
+            Serial.printf("ProxyParameter#updateValueFromData(");
+            Serial.print(v);
+            Serial.println(")");
+        }*/
+        *this->target = *this->source = v;        
     }
-
 };
