@@ -1,9 +1,15 @@
 #ifndef PARAMETERMANAGER__INCLUDED
 #define PARAMETERMANAGER__INCLUDED
 
-#if defined(USE_UCLOCK) && defined(CORE_TEENSY)
-  #include <util/atomic.h>
-  #define USE_ATOMIC
+#if defined(USE_UCLOCK) 
+    #if defined(CORE_TEENSY)
+        #include <util/atomic.h>
+    #elif defined(ARDUINO_ARCH_RP2040)
+        #include "uClock.h"
+        #include "SimplyAtomic.h"
+        #define ATOMIC_BLOCK(X) ATOMIC()
+    #endif
+    #define USE_ATOMIC
 #endif
 
 //#include "Config.h"
