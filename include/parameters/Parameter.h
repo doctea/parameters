@@ -349,7 +349,7 @@ class DataParameterBase : public FloatParameter {
                 Serial.printf(F("Parameter#updateValueFromData(%i)\n"), value); Serial_flush(); 
             }*/
 
-            if (this->currentDataValue==value)
+            if (this->getCurrentDataValue()==value)
                 return;
 
             this->lastDataValue = this->getCurrentDataValue();
@@ -361,13 +361,18 @@ class DataParameterBase : public FloatParameter {
             this->sendCurrentTargetValue();
         }
 
+        DataType lastGetterValue;
         virtual void update_mixer() {
             //this->mixer->updateOutput();
             //static float lastModulationNormalValue = 0.0;
             this->modulateNormalValue = this->get_modulation_value();
-            if (modulateNormalValue!=lastModulatedNormalValue) {
+            DataType current_value = this->getCurrentDataValue();
+            if (
+                //lastGetterValue!=current_value || 
+                modulateNormalValue!=lastModulatedNormalValue) {
                 this->sendCurrentTargetValue();
                 lastModulatedNormalValue = modulateNormalValue;
+                lastGetterValue = current_value;
             }
         }
 
@@ -571,6 +576,13 @@ class DataParameter : public DataParameterBase<DataType> {
             : DataParameter<TargetClass,DataType>(label, target, setter_func) {
             this->initialNormalValue = initial_value_normal;
             //this->setInitialValueFromNormal(initial_value_normal);
+        }
+
+        virtual DataType getCurrentDataValue() override {
+            return this->getter();
+        }
+        virtual float getCurrentNormalValue() override {
+            return this->dataToNormal(this->getCurrentDataValue());
         }
 
         virtual DataType getter() override {
