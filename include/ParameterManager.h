@@ -4,12 +4,13 @@
 #if defined(USE_UCLOCK) 
     #if defined(CORE_TEENSY)
         #include <util/atomic.h>
+        #define USE_ATOMIC
     #elif defined(ARDUINO_ARCH_RP2040)
         #include "uClock.h"
         #include "SimplyAtomic.h"
         #define ATOMIC_BLOCK(X) ATOMIC()
-    #endif
-    #define USE_ATOMIC
+        #define USE_ATOMIC      // Microlidian actually seems to work fine even without enabling this
+    #endif    
 #endif
 
 //#include "Config.h"
