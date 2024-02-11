@@ -542,7 +542,7 @@ class DataParameter : public DataParameterBase<DataType> {
 
         TargetClass *target = nullptr;
         void(TargetClass::*setter_func)(DataType value) = nullptr;// setter_func;
-        DataType(TargetClass::*getter_func)() = nullptr;// setter_func;
+        DataType(TargetClass::*getter_func)() = nullptr;    // hmm this may not actually be used now..? we keep internal track of the value here, and reference the variable directly via pointer in ProxyParameter...
 
         //ParameterMixer *mixer = nullptr;
 
@@ -586,10 +586,13 @@ class DataParameter : public DataParameterBase<DataType> {
         }
 
         virtual DataType getter() override {
+            /*
             DataType current_value = this->minimumDataValue;
             if (this->getter_func!=nullptr) 
                 current_value = (this->target->*getter_func)();
-            return current_value;            
+            return current_value;
+            */
+           return this->currentDataValue;
         }
 
         virtual void setInitialValue() {
