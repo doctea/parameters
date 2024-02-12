@@ -400,6 +400,32 @@ class DataParameterBase : public FloatParameter {
             //this->updateValueFromNormal(this->currentNormalValue);
         }
 
+        uint32_t last_changed_at = 0;
+        virtual DataType get_current_step(int ignored) {
+            // do knob acceleration
+            if (last_changed_at==0)
+                return 1;
+
+            uint32_t time_since_changed = constrain(millis() - this->last_changed_at, 0, 201);
+            if      (time_since_changed>=200)   return (DataType)  1;
+            else if (time_since_changed>=150)   return (DataType) (2);
+            else if (time_since_changed>=100)   return (DataType) (4);
+            else if (time_since_changed>=75)    return (DataType) (8);
+            else                                return (DataType) (10);
+        }
+
+        virtual DataType get_current_step(float ignored) {
+            // do knob acceleration
+            if (last_changed_at==0)
+                return 0.01f;
+
+            uint32_t time_since_changed = constrain(millis() - this->last_changed_at, 0, 201);
+            if      (time_since_changed>=200)   return (DataType)  0.01f;
+            else if (time_since_changed>=100)   return (DataType) (0.02f);
+            else if (time_since_changed>=50)    return (DataType) (0.05);
+            else                                return (DataType) (0.10f);
+        }
+
         // increment the value and update
         virtual void incrementValue() override {
             //this->debug = true;
@@ -408,6 +434,7 @@ class DataParameterBase : public FloatParameter {
                 Serial.printf("Parameter#incrementValue() for '%s', normal %f, data %i about to call updateValueFromData()....\n", this->label, this->getCurrentNormalValue(), this->getCurrentDataValue());
             */    
             this->updateValueFromData(this->incrementDataValue((DataType)this->getCurrentDataValue()));
+            this->last_changed_at = millis();
             /*if (this->debug) {
                 Serial.printf("....Parameter#incrementValue() value became normal %f, data %i\n",this->getCurrentNormalValue(),this->getCurrentDataValue());
                 Serial.println("--");
@@ -418,13 +445,14 @@ class DataParameterBase : public FloatParameter {
             //this->debug = true;
             //if (this->debug) Serial.printf(F("Parameter#decrementValue() for '%s', initial FormattedValue '%s' (normal %f)"), this->label, this->getFormattedValue(this->getCurrentDataValue()), this->getCurrentNormalValue());
             this->updateValueFromData(this->decrementDataValue((DataType)this->getCurrentDataValue()));
+            this->last_changed_at = millis();
             //if (this->debug) Serial.printf(F("became '%s' (normal %f)\n"), this->getFormattedValue(this->getCurrentDataValue()), this->getCurrentNormalValue());
         }
 
         // returns an incremented DataType version of input value (int)
         virtual DataType incrementDataValue(int value) {
             //if (this->debug) Serial.printf("Parameter#incrementDataValue(%i)..\n", value); Serial.printf("\ttaking value %i and doing ++ on it..", value);
-            value++;
+            value += this->get_current_step(value);
             //if (this->debug) Serial.printf("\tgot %i.\n");
             int new_value = constrain(value, this->minimumDataValue, this->maximumDataValue);
             //if (this->debug) Serial.printf("\tbecame %i (after constrain to %i:%i)..\n", new_value, this->minimumDataValue, this->maximumDataValue);
@@ -432,18 +460,18 @@ class DataParameterBase : public FloatParameter {
         }
         // returns a decremented DataType version of input value (int)
         virtual DataType decrementDataValue(int value) {
-            value--;
+            value-= this->get_current_step(value);
             return constrain(value, this->minimumDataValue, this->maximumDataValue);
         }
         // returns an incremented DataType version of input value (float)
         virtual DataType incrementDataValue(float value) {
             //Serial.printf("%s#incrementDataValue(%f) float version\n", this->label, value);
-            value += 0.1f;
+            value += this->get_current_step(value);
             return constrain(value, this->minimumDataValue, this->maximumDataValue);
         }
         // returns a decremented DataType version of input value (float)
         virtual DataType decrementDataValue(float value) {
-            value -= 0.1f;
+            value -= this->get_current_step(value);
             return constrain(value, this->minimumDataValue, this->maximumDataValue);
         }       
 
