@@ -406,7 +406,7 @@ class DataParameterBase : public FloatParameter {
             if (last_changed_at==0)
                 return 1;
 
-            uint32_t time_since_changed = constrain(millis() - this->last_changed_at, 0, 201);
+            uint32_t time_since_changed = constrain(millis() - this->last_changed_at, (uint32_t)0, (uint32_t)201);
             if      (time_since_changed>=200)   return (DataType)  1;
             else if (time_since_changed>=150)   return (DataType) (2);
             else if (time_since_changed>=100)   return (DataType) (4);
@@ -419,7 +419,7 @@ class DataParameterBase : public FloatParameter {
             if (last_changed_at==0)
                 return 0.01f;
 
-            uint32_t time_since_changed = constrain(millis() - this->last_changed_at, 0, 201);
+            uint32_t time_since_changed = constrain(millis() - this->last_changed_at, (uint32_t)0, (uint32_t)201);
             if      (time_since_changed>=200)   return (DataType)  0.01f;
             else if (time_since_changed>=100)   return (DataType) (0.02f);
             else if (time_since_changed>=50)    return (DataType) (0.05);
