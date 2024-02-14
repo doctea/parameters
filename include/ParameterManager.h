@@ -521,9 +521,6 @@ class ParameterManager {
 
         // handle slicing stages of update and throttling updates - also update mixers
         void throttled_update_cv_input__all(int time_between_cv_input_updates = 5, bool slice_stages = false, bool slice_mixers = false) {
-            #ifdef USE_ATOMIC
-            ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
-            #endif
             {
                 if (ready_for_next_update()) {
                     if (slice_stages) {
@@ -557,10 +554,15 @@ class ParameterManager {
                         //if(debug) Serial.println("about to do parameter_manager->update_inputs().."); Serial_flush();
                         this->update_inputs();
                         //if(debug) Serial.println("about to do parameter_manager->update_mixers().."); Serial_flush();
+                        #ifdef USE_ATOMIC
+                        ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+                        #endif
+                        {
                         if (slice_mixers)
                             this->update_mixers_sliced();
                         else
                             this->update_mixers();
+                        }
                         if(debug) { Serial.println(F("just did parameter_manager->update_inputs()..")); Serial_flush(); }
                     }
                     time_of_last_param_update = millis();
