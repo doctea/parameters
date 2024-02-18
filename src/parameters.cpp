@@ -91,6 +91,7 @@
         controls->add(fullmenuitem);
 
         #ifndef DISABLE_PARAMETER_INPUT_SELECTORS
+            // controls to choose which ParameterInputs to use for each slot
             // then set up a generic submenuitembar to hold the input selectors
             SubMenuItemBar *input_selectors_bar = new SubMenuItemBar("Inputs");
             input_selectors_bar->show_header = false;
@@ -152,8 +153,10 @@
             input_selectors_bar->add(spacer2);
 
             controls->add(input_selectors_bar);
+        #endif
 
-            // controls for whether to use bipolar or unipolar values from the input
+        #ifndef DISABLE_PARAMETER_POLARITY_SELECTORS
+            // add controls to select whether to use bipolar or unipolar values from the ParameterInput
             SubMenuItemBar *polarity_selectors_bar = new SubMenuItemBar("Polarity");
             polarity_selectors_bar->show_header = false;
             polarity_selectors_bar->show_sub_headers = false;
@@ -184,7 +187,6 @@
             polarity_selectors_bar->add(polarity_spacer_2);
 
             controls->add(polarity_selectors_bar);
-
         #endif
 
         return controls;
