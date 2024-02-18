@@ -53,8 +53,8 @@ class ParameterInputSelectorControl : public SelectorControl<int> {
             return num_values;
         if (this->available_parameter_inputs==nullptr)
             return -1;
-        unsigned const int size = this->available_parameter_inputs->size();
-        for (unsigned int i = 0 ; i < size ; i++) {
+        const uint_fast16_t size = this->available_parameter_inputs->size();
+        for (uint_fast16_t i = 0 ; i < size ; i++) {
             if (available_parameter_inputs->get(i)->matches_label(name))
                 return i;
         }

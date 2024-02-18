@@ -481,13 +481,14 @@ class ParameterManager {
                 list_to_save = this->available_parameters;
 
             // do the available_parameter_inputs first // TODO: maybe we don't want to always save the ParameterInput settings here, if for example we're saving a passed-in list of Parameters?
-            for (unsigned int i = 0 ; i < available_inputs->size() ; i++) {
+            const uint_fast16_t size = available_inputs->size();
+            for (uint_fast16_t i = 0 ; i < size ; i++) {
                 available_inputs->get(i)->save_sequence_add_lines(lines);
             }
 
             // then to the parameters
-            const unsigned int actual_size = list_to_save->size();
-            for (unsigned int i = 0 ; i < actual_size ; i++) {
+            const uint_fast16_t actual_size = list_to_save->size();
+            for (uint_fast16_t i = 0 ; i < actual_size ; i++) {
                 list_to_save->get(i)->save_sequence_add_lines(lines);
             }
 

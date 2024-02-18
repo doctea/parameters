@@ -47,7 +47,8 @@ LinkedList<BaseParameterInput*> *ParameterManager::get_available_pitch_inputs() 
     static LinkedList<BaseParameterInput*> *available_pitch_inputs = new LinkedList<BaseParameterInput*>();
     static bool already_calculated = false;
     if (!already_calculated) {
-        for (uint_fast8_t i = 0 ; i < available_inputs->size() ; i++) {
+        const uint_fast8_t size = available_inputs->size();
+        for (uint_fast8_t i = 0 ; i < size ; i++) {
             if (available_inputs->get(i)->supports_pitch())
                 available_pitch_inputs->add(available_inputs->get(i));
         }
