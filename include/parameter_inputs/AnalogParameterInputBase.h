@@ -16,17 +16,18 @@ class AnalogParameterInputBase : public ParameterInput {
     DataType min_input_value = -1.0d;
     DataType max_input_value = 1.0d;
 
-    using Callback = void (*)(float);
-    Callback callback = nullptr;
+    #ifdef PARAMETER_INPUTS_USE_CALLBACKS
+      using Callback = void (*)(float);
+      Callback callback = nullptr;
+    #endif
 
     DataType sensitivity = 0.005;
       
     AnalogParameterInputBase() {};
-    AnalogParameterInputBase(char *name, const char *group_name = "General", DataType in_sensitivity = 0.005, byte input_type = BIPOLAR, byte output_type = UNIPOLAR) : ParameterInput(name, group_name) {
+    AnalogParameterInputBase(char *name, const char *group_name = "General", DataType in_sensitivity = 0.005, byte input_type = BIPOLAR) : ParameterInput(name, group_name) {
       //this->name = name;
       this->sensitivity = in_sensitivity;
       this->input_type = input_type;
-      this->output_type = output_type;
     }
 
     virtual void setInverted(bool invert = true) {
@@ -40,44 +41,31 @@ class AnalogParameterInputBase : public ParameterInput {
       read();
     }
 
-    virtual DataType get_normal_value() override {
-      return this->get_normal_value(this->currentValue);
+    virtual DataType get_normal_value_unipolar() override {
+      return this->get_normal_value(this->currentValue, UNIPOLAR);
+    }
+    virtual DataType get_normal_value_bipolar() override {
+      return this->get_normal_value(this->currentValue, BIPOLAR);
     }
 
-    virtual DataType get_normal_value(DataType value) {
-      /*if (this->debug) {
-        Serial.print("get_normal_value(");
-        Serial.print(value);
-        Serial.print(") ");
-      }*/
-
+    virtual DataType get_normal_value(DataType value, int output_type) {
       if (this->input_type==UNIPOLAR) {
         value = constrain(value, 0.0, 1.0);
+      } else if (this->input_type==BIPOLAR) {
+        value = constrain(value, -1.0, 1.0);
       }
 
-      if (this->input_type==this->output_type) {
+      if (this->input_type==output_type) {
         // dont need to do anything
-      } else if (this->input_type==BIPOLAR && this->output_type==UNIPOLAR) {
+      } else if (this->input_type==BIPOLAR && output_type==UNIPOLAR) {
         value = 0.5f + (value/2.0);
-      } else if (this->input_type==UNIPOLAR && this->output_type==BIPOLAR) {
+      } else if (this->input_type==UNIPOLAR && output_type==BIPOLAR) {
         value = -1.0 + (value*2.0);
       }
-
-      /*if (this->debug) {
-        Serial.print("re-normalised to ");
-        Serial.print(value);
-        Serial.print("\n");
-      }*/
 
       if (this->inverted) {
         value = 1.0f - ((float)value); // / this->max_input_value);
       }
-
-      /*if (this->debug) {
-        Serial.print(", inverted to ");
-        Serial.print(value);
-        Serial.print("\n");
-      }*/
 
       return value;
     }
@@ -98,11 +86,11 @@ class AnalogParameterInputBase : public ParameterInput {
       snprintf(fmt, 20, "[%-3i%%]", (int)(this->currentValue*100.0));
       return fmt;
     }
-    // for some reason, this prevents boot if uncommented?!
+    
     virtual const char *getOutputValue() override {
       static char fmt[20] = "          ";
       //sprintf(fmt, "[%-3i%%]", (int)(this->get_normal_value((float)this->currentValue)*100.0));
-      snprintf(fmt, 20, "[%-3i%%]", (int)(this->get_normal_value()*100.0));
+      snprintf(fmt, 20, "[%-3i%%]", (int)(this->get_normal_value_unipolar()*100.0));
       return fmt;
     }
 
@@ -118,17 +106,17 @@ class AnalogParameterInputBase : public ParameterInput {
         this->lastValue = this->currentValue;
         this->currentValue = currentValue;
 
-        float normal = get_normal_value(currentValue);
         #ifdef PARAMETER_INPUTS_USE_CALLBACKS
+          float normal = get_normal_value_unipolar(currentValue);
           this->on_value_read(currentValue);
+          if (callback != NULL) {
+            Debug_print(this->name);
+            Debug_print(F(": calling callback("));
+            Debug_print(normal);
+            Debug_println(')');
+            callback(normal);
+          }
         #endif
-        if (callback != NULL) {
-          Debug_print(this->name);
-          Debug_print(F(": calling callback("));
-          Debug_print(normal);
-          Debug_println(')');
-          callback(normal);
-        }
       }
     }
 };

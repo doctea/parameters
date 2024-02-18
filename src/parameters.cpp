@@ -98,9 +98,7 @@
 
             // some spacers so that the input controls align with the corresponding amount controls
             MenuItem *spacer1 = new MenuItem("Inputs");
-            MenuItem *spacer2 = new MenuItem("");
-            spacer1->selectable = false;
-            spacer2->selectable = false;
+            spacer1->selectable = false;           
             input_selectors_bar->add(spacer1);
 
             // make the three source selector controls
@@ -147,9 +145,46 @@
             input_selectors_bar->add(source_selector_1);
             input_selectors_bar->add(source_selector_2);
             input_selectors_bar->add(source_selector_3);
+
+            // empty column at end of bar
+            MenuItem *spacer2 = new MenuItem("");
+            spacer2->selectable = false;
             input_selectors_bar->add(spacer2);
 
             controls->add(input_selectors_bar);
+
+            // controls for whether to use bipolar or unipolar values from the input
+            SubMenuItemBar *polarity_selectors_bar = new SubMenuItemBar("Polarity");
+            polarity_selectors_bar->show_header = false;
+            polarity_selectors_bar->show_sub_headers = false;
+
+            MenuItem *polarity_spacer_1 = new MenuItem("Polarity");
+            polarity_spacer_1->selectable = false;           
+            polarity_selectors_bar->add(polarity_spacer_1);
+
+            // make the three polarity selector controls
+            InputTypeSelectorControl *polarity_selector_1 = new InputTypeSelectorControl(
+                "Input 1 Polarity", 
+                &this->connections[0].polar_mode
+            );
+            InputTypeSelectorControl *polarity_selector_2 = new InputTypeSelectorControl(
+                "Input 2 Polarity", 
+                &this->connections[1].polar_mode
+            );
+            InputTypeSelectorControl *polarity_selector_3 = new InputTypeSelectorControl(
+                "Input 3 Polarity", 
+                &this->connections[2].polar_mode
+            );
+            polarity_selectors_bar->add(polarity_selector_1);
+            polarity_selectors_bar->add(polarity_selector_2);
+            polarity_selectors_bar->add(polarity_selector_3);
+
+            MenuItem *polarity_spacer_2 = new MenuItem("");
+            polarity_spacer_2->selectable = false;           
+            polarity_selectors_bar->add(polarity_spacer_2);
+
+            controls->add(polarity_selectors_bar);
+
         #endif
 
         return controls;
@@ -203,8 +238,11 @@
             
         for (uint_fast8_t i = 0 ; i < MAX_SLOT_CONNECTIONS ; i++) {
             if (is_modulation_slot_active(i)) {
+                float nml = this->connections[i].polar_mode==UNIPOLAR ? 
+                                this->connections[i].parameter_input->get_normal_value_unipolar() : 
+                                this->connections[i].parameter_input->get_normal_value_bipolar();
                 modulation += (
-                    this->connections[i].parameter_input->get_normal_value() * this->connections[i].amount
+                    nml * this->connections[i].amount
                 );
                 number_of_modulations++;
             }

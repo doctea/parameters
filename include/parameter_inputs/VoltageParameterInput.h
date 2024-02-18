@@ -70,8 +70,6 @@ class VoltageParameterInput : public AnalogParameterInputBase<float> {
                 }
                 #endif
 
-                float normal = this->get_normal_value(currentValue);
-
                 #ifdef ENABLE_PRINTF
                 if (this->debug) {
                     Debug_printf(F("VoltageParameterInput#read() for '%c': got currentValue "), this->name); Serial_flush();
@@ -82,19 +80,20 @@ class VoltageParameterInput : public AnalogParameterInputBase<float> {
                 #endif
 
                 #ifdef PARAMETER_INPUTS_USE_CALLBACKS
+                    float normal = this->get_normal_value_unipolar(currentValue);
                     this->on_value_read(normal);
+                    if (this->callback != nullptr) {
+                        if (this->debug) {
+                            Debug_print(this->name);
+                            Debug_print(F(": calling callback("));
+                            Debug_print(normal);
+                            Debug_println(F(")"));
+                            Serial_flush();
+                        }      
+                        (*this->callback)(normal);
+                    }
                 #endif
 
-                if (this->callback != nullptr) {
-                    if (this->debug) {
-                        Debug_print(this->name);
-                        Debug_print(F(": calling callback("));
-                        Debug_print(normal);
-                        Debug_println(F(")"));
-                        Serial_flush();
-                    }      
-                    (*this->callback)(normal);
-                }
                 /*if (this->target_parameter!=nullptr) {
                     if (this->debug) {
                         Serial.println("Calling on target_parameter.."); Serial_flush();

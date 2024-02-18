@@ -1,6 +1,8 @@
 #ifndef PARAMETER_INPUT__INCLUDED
 #define PARAMETER_INPUT__INCLUDED
 
+#include "ParameterTypes.h"
+
 #include <Arduino.h>
 #include <String>
 
@@ -14,11 +16,6 @@
   #include "menu.h"
 #endif
 //#include "../parameters/Parameter.h"
-
-enum VALUE_TYPE {
-  BIPOLAR,
-  UNIPOLAR
-};
 
 #define MAX_INPUT_NAME 10
 
@@ -47,7 +44,6 @@ class BaseParameterInput {
     bool map_unipolar_to_bipolar = false;
 
     uint8_t input_type = BIPOLAR;
-    uint8_t output_type = UNIPOLAR;
 
     uint16_t colour = 0xFFFF;
     BaseParameterInput(char *name, const char *group_name = "General") {
@@ -58,7 +54,7 @@ class BaseParameterInput {
     virtual ~BaseParameterInput() = default;
 
     // whether to show unipolar/bipolar options for this type - override in subclasses
-    virtual bool supports_bipolar() {
+    virtual bool supports_bipolar_input() {
       return true;
     }
     // whether this object type supports pitch readouts, eg 1v/oct CV
@@ -98,7 +94,10 @@ class BaseParameterInput {
 
     virtual void loop() {}
 
-    virtual float get_normal_value() {
+    virtual float get_normal_value_unipolar() {
+      return 0.0;
+    }
+    virtual float get_normal_value_bipolar() {
       return 0.0;
     }
 
@@ -108,15 +107,11 @@ class BaseParameterInput {
 
     static const char *prefix; // = "parameter_input_";  // have to initialise these in the cpp file apparently
     static const char *input_type_suffix; // = "_input_type";
-    static const char *output_type_suffix; // = "_output_type";
     virtual LinkedList<String> *save_sequence_add_lines(LinkedList<String> *lines) {
       // eg,
       //  parameter_input_A_input_type=bipolar
-      //  parameter_input_B_output_type=unipolar
       
       lines->add(String(prefix) + String(this->name) + String(input_type_suffix) 
-        + String('=') + String(this->input_type==BIPOLAR ? "bipolar" : "unipolar"));
-      lines->add(String(prefix) + String(this->name) + String(output_type_suffix) 
         + String('=') + String(this->input_type==BIPOLAR ? "bipolar" : "unipolar"));
       
       return lines;
@@ -131,10 +126,7 @@ class BaseParameterInput {
       if (key.endsWith(input_type_suffix)) {
         key.replace(input_type_suffix,"");
         target = &this->input_type;
-      } else if (key.endsWith(output_type_suffix)) {
-        key.replace(output_type_suffix,"");
-        target = &this->output_type;
-      }
+      } 
 
       if (target!=nullptr && key.equals(this->name)) {
         if (value.equals("bipolar")) {        

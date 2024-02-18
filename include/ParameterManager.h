@@ -318,21 +318,31 @@ class ParameterManager {
                 #endif
                 menu->add(parameter_input_display);
 
-                if (param_input->supports_bipolar()) {
-                    //SubMenuItem *submenu = new SubMenuItem("Input/Output");
+                /*if (param_input->supports_bipolar_input()) {
+                    // this from previous version where inputs could be set to output bipolar
                     DualMenuItem *submenu = new DualMenuItem("Input/Output");
                     submenu->set_default_colours(param_input->colour);
                     submenu->show_header = false;
 
-                    //sprintf(label, "Input type for %s", param_input->name);
-                    submenu->add(new InputTypeSelectorControl("Input"/*label*/, &param_input->input_type)); // Input type
+                    submenu->add(new InputTypeSelectorControl("Input", &param_input->input_type)); // Input type
 
                     //sprintf(label, "Out type for %s", param_input->name);
-                    submenu->add(new InputTypeSelectorControl("Output"/*label*/, &param_input->output_type));   // Output type
+                    //submenu->add(new InputTypeSelectorControl("Output", &param_input->output_type));   // Output type
 
                     menu->add(submenu);
-                    return submenu; // was nullptr
-                } 
+                    return submenu;
+                }*/
+                if (param_input->supports_bipolar_input()) {
+                    // inputs now rely on their parameter to choose whether to use polar or bipolar version
+                    InputTypeSelectorControl *type_selector = new InputTypeSelectorControl("Input Type", &param_input->input_type);
+                    type_selector->default_fg = param_input->colour;
+                    //type_selector->show_header = false;
+                    menu->add(type_selector); // Input type
+
+                    // todo: maybe add options for inverted, rectified, etc?
+
+                    return type_selector;
+                }
                 return nullptr;
             }
 

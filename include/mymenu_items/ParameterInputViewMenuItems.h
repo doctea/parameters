@@ -33,7 +33,7 @@ class ParameterInputDisplay : public MenuItem
         ParameterInputDisplay(char *label, unsigned long memory_size, BaseParameterInput *input) : MenuItem(label) {
             this->parameter_input = input;
             this->memory_size = memory_size;
-            this->selectable = !input->supports_bipolar();
+            this->selectable = !input->supports_bipolar_input();
             if (parameter_input!=nullptr) 
                 this->set_default_colours(parameter_input->colour);
 
@@ -76,7 +76,7 @@ class ParameterInputDisplay : public MenuItem
         #ifndef PARAMETER_INPUTS_USE_CALLBACKS
             // not using callbacks when input values change, so update every menu tick instead
             virtual void update_ticks(unsigned long ticks) {
-                this->receive_value_update(this->parameter_input->get_normal_value());
+                this->receive_value_update(this->parameter_input->get_normal_value_unipolar());
             }
         #endif
 
@@ -88,13 +88,13 @@ class ParameterInputDisplay : public MenuItem
                 return;
 
             // convert value according to the input/output settings
-            if (this->parameter_input->output_type==BIPOLAR) {
+            /*if (this->parameter_input->output_type==BIPOLAR) {
                 // center is 0, range -1 to +1, so re-center display
                 (logged)[position] = (0.5) + (value / 2);
-            } else if (this->parameter_input->output_type==UNIPOLAR) {
+            } else if (this->parameter_input->output_type==UNIPOLAR) {*/
                 // center is 0.5, range 0 to 1.. dont modif 
                 (logged)[position] = value;
-            }
+            //}
 
             // do a simple backfill of values we missed
             if (last_position_updated < position && (last_position_updated) - position > 1) {
@@ -105,9 +105,14 @@ class ParameterInputDisplay : public MenuItem
             last_position_updated = position;
         }
 
+        int16_t halfbright_colour = 0;
+
         virtual int display(Coord pos, bool selected, bool opened) override {
             //Serial.println("MidiOutputSelectorControl display()!");
             tft->setTextSize(0);
+
+            if (this->halfbright_colour==0)
+                this->halfbright_colour = tft->halfbright_565(this->default_fg);
 
             #define DISPLAY_INFO_IN_LABEL
             #ifdef DISPLAY_INFO_IN_LABEL
@@ -120,7 +125,7 @@ class ParameterInputDisplay : public MenuItem
                     this->parameter_input!=nullptr ? (char*)this->parameter_input->getInputInfo()  : "",
                     this->parameter_input!=nullptr ? (char*)this->parameter_input->getInputValue() : "",
                     //(int)(this->logged[(ticks%LOOP_LENGTH_TICKS] * 100.0)
-                    this->parameter_input!=nullptr ? (int)(this->parameter_input->get_normal_value()*100.0) : 0, 
+                    this->parameter_input!=nullptr ? (int)(this->parameter_input->get_normal_value_unipolar()*100.0) : 0, 
                     (char*)this->parameter_input->getOutputValue()
                 );
                 colours(selected, parameter_input->colour, BLACK);
@@ -134,13 +139,18 @@ class ParameterInputDisplay : public MenuItem
             // switch back to colour-on-black for actual display
             colours(false, parameter_input->colour, BLACK);
 
-            const uint16_t base_row = pos.y;
+            const int_fast16_t base_row = pos.y;
             static float ticks_per_pixel = (float)memory_size / (float)tft->width();
 
-            int last_y = 0;
+            // todo: draw a grey line at the "zero" position
+            int_fast16_t zero_position_y = parameter_input->input_type==BIPOLAR ? PARAMETER_INPUT_GRAPH_HEIGHT/2 : PARAMETER_INPUT_GRAPH_HEIGHT;
+            tft->drawLine(0, base_row + zero_position_y, tft->width(), base_row + zero_position_y, halfbright_colour);
+
+            int_fast16_t last_y = 0;
             for (int screen_x = 0 ; screen_x < tft->width() ; screen_x++) {
-                const uint16_t tick_for_screen_X = ticks_to_memory_step((int)((float)screen_x * ticks_per_pixel)); // the tick corresponding to this screen position
-                const int y = PARAMETER_INPUT_GRAPH_HEIGHT - ((logged)[tick_for_screen_X] * PARAMETER_INPUT_GRAPH_HEIGHT);
+                const int_fast16_t tick_for_screen_X = ticks_to_memory_step((int)((float)screen_x * ticks_per_pixel)); // the tick corresponding to this screen position
+                const float value = (logged)[tick_for_screen_X];
+                const int_fast16_t y = PARAMETER_INPUT_GRAPH_HEIGHT - (value * PARAMETER_INPUT_GRAPH_HEIGHT);
                 if (screen_x != 0) {
                     //int last_y = GRAPH_HEIGHT - (this->logged[tick_for_screen_X] * GRAPH_HEIGHT);
                     tft->drawLine(screen_x-1, base_row + last_y, screen_x, base_row + y, parameter_input->colour);                    
@@ -161,8 +171,6 @@ class ParameterInputDisplay : public MenuItem
 
             return tft->getCursorY();
         }
-
-
 };
 
 class InputTypeSelectorControl : public SelectorControl<int> {
@@ -175,6 +183,7 @@ class InputTypeSelectorControl : public SelectorControl<int> {
         this->target = target;
         actual_value_index = *target;
         this->selected_value_index = this->actual_value_index = this->getter();
+        this->go_back_on_select = true;
     };
 
     virtual const char* get_label_for_value(int index) override {
@@ -196,12 +205,11 @@ class InputTypeSelectorControl : public SelectorControl<int> {
         return *target;
     }
 
-    // classic fixed display version
     virtual int display(Coord pos, bool selected, bool opened) override {
         //Serial.println("MidiOutputSelectorControl display()!");
 
         //int textSize = tft->get_textsize_for_width(label, tft->width()/2);
-        int textSize = 0;
+        int_fast8_t textSize = 0;
         pos.y = header(label, pos, selected, opened, textSize);
         //tft->setTextSize(2);
 
@@ -214,16 +222,18 @@ class InputTypeSelectorControl : public SelectorControl<int> {
         if (!opened) {
             // not opened, so just show the current value
             //colours(opened && selected_value_index==i, col, BLACK);
+            colours(selected, this->default_fg, BLACK);
 
             tft->printf((char*)"%s", (char*)get_label_for_value(*target)); //selected_value_index));
             tft->println((char*)"");
         } else {
-            int current_value = *target; //actual_value_index;
+            const int current_value = *target; 
 
             for (int i = 0 ; i < num_values ; i++) {
                 bool is_current_value_selected = (int)i==current_value;
-                int col = is_current_value_selected ? GREEN : this->default_fg;
-                colours(opened && selected_value_index==(int)i, col, BLACK);
+                const int_fast16_t col = is_current_value_selected ? GREEN : this->default_fg;
+                colours(selected_value_index==i, col, BLACK);
+                //colours((selected /*&& !opened*/) || (opened && selected_value_index==(int)i), col, BLACK);
                 tft->setCursor(pos.x, pos.y);
                 const char *label = get_label_for_value(i);
                 tft->setTextSize(tft->get_textsize_for_width(label, tft->width()/2));

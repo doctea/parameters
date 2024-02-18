@@ -1,6 +1,8 @@
 #ifndef PARAMETER__INCLUDED
 #define PARAMETER__INCLUDED
 
+#include "ParameterTypes.h"
+
 #include <Arduino.h>
 #if defined(CORE_TEENSY)
     // use alternative method if Teensy - no ARXTypeTraits, FLASHMEM
@@ -56,6 +58,7 @@ struct ParameterToInputConnection {
         MenuItem *amount_control = nullptr;
         SelectorControl<int> *input_control = nullptr;
     #endif
+    byte polar_mode = UNIPOLAR;
     //bool volt_per_octave = false;
 };
 
@@ -203,6 +206,9 @@ class FloatParameter : public BaseParameter {
             return;
         }
         this->connections[slot].amount = amount;
+    }
+    virtual void set_slot_polarity(int8_t slot, int polar_mode) {
+        this->connections[slot].polar_mode = polar_mode;
     }
 
     virtual void set_slot_0_input(BaseParameterInput *parameter_input) {

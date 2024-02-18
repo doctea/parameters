@@ -21,7 +21,7 @@ class MIDIParameterInput : public ParameterInput {
         }
 
         // midi ccs are always unipolar 0-127
-        virtual bool supports_bipolar() override {
+        virtual bool supports_bipolar_input() override {
             return false;
         }
 
@@ -43,8 +43,11 @@ class MIDIParameterInput : public ParameterInput {
                 this->currentValue = value;
         }
 
-        virtual float get_normal_value() override {
+        virtual float get_normal_value_unipolar() override {
             return (float)this->currentValue/127.0;
+        }
+        virtual float get_normal_value_bipolar() override {
+            return (float)(2*(64-this->currentValue))/127.0;
         }
 
         virtual const char *getInputInfo() {
@@ -63,7 +66,7 @@ class MIDIParameterInput : public ParameterInput {
         virtual const char *getOutputValue() override {
             static char fmt[20] = "          ";
             //sprintf(fmt, "[%-3i%%]", (int)(this->get_normal_value((float)this->currentValue)*100.0));
-            snprintf(fmt, 20, "[%-3i%%]", (int)(this->get_normal_value()*100.0));
+            snprintf(fmt, 20, "[%-3i%%]", (int)(this->get_normal_value_unipolar()*100.0));
             return fmt;
         }
 
