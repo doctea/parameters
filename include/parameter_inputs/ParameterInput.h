@@ -44,6 +44,9 @@ class BaseParameterInput {
     bool map_unipolar_to_bipolar = false;
 
     uint8_t input_type = BIPOLAR;
+    #ifdef PARAMETER_INPUTS_USE_OUTPUT_POLARITY
+      uint8_t output_type = UNIPOLAR;
+    #endif
 
     uint16_t colour = 0xFFFF;
     BaseParameterInput(char *name, const char *group_name = "General") {
@@ -94,12 +97,18 @@ class BaseParameterInput {
 
     virtual void loop() {}
 
-    virtual float get_normal_value_unipolar() {
-      return 0.0;
-    }
-    virtual float get_normal_value_bipolar() {
-      return 0.0;
-    }
+    #ifdef PARAMETER_INPUTS_USE_OUTPUT_POLARITY
+      virtual float get_normal_value() {
+        return 0.0;
+      }
+    #else
+      virtual float get_normal_value_unipolar() {
+        return 0.0;
+      }
+      virtual float get_normal_value_bipolar() {
+        return 0.0;
+      }
+    #endif
 
     virtual bool matches_label(const char *label) {
       return (strcmp(label, this->name)==0);
@@ -113,6 +122,10 @@ class BaseParameterInput {
       
       lines->add(String(prefix) + String(this->name) + String(input_type_suffix) 
         + String('=') + String(this->input_type==BIPOLAR ? "bipolar" : "unipolar"));
+      #ifdef PARAMETER_INPUTS_USE_OUTPUT_POLARITY
+        lines->add(String(prefix) + String(this->name) + String(output_type_suffix) 
+        + String('=') + String(this->output_type==BIPOLAR ? "bipolar" : "unipolar"));
+      #endif
       
       return lines;
     }
@@ -126,7 +139,13 @@ class BaseParameterInput {
       if (key.endsWith(input_type_suffix)) {
         key.replace(input_type_suffix,"");
         target = &this->input_type;
-      } 
+      }
+      #ifdef PARAMETER_INPUTS_USE_OUTPUT_POLARITY
+      else if (key.endsWith(output_type_suffix)) {
+        key.replace(output_type_suffix,"");
+        target = &this->output_type;
+      }
+      #endif
 
       if (target!=nullptr && key.equals(this->name)) {
         if (value.equals("bipolar")) {        

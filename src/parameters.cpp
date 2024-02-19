@@ -155,7 +155,7 @@
             controls->add(input_selectors_bar);
         #endif
 
-        #ifndef DISABLE_PARAMETER_POLARITY_SELECTORS
+        #ifndef PARAMETER_INPUTS_USE_OUTPUT_POLARITY
             // add controls to select whether to use bipolar or unipolar values from the ParameterInput
             SubMenuItemBar *polarity_selectors_bar = new SubMenuItemBar("Polarity");
             polarity_selectors_bar->show_header = false;
@@ -240,9 +240,13 @@
             
         for (uint_fast8_t i = 0 ; i < MAX_SLOT_CONNECTIONS ; i++) {
             if (is_modulation_slot_active(i)) {
-                float nml = this->connections[i].polar_mode==UNIPOLAR ? 
+                #ifdef PARAMETER_INPUTS_USE_OUTPUT_POLARITY
+                    float nml = this->connections[i].parameter_input->get_normal_value();
+                #else
+                    float nml = this->connections[i].polar_mode==UNIPOLAR ? 
                                 this->connections[i].parameter_input->get_normal_value_unipolar() : 
                                 this->connections[i].parameter_input->get_normal_value_bipolar();
+                #endif
                 modulation += (
                     nml * this->connections[i].amount
                 );

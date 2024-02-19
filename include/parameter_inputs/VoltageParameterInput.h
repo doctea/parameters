@@ -80,7 +80,11 @@ class VoltageParameterInput : public AnalogParameterInputBase<float> {
                 #endif
 
                 #ifdef PARAMETER_INPUTS_USE_CALLBACKS
-                    float normal = this->get_normal_value_unipolar(currentValue);
+                    #ifdef PARAMETER_INPUTS_USE_OUTPUT_POLARITY
+                        float normal = this->get_normal_value(currentValue);
+                    #else
+                        float normal = this->get_normal_value_unipolar(currentValue);
+                    #endif
                     this->on_value_read(normal);
                     if (this->callback != nullptr) {
                         if (this->debug) {

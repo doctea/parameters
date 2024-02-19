@@ -76,7 +76,11 @@ class ParameterInputDisplay : public MenuItem
         #ifndef PARAMETER_INPUTS_USE_CALLBACKS
             // not using callbacks when input values change, so update every menu tick instead
             virtual void update_ticks(unsigned long ticks) {
-                this->receive_value_update(this->parameter_input->get_normal_value_unipolar());
+                #ifdef PARAMETER_INPUTS_USE_OUTPUT_POLARITY
+                    this->receive_value_update(this->parameter_input->get_normal_value());    
+                #else
+                    this->receive_value_update(this->parameter_input->get_normal_value_unipolar());
+                #endif
             }
         #endif
 
@@ -87,14 +91,18 @@ class ParameterInputDisplay : public MenuItem
             if (position==last_position_updated)
                 return;
 
-            // convert value according to the input/output settings
-            /*if (this->parameter_input->output_type==BIPOLAR) {
-                // center is 0, range -1 to +1, so re-center display
-                (logged)[position] = (0.5) + (value / 2);
-            } else if (this->parameter_input->output_type==UNIPOLAR) {*/
-                // center is 0.5, range 0 to 1.. dont modif 
+            #ifdef PARAMETER_INPUTS_USE_OUTPUT_POLARITY
+                // convert value according to the input/output settings
+                if (this->parameter_input->output_type==BIPOLAR) {
+                    // center is 0, range -1 to +1, so re-center display
+                    (logged)[position] = (0.5) + (value / 2);
+                } else if (this->parameter_input->output_type==UNIPOLAR) {
+                    // center is 0.5, range 0 to 1.. dont modif 
+                    (logged)[position] = value;
+                }
+            #else
                 (logged)[position] = value;
-            //}
+            #endif
 
             // do a simple backfill of values we missed
             if (last_position_updated < position && (last_position_updated) - position > 1) {
@@ -125,7 +133,11 @@ class ParameterInputDisplay : public MenuItem
                     this->parameter_input!=nullptr ? (char*)this->parameter_input->getInputInfo()  : "",
                     this->parameter_input!=nullptr ? (char*)this->parameter_input->getInputValue() : "",
                     //(int)(this->logged[(ticks%LOOP_LENGTH_TICKS] * 100.0)
-                    this->parameter_input!=nullptr ? (int)(this->parameter_input->get_normal_value_unipolar()*100.0) : 0, 
+                    #ifdef PARAMETER_INPUTS_USE_OUTPUT_POLARITY
+                        this->parameter_input!=nullptr ? (int)(this->parameter_input->get_normal_value()*100.0) : 0, 
+                    #else
+                        this->parameter_input!=nullptr ? (int)(this->parameter_input->get_normal_value_unipolar()*100.0) : 0, 
+                    #endif
                     (char*)this->parameter_input->getOutputValue()
                 );
                 colours(selected, parameter_input->colour, BLACK);
@@ -143,7 +155,12 @@ class ParameterInputDisplay : public MenuItem
             static float ticks_per_pixel = (float)memory_size / (float)tft->width();
 
             // todo: draw a grey line at the "zero" position
-            int_fast16_t zero_position_y = parameter_input->input_type==BIPOLAR ? PARAMETER_INPUT_GRAPH_HEIGHT/2 : PARAMETER_INPUT_GRAPH_HEIGHT;
+            #ifdef PARAMETER_INPUTS_USE_OUTPUT_POLARITY
+                int_fast16_t zero_position_y = PARAMETER_INPUT_GRAPH_HEIGHT/2;
+            #else
+                int_fast16_t zero_position_y = parameter_input->input_type==BIPOLAR ? PARAMETER_INPUT_GRAPH_HEIGHT/2 : PARAMETER_INPUT_GRAPH_HEIGHT;
+            #endif
+            
             tft->drawLine(0, base_row + zero_position_y, tft->width(), base_row + zero_position_y, halfbright_colour);
 
             int_fast16_t last_y = 0;

@@ -58,7 +58,9 @@ struct ParameterToInputConnection {
         MenuItem *amount_control = nullptr;
         SelectorControl<int> *input_control = nullptr;
     #endif
-    byte polar_mode = UNIPOLAR;
+    #ifndef PARAMETER_INPUTS_USE_OUTPUT_POLARITY
+        byte polar_mode = UNIPOLAR;
+    #endif
     //bool volt_per_octave = false;
 };
 
@@ -207,9 +209,11 @@ class FloatParameter : public BaseParameter {
         }
         this->connections[slot].amount = amount;
     }
-    virtual void set_slot_polarity(int8_t slot, int polar_mode) {
-        this->connections[slot].polar_mode = polar_mode;
-    }
+    #ifndef PARAMETER_INPUTS_USE_OUTPUT_POLARITY
+        virtual void set_slot_polarity(int8_t slot, int polar_mode) {
+            this->connections[slot].polar_mode = polar_mode;
+        }
+    #endif
 
     virtual void set_slot_0_input(BaseParameterInput *parameter_input) {
         this->set_slot_input(0,parameter_input);

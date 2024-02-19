@@ -43,12 +43,18 @@ class MIDIParameterInput : public ParameterInput {
                 this->currentValue = value;
         }
 
-        virtual float get_normal_value_unipolar() override {
-            return (float)this->currentValue/127.0;
-        }
-        virtual float get_normal_value_bipolar() override {
-            return (float)(2*(64-this->currentValue))/127.0;
-        }
+        #ifdef PARAMETER_INPUTS_USE_OUTPUT_POLARITY
+            virtual float get_normal_value() override {
+                return (float)this->currentValue/127.0;    
+            }
+        #else
+            virtual float get_normal_value_unipolar() override {
+                return (float)this->currentValue/127.0;
+            }
+            virtual float get_normal_value_bipolar() override {
+                return (float)(2*(64-this->currentValue))/127.0;
+            }
+        #endif
 
         virtual const char *getInputInfo() {
             static char input_info[20] = "                ";
@@ -66,7 +72,11 @@ class MIDIParameterInput : public ParameterInput {
         virtual const char *getOutputValue() override {
             static char fmt[20] = "          ";
             //sprintf(fmt, "[%-3i%%]", (int)(this->get_normal_value((float)this->currentValue)*100.0));
-            snprintf(fmt, 20, "[%-3i%%]", (int)(this->get_normal_value_unipolar()*100.0));
+            #ifdef PARAMETER_INPUTS_USE_OUTPUT_POLARITY
+                snprintf(fmt, 20, "[%-3i%%]", (int)(this->get_normal_value()*100.0));
+            #else
+                snprintf(fmt, 20, "[%-3i%%]", (int)(this->get_normal_value_unipolar()*100.0));
+            #endif
             return fmt;
         }
 

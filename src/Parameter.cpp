@@ -116,17 +116,30 @@ void FloatParameter::save_sequence_add_lines(LinkedList<String> *lines) {
 
             const char *input_name = this->get_input_name_for_slot(slot);
 
-            // sequence save line looks like: `parameter_Filter Cutoff_0=A|1.000`
-            //                                 ^^head ^^_^^param name^_slot=ParameterInputName|Amount
-            snprintf(line, MAX_SAVELINE, "parameter_%s_%i=%s|%3.3f|%s", 
-                this->label, 
-                slot, 
-                input_name,
-                //'A'+slot, //TODO: implement proper saving of mapping! /*parameter->get_connection_slot_name(slot), */
-                //parameter->connections[slot].parameter_input->name,
-                this->connections[slot].amount,
-                this->connections[slot].polar_mode==UNIPOLAR ? "unipolar" : "bipolar"
-            );
+            #ifdef PARAMETER_INPUTS_USE_OUTPUT_POLARITY
+                // sequence save line looks like: `parameter_Filter Cutoff_0=A|1.000`
+                //                                 ^^head ^^_^^param name^_slot=ParameterInputName|Amount|[unipolar|bipolar]
+                snprintf(line, MAX_SAVELINE, "parameter_%s_%i=%s|%3.3f", 
+                    this->label, 
+                    slot, 
+                    input_name,
+                    //'A'+slot, //TODO: implement proper saving of mapping! /*parameter->get_connection_slot_name(slot), */
+                    //parameter->connections[slot].parameter_input->name,
+                    this->connections[slot].amount
+                );
+            #else
+                // sequence save line looks like: `parameter_Filter Cutoff_0=A|1.000`
+                //                                 ^^head ^^_^^param name^_slot=ParameterInputName|Amount|[unipolar|bipolar]
+                snprintf(line, MAX_SAVELINE, "parameter_%s_%i=%s|%3.3f|%s", 
+                    this->label, 
+                    slot, 
+                    input_name,
+                    //'A'+slot, //TODO: implement proper saving of mapping! /*parameter->get_connection_slot_name(slot), */
+                    //parameter->connections[slot].parameter_input->name,
+                    this->connections[slot].amount,
+                    this->connections[slot].polar_mode==UNIPOLAR ? "unipolar" : "bipolar"
+                );
+            #endif
             Debug_printf(F("PARAMETERS\t%s: save_sequence_add_lines saving line:\t%s\n"), line);
             lines->add(String(line));
         }
@@ -184,11 +197,15 @@ bool FloatParameter::load_parse_key_value(const String incoming_key, String valu
         }
 
         float amount;
-        int mode = UNIPOLAR;
+        #ifndef PARAMETER_INPUTS_USE_OUTPUT_POLARITY
+            int mode = UNIPOLAR;
+        #endif
         const String input_name = value.substring(0, separator_2_position);
 
         // get the amount of modulation
-        const uint_fast8_t separator_3_position = value.lastIndexOf(subseparator);
+        #ifndef PARAMETER_INPUTS_USE_OUTPUT_POLARITY
+            const uint_fast8_t separator_3_position = value.lastIndexOf(subseparator);
+        #endif
         if (separator_3_position==separator_2_position) {
             // old version for compatibility -- no polarity mode in the input!
             // just get the amount
@@ -196,14 +213,18 @@ bool FloatParameter::load_parse_key_value(const String incoming_key, String valu
         } else {
             // new version -- polarity mode in the input!            
             amount = value.substring(separator_2_position+1, separator_3_position).toFloat();
-            mode = value.substring(separator_3_position).equals("unipolar") ? UNIPOLAR : BIPOLAR;
+            #ifndef PARAMETER_INPUTS_USE_OUTPUT_POLARITY
+                mode = value.substring(separator_3_position).equals("unipolar") ? UNIPOLAR : BIPOLAR;
+            #endif
         }
 
         //if (Serial) Serial.printf("NOTICE: in %s,\t Got split string '%s', slot_number %i and amount %3.3f\n", this->label, input_name.c_str(), slot_number, amount);
 
         this->set_slot_input (slot_number, input_name.c_str());
         this->set_slot_amount(slot_number, amount);
-        this->set_slot_polarity(slot_number, mode);
+        #ifndef PARAMETER_INPUTS_USE_OUTPUT_POLARITY
+            this->set_slot_polarity(slot_number, mode);
+        #endif
 
         return true;
     }

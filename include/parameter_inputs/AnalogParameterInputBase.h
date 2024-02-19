@@ -24,11 +24,20 @@ class AnalogParameterInputBase : public ParameterInput {
     DataType sensitivity = 0.005;
       
     AnalogParameterInputBase() {};
-    AnalogParameterInputBase(char *name, const char *group_name = "General", DataType in_sensitivity = 0.005, byte input_type = BIPOLAR) : ParameterInput(name, group_name) {
-      //this->name = name;
-      this->sensitivity = in_sensitivity;
-      this->input_type = input_type;
-    }
+    #ifdef PARAMETER_INPUTS_USE_OUTPUT_POLARITY
+      AnalogParameterInputBase(char *name, const char *group_name = "General", DataType in_sensitivity = 0.005, byte input_type = BIPOLAR, byte output_type = UNIPOLAR) : ParameterInput(name, group_name) {
+        //this->name = name;
+        this->sensitivity = in_sensitivity;
+        this->input_type = input_type;
+        this->output_type = output_type;
+      }
+    #else
+      AnalogParameterInputBase(char *name, const char *group_name = "General", DataType in_sensitivity = 0.005, byte input_type = BIPOLAR) : ParameterInput(name, group_name) {
+        //this->name = name;
+        this->sensitivity = in_sensitivity;
+        this->input_type = input_type;
+      }
+    #endif
 
     virtual void setInverted(bool invert = true) {
       this->inverted = invert;
@@ -41,12 +50,18 @@ class AnalogParameterInputBase : public ParameterInput {
       read();
     }
 
-    virtual DataType get_normal_value_unipolar() override {
-      return this->get_normal_value(this->currentValue, UNIPOLAR);
-    }
-    virtual DataType get_normal_value_bipolar() override {
-      return this->get_normal_value(this->currentValue, BIPOLAR);
-    }
+    #ifdef PARAMETER_INPUTS_USE_OUTPUT_POLARITY
+      virtual DataType get_normal_value() override {
+        return this->get_normal_value(this->currentValue, this->output_type);
+      }
+    #else
+      virtual DataType get_normal_value_unipolar() override {
+        return this->get_normal_value(this->currentValue, UNIPOLAR);
+      }
+      virtual DataType get_normal_value_bipolar() override {
+        return this->get_normal_value(this->currentValue, BIPOLAR);
+      } 
+    #endif
 
     virtual DataType get_normal_value(DataType value, int output_type) {
       if (this->input_type==UNIPOLAR) {
@@ -57,7 +72,7 @@ class AnalogParameterInputBase : public ParameterInput {
 
       if (this->input_type==output_type) {
         // dont need to do anything
-      } else if (this->input_type==BIPOLAR && output_type==UNIPOLAR) {
+      } else if (this->input_type==BIPOLAR  && output_type==UNIPOLAR) {
         value = 0.5f + (value/2.0);
       } else if (this->input_type==UNIPOLAR && output_type==BIPOLAR) {
         value = -1.0 + (value*2.0);
@@ -90,7 +105,11 @@ class AnalogParameterInputBase : public ParameterInput {
     virtual const char *getOutputValue() override {
       static char fmt[20] = "          ";
       //sprintf(fmt, "[%-3i%%]", (int)(this->get_normal_value((float)this->currentValue)*100.0));
-      snprintf(fmt, 20, "[%-3i%%]", (int)(this->get_normal_value_unipolar()*100.0));
+      #ifdef PARAMETER_INPUTS_USE_OUTPUT_POLARITY
+        snprintf(fmt, 20, "[%-3i%%]", (int)(this->get_normal_value()*100.0));
+      #else
+        snprintf(fmt, 20, "[%-3i%%]", (int)(this->get_normal_value_unipolar()*100.0));
+      #endif
       return fmt;
     }
 
@@ -107,7 +126,11 @@ class AnalogParameterInputBase : public ParameterInput {
         this->currentValue = currentValue;
 
         #ifdef PARAMETER_INPUTS_USE_CALLBACKS
-          float normal = get_normal_value_unipolar(currentValue);
+          #ifdef PARAMETER_INPUTS_USE_OUTPUT_POLARITY
+            float normal = get_normal_value(currentValue);
+          #else
+            float normal = get_normal_value_unipolar(currentValue);
+          #endif
           this->on_value_read(currentValue);
           if (callback != NULL) {
             Debug_print(this->name);
