@@ -226,7 +226,7 @@ class ParameterMapPercentageControl : public DirectNumberControl<float> {
 
 };
 
-// compound menu item that shows a direct value-setter widget, 3x modulation amount widgets, and the last post-modulation output value
+// compound menu item that shows a direct value-setter widget, 3x modulation amount widgets, 3x polarity selection widgets, and the last post-modulation output value
 class ParameterMenuItem : public SubMenuItemBar {
     public:
 
@@ -242,7 +242,6 @@ class ParameterMenuItem : public SubMenuItemBar {
         for (uint_fast8_t i = 0 ; i < MAX_SLOT_CONNECTIONS ; i++) {
             // todo: make the modulation source part configurable too
             // todo: make the label part dynamically generated on-the-fly by the DirectNumberControl
-            // todo: 
             char labelnew[8];
             char *input_name =  parameter->connections[i].parameter_input!=nullptr ? 
                                 parameter->connections[i].parameter_input->name : 
@@ -264,6 +263,12 @@ class ParameterMenuItem : public SubMenuItemBar {
         output->selectable = false;
         output->set_show_output_mode();
         this->add(output); 
+    }
+
+    void setParameter(FloatParameter *new_parameter) {
+        this->parameter = new_parameter;
+        // todo: set the parameter on the child items..
+        // todo: add a similar setParameter function to the child items..
     }
 
     void on_add() override {
