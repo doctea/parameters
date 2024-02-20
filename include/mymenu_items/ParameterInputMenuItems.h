@@ -18,6 +18,7 @@ class ParameterInputSelectorControl : public SelectorControl<int> {
     LinkedList<BaseParameterInput*> *available_parameter_inputs = nullptr;
 
     TargetClass *target_object = nullptr;
+    TargetClass **proxy_target_object = &target_object;
     void(TargetClass::*setter_func)(BaseParameterInput*);
 
     bool show_values = false;   // whether to display the incoming values or not
@@ -33,11 +34,21 @@ class ParameterInputSelectorControl : public SelectorControl<int> {
         bool show_values = false
     ) : SelectorControl(label, 0) {
         this->show_values = show_values;
-        this->initial_selected_parameter_input = initial_parameter_input,
-        this->available_parameter_inputs = available_parameter_inputs,
+        this->initial_selected_parameter_input = initial_parameter_input;
+        this->available_parameter_inputs = available_parameter_inputs;
         this->target_object = target_object;
         this->setter_func = setter_func;
         this->num_values = available_parameter_inputs->size() + 1;  // + 1 for None optino .. 
+    };
+    ParameterInputSelectorControl(
+        const char *label, 
+        TargetClass **proxy_target_object, 
+        void(TargetClass::*setter_func)(BaseParameterInput*), 
+        LinkedList<BaseParameterInput*> *available_parameter_inputs,
+        BaseParameterInput *initial_parameter_input = nullptr,
+        bool show_values = false
+    ) : ParameterInputSelectorControl(label, *proxy_target_object, setter_func, available_parameter_inputs, initial_parameter_input, show_values) {
+        this->proxy_target_object = proxy_target_object;
     };
 
     virtual void configure (LinkedList<BaseParameterInput*> *available_parameter_inputs) {
@@ -124,21 +135,28 @@ class ParameterInputSelectorControl : public SelectorControl<int> {
     virtual void setter (int new_value) {
         //if (this->debug) Serial.printf(F("ParameterSelectorControl changing from %i to %i\n"), this->actual_value_index, new_value);
         selected_value_index = actual_value_index = new_value;
-        if(new_value>=0 && this->target_object!=nullptr && this->setter_func!=nullptr) {
+        if(new_value>=0 && (*this->proxy_target_object)!=nullptr && this->setter_func!=nullptr) {
             if (new_value < (int)this->available_parameter_inputs->size())
-                (this->target_object->*this->setter_func)(this->available_parameter_inputs->get(new_value));
+                ((*this->proxy_target_object)->*this->setter_func)(this->available_parameter_inputs->get(new_value));
             else
-                (this->target_object->*this->setter_func)(nullptr);
+                ((*this->proxy_target_object)->*this->setter_func)(nullptr);
         }
     }
     virtual int getter () {
         return selected_value_index;
     }
 
+    //BaseParameterInput *last_object = nullptr;
+
     // classic fixed display version
     virtual int display(Coord pos, bool selected, bool opened) override {
         //Serial.println(F("ParameterInputSelectorControl display()!")); Serial_flush();
         tft->setTextSize(0);
+
+        /*if (last_object != *proxy_target_object) {
+            update_source(*proxy_target_object);
+            last_object = *proxy_target_object;
+        }*/
 
         pos.y = header(label, pos, selected, opened);
       
@@ -193,6 +211,11 @@ class ParameterInputSelectorControl : public SelectorControl<int> {
     }
 
     virtual int renderValue(bool selected, bool opened, uint16_t max_character_width) override {
+        /*if (last_object != *proxy_target_object) {
+            update_source(*proxy_target_object);
+            last_object = *proxy_target_object;
+        }*/
+
         const int index_to_display = opened ? selected_value_index : actual_value_index;
         const int col = selected_value_index==this->actual_value_index && opened ? 
                 GREEN : 

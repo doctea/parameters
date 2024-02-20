@@ -273,7 +273,7 @@ class ParameterMenuItem : public SubMenuItemBar {
     }
 
     void setParameter(FloatParameter *new_parameter) {
-        Serial.printf("setParameter() called with %p\n", new_parameter);
+        //Serial.printf("setParameter() called with %p\n", new_parameter);
         this->parameter = new_parameter;
         // todo: set the parameter on the child items..
         // todo: add a similar setParameter function to the child items..

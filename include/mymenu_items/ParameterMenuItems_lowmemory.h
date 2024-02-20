@@ -12,6 +12,106 @@
 
 #include "ParameterMenuItems.h"
 
+
+class ParameterConnectionPolarityTypeSelectorControl : public SelectorControl<int> {
+    FloatParameter **parameter;
+    byte slot_number;
+
+    public:
+
+    ParameterConnectionPolarityTypeSelectorControl(const char *label, FloatParameter **parameter, byte slot_number) 
+        : SelectorControl(label) { 
+        this->parameter = parameter;
+        this->slot_number = slot_number;
+        this->actual_value_index = (*this->parameter)->connections[slot_number].polar_mode;
+        this->go_back_on_select = true;
+    }
+
+    virtual const char* get_label_for_value(int index) override {
+        if (index==BIPOLAR)
+            return "Bipolar";
+        if (index==UNIPOLAR)
+            return "Unipolar";
+        //if (index==CLOCK_NONE)
+        //    return "None";
+        return "??";
+    }
+
+    virtual void setter (int new_value) {
+        (*this->parameter)->connections[slot_number].polar_mode = new_value;
+        actual_value_index = new_value;
+    }
+    virtual int getter () {
+        //return clock_mode; //selected_value_index;
+        return (*this->parameter)->connections[slot_number].polar_mode;
+    }
+
+    virtual int display(Coord pos, bool selected, bool opened) override {
+        //Serial.println("MidiOutputSelectorControl display()!");
+
+        //int textSize = tft->get_textsize_for_width(label, tft->width()/2);
+        int_fast8_t textSize = 0;
+        pos.y = header(label, pos, selected, opened, textSize);
+        //tft->setTextSize(2);
+
+        num_values = 2; //NUM_CLOCK_SOURCES;
+
+        //tft->setTextSize(2);
+
+        tft->setCursor(pos.x, pos.y);
+
+        if (!opened) {
+            // not opened, so just show the current value
+            //colours(opened && selected_value_index==i, col, BLACK);
+            colours(selected, this->default_fg, BLACK);
+
+            tft->printf((char*)"%s", (char*)get_label_for_value(this->getter())); //selected_value_index));
+            tft->println((char*)"");
+        } else {
+            const int current_value = this->getter(); 
+
+            for (int i = 0 ; i < num_values ; i++) {
+                bool is_current_value_selected = (int)i==current_value;
+                const int_fast16_t col = is_current_value_selected ? GREEN : this->default_fg;
+                colours(selected_value_index==i, col, BLACK);
+                //colours((selected /*&& !opened*/) || (opened && selected_value_index==(int)i), col, BLACK);
+                tft->setCursor(pos.x, pos.y);
+                const char *label = get_label_for_value(i);
+                tft->setTextSize(tft->get_textsize_for_width(label, tft->width()/2));
+                tft->printf((char*)"%s\n", (char*)label);
+                pos.y = tft->getCursorY();
+            }
+            if (tft->getCursorX()>0) // if we haven't wrapped onto next line then do it manually
+                tft->println((char*)"");
+        }
+        return tft->getCursorY();
+    }
+
+    virtual bool action_opened() override {
+        //if (this->debug) Serial.printf(F("ObjectToggleControl#action_opened on %s\n"), this->label);
+        bool value = !this->getter();
+        //this->internal_value = !this->internal_value;
+
+        this->setter(value); //(bool)this->internal_value);
+        return false;   // don't 'open'
+    }
+
+    virtual bool button_select() override {
+        this->selected_value_index = !this->selected_value_index;
+        this->setter(selected_value_index);
+
+        char msg[MENU_MESSAGE_MAX];
+        //Serial.printf("about to build msg string...\n");
+        snprintf(msg, MENU_MESSAGE_MAX, "Set polarity to %i: %s", selected_value_index, get_label_for_value(selected_value_index));
+        //msg[tft->get_c_max()] = '\0'; // limit the string so we don't overflow set_last_message
+        menu_set_last_message(msg, GREEN);
+
+        return go_back_on_select;
+    }
+
+};
+
+
 // couple of modes:-
 //      unopened - display and select from parameter names
 //      opened - edit the underlying parameter settings..
@@ -60,37 +160,17 @@ class ParameterMenuItemSelector : public SelectorControl<int> { //public ObjectS
     }
 
     virtual int display(Coord pos, bool selected, bool opened) override {
+        colours(selected, this->default_fg, BLACK);
+        tft->setTextSize(2);
+
         if (this->selecting) {
-            // display the name of the currently selected parameter
-            // todo: show a summary of the existing mapping information..
-            //          maybe could just even display the underlying control to achieve this?
             tft->setTextSize(0);
 
-            colours(selected, this->default_fg, BLACK);
-            tft->setTextSize(2);
-
-            if (opened)
-                tft->print(">");
-
-            if (this->selected_value_index>=0 && this->selected_value_index < num_values) {
-                //Serial.printf("\tactual value index %i\n", this->actual_value_index); Serial_flush();
-                //tft->printf((char*)"Selected: %i\n", this->selected_value_index);
-                tft->printf((char*)"%s\n", (char*)this->get_label_for_index(this->selected_value_index));
-                //Serial.printf("\tdrew selected %i\n", this->actual_value_index); Serial_flush();
-            } else {
-                tft->printf((char*)"Selected: none\n");
-            }
-            return tft->getCursorY();
-        } else {
-            // display the actual parameter...
-            /*Serial.println("in OPENED mode!"); Serial.flush();
-            tft->println("in OPENED mode..!");
-            Serial.printf("about to call actual_controls->display() on %p\n", this->actual_controls); Serial_flush();*/
-            //this->actual_controls->debug = true;
-            //return tft->getCursorY();
-            tft->printf((char*)"%s\n", (char*)this->get_label_for_index(this->selected_value_index));
-            return this->actual_controls->display(pos, selected, opened);
-        }
+            if (opened) tft->print(">>");
+        } 
+        tft->printf((char*)"%s\n", (char*)this->get_label_for_index(this->selected_value_index));
+        pos.y = tft->getCursorY();
+        return this->actual_controls->display(pos, selected, opened);
     }
 
     virtual bool knob_left() override {
@@ -120,13 +200,13 @@ class ParameterMenuItemSelector : public SelectorControl<int> { //public ObjectS
     }*/
     virtual bool button_select() override {
         if (selecting) {
-            Serial.println("moving into EDIT mode"); Serial.flush();
+            //Serial.println("moving into EDIT mode"); Serial.flush();
             selecting = false;
             return false;
         } else {
-            Serial.println("already in EDIT mode - so sending select to the controls!"); Serial.flush();
-            Serial.printf("controls is %p\n", actual_controls); Serial.flush();
-            Serial.printf("controls is %s\n", actual_controls->label); Serial.flush();
+            //Serial.println("already in EDIT mode - so sending select to the controls!"); Serial.flush();
+            //Serial.printf("controls is %p\n", actual_controls); Serial.flush();
+            //Serial.printf("controls is %s\n", actual_controls->label); Serial.flush();
             //return false;
             if (actual_controls->button_select()) {
                 selecting = true;
@@ -135,13 +215,23 @@ class ParameterMenuItemSelector : public SelectorControl<int> { //public ObjectS
         }
     }
     virtual bool button_back() override {
+        Serial.printf("lowmemoryselector#button_back(), selecting mode is currently %s\n", selecting?"true":"false");
         if (selecting) {
-            return false;
+            Serial.println("\treturning FALSE");
+            Serial_flush();
+            return BACK_EXIT;
         } else {
-            if (!actual_controls->button_back()) {
+            bool was_selecting = selecting;
+            if (actual_controls->button_back()==BACK_EXIT) {
+                Serial.println("\tactual_controls->button_back returned TRUE - switching back to selecting mode?");
                 selecting = true;
+            } else {
+                Serial.println("\tactual_controls->button_back returned FALSE");
             }
-            return selecting;
+            Serial.printf("\treturning %s (because that was previous selecting state)\n", was_selecting?"true":"false");
+            Serial_flush();
+            //return was_selecting;
+            return BACK_DONTEXIT;
         }
     }
     
