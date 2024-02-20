@@ -263,6 +263,7 @@ class FloatParameter : public BaseParameter {
     #ifdef ENABLE_SCREEN
         FLASHMEM virtual MenuItem *makeControl();
         FLASHMEM virtual LinkedList<MenuItem *> *makeControls();
+        FLASHMEM MenuItem *makeInputSelectorControls(ParameterMenuItem *parent_control);
 
         void link_parameter_input_controls_to_connections(MenuItem *amt1, MenuItem *amt2, MenuItem *amt3, SelectorControl<int> *source_selector_1, SelectorControl<int> *source_selector_2, SelectorControl<int> *source_selector_3) {
             this->connections[0].amount_control = amt1;
