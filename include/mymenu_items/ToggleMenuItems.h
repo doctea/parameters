@@ -10,10 +10,14 @@ class FloatParameter;
 class ToggleParameterControl : public ParameterValueMenuItem {
     public:
 
+    FloatParameter *p_parameter;
+
     float value_on = 1.0;
     float value_off = 0.0;
 
-    ToggleParameterControl(char *label, FloatParameter *parameter) : ParameterValueMenuItem(label, parameter) {}
+    ToggleParameterControl(char *label, FloatParameter *parameter) : 
+        p_parameter(parameter), 
+        ParameterValueMenuItem(label, &p_parameter) {}
 
     virtual bool action_opened() override;
 

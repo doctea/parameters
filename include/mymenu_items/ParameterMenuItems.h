@@ -1,5 +1,4 @@
-#ifndef MENU_PARAMETER_MENUITEMS__INCLUDED
-#define MENU_PARAMETER_MENUITEMS__INCLUDED
+#pragma once
 
 #include "Arduino.h"
 
@@ -13,15 +12,15 @@
 // direct control over a Parameter from menu
 class ParameterValueMenuItem : public DirectNumberControl<float> {
     public:
-        FloatParameter *parameter = nullptr;
+        FloatParameter **parameter = nullptr;
         //Parameter<TargetClass, DataType> *parameter = nullptr;
 
         bool show_output_mode = false;  // true if this widget should show the last post-modulation output value; false if it should show the pre-modulation value
 
-        ParameterValueMenuItem(char *label, FloatParameter *parameter) : DirectNumberControl(label) {
+        ParameterValueMenuItem(char *label, FloatParameter **parameter) : DirectNumberControl(label) {
             strncpy(this->label, label, 20);
             this->parameter = parameter;
-            this->internal_value = parameter->getCurrentNormalValue() * 100.0;
+            this->internal_value = (*parameter)->getCurrentNormalValue() * 100.0;
             this->minimum_value = 0.0f; 
             this->maximum_value = 1.0f; 
 
@@ -47,14 +46,14 @@ class ParameterValueMenuItem : public DirectNumberControl<float> {
 
         // normalised integer (0-100)
         virtual float get_current_value() override {
-            if (this->parameter==nullptr)
+            if (this->parameter==nullptr || *parameter==nullptr)
                 return 0;
             /*if (this->debug) {
                 Serial.printf("ParameterValueMenuItem for %s (parameter %s) has currentValue ", this->label, this->parameter->label);
                 Serial.println(parameter->getCurrentValue());
             }*/
             //return (int) (parameter->getCurrentNormalValue() * 100.0); //(float)this->maximum_value);    // turn into percentage
-            return parameter->getCurrentNormalValue();
+            return (*parameter)->getCurrentNormalValue();
         }
 
         virtual const char *getFormattedValue() override {
@@ -62,35 +61,35 @@ class ParameterValueMenuItem : public DirectNumberControl<float> {
             if (this->show_output_mode) {
                 return this->getFormattedOutputValue();
             }
-            snprintf(fmt, 20, "%3s", this->parameter->getFormattedValue()); 
+            snprintf(fmt, 20, "%3s", (*parameter)->getFormattedValue()); 
             return fmt;
         }
         virtual const char *getFormattedOutputValue() {
             static char fmt[20] = "";
             //snprintf(fmt, 20, "%s", this->parameter->getFormattedLastOutputValue());
-            snprintf(fmt, 20, this->parameter->getFormattedLastOutputValue());
+            snprintf(fmt, 20, (*parameter)->getFormattedLastOutputValue());
             return fmt;
         }
 
         virtual const char *getFormattedInternalValue() override {
-            return this->parameter->getFormattedValue(this->internal_value);
+            return (*parameter)->getFormattedValue(this->internal_value);
         }
 
         virtual const char *getFormattedExtra() override {
-            if (this->parameter->is_modulatable())
-                return this->parameter->getFormattedValue(parameter->getLastModulatedNormalValue());
+            if ((*parameter)->is_modulatable())
+                return (*parameter)->getFormattedValue((*parameter)->getLastModulatedNormalValue());
             return nullptr;
         }
 
         virtual void set_current_value(float value) override { 
             //if (this->debug) { Serial.printf(F("ParameterValueMenuItem#set_current_value(%f) on %s\n"), value, this->label); Serial_flush(); }
 
-            if (this->parameter==nullptr)
+            if (parameter==nullptr || *parameter==nullptr)
                 return;
             if (this->readOnly)
                 return;
            
-            if (this->parameter!=nullptr) {
+            if (*parameter!=nullptr) {
                 /*if (this->debug) {
                     Serial.printf(F("\tParameterMenuItem#set_current_value(%f): Calling setParamValue %f (max value %i) on Parameter %s\n"), value, value, this->maximum_value, this->parameter->label); Serial_flush();
                 }*/
@@ -104,15 +103,15 @@ class ParameterValueMenuItem : public DirectNumberControl<float> {
                 }*/
                 //this->parameter->setParamValue(v);    // turn into percentage
                 //if (this->debug) Serial.printf(F("ParameterValueMenuItem#set_current_value(%f) about to call updateValueFromNormal(%f) (maximum_value is %i)\n"), value, v, this->maximum_value);
-                this->parameter->updateValueFromNormal(v);
+                (*parameter)->updateValueFromNormal(v);
             } 
         }
 
         // directly increase the parameter's value
         virtual void increase_value() override {
             //this->debug = true;
-            parameter->incrementValue();
-            this->internal_value = parameter->getCurrentNormalValue(); //this->maximum_value;
+            (*parameter)->incrementValue();
+            this->internal_value = (*parameter)->getCurrentNormalValue(); //this->maximum_value;
             //if (this->debug) Serial.printf(F("ParameterValueMenuItem#increase_value updated internal_value to %f (from %f * 100.0)\n"), internal_value, parameter->getCurrentNormalValue());
             //this->debug = false;
         }
@@ -120,8 +119,8 @@ class ParameterValueMenuItem : public DirectNumberControl<float> {
         virtual void decrease_value() override {
             //this->debug = true;
 
-            parameter->decrementValue();
-            this->internal_value = parameter->getCurrentNormalValue(); // * 100.0; //this->maximum_value;
+            (*parameter)->decrementValue();
+            this->internal_value = (*parameter)->getCurrentNormalValue(); // * 100.0; //this->maximum_value;
             //if (this->debug) Serial.printf(F("ParameterValueMenuItem#decrease_value updated internal_value to %f (from %f * 100.0)\n"), internal_value, parameter->getCurrentNormalValue());
             //this->debug = false;
         }
@@ -179,44 +178,44 @@ class ParameterValueMenuItem : public DirectNumberControl<float> {
 
 class ParameterMapPercentageControl : public DirectNumberControl<float> {
     public:
-    FloatParameter *parameter = nullptr;
+    FloatParameter **parameter = nullptr;
     int slot_number;
-    ParameterMapPercentageControl(char *label, FloatParameter *parameter, int slot_number) :
+    ParameterMapPercentageControl(char *label, FloatParameter **parameter, int slot_number) :
         DirectNumberControl<float> (
             label, 
-            &parameter->connections[slot_number].amount, 
-            parameter->connections[slot_number].amount,
+            &((*parameter)->connections[slot_number].amount), 
+            (*parameter)->connections[slot_number].amount,
             -1.0f,
             1.0f,
             nullptr
         ), parameter(parameter), slot_number(slot_number)
         {
-            if (parameter->connections[slot_number].parameter_input!=nullptr) {
-                this->default_fg = parameter->connections[slot_number].parameter_input->colour;
+            if ((*parameter)->connections[slot_number].parameter_input!=nullptr) {
+                this->default_fg = (*parameter)->connections[slot_number].parameter_input->colour;
             }
         }
 
     virtual int header(const char *text, Coord pos, bool selected = false, bool opened = false, int textSize = 0) override {
-        if (parameter->connections[slot_number].parameter_input!=nullptr) {
-            return DirectNumberControl::header(parameter->connections[slot_number].parameter_input->name, pos, selected, opened, textSize);
+        if ((*parameter)->connections[slot_number].parameter_input!=nullptr) {
+            return DirectNumberControl::header((*parameter)->connections[slot_number].parameter_input->name, pos, selected, opened, textSize);
         } else {
             return DirectNumberControl::header(text, pos, selected, opened, textSize);
         }
     }
 
     virtual const char *get_label() {
-        return parameter->connections[slot_number].parameter_input!=nullptr ? 
-               parameter->connections[slot_number].parameter_input->name : 
+        return (*parameter)->connections[slot_number].parameter_input!=nullptr ? 
+               (*parameter)->connections[slot_number].parameter_input->name : 
                (char*)"None";
     }
        
     virtual int renderValue(bool selected, bool opened, uint16_t max_character_width) override {
         // update the control with the colour from the connected parameter input, if there is one
-        this->default_fg = (parameter!=nullptr && parameter->connections[slot_number].parameter_input!=nullptr)
-                            ? parameter->connections[slot_number].parameter_input->colour
+        this->default_fg = (parameter!=nullptr && *parameter!=nullptr && (*parameter)->connections[slot_number].parameter_input!=nullptr)
+                            ? (*parameter)->connections[slot_number].parameter_input->colour
                             : C_WHITE;
 
-        if (!parameter->is_modulation_slot_active(slot_number))
+        if (!(*parameter)->is_modulation_slot_active(slot_number))
             this->default_fg = tft->halfbright_565(this->default_fg);
             
         // todo: update label based on connected parameter input.. see thoughts on how best to do this in submenuitem_bar.h!
@@ -224,9 +223,17 @@ class ParameterMapPercentageControl : public DirectNumberControl<float> {
         return DirectNumberControl::renderValue(selected, opened, max_character_width);
     }
 
+    virtual float get_current_value() override {
+        return (*parameter)->connections[slot_number].amount;
+    }
+
+    virtual void set_current_value(float value) override {
+        (*parameter)->connections[slot_number].amount = value;
+    }
+
 };
 
-// compound menu item that shows a direct value-setter widget, 3x modulation amount widgets, 3x polarity selection widgets, and the last post-modulation output value
+// compound menu item that shows a direct value-setter widget, 3x modulation amount widgets, and the last post-modulation output value
 class ParameterMenuItem : public SubMenuItemBar {
     public:
 
@@ -236,7 +243,7 @@ class ParameterMenuItem : public SubMenuItemBar {
         this->parameter = parameter;
 
         // add the direct Value changer
-        this->add(new ParameterValueMenuItem((char*)"Value", parameter));
+        this->add(new ParameterValueMenuItem((char*)"Value", &this->parameter));
 
         // add the modulation Amount % changers
         for (uint_fast8_t i = 0 ; i < MAX_SLOT_CONNECTIONS ; i++) {
@@ -251,14 +258,14 @@ class ParameterMenuItem : public SubMenuItemBar {
             snprintf(labelnew, 8, "%s", input_name); //"Amt "
             ParameterMapPercentageControl *input_amount_control = new ParameterMapPercentageControl(
                 labelnew,
-                parameter,
+                &this->parameter,
                 i
             );
             this->add(input_amount_control);
         }
 
         // add another small widget to display the last output value (after modulation etc)
-        ParameterValueMenuItem *output = new ParameterValueMenuItem((char*)"Output", parameter);
+        ParameterValueMenuItem *output = new ParameterValueMenuItem((char*)"Output", &this->parameter);
         output->setReadOnly();
         output->selectable = false;
         output->set_show_output_mode();
@@ -266,9 +273,11 @@ class ParameterMenuItem : public SubMenuItemBar {
     }
 
     void setParameter(FloatParameter *new_parameter) {
+        Serial.printf("setParameter() called with %p\n", new_parameter);
         this->parameter = new_parameter;
         // todo: set the parameter on the child items..
         // todo: add a similar setParameter function to the child items..
+        // ^^^ don't need to do this because now use a pointer-to-a-pointer on the child menu items..
     }
 
     void on_add() override {
@@ -282,5 +291,3 @@ class ParameterMenuItem : public SubMenuItemBar {
         #endif
     }
 };
-
-#endif
