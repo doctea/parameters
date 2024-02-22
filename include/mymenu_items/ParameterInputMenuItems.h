@@ -11,7 +11,8 @@ class VoltageParameterInput;
 
 // TODO: allow to deselect a selector (ie set None)
 
-// Selector to choose a ParameterInput from the available list to use a Source; used by objects/parameters that can only feed from one ParameterInput at a time, eg CVInput
+// Selector to choose a ParameterInput from the available list to use a Source; 
+// Also used more directly by objects/parameters that can only feed from one ParameterInput at a time, eg CVInput
 template<class TargetClass>
 class ParameterInputSelectorControl : public SelectorControl<int> {
     BaseParameterInput *initial_selected_parameter_input = nullptr;

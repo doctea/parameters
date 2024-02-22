@@ -46,6 +46,11 @@ class ParameterConnectionPolarityTypeSelectorControl : public SelectorControl<in
         return (*this->parameter)->connections[slot_number].polar_mode;
     }
 
+    virtual int renderValue(bool selected, bool opened, uint16_t width) override {
+        tft->setTextColor((*this->parameter)->connections[slot_number].parameter_input->colour, BLACK);
+        return SelectorControl::renderValue(selected, opened, width);
+    }
+
     virtual int display(Coord pos, bool selected, bool opened) override {
         //Serial.println("MidiOutputSelectorControl display()!");
 
@@ -56,9 +61,8 @@ class ParameterConnectionPolarityTypeSelectorControl : public SelectorControl<in
 
         num_values = 2; //NUM_CLOCK_SOURCES;
 
-        //tft->setTextSize(2);
-
         tft->setCursor(pos.x, pos.y);
+        tft->setTextColor((*this->parameter)->connections[slot_number].parameter_input->colour, BLACK);
 
         if (!opened) {
             // not opened, so just show the current value
@@ -130,6 +134,7 @@ class ParameterMenuItemSelector : public SelectorControl<int> { //public ObjectS
         SelectorControl<int>(label) {
         this->selected_value_index = 0;
         this->actual_controls = new ParameterMenuItem(parameters->get(0)->label, parameters->get(0));
+        this->actual_controls->show_header = false;
         this->actual_value_index = 0;
         this->parameters = parameters;
         this->num_values = parameters->size();
@@ -164,7 +169,7 @@ class ParameterMenuItemSelector : public SelectorControl<int> { //public ObjectS
         tft->setTextSize(2);
 
         if (this->selecting) {
-            tft->setTextSize(0);
+            tft->setTextSize(2);
 
             if (opened) tft->print(">>");
         } 
