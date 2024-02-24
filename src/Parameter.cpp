@@ -38,17 +38,17 @@ void FloatParameter::set_slot_input(int8_t slot, BaseParameterInput *parameter_i
         return;
     }
     this->connections[slot].parameter_input = parameter_input;
-    #ifdef ENABLE_SCREEN
+    /*#ifdef ENABLE_SCREEN
         if (parameter_input!=nullptr) {
             //Serial.println("calling update_slot_amount_control.."); Serial_flush();
             this->update_slot_amount_control(slot, parameter_input);
         }
-    #endif
+    #endif*/
 }
 
 #ifdef ENABLE_SCREEN
     // TODO: this is kinda ugly!  should be a better way to do this.
-    void FloatParameter::update_slot_amount_control(int8_t slot, BaseParameterInput *parameter_input) {
+    /*void FloatParameter::update_slot_amount_control(int8_t slot, BaseParameterInput *parameter_input) {
         Debug_println(F("in update_slot_amount_control (FloatParameter version)..")); Serial_flush();
 
         if (!is_valid_slot(slot)) return;
@@ -70,7 +70,7 @@ void FloatParameter::set_slot_input(int8_t slot, BaseParameterInput *parameter_i
             Debug_printf(F("and updating input_control '%s' actual_index to %i\n"), this->connections[slot].input_control->label, parameter_manager->getInputIndex(parameter_input));
             this->connections[slot].input_control->update_actual_index(parameter_manager->getInputIndex(parameter_input));
         }
-    }
+    }*/
 
     /*void FloatParameter::update_slot_amount_control(byte slot, char name) {
         //Serial.println("update_slot_amount_control creating label.."); Serial_flush();

@@ -52,12 +52,12 @@ struct ParameterToInputConnection {
     //BaseParameter *parameter = nullptr;
     BaseParameterInput *parameter_input = nullptr;
     float amount = 0.0f;
-    #ifdef ENABLE_SCREEN
+    /*#ifdef ENABLE_SCREEN
         // done more directly? todo: add colour, and update the colour of the widget too
         // link the parameter mapping back to the screen controls, so that we can update the screen when mapping changes
         MenuItem *amount_control = nullptr;
         SelectorControl<int> *input_control = nullptr;
-    #endif
+    #endif*/
     byte polar_mode = UNIPOLAR;
     //bool volt_per_octave = false;
 };
@@ -278,17 +278,17 @@ class FloatParameter : public BaseParameter {
         FLASHMEM virtual LinkedList<MenuItem *> *makeControls();
         FLASHMEM MenuItem *makeInputSelectorControls(ParameterMenuItem *parent_control);
 
-        void link_parameter_input_controls_to_connections(MenuItem *amt1, MenuItem *amt2, MenuItem *amt3, SelectorControl<int> *source_selector_1, SelectorControl<int> *source_selector_2, SelectorControl<int> *source_selector_3) {
+        /*void link_parameter_input_controls_to_connections(MenuItem *amt1, MenuItem *amt2, MenuItem *amt3, SelectorControl<int> *source_selector_1, SelectorControl<int> *source_selector_2, SelectorControl<int> *source_selector_3) {
             this->connections[0].amount_control = amt1;
             this->connections[1].amount_control = amt2;
             this->connections[2].amount_control = amt3;
             this->connections[0].input_control = source_selector_1;
             this->connections[1].input_control = source_selector_2;
             this->connections[2].input_control = source_selector_3;
-        }
+        }*/
 
         // update the slot's menu control to represent the newly set parameter input source
-        void update_slot_amount_control(int8_t slot, BaseParameterInput *parameter_input);
+        //void update_slot_amount_control(int8_t slot, BaseParameterInput *parameter_input);
         //void update_slot_amount_control(byte slot, char name);
     #endif
 };

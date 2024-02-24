@@ -117,7 +117,7 @@ class ParameterInputSelectorControl : public SelectorControl<int> {
     }
 
     // update the control to reflect changes to selection (eg, called when new value is loaded from project file)
-    virtual void update_source(BaseParameterInput *new_source) {
+    /*virtual void update_source(BaseParameterInput *new_source) {
         //int index = parameter_manager->getPitchInputIndex(new_source);
         //Serial.printf("update_source got index %i\n", index);
         if (new_source==nullptr) {
@@ -126,7 +126,7 @@ class ParameterInputSelectorControl : public SelectorControl<int> {
             int index = this->find_parameter_input_index_for_object(new_source);
             this->update_actual_index(index);
         }
-    }
+    }*/
 
     virtual void setter (int new_value) {
         //if (this->debug) Serial.printf(F("ParameterSelectorControl changing from %i to %i\n"), this->actual_value_index, new_value);
@@ -212,7 +212,6 @@ class ParameterInputSelectorControl : public SelectorControl<int> {
         
         colours(selected, col, BLACK);
         char txt[MENU_C_MAX];
-        if (index_to_display>=0 && index_to_display < (int)this->available_parameter_inputs->size())
         if (currently_active!=nullptr)
             // todo: sprintf to correct number of max_character_width characters
             snprintf(txt, MENU_C_MAX, "%6s", currently_active->name);

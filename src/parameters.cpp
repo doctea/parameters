@@ -74,14 +74,14 @@ FLASHMEM MenuItem *FloatParameter::makeInputSelectorControls(ParameterMenuItem *
     source_selector_3->go_back_on_select = true;
 
     // tell the parameter's connection mappings which screen controls they need to update
-    this->link_parameter_input_controls_to_connections(
+    /*this->link_parameter_input_controls_to_connections(
         fullmenuitem->items->get(1),
         fullmenuitem->items->get(2),
         fullmenuitem->items->get(3),
         source_selector_1,
         source_selector_2,
         source_selector_3
-    );
+    );*/
 
     input_selectors_bar->add(source_selector_1);
     input_selectors_bar->add(source_selector_2);
