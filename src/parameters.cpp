@@ -44,6 +44,7 @@ FLASHMEM MenuItem *FloatParameter::makeInputSelectorControls(ParameterMenuItem *
         "Input 1", 
         this,
         &FloatParameter::set_slot_0_input,
+        &FloatParameter::get_slot_0_input,
         parameter_manager->available_inputs,
         parameter_manager->getInputForName(this->get_input_name_for_slot(0)),
         fullmenuitem->items->get(1)     // second item of ParameterMenuItem is first slot
@@ -54,6 +55,7 @@ FLASHMEM MenuItem *FloatParameter::makeInputSelectorControls(ParameterMenuItem *
         "Input 2", 
         this,
         &FloatParameter::set_slot_1_input,
+        &FloatParameter::get_slot_1_input,
         parameter_manager->available_inputs,
         parameter_manager->getInputForName(this->get_input_name_for_slot(1)),
         fullmenuitem->items->get(2)     // third item of ParameterMenuItem is second slot
@@ -64,6 +66,7 @@ FLASHMEM MenuItem *FloatParameter::makeInputSelectorControls(ParameterMenuItem *
         "Input 3", 
         this,
         &FloatParameter::set_slot_2_input,
+        &FloatParameter::get_slot_2_input,
         parameter_manager->available_inputs,
         parameter_manager->getInputForName(this->get_input_name_for_slot(2)),
         fullmenuitem->items->get(3)     // fourth item of ParameterMenuItem is third slot

@@ -20,7 +20,9 @@ class ParameterInputSelectorControl : public SelectorControl<int> {
 
     TargetClass *target_object = nullptr;
     TargetClass **proxy_target_object = &target_object;
+
     void(TargetClass::*setter_func)(BaseParameterInput*);
+    BaseParameterInput*(TargetClass::*getter_func)();
 
     bool show_values = false;   // whether to display the incoming values or not
 
@@ -30,6 +32,7 @@ class ParameterInputSelectorControl : public SelectorControl<int> {
         const char *label, 
         TargetClass *target_object, 
         void(TargetClass::*setter_func)(BaseParameterInput*), 
+        BaseParameterInput*(TargetClass::*getter_func)(), 
         LinkedList<BaseParameterInput*> *available_parameter_inputs,
         BaseParameterInput *initial_parameter_input = nullptr,
         bool show_values = false
@@ -39,16 +42,18 @@ class ParameterInputSelectorControl : public SelectorControl<int> {
         this->available_parameter_inputs = available_parameter_inputs;
         this->target_object = target_object;
         this->setter_func = setter_func;
+        this->getter_func = getter_func;
         this->num_values = available_parameter_inputs->size() + 1;  // + 1 for None optino .. 
     };
     ParameterInputSelectorControl(
         const char *label, 
         TargetClass **proxy_target_object, 
         void(TargetClass::*setter_func)(BaseParameterInput*), 
+        BaseParameterInput*(TargetClass::*getter_func)(),
         LinkedList<BaseParameterInput*> *available_parameter_inputs,
         BaseParameterInput *initial_parameter_input = nullptr,
         bool show_values = false
-    ) : ParameterInputSelectorControl(label, *proxy_target_object, setter_func, available_parameter_inputs, initial_parameter_input, show_values) {
+    ) : ParameterInputSelectorControl(label, *proxy_target_object, setter_func, getter_func, available_parameter_inputs, initial_parameter_input, show_values) {
         this->proxy_target_object = proxy_target_object;
     };
 
@@ -71,20 +76,10 @@ class ParameterInputSelectorControl : public SelectorControl<int> {
                 return i;
         }
         return -1;
-        //return parameter_manager->getInputIndexForName(name);
     }
 
     virtual int find_parameter_input_index_for_object(BaseParameterInput *input) {
         return this->find_parameter_input_index_for_label(input->name);
-        /*if (this->available_parameter_inputs==nullptr)
-            return -1;
-        unsigned const int size = this->available_parameter_inputs->size();
-        for (unsigned int i = 0 ; i < size ; i++) {
-            if (available_parameter_inputs->get(i)==input)
-                return i;
-        }
-        return -1;*/
-        //return parameter_manager->getInputIndexForName(name);
     }
 
     virtual void on_add() override {
@@ -147,17 +142,12 @@ class ParameterInputSelectorControl : public SelectorControl<int> {
         return selected_value_index;
     }
 
-    //BaseParameterInput *last_object = nullptr;
+    BaseParameterInput *last_object = nullptr;
 
     // classic fixed display version
     virtual int display(Coord pos, bool selected, bool opened) override {
         //Serial.println(F("ParameterInputSelectorControl display()!")); Serial_flush();
         tft->setTextSize(0);
-
-        /*if (last_object != *proxy_target_object) {
-            update_source(*proxy_target_object);
-            last_object = *proxy_target_object;
-        }*/
 
         pos.y = header(label, pos, selected, opened);
       
@@ -167,12 +157,11 @@ class ParameterInputSelectorControl : public SelectorControl<int> {
         if (!opened) {
             // not selected, so just show the current value on one row
             //Serial.printf("\tnot opened\n"); Serial_flush();
-            colours(selected, this->default_fg, BLACK);
+            BaseParameterInput *currently_active = (*this->proxy_target_object->*getter_func)(); //this->available_parameter_inputs->get(actual_value_index);
+            if (currently_active!=nullptr) {
+                colours(selected, currently_active->colour, BLACK);
 
-            if (this->actual_value_index>=0 && this->actual_value_index < (int)this->available_parameter_inputs->size()) {
-                //Serial.printf(F("\tactual value index %i\n"), this->actual_value_index); Serial_flush();
-                tft->printf((char*)"Selected: %s\n", (char*)this->get_label_for_index(this->actual_value_index));
-                //Serial.printf(F("\tdrew selected %i\n"), this->actual_value_index); Serial_flush();
+                tft->printf("Selected: %s\n", currently_active->name);
             } else {
                 tft->printf((char*)"Selected: none\n");
             }
@@ -212,23 +201,21 @@ class ParameterInputSelectorControl : public SelectorControl<int> {
     }
 
     virtual int renderValue(bool selected, bool opened, uint16_t max_character_width) override {
-        /*if (last_object != *proxy_target_object) {
-            update_source(*proxy_target_object);
-            last_object = *proxy_target_object;
-        }*/
-
         const int index_to_display = opened ? selected_value_index : actual_value_index;
+        BaseParameterInput *currently_active = 
+            opened ? this->available_parameter_inputs->get(index_to_display) : (*this->proxy_target_object->*getter_func)();
         const int col = selected_value_index==this->actual_value_index && opened ? 
                 GREEN : 
-                (index_to_display>=0 && index_to_display<(int)this->available_parameter_inputs->size() ? 
-                    this->available_parameter_inputs->get(index_to_display)->colour : 
-                    YELLOW/2);
+                currently_active!=nullptr ? 
+                    currently_active->colour : 
+                    YELLOW/2;
         
         colours(selected, col, BLACK);
         char txt[MENU_C_MAX];
         if (index_to_display>=0 && index_to_display < (int)this->available_parameter_inputs->size())
+        if (currently_active!=nullptr)
             // todo: sprintf to correct number of max_character_width characters
-            snprintf(txt, MENU_C_MAX, "%6s", this->available_parameter_inputs->get(index_to_display)->name);
+            snprintf(txt, MENU_C_MAX, "%6s", currently_active->name);
         else
             snprintf(txt, MENU_C_MAX, "None");
         tft->setTextSize((strlen(txt) < max_character_width/2) ? 2 : 1);

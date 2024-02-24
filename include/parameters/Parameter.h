@@ -202,6 +202,19 @@ class FloatParameter : public BaseParameter {
     virtual const char *get_input_name_for_slot(int8_t slot);
     float get_amount_for_slot(int8_t slot);
 
+    BaseParameterInput *get_slot_input(int slot) {
+        return this->connections[slot].parameter_input;
+    }
+    BaseParameterInput *get_slot_0_input() {
+        return this->get_slot_input(0);
+    }
+    BaseParameterInput *get_slot_1_input() {
+        return this->get_slot_input(1);
+    }
+    BaseParameterInput *get_slot_2_input() {
+        return this->get_slot_input(2);
+    }
+
     virtual void set_slot_input(int8_t slot, const char *parameter_input_name);
     virtual void set_slot_input(int8_t slot, BaseParameterInput *parameter_input);
     virtual void set_slot_amount(int8_t slot, float amount) {
