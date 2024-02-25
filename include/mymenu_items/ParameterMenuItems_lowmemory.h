@@ -152,6 +152,7 @@ class ParameterMenuItemSelector : public SelectorControl<int> { //public ObjectS
     virtual int display(Coord pos, bool selected, bool opened) override {
         colours(selected, this->default_fg, BLACK);
         tft->setTextSize(2);
+        //Serial.printf("ParameterMenuItemSelector parameter address is @%p (address of that pointer is @%p)\n", this->parameter, &this->parameter);
 
         if (opened) tft->print(">>");
         tft->printf((char*)"%s\n", (char*)this->get_label_for_index(this->selected_value_index));
@@ -181,72 +182,116 @@ class ParameterMenuItemSelector : public SelectorControl<int> { //public ObjectS
 
 #include "ParameterInputMenuItems.h"
 
+struct lowmemory_controls_t {
+    // re-usable controls
+    ParameterMenuItem *parameter_amount_controls;
+    SubMenuItemBar *input_selectors_bar;
+    SubMenuItemBar *polarity_submenu;
+    // pointer to the current control being edited
+    FloatParameter * parameter;
+};
+lowmemory_controls_t lowmemory_controls;
+
+// "dummy" invisible control that switches single instances of editor controls 
+// so that when this control is rendered, the correct parameter is swapped into be displayed/edited
+class LowMemorySwitcherMenuItem : public MenuItem {
+    public:
+    LinkedList<FloatParameter*> *parameters = nullptr;
+    ParameterMenuItemSelector *parameter_selector = nullptr;
+
+    LowMemorySwitcherMenuItem(char *label, LinkedList<FloatParameter*> *parameters, ParameterMenuItemSelector *parameter_selector) 
+        : MenuItem(label) {
+            this->parameters = parameters;
+            this->parameter_selector = parameter_selector;
+            this->selectable = false;
+    }
+
+    virtual int display(Coord pos, bool selected, bool opened) override {
+        //Serial.printf("switching lowmemory_controls.parameter pointer from @%p to @%p\n", lowmemory_controls.parameter, &this->parameter_selector->parameter);
+        // dont actually display anything, just update the parameter_selector
+        lowmemory_controls.parameter = this->parameter_selector->parameter;
+        return pos.y;
+    }
+};
+
 // create 'low-memory' controls for a list of parameters
+// re-uses the same actual controls
 void create_low_memory_parameter_controls(const char *label, LinkedList<FloatParameter*> *parameters) {
     ////// control to select which parameter the other controls will edit
     ParameterMenuItemSelector *parameter_selector = new ParameterMenuItemSelector(label, parameters);
+    //if (lowmemory_controls.parameter_selector==nullptr)
+        //lowmemory_controls.parameter_selector = new ParameterMenuItemSelector(label, parameters);
+    menu->add(new LowMemorySwitcherMenuItem("switcher", parameters, parameter_selector));
+    lowmemory_controls.parameter = parameter_selector->parameter;
+
     menu->add(parameter_selector);
 
     ////// amount controls, to set percentage amounts 
-    ParameterMenuItem *parameter_amount_controls = new ParameterMenuItem("Amounts", &parameter_selector->parameter);
-    menu->add(parameter_amount_controls);
+    //ParameterMenuItem *parameter_amount_controls;
+    if (lowmemory_controls.parameter_amount_controls==nullptr)
+        lowmemory_controls.parameter_amount_controls = new ParameterMenuItem("Amounts", &lowmemory_controls.parameter);
+    menu->add(lowmemory_controls.parameter_amount_controls);
 
     // controls to choose which ParameterInputs to use for each slot
     // then set up a generic submenuitembar to hold the input selectors
-    SubMenuItemBar *input_selectors_bar = new SubMenuItemBar("Inputs");
-    input_selectors_bar->show_header = false;
-    input_selectors_bar->show_sub_headers = false;
+    if (lowmemory_controls.input_selectors_bar==nullptr) {
+        lowmemory_controls.input_selectors_bar = new SubMenuItemBar("Inputs");
+        lowmemory_controls.input_selectors_bar->show_header = false;
+        lowmemory_controls.input_selectors_bar->show_sub_headers = false;
 
-    // some spacers so that the input controls align with the corresponding amount controls
-    MenuItem *spacer1 = new MenuItem("Inputs");
-    spacer1->selectable = false;           
-    input_selectors_bar->add(spacer1);
+        // some spacers so that the input controls align with the corresponding amount controls
+        MenuItem *spacer1 = new MenuItem("Inputs");
+        spacer1->selectable = false;           
+        lowmemory_controls.input_selectors_bar->add(spacer1);
 
-    // make the three source selector controls
-    ParameterInputSelectorControl<FloatParameter> *source_selector_1 = new ParameterInputSelectorControl<FloatParameter>(
-        "Input 1", 
-        &parameter_selector->parameter,
-        &FloatParameter::set_slot_0_input,
-        &FloatParameter::get_slot_0_input,
-        parameter_manager->available_inputs
-    );
-    source_selector_1->go_back_on_select = true;
+        // make the three source selector controls
+        ParameterInputSelectorControl<FloatParameter> *source_selector_1 = new ParameterInputSelectorControl<FloatParameter>(
+            "Input 1", 
+            &lowmemory_controls.parameter,
+            &FloatParameter::set_slot_0_input,
+            &FloatParameter::get_slot_0_input,
+            parameter_manager->available_inputs
+        );
+        source_selector_1->go_back_on_select = true;
 
-    ParameterInputSelectorControl<FloatParameter> *source_selector_2 = new ParameterInputSelectorControl<FloatParameter>(
-        "Input 2", 
-        &parameter_selector->parameter,
-        &FloatParameter::set_slot_1_input,
-        &FloatParameter::get_slot_1_input,
-        parameter_manager->available_inputs
-    );
-    source_selector_2->go_back_on_select = true;
+        ParameterInputSelectorControl<FloatParameter> *source_selector_2 = new ParameterInputSelectorControl<FloatParameter>(
+            "Input 2", 
+            &lowmemory_controls.parameter,
+            &FloatParameter::set_slot_1_input,
+            &FloatParameter::get_slot_1_input,
+            parameter_manager->available_inputs
+        );
+        source_selector_2->go_back_on_select = true;
 
-    ParameterInputSelectorControl<FloatParameter> *source_selector_3 = new ParameterInputSelectorControl<FloatParameter>(
-        "Input 3", 
-        &parameter_selector->parameter,
-        &FloatParameter::set_slot_2_input,
-        &FloatParameter::get_slot_2_input,
-        parameter_manager->available_inputs
-    );
-    source_selector_3->go_back_on_select = true;
+        ParameterInputSelectorControl<FloatParameter> *source_selector_3 = new ParameterInputSelectorControl<FloatParameter>(
+            "Input 3", 
+            &lowmemory_controls.parameter,
+            &FloatParameter::set_slot_2_input,
+            &FloatParameter::get_slot_2_input,
+            parameter_manager->available_inputs
+        );
+        source_selector_3->go_back_on_select = true;
 
-    input_selectors_bar->add(source_selector_1);
-    input_selectors_bar->add(source_selector_2);
-    input_selectors_bar->add(source_selector_3);
+        lowmemory_controls.input_selectors_bar->add(source_selector_1);
+        lowmemory_controls.input_selectors_bar->add(source_selector_2);
+        lowmemory_controls.input_selectors_bar->add(source_selector_3);
 
-    // empty column at end of bar
-    MenuItem *spacer2 = new MenuItem("");
-    spacer2->selectable = false;
-    input_selectors_bar->add(spacer2);
-    menu->add(input_selectors_bar);
+        // empty column at end of bar
+        MenuItem *spacer2 = new MenuItem("");
+        spacer2->selectable = false;
+        lowmemory_controls.input_selectors_bar->add(spacer2);
+    }
+    menu->add(lowmemory_controls.input_selectors_bar);
 
     ////// polarity controls
-    SubMenuItemBar *polarity_submenu = new SubMenuItemBar("Polarities", false);
-    polarity_submenu->show_header = false;
-    polarity_submenu->add(new MenuItem("Polarity"));
-    polarity_submenu->add(new ParameterConnectionPolarityTypeSelectorControl("Slot 1", &parameter_selector->parameter, 0));
-    polarity_submenu->add(new ParameterConnectionPolarityTypeSelectorControl("Slot 2", &parameter_selector->parameter, 1));
-    polarity_submenu->add(new ParameterConnectionPolarityTypeSelectorControl("Slot 3", &parameter_selector->parameter, 2));
-    polarity_submenu->add(new MenuItem(""));
-    menu->add(polarity_submenu);
+    if (lowmemory_controls.polarity_submenu==nullptr) {
+        lowmemory_controls.polarity_submenu = new SubMenuItemBar("Polarities", false);
+        lowmemory_controls.polarity_submenu->show_header = false;
+        lowmemory_controls.polarity_submenu->add(new MenuItem("Polarity"));
+        lowmemory_controls.polarity_submenu->add(new ParameterConnectionPolarityTypeSelectorControl("Slot 1", &lowmemory_controls.parameter, 0));
+        lowmemory_controls.polarity_submenu->add(new ParameterConnectionPolarityTypeSelectorControl("Slot 2", &lowmemory_controls.parameter, 1));
+        lowmemory_controls.polarity_submenu->add(new ParameterConnectionPolarityTypeSelectorControl("Slot 3", &lowmemory_controls.parameter, 2));
+        lowmemory_controls.polarity_submenu->add(new MenuItem(""));
+    }
+    menu->add(lowmemory_controls.polarity_submenu);
 }

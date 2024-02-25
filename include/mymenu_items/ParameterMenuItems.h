@@ -211,6 +211,7 @@ class ParameterMapPercentageControl : public DirectNumberControl<float> {
     }
        
     virtual int renderValue(bool selected, bool opened, uint16_t max_character_width) override {
+        //Serial.printf("%s: renderValue has parameter=%p and *parameter=%p\n", get_label(), this->parameter, *this->parameter);
         // update the control with the colour from the connected parameter input, if there is one
         this->default_fg = (parameter!=nullptr && *parameter!=nullptr && (*parameter)->connections[slot_number].parameter_input!=nullptr)
                             ? (*parameter)->connections[slot_number].parameter_input->colour
