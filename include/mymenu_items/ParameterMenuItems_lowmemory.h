@@ -2,13 +2,12 @@
 
 #include "Arduino.h"
 
+#include <LinkedList.h>
+
 #include "menu.h"
 #include "colours.h"
 
 #include "../parameters/Parameter.h"
-
-#include <LinkedList.h>
-
 #include "ParameterMenuItems.h"
 
 
@@ -180,6 +179,7 @@ class ParameterMenuItemSelector : public SelectorControl<int> { //public ObjectS
     }
 };
 
+#include "ParameterInputMenuItems.h"
 
 // create 'low-memory' controls for a list of parameters
 void create_low_memory_parameter_controls(const char *label, LinkedList<FloatParameter*> *parameters) {

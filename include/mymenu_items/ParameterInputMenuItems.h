@@ -1,5 +1,4 @@
-#ifndef PARAMETER_INPUT_MENUITEMS__INCLUDED
-#define PARAMETER_INPUT_MENUITEMS__INCLUDED
+#pragma once
 
 #include "menuitems.h"
 
@@ -244,5 +243,3 @@ class ParameterInputSelectorControl : public SelectorControl<int_least16_t> {
     }
 
 };
-
-#endif

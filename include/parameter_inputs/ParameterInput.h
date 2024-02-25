@@ -1,5 +1,4 @@
-#ifndef PARAMETER_INPUT__INCLUDED
-#define PARAMETER_INPUT__INCLUDED
+#pragma once
 
 #include "ParameterTypes.h"
 
@@ -167,4 +166,3 @@ class ParameterInput : public BaseParameterInput {
     }
 };
 
-#endif
