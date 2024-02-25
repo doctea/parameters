@@ -1,5 +1,4 @@
-#ifndef MENU_PARAMETER_MENUITEMS__INCLUDED
-#define MENU_PARAMETER_MENUITEMS__INCLUDED
+#pragma once
 
 #include "Arduino.h"
 
@@ -29,9 +28,9 @@ class ParameterConnectionPolarityTypeSelectorControl : public SelectorControl<in
 
     virtual const char* get_label_for_value(int_least8_t index) override {
         if (index==BIPOLAR)
-            return "Bipolar";
+            return "Bi";
         if (index==UNIPOLAR)
-            return "Unipolar";
+            return "Uni";
         //if (index==CLOCK_NONE)
         //    return "None";
         return "??";
@@ -47,7 +46,7 @@ class ParameterConnectionPolarityTypeSelectorControl : public SelectorControl<in
     }
 
     virtual int renderValue(bool selected, bool opened, uint16_t width) override {
-        tft->setTextColor((*this->parameter)->connections[slot_number].parameter_input->colour, BLACK);
+        this->default_fg = (*this->parameter)->connections[slot_number].parameter_input->colour;
         return SelectorControl::renderValue(selected, opened, width);
     }
 
@@ -62,7 +61,7 @@ class ParameterConnectionPolarityTypeSelectorControl : public SelectorControl<in
         num_values = 2; //NUM_CLOCK_SOURCES;
 
         tft->setCursor(pos.x, pos.y);
-        tft->setTextColor((*this->parameter)->connections[slot_number].parameter_input->colour, BLACK);
+        //tft->setTextColor((*this->parameter)->connections[slot_number].parameter_input->colour, BLACK);
 
         if (!opened) {
             // not opened, so just show the current value
@@ -115,11 +114,6 @@ class ParameterConnectionPolarityTypeSelectorControl : public SelectorControl<in
 
 };
 
-
-// couple of modes:-
-//      unopened - display and select from parameter names
-//      opened - edit the underlying parameter settings..
-
 // class that allows user to select from a list of parameters, and edit that parameter.
 class ParameterMenuItemSelector : public SelectorControl<int> { //public ObjectSelectorControl<ParameterMenuItemSelector,ParameterMenuItem*> {
     public:
@@ -129,7 +123,7 @@ class ParameterMenuItemSelector : public SelectorControl<int> { //public ObjectS
     //int selected_item = -1;
     bool selecting = true;
 
-    ParameterMenuItemSelector(char *label, LinkedList<FloatParameter*> *parameters) : 
+    ParameterMenuItemSelector(const char *label, LinkedList<FloatParameter*> *parameters) : 
         SelectorControl<int>(label) {
         this->selected_value_index = 0;
         this->parameter = parameters->get(0);
@@ -186,4 +180,73 @@ class ParameterMenuItemSelector : public SelectorControl<int> { //public ObjectS
     }
 };
 
-#endif
+
+// create 'low-memory' controls for a list of parameters
+void create_low_memory_parameter_controls(const char *label, LinkedList<FloatParameter*> *parameters) {
+    ////// control to select which parameter the other controls will edit
+    ParameterMenuItemSelector *parameter_selector = new ParameterMenuItemSelector(label, parameters);
+    menu->add(parameter_selector);
+
+    ////// amount controls, to set percentage amounts 
+    ParameterMenuItem *parameter_amount_controls = new ParameterMenuItem("Amounts", &parameter_selector->parameter);
+    menu->add(parameter_amount_controls);
+
+    // controls to choose which ParameterInputs to use for each slot
+    // then set up a generic submenuitembar to hold the input selectors
+    SubMenuItemBar *input_selectors_bar = new SubMenuItemBar("Inputs");
+    input_selectors_bar->show_header = false;
+    input_selectors_bar->show_sub_headers = false;
+
+    // some spacers so that the input controls align with the corresponding amount controls
+    MenuItem *spacer1 = new MenuItem("Inputs");
+    spacer1->selectable = false;           
+    input_selectors_bar->add(spacer1);
+
+    // make the three source selector controls
+    ParameterInputSelectorControl<FloatParameter> *source_selector_1 = new ParameterInputSelectorControl<FloatParameter>(
+        "Input 1", 
+        &parameter_selector->parameter,
+        &FloatParameter::set_slot_0_input,
+        &FloatParameter::get_slot_0_input,
+        parameter_manager->available_inputs
+    );
+    source_selector_1->go_back_on_select = true;
+
+    ParameterInputSelectorControl<FloatParameter> *source_selector_2 = new ParameterInputSelectorControl<FloatParameter>(
+        "Input 2", 
+        &parameter_selector->parameter,
+        &FloatParameter::set_slot_1_input,
+        &FloatParameter::get_slot_1_input,
+        parameter_manager->available_inputs
+    );
+    source_selector_2->go_back_on_select = true;
+
+    ParameterInputSelectorControl<FloatParameter> *source_selector_3 = new ParameterInputSelectorControl<FloatParameter>(
+        "Input 3", 
+        &parameter_selector->parameter,
+        &FloatParameter::set_slot_2_input,
+        &FloatParameter::get_slot_2_input,
+        parameter_manager->available_inputs
+    );
+    source_selector_3->go_back_on_select = true;
+
+    input_selectors_bar->add(source_selector_1);
+    input_selectors_bar->add(source_selector_2);
+    input_selectors_bar->add(source_selector_3);
+
+    // empty column at end of bar
+    MenuItem *spacer2 = new MenuItem("");
+    spacer2->selectable = false;
+    input_selectors_bar->add(spacer2);
+    menu->add(input_selectors_bar);
+
+    ////// polarity controls
+    SubMenuItemBar *polarity_submenu = new SubMenuItemBar("Polarities", false);
+    polarity_submenu->show_header = false;
+    polarity_submenu->add(new MenuItem("Polarity"));
+    polarity_submenu->add(new ParameterConnectionPolarityTypeSelectorControl("Slot 1", &parameter_selector->parameter, 0));
+    polarity_submenu->add(new ParameterConnectionPolarityTypeSelectorControl("Slot 2", &parameter_selector->parameter, 1));
+    polarity_submenu->add(new ParameterConnectionPolarityTypeSelectorControl("Slot 3", &parameter_selector->parameter, 2));
+    polarity_submenu->add(new MenuItem(""));
+    menu->add(polarity_submenu);
+}
