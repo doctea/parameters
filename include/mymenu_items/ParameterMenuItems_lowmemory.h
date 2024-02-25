@@ -13,7 +13,7 @@
 #include "ParameterMenuItems.h"
 
 
-class ParameterConnectionPolarityTypeSelectorControl : public SelectorControl<int> {
+class ParameterConnectionPolarityTypeSelectorControl : public SelectorControl<int_least8_t> {
     FloatParameter **parameter;
     byte slot_number;
 
@@ -27,7 +27,7 @@ class ParameterConnectionPolarityTypeSelectorControl : public SelectorControl<in
         this->go_back_on_select = true;
     }
 
-    virtual const char* get_label_for_value(int index) override {
+    virtual const char* get_label_for_value(int_least8_t index) override {
         if (index==BIPOLAR)
             return "Bipolar";
         if (index==UNIPOLAR)
@@ -37,11 +37,11 @@ class ParameterConnectionPolarityTypeSelectorControl : public SelectorControl<in
         return "??";
     }
 
-    virtual void setter (int new_value) {
+    virtual void setter (int_least8_t new_value) {
         (*this->parameter)->connections[slot_number].polar_mode = new_value;
         actual_value_index = new_value;
     }
-    virtual int getter () {
+    virtual int_least8_t getter () {
         //return clock_mode; //selected_value_index;
         return (*this->parameter)->connections[slot_number].polar_mode;
     }

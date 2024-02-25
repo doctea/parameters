@@ -14,7 +14,7 @@ class VoltageParameterInput;
 // Selector to choose a ParameterInput from the available list to use a Source; 
 // Also used more directly by objects/parameters that can only feed from one ParameterInput at a time, eg CVInput
 template<class TargetClass>
-class ParameterInputSelectorControl : public SelectorControl<int> {
+class ParameterInputSelectorControl : public SelectorControl<int_least16_t> {
     BaseParameterInput *initial_selected_parameter_input = nullptr;
     LinkedList<BaseParameterInput*> *available_parameter_inputs = nullptr;
 
@@ -107,7 +107,7 @@ class ParameterInputSelectorControl : public SelectorControl<int> {
         //Serial.printf(F("#on_add returning"));
     }
 
-    virtual const char *get_label_for_index(int index) {
+    virtual const char *get_label_for_index(int_least16_t index) {
         static char label_for_index[MENU_C_MAX];
         // todo: this is currently unused + untested
         if (index<0 || index>=(int)available_parameter_inputs->size())
@@ -128,7 +128,7 @@ class ParameterInputSelectorControl : public SelectorControl<int> {
         }
     }*/
 
-    virtual void setter (int new_value) {
+    virtual void setter (int_least16_t new_value) {
         //if (this->debug) Serial.printf(F("ParameterSelectorControl changing from %i to %i\n"), this->actual_value_index, new_value);
         selected_value_index = actual_value_index = new_value;
         if(new_value>=0 && (*this->proxy_target_object)!=nullptr && this->setter_func!=nullptr) {
@@ -138,7 +138,7 @@ class ParameterInputSelectorControl : public SelectorControl<int> {
                 ((*this->proxy_target_object)->*this->setter_func)(nullptr);
         }
     }
-    virtual int getter () {
+    virtual int_least16_t getter () {
         return selected_value_index;
     }
 

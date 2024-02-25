@@ -174,7 +174,7 @@ class ParameterInputDisplay : public MenuItem
 };
 
 
-class InputTypeSelectorControl : public SelectorControl<int> {
+class InputTypeSelectorControl : public SelectorControl<int_least16_t> {
     int actual_value_index;
     byte *target = nullptr;
 
@@ -187,7 +187,7 @@ class InputTypeSelectorControl : public SelectorControl<int> {
         this->go_back_on_select = true;
     };
 
-    virtual const char* get_label_for_value(int index) override {
+    virtual const char* get_label_for_value(int_least16_t index) override {
         if (index==BIPOLAR)
             return "Bipolar";
         if (index==UNIPOLAR)
@@ -197,11 +197,11 @@ class InputTypeSelectorControl : public SelectorControl<int> {
         return "??";
     }
 
-    virtual void setter (int new_value) {
+    virtual void setter (int_least16_t new_value) {
         *target = new_value;
         actual_value_index = new_value;
     }
-    virtual int getter () {
+    virtual int_least16_t getter () {
         //return clock_mode; //selected_value_index;
         return *target;
     }
