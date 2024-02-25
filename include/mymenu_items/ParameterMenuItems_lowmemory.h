@@ -124,8 +124,7 @@ class ParameterConnectionPolarityTypeSelectorControl : public SelectorControl<in
 class ParameterMenuItemSelector : public SelectorControl<int> { //public ObjectSelectorControl<ParameterMenuItemSelector,ParameterMenuItem*> {
     public:
     LinkedList<FloatParameter*> *parameters = nullptr;
-
-    ParameterMenuItem *actual_controls = nullptr;
+    FloatParameter *parameter = nullptr;
 
     //int selected_item = -1;
     bool selecting = true;
@@ -133,17 +132,10 @@ class ParameterMenuItemSelector : public SelectorControl<int> { //public ObjectS
     ParameterMenuItemSelector(char *label, LinkedList<FloatParameter*> *parameters) : 
         SelectorControl<int>(label) {
         this->selected_value_index = 0;
-        this->actual_controls = new ParameterMenuItem(parameters->get(0)->label, parameters->get(0));
-        this->actual_controls->show_header = false;
+        this->parameter = parameters->get(0);
         this->actual_value_index = 0;
         this->parameters = parameters;
         this->num_values = parameters->size();
-    }
-
-    virtual void on_add() override {
-        this->actual_controls->set_tft(this->tft);
-        this->actual_controls->on_add();
-        SelectorControl::on_add();
     }
 
     FloatParameter *last_object = nullptr;
@@ -168,79 +160,30 @@ class ParameterMenuItemSelector : public SelectorControl<int> { //public ObjectS
         colours(selected, this->default_fg, BLACK);
         tft->setTextSize(2);
 
-        if (this->selecting) {
-            tft->setTextSize(2);
-
-            if (opened) tft->print(">>");
-        } 
+        if (opened) tft->print(">>");
         tft->printf((char*)"%s\n", (char*)this->get_label_for_index(this->selected_value_index));
         pos.y = tft->getCursorY();
-        return this->actual_controls->display(pos, selected, opened);
+        return pos.y;
     }
 
     virtual bool knob_left() override {
-        if (selecting) {
-            // not opened, so we're scrolling on the menu
-            bool v = SelectorControl::knob_left();
-            this->actual_controls->setParameter(this->parameters->get(this->selected_value_index));
-            return v;
-        } else {
-            // opened, so pass through to the controls
-            return actual_controls->knob_left();  
-        }
+        // not opened, so we're scrolling on the menu
+        bool v = SelectorControl::knob_left();
+        parameter = this->parameters->get(this->selected_value_index);
+        return v;
     }
     virtual bool knob_right() override {
-        if (selecting) {
-            // not opened, so we're scrolling on the menu
-            bool v = SelectorControl::knob_right();
-            this->actual_controls->setParameter(this->parameters->get(this->selected_value_index));
-            return v;
-        } else {
-            // opened, so pass through to the controls
-            return actual_controls->knob_right();  
-        }
+        bool v = SelectorControl::knob_right();
+        parameter = this->parameters->get(this->selected_value_index);
+        return v;
     }
-    /*virtual bool action_opened() override {
-        opened = true;
-    }*/
+
     virtual bool button_select() override {
-        if (selecting) {
-            //Serial.println("moving into EDIT mode"); Serial.flush();
-            selecting = false;
-            return false;
-        } else {
-            //Serial.println("already in EDIT mode - so sending select to the controls!"); Serial.flush();
-            //Serial.printf("controls is %p\n", actual_controls); Serial.flush();
-            //Serial.printf("controls is %s\n", actual_controls->label); Serial.flush();
-            //return false;
-            if (actual_controls->button_select()) {
-                selecting = true;
-            }
-            return false;
-        }
+        return SELECT_EXIT;
     }
     virtual bool button_back() override {
-        Serial.printf("lowmemoryselector#button_back(), selecting mode is currently %s\n", selecting?"true":"false");
-        if (selecting) {
-            Serial.println("\treturning FALSE");
-            Serial_flush();
-            return BACK_EXIT;
-        } else {
-            bool was_selecting = selecting;
-            if (actual_controls->button_back()==BACK_EXIT) {
-                Serial.println("\tactual_controls->button_back returned TRUE - switching back to selecting mode?");
-                selecting = true;
-            } else {
-                Serial.println("\tactual_controls->button_back returned FALSE");
-            }
-            Serial.printf("\treturning %s (because that was previous selecting state)\n", was_selecting?"true":"false");
-            Serial_flush();
-            //return was_selecting;
-            return BACK_DONTEXIT;
-        }
+        return BACK_EXIT;
     }
-    
-
 };
 
 #endif

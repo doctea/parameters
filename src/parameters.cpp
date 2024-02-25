@@ -114,7 +114,7 @@ FLASHMEM LinkedList<MenuItem *> *FloatParameter::makeControls() {
     #ifndef DISABLE_PARAMETER_INPUT_SELECTORS
         controls->add(this->makeInputSelectorControls(fullmenuitem));
     #endif
-
+    
     #ifndef DISABLE_PARAMETER_POLARITY_SELECTORS
         // add controls to select whether to use bipolar or unipolar values from the ParameterInput
         SubMenuItemBar *polarity_selectors_bar = new SubMenuItemBar("Polarity");

@@ -20,7 +20,8 @@ class ParameterValueMenuItem : public DirectNumberControl<float> {
         ParameterValueMenuItem(char *label, FloatParameter **parameter) : DirectNumberControl(label) {
             strncpy(this->label, label, 20);
             this->parameter = parameter;
-            this->internal_value = (*parameter)->getCurrentNormalValue() * 100.0;
+            if (*parameter!=nullptr)
+                this->internal_value = (*parameter)->getCurrentNormalValue() * 100.0;
             this->minimum_value = 0.0f; 
             this->maximum_value = 1.0f; 
 
@@ -238,56 +239,48 @@ class ParameterMenuItem : public SubMenuItemBar {
     public:
 
     FloatParameter *parameter = nullptr;
+    FloatParameter **proxy_parameter = &this->parameter;
+
+    ParameterMenuItem(const char *label, FloatParameter **proxy_parameter) : ParameterMenuItem(label, *proxy_parameter) {
+        this->proxy_parameter = proxy_parameter;
+    }
 
     ParameterMenuItem(const char *label, FloatParameter *parameter) : SubMenuItemBar(label) {
         this->parameter = parameter;
 
         // add the direct Value changer
-        this->add(new ParameterValueMenuItem((char*)"Value", &this->parameter));
+        this->add(new ParameterValueMenuItem((char*)"Value", this->proxy_parameter));
 
         // add the modulation Amount % changers
         for (uint_fast8_t i = 0 ; i < MAX_SLOT_CONNECTIONS ; i++) {
             // todo: make the modulation source part configurable too
             // todo: make the label part dynamically generated on-the-fly by the DirectNumberControl
             char labelnew[8];
-            char *input_name =  parameter->connections[i].parameter_input!=nullptr ? 
-                                parameter->connections[i].parameter_input->name : 
-                                (char*)"None";
-            Debug_printf(F("\tfor %s, setting to parameter_input@%p '%s'\n"), label, parameter->connections[i].parameter_input, input_name);
-            //Serial_flush();
-            snprintf(labelnew, 8, "%s", input_name); //"Amt "
+            if (proxy_parameter!=nullptr && *proxy_parameter!=nullptr) {
+                char *input_name =  (*proxy_parameter)->connections[i].parameter_input!=nullptr ? 
+                                    (*proxy_parameter)->connections[i].parameter_input->name : 
+                                    (char*)"None";
+                Debug_printf(F("\tfor %s, setting to parameter_input@%p '%s'\n"), label, (*proxy_parameter)->connections[i].parameter_input, input_name);
+                //Serial_flush();
+                snprintf(labelnew, 8, "%s", input_name); //"Amt "*/
+            } else {
+                snprintf(labelnew, 8, "Amt%i", i);
+            }
             ParameterMapPercentageControl *input_amount_control = new ParameterMapPercentageControl(
                 labelnew,
-                &this->parameter,
+                this->proxy_parameter,
                 i
             );
             this->add(input_amount_control);
         }
 
         // add another small widget to display the last output value (after modulation etc)
-        ParameterValueMenuItem *output = new ParameterValueMenuItem((char*)"Output", &this->parameter);
+        ParameterValueMenuItem *output = new ParameterValueMenuItem((char*)"Output", this->proxy_parameter);
         output->setReadOnly();
         output->selectable = false;
         output->set_show_output_mode();
+
         this->add(output); 
     }
 
-    void setParameter(FloatParameter *new_parameter) {
-        //Serial.printf("setParameter() called with %p\n", new_parameter);
-        this->parameter = new_parameter;
-        // todo: set the parameter on the child items..
-        // todo: add a similar setParameter function to the child items..
-        // ^^^ don't need to do this because now use a pointer-to-a-pointer on the child menu items..
-    }
-
-    void on_add() override {
-        SubMenuItemBar::on_add();
-        /*#ifdef ENABLE_SCREEN
-            for (unsigned int i = 0 ; i < MAX_SLOT_CONNECTIONS ; i++) {
-                // actually this should be unnecessary now cos its handled in renderValue
-                if (parameter!=nullptr && parameter->connections[i].parameter_input!=nullptr)
-                    parameter->connections[i].amount_control->set_default_colours(parameter->connections[i].parameter_input->colour);
-            }
-        #endif*/
-    }
 };
