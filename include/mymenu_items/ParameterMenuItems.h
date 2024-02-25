@@ -238,15 +238,13 @@ class ParameterMapPercentageControl : public DirectNumberControl<float> {
 class ParameterMenuItem : public SubMenuItemBar {
     public:
 
-    FloatParameter *parameter = nullptr;
-    FloatParameter **proxy_parameter = &this->parameter;
+    //FloatParameter *parameter = nullptr;
+    FloatParameter **proxy_parameter = nullptr; //&parameter;
 
-    ParameterMenuItem(const char *label, FloatParameter **proxy_parameter) : ParameterMenuItem(label, *proxy_parameter) {
+    ParameterMenuItem(const char *label, FloatParameter **proxy_parameter) 
+       : SubMenuItemBar(label)
+    {
         this->proxy_parameter = proxy_parameter;
-    }
-
-    ParameterMenuItem(const char *label, FloatParameter *parameter) : SubMenuItemBar(label) {
-        this->parameter = parameter;
 
         // add the direct Value changer
         this->add(new ParameterValueMenuItem((char*)"Value", this->proxy_parameter));

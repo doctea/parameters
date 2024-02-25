@@ -108,7 +108,7 @@ class FloatParameter : public BaseParameter {
     float lastModulatedNormalValue = 0.0f;
     float lastOutputNormalValue = 0.0f;
 
-    FloatParameter *self;
+    FloatParameter *self = this;
 
     FloatParameter(const char *label) : BaseParameter(label) {
         self = this;

@@ -95,6 +95,12 @@ FLASHMEM MenuItem *FloatParameter::makeInputSelectorControls(ParameterMenuItem *
     return input_selectors_bar;
 }
 
+/*FLASHMEM LinkedList<MenuItem *> *FloatParameter::makeControls() {
+    // dummy version for debugging/testing
+    LinkedList<MenuItem *> *controls = new LinkedList<MenuItem *>();
+    return controls;
+}*/
+
 FLASHMEM LinkedList<MenuItem *> *FloatParameter::makeControls() {
     Debug_printf(F("FloatParameter#makeControls for %s - is_modulatable is %s\n"), this->label, this->is_modulatable() ? "true" : "false");
 
@@ -108,7 +114,7 @@ FLASHMEM LinkedList<MenuItem *> *FloatParameter::makeControls() {
     }
     // first, set up the submenu to hold the controls for the amounts
     // this is handled by its own compound control type, 'ParameterMenuItem'
-    ParameterMenuItem *fullmenuitem = new ParameterMenuItem(this->label, this);
+    ParameterMenuItem *fullmenuitem = new ParameterMenuItem(this->label, &this->self);
     controls->add(fullmenuitem);
 
     #ifndef DISABLE_PARAMETER_INPUT_SELECTORS
