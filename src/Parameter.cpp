@@ -101,7 +101,9 @@ float FloatParameter::get_amount_for_slot(int8_t slot) {
 // get the lines required to save the state of this parameter mapping to a file
 void FloatParameter::save_sequence_add_lines(LinkedList<String> *lines) {
     // save parameter base values (save normalised value; let's hope that this is precise enough to restore from!)
-    lines->add(String("parameter_value_") + String(this->label) + "=" + String(this->getCurrentNormalValue()));
+    String line = String("parameter_value_") + String(this->label) + "=" + String(this->getCurrentNormalValue());
+    lines->add(line);
+    //Serial.printf("PARAMETERS\t%s:\tsave_sequence_add_lines saving line:\t%s\n", this->label, line.c_str());
 
     if (this->is_modulatable()) {
         #define MAX_SAVELINE 255
@@ -127,7 +129,7 @@ void FloatParameter::save_sequence_add_lines(LinkedList<String> *lines) {
                 this->connections[slot].amount,
                 this->connections[slot].polar_mode==UNIPOLAR ? "unipolar" : "bipolar"
             );
-            Debug_printf(F("PARAMETERS\t%s: save_sequence_add_lines saving line:\t%s\n"), line);
+            //Serial.printf("PARAMETERS\t%s:\tsave_sequence_add_lines saving line:\t%s\n", this->label, line);
             lines->add(String(line));
         }
     }
@@ -135,7 +137,6 @@ void FloatParameter::save_sequence_add_lines(LinkedList<String> *lines) {
 
 // parse a key+value pair to restore the state 
 bool FloatParameter::load_parse_key_value(const String incoming_key, String value) {
-
     const char *prefix = "parameter_";
     const char *prefix_base = "parameter_value_";
     const char separator = '_', subseparator = '|';
@@ -146,18 +147,19 @@ bool FloatParameter::load_parse_key_value(const String incoming_key, String valu
         //key.replace(prefix_base,"");
         //key = key.substring(strlen(prefix_base));
         if (key.substring(strlen(prefix_base)).equals(this->label)) {
+            //Serial.printf("NOTICE: Matched key '%s' with '%s' - setting parameter value from '%s'\n", key.c_str(), this->label, value.c_str());
             this->updateValueFromNormal(value.toFloat());
             return true;
         }
-        //Serial.printf("WARNING: got a %s%s with value %s, but found no matching Parameter!\n", prefix_base, key.c_str(), value.c_str());
+        //Serial.printf("WARNING: got a %s with value %s, but found no matching Parameter!\n", prefix_base, key.c_str(), value.c_str());
         return false;
     }
 
     // sequence save line looks like: `parameter_Filter Cutoff_0=A|1.000`
     //                                 ^^head ^^_^^param name^_slot=ParameterInputName|Amount
-    if (!key.startsWith(prefix))
+    if (!key.startsWith(prefix)) {
         return false;
-
+    }
     key.replace(prefix, "");
     //key = key.substring(strlen(prefix));
     const uint_fast8_t separator_1_position = key.indexOf(separator);
@@ -170,6 +172,8 @@ bool FloatParameter::load_parse_key_value(const String incoming_key, String valu
     const String parameter_name = key.substring(0, separator_1_position);
 
     if (parameter_name.equals(this->label)) {
+        //Serial.printf("NOTICE: Matched key '%s' with prefix '%s' and parameter_name '%s'\n", key.c_str(), prefix, this->label);
+
         const uint_fast8_t slot_number = key.substring(separator_1_position+1).toInt();
 
         if (!is_valid_slot(slot_number)) {
@@ -177,14 +181,14 @@ bool FloatParameter::load_parse_key_value(const String incoming_key, String valu
             return false;
         }
 
-        const uint_fast8_t separator_2_position = value.lastIndexOf(subseparator);
+        const uint_fast8_t separator_2_position = value.indexOf(subseparator);
         if (separator_2_position<0) {
             //if (Serial) Serial.printf("WARNING: in %s,\t didn't find separator_2 to split in key '%s', garbled line with value '%s'?", this->label, incoming_key.c_str(), value.c_str());
             return false;
         }
 
         float amount;
-        int mode = UNIPOLAR;
+        int mode = -1; //UNIPOLAR;
         const String input_name = value.substring(0, separator_2_position);
 
         // get the amount of modulation
@@ -196,14 +200,15 @@ bool FloatParameter::load_parse_key_value(const String incoming_key, String valu
         } else {
             // new version -- polarity mode in the input!            
             amount = value.substring(separator_2_position+1, separator_3_position).toFloat();
-            mode = value.substring(separator_3_position).equals("unipolar") ? UNIPOLAR : BIPOLAR;
+            mode = value.substring(separator_3_position+1).equals("unipolar") ? UNIPOLAR : BIPOLAR;
         }
 
-        //if (Serial) Serial.printf("NOTICE: in %s,\t Got split string '%s', slot_number %i and amount %3.3f\n", this->label, input_name.c_str(), slot_number, amount);
+        //if (Serial) Serial.printf("NOTICE: in %s,\t Got split string '%s', slot_number %i, modulation amount %3.3f and mode %s\n", this->label, input_name.c_str(), slot_number, amount, mode == -1 ? "unset" :  (mode==UNIPOLAR ? "unipolar" : "bipolar"));
 
         this->set_slot_input (slot_number, input_name.c_str());
         this->set_slot_amount(slot_number, amount);
-        this->set_slot_polarity(slot_number, mode);
+        if (mode>=0)
+            this->set_slot_polarity(slot_number, mode);
 
         return true;
     }
