@@ -141,8 +141,6 @@ class ParameterInputSelectorControl : public SelectorControl<int_least16_t> {
         return selected_value_index;
     }
 
-    BaseParameterInput *last_object = nullptr;
-
     // classic fixed display version
     virtual int display(Coord pos, bool selected, bool opened) override {
         //Serial.println(F("ParameterInputSelectorControl display()!")); Serial_flush();
