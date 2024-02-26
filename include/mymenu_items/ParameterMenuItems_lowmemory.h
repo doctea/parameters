@@ -12,7 +12,7 @@
 
 // class that allows user to select from a list of parameters, and edit that parameter.  
 // other controls can point their (FloatParameter**)parameter pointers here so that they pick up the currently-selected parameter's data
-class ParameterMenuItemSelector : public SelectorControl<int> { //public ObjectSelectorControl<ParameterMenuItemSelector,ParameterMenuItem*> {
+class ParameterMenuItemSelector : public SelectorControl<int_least16_t> { //public ObjectSelectorControl<ParameterMenuItemSelector,ParameterMenuItem*> {
     public:
     LinkedList<FloatParameter*> *parameters = nullptr;
     FloatParameter *parameter = nullptr;
@@ -21,7 +21,7 @@ class ParameterMenuItemSelector : public SelectorControl<int> { //public ObjectS
     bool selecting = true;
 
     ParameterMenuItemSelector(const char *label, LinkedList<FloatParameter*> *parameters) : 
-        SelectorControl<int>(label) {
+        SelectorControl<int_least16_t>(label) {
         this->selected_value_index = 0;
         this->parameter = parameters->get(0);
         this->actual_value_index = 0;
@@ -30,10 +30,10 @@ class ParameterMenuItemSelector : public SelectorControl<int> { //public ObjectS
     }
 
     FloatParameter *last_object = nullptr;
-    int last_index = -1;
+    int_least16_t last_index = -1;
     char last_label[MENU_C_MAX];
-    virtual const char *get_label_for_index(int index) {
-        if (index<0 || index >= this->parameters->size())
+    virtual const char *get_label_for_index(int_least16_t index) {
+        if (index<0 || index >= (int_least16_t)this->parameters->size())
             return "None";
 
         if (last_index!=index) {
