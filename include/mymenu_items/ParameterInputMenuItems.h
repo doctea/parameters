@@ -214,7 +214,7 @@ class ParameterInputSelectorControl : public SelectorControl<int_least16_t> {
             snprintf(txt, MENU_C_MAX, "%6s", currently_active->name);
         else
             snprintf(txt, MENU_C_MAX, "None");
-        tft->setTextSize((strlen(txt) < max_character_width/2) ? 2 : 1);
+        tft->setTextSize(tft->get_textsize_for_width(txt, max_character_width*tft->characterWidth()));
         tft->println(txt);
         return tft->getCursorY();
     }

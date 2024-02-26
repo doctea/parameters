@@ -20,7 +20,10 @@ Based on code extracted from my [envor2](https://github.com/doctea/envor2) and [
 
 ## Options
 
+Build flags:
+
 - -DPARAMETER_INPUTS_USE_CALLBACKS to use callbacks for parameter input value changes in ParameterInputDisplay, instead of polling from menu
+- -DDISABLE_PARAMETER_INPUT_SELECTORS to disable parameter input selectors on the 'heavyweight' parameter controls
 
 # Current status
 

@@ -73,16 +73,6 @@ FLASHMEM MenuItem *FloatParameter::makeInputSelectorControls(ParameterMenuItem *
     );
     source_selector_3->go_back_on_select = true;
 
-    // tell the parameter's connection mappings which screen controls they need to update
-    /*this->link_parameter_input_controls_to_connections(
-        fullmenuitem->items->get(1),
-        fullmenuitem->items->get(2),
-        fullmenuitem->items->get(3),
-        source_selector_1,
-        source_selector_2,
-        source_selector_3
-    );*/
-
     input_selectors_bar->add(source_selector_1);
     input_selectors_bar->add(source_selector_2);
     input_selectors_bar->add(source_selector_3);
@@ -132,17 +122,20 @@ FLASHMEM LinkedList<MenuItem *> *FloatParameter::makeControls() {
         polarity_selectors_bar->add(polarity_spacer_1);
 
         // make the three polarity selector controls
-        InputTypeSelectorControl *polarity_selector_1 = new InputTypeSelectorControl(
-            "Input 1 Polarity", 
-            &this->connections[0].polar_mode
+        ParameterConnectionPolarityTypeSelectorControl *polarity_selector_1 = new ParameterConnectionPolarityTypeSelectorControl(
+            "Input 1 Polarity",
+            &this->self,
+            0
         );
-        InputTypeSelectorControl *polarity_selector_2 = new InputTypeSelectorControl(
-            "Input 2 Polarity", 
-            &this->connections[1].polar_mode
+        ParameterConnectionPolarityTypeSelectorControl *polarity_selector_2 = new ParameterConnectionPolarityTypeSelectorControl(
+            "Input 2 Polarity",
+            &this->self,
+            1
         );
-        InputTypeSelectorControl *polarity_selector_3 = new InputTypeSelectorControl(
-            "Input 3 Polarity", 
-            &this->connections[2].polar_mode
+        ParameterConnectionPolarityTypeSelectorControl *polarity_selector_3 = new ParameterConnectionPolarityTypeSelectorControl(
+            "Input 3 Polarity",
+            &this->self,
+            2
         );
         polarity_selectors_bar->add(polarity_selector_1);
         polarity_selectors_bar->add(polarity_selector_2);
