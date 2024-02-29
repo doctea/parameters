@@ -3,12 +3,12 @@
 
 lowmemory_controls_t lowmemory_controls;
 
-void create_low_memory_parameter_controls(const char *label, LinkedList<FloatParameter*> *parameters) {
+void create_low_memory_parameter_controls(const char *label, LinkedList<FloatParameter*> *parameters, int_fast16_t default_fg) {
     ////// control to select which parameter the other controls will edit
     ParameterMenuItemSelector *parameter_selector = new ParameterMenuItemSelector(label, parameters);
     //if (lowmemory_controls.parameter_selector==nullptr)
         //lowmemory_controls.parameter_selector = new ParameterMenuItemSelector(label, parameters);
-    menu->add(new LowMemorySwitcherMenuItem((char*)"switcher", parameters, parameter_selector));
+    menu->add(new LowMemorySwitcherMenuItem((char*)"switcher", parameters, parameter_selector, default_fg));
     lowmemory_controls.parameter = parameter_selector->parameter;
 
     menu->add(parameter_selector);

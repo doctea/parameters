@@ -52,7 +52,10 @@ class ParameterMenuItemSelector : public SelectorControl<int_least16_t> { //publ
         tft->setTextSize(2);
         //Serial.printf("ParameterMenuItemSelector parameter address is @%p (address of that pointer is @%p)\n", this->parameter, &this->parameter);
 
-        if (opened) tft->print(">>");
+        if (opened) {
+            colours(selected, GREEN, BLACK); 
+            tft->print(">");
+        }
         tft->printf((char*)"%s\n", (char*)this->get_label_for_index(this->selected_value_index));
         pos.y = tft->getCursorY();
         return pos.y;
@@ -102,10 +105,11 @@ class LowMemorySwitcherMenuItem : public MenuItem {
     LinkedList<FloatParameter*> *parameters = nullptr;
     ParameterMenuItemSelector *parameter_selector = nullptr;
 
-    LowMemorySwitcherMenuItem(char *label, LinkedList<FloatParameter*> *parameters, ParameterMenuItemSelector *parameter_selector) 
+    LowMemorySwitcherMenuItem(char *label, LinkedList<FloatParameter*> *parameters, ParameterMenuItemSelector *parameter_selector, int_fast16_t default_fg) 
         : MenuItem(label) {
             this->parameters = parameters;
             this->parameter_selector = parameter_selector;
+            this->default_fg = default_fg;
             this->selectable = false;
     }
 
@@ -119,4 +123,4 @@ class LowMemorySwitcherMenuItem : public MenuItem {
 
 // create 'low-memory' controls for a list of parameters
 // re-uses the same actual controls, inserting a dummy LowMemorySwitcherMenuItem so that the correct item is pointed at
-void create_low_memory_parameter_controls(const char *label, LinkedList<FloatParameter*> *parameters);
+void create_low_memory_parameter_controls(const char *label, LinkedList<FloatParameter*> *parameters, int_fast16_t default_fg = C_WHITE);
