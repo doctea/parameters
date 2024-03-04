@@ -81,4 +81,7 @@ void create_low_memory_parameter_controls(const char *label, LinkedList<FloatPar
         lowmemory_controls.polarity_submenu->add(new MenuItem(""));
     }
     menu->add(lowmemory_controls.polarity_submenu);
+
+    //// todo: add range controls...    
+    // so, kinda need to adapt/subclass ParameterValueMenuItem to be able to use a pointer-to-pointer-to-data
 }

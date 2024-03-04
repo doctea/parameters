@@ -1,5 +1,4 @@
-#ifndef PARAMETER__INCLUDED
-#define PARAMETER__INCLUDED
+#pragma once
 
 #include "ParameterTypes.h"
 
@@ -305,6 +304,8 @@ class DataParameterBase : public FloatParameter {
 
         float modulateNormalValue = 0.0f;
 
+        DataType minimum_limit = this->minimumDataValue, maximum_limit = this->maximumDataValue;
+
         DataParameterBase(const char *label) : FloatParameter(label) {}
 
         virtual DataType getter() = 0 ; //{}
@@ -329,6 +330,17 @@ class DataParameterBase : public FloatParameter {
             return this;
         }
 
+        virtual DataType get_effective_minimum_data_value() {
+            if (this->minimum_limit > this->minimumDataValue)
+                return this->minimum_limit;
+            return this->minimumDataValue;
+        }
+        virtual DataType get_effective_maximum_data_value() {
+            if (this->maximum_limit < this->maximumDataValue)
+                return this->maximum_limit;
+            return this->maximumDataValue;
+        }
+
         virtual DataType normalToData(float value) {
             /*if (this->debug && value>=0.0) {
                 Serial.printf(F("%s#"), this->label);
@@ -336,13 +348,13 @@ class DataParameterBase : public FloatParameter {
                 Serial.printf(F(", range is %i to %i "), this->minimumDataValue, this->maximumDataValue);
             }*/
             value = this->constrainNormal(value);
-            DataType data = this->minimumDataValue + (value * (float)(this->maximumDataValue - this->minimumDataValue));
+            DataType data = this->get_effective_minimum_data_value() + (value * (float)(this->get_effective_maximum_data_value() - this->get_effective_minimum_data_value()));
             if (this->debug && value>=0.0f) if (Serial) Serial.printf(" => %i\n", data);
             return data;
         }
         virtual float dataToNormal(DataType value) {
             //if (this->debug) Serial.printf(F("dataToNormal(%i) "), value);
-            float normal = (float)(value - minimumDataValue) / (float)(maximumDataValue - minimumDataValue);
+            float normal = (float)(value - get_effective_minimum_data_value()) / (float)(get_effective_maximum_data_value() - get_effective_minimum_data_value());
             //if (this->debug) Serial.printf(F(" => %f\n"), normal);
             return normal;
             // eg   min = 0, max = 100, actual = 50 ->          ( 50 - 0 ) / (100-0)            = 0.5
@@ -391,9 +403,7 @@ class DataParameterBase : public FloatParameter {
             //static float lastModulationNormalValue = 0.0;
             this->modulateNormalValue = this->get_modulation_value();
             DataType current_value = this->getCurrentDataValue();
-            if (
-                //lastGetterValue!=current_value || 
-                modulateNormalValue!=lastModulatedNormalValue) {
+            if (/*lastGetterValue!=current_value ||*/ modulateNormalValue!=lastModulatedNormalValue) {
                 this->sendCurrentTargetValue();
                 lastModulatedNormalValue = modulateNormalValue;
                 lastGetterValue = current_value;
@@ -478,25 +488,25 @@ class DataParameterBase : public FloatParameter {
             //if (this->debug) Serial.printf("Parameter#incrementDataValue(%i)..\n", value); Serial.printf("\ttaking value %i and doing ++ on it..", value);
             value += this->get_current_step(value);
             //if (this->debug) Serial.printf("\tgot %i.\n");
-            int new_value = constrain(value, this->minimumDataValue, this->maximumDataValue);
+            int new_value = constrain(value, this->get_effective_minimum_data_value(), this->get_effective_maximum_data_value());
             //if (this->debug) Serial.printf("\tbecame %i (after constrain to %i:%i)..\n", new_value, this->minimumDataValue, this->maximumDataValue);
             return new_value;
         }
         // returns a decremented DataType version of input value (int)
         virtual DataType decrementDataValue(int value) {
             value-= this->get_current_step(value);
-            return constrain(value, this->minimumDataValue, this->maximumDataValue);
+            return constrain(value, this->get_effective_minimum_data_value(), this->get_effective_maximum_data_value());
         }
         // returns an incremented DataType version of input value (float)
         virtual DataType incrementDataValue(float value) {
             //Serial.printf("%s#incrementDataValue(%f) float version\n", this->label, value);
             value += this->get_current_step(value);
-            return constrain(value, this->minimumDataValue, this->maximumDataValue);
+            return constrain(value, this->get_effective_minimum_data_value(), this->get_effective_maximum_data_value());
         }
         // returns a decremented DataType version of input value (float)
         virtual DataType decrementDataValue(float value) {
             value -= this->get_current_step(value);
-            return constrain(value, this->minimumDataValue, this->maximumDataValue);
+            return constrain(value, this->get_effective_minimum_data_value(), this->get_effective_maximum_data_value());
         }       
 
         #if !defined(USE_ARX_TYPE_TRAITS)
@@ -581,10 +591,13 @@ class DataParameterBase : public FloatParameter {
                 this->maximumNormalValue, 
                 constrain(value, this->minimumNormalValue, this->maximumNormalValue)
             );*/
+            // hmm, if we want to do bounds, should we do it here?
             return constrain(value, this->minimumNormalValue, this->maximumNormalValue);
         }
 
-
+        #ifdef ENABLE_SCREEN
+            FLASHMEM virtual LinkedList<MenuItem *> *makeControls();
+        #endif
 };
 
 
@@ -690,6 +703,39 @@ class DataParameter : public DataParameterBase<DataType> {
         virtual void set_target_func(void(TargetClass::*fp)(DataType)) {
             this->setter_func = fp;
         }
+
 };
 
+
+#ifdef ENABLE_SCREEN
+    #include "menuitems.h"
+    #include "submenuitem_bar.h"
+
+    template<class DataType>
+    FLASHMEM LinkedList<MenuItem *> *DataParameterBase<DataType>::makeControls() {
+        LinkedList<MenuItem *> *controls = FloatParameter::makeControls();
+
+        SubMenuItemBar *range_selectors_bar = new SubMenuItemBar("Range");
+        //range_selectors_bar->show_header = range_selectors_bar->show_sub_headers = false;
+
+        MenuItem *label = new MenuItem("Range");
+        label->selectable = false;
+        range_selectors_bar->add(label);
+
+        // todo: make a new ParameterValueMenuItem that will render the value correctly
+        //          and will also allow to be used by the lowmemory version
+        DirectNumberControl<DataType> *minimum_value_control = new DirectNumberControl<DataType>(
+            "Minimum", &this->minimum_limit, this->minimum_limit, this->minimumDataValue, this->maximumDataValue
+        );
+        range_selectors_bar->add(minimum_value_control);
+
+        DirectNumberControl<DataType> *maximum_value_control = new DirectNumberControl<DataType>(
+            "Maximum", &this->maximum_limit, this->minimum_limit, this->minimumDataValue, this->maximumDataValue
+        );
+        range_selectors_bar->add(maximum_value_control);
+
+        controls->add(range_selectors_bar);
+
+        return controls;
+    }
 #endif
