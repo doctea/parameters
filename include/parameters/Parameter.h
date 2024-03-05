@@ -483,30 +483,34 @@ class DataParameterBase : public FloatParameter {
             //if (this->debug) Serial.printf(F("became '%s' (normal %f)\n"), this->getFormattedValue(this->getCurrentDataValue()), this->getCurrentNormalValue());
         }
 
+        virtual DataType constrain_value(DataType value) {
+            return constrain(value, this->get_effective_minimum_data_value(), this->get_effective_maximum_data_value());
+        }
+
         // returns an incremented DataType version of input value (int)
         virtual DataType incrementDataValue(int value) {
             //if (this->debug) Serial.printf("Parameter#incrementDataValue(%i)..\n", value); Serial.printf("\ttaking value %i and doing ++ on it..", value);
             value += this->get_current_step(value);
             //if (this->debug) Serial.printf("\tgot %i.\n");
-            int new_value = constrain(value, this->get_effective_minimum_data_value(), this->get_effective_maximum_data_value());
+            int new_value = this->constrain_value(value);
             //if (this->debug) Serial.printf("\tbecame %i (after constrain to %i:%i)..\n", new_value, this->minimumDataValue, this->maximumDataValue);
             return new_value;
         }
         // returns a decremented DataType version of input value (int)
         virtual DataType decrementDataValue(int value) {
             value-= this->get_current_step(value);
-            return constrain(value, this->get_effective_minimum_data_value(), this->get_effective_maximum_data_value());
+            return this->constrain_value(value);
         }
         // returns an incremented DataType version of input value (float)
         virtual DataType incrementDataValue(float value) {
             //Serial.printf("%s#incrementDataValue(%f) float version\n", this->label, value);
             value += this->get_current_step(value);
-            return constrain(value, this->get_effective_minimum_data_value(), this->get_effective_maximum_data_value());
+            return this->constrain_value(value);
         }
         // returns a decremented DataType version of input value (float)
         virtual DataType decrementDataValue(float value) {
             value -= this->get_current_step(value);
-            return constrain(value, this->get_effective_minimum_data_value(), this->get_effective_maximum_data_value());
+            return this->constrain_value(value);
         }       
 
         #if !defined(USE_ARX_TYPE_TRAITS)
