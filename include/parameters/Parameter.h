@@ -152,6 +152,26 @@ class FloatParameter : public BaseParameter {
         //Serial.printf(F("WARNING: dummy FloatParameter#decrementValue() for '%s'\n"), this->label);
     }
 
+    float minimumNormalLimit = this->minimumNormalValue, maximumNormalLimit = this->maximumNormalValue; // = this->minimumDataValue, maximum_limit = this->maximumDataValue;
+
+    virtual float get_minimum_limit() {
+        return this->minimumNormalLimit;
+    }
+    virtual float get_maximum_limit() {
+        return this->maximumNormalLimit;
+    }
+
+    virtual void set_minimum_limit(float limit) {
+        this->minimumNormalLimit = limit;
+        if (minimumNormalLimit<this->minimumNormalLimit)
+            minimumNormalLimit = minimumNormalLimit;
+    }
+    virtual void set_maximum_limit(float limit) {
+        this->maximumNormalLimit = limit;
+        if (maximumNormalLimit>this->maximumNormalValue)
+            maximumNormalLimit = maximumNormalValue;
+    }
+
     // parameter input mixing / modulation stuff
     ParameterToInputConnection connections[MAX_SLOT_CONNECTIONS];
 
@@ -304,8 +324,6 @@ class DataParameterBase : public FloatParameter {
 
         float modulateNormalValue = 0.0f;
 
-        DataType minimum_limit = this->minimumDataValue, maximum_limit = this->maximumDataValue;
-
         DataParameterBase(const char *label) : FloatParameter(label) {}
 
         virtual DataType getter() = 0 ; //{}
@@ -333,28 +351,15 @@ class DataParameterBase : public FloatParameter {
             return this;
         }
 
-        virtual DataType get_minimum_limit() {
-            return this->minimum_limit;
-        }
-        virtual DataType get_maximum_limit() {
-            return this->maximum_limit;
-        }
-
-        virtual void set_minimum_limit(DataType limit) {
-            this->minimum_limit = limit;
-        }
-        virtual void set_maximum_limit(DataType limit) {
-            this->maximum_limit = limit;
-        }
 
         virtual DataType get_effective_minimum_data_value() {
-            if (this->minimum_limit > this->minimumDataValue)
-                return this->minimum_limit;
+            if (this->get_minimum_limit() > this->minimumNormalValue)
+                return this->get_minimum_limit() * this->minimumDataValue;
             return this->minimumDataValue;
         }
         virtual DataType get_effective_maximum_data_value() {
-            if (this->maximum_limit < this->maximumDataValue)
-                return this->maximum_limit;
+            if (this->get_maximum_limit() < this->maximumNormalValue)
+                return this->get_maximum_limit() * this->maximumDataValue;
             return this->maximumDataValue;
         }
 
@@ -616,9 +621,9 @@ class DataParameterBase : public FloatParameter {
             return constrain(value, this->minimumNormalValue, this->maximumNormalValue);
         }
 
-        #ifdef ENABLE_SCREEN
+        /*#ifdef ENABLE_SCREEN
             FLASHMEM virtual LinkedList<MenuItem *> *makeControls();
-        #endif
+        #endif*/
 };
 
 
@@ -728,9 +733,11 @@ class DataParameter : public DataParameterBase<DataType> {
 };
 
 
+/*
 #ifdef ENABLE_SCREEN
     #include "menuitems.h"
     #include "submenuitem_bar.h"
+    #include "mymenu_items/ParameterMenuItems.h"
 
     template<class DataType>
     FLASHMEM LinkedList<MenuItem *> *DataParameterBase<DataType>::makeControls() {
@@ -754,3 +761,4 @@ class DataParameter : public DataParameterBase<DataType> {
         return controls;
     }
 #endif
+*/

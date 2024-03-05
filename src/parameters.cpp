@@ -146,6 +146,21 @@ FLASHMEM LinkedList<MenuItem *> *FloatParameter::makeControls() {
         polarity_selectors_bar->add(polarity_spacer_2);
 
         controls->add(polarity_selectors_bar);
+
+        SubMenuItemBar *range_selectors_bar = new SubMenuItemBar("Range");
+        //range_selectors_bar->show_header = range_selectors_bar->show_sub_headers = false;
+
+        MenuItem *label = new MenuItem("Range");
+        label->selectable = false;
+        range_selectors_bar->add(label);
+
+        ParameterRangeMenuItem *minimum_value_control = new ParameterRangeMenuItem("Minimum", &this->self, MINIMUM);
+        range_selectors_bar->add(minimum_value_control);
+
+        ParameterRangeMenuItem *maximum_value_control = new ParameterRangeMenuItem("Maximum", &this->self, MAXIMUM);
+        range_selectors_bar->add(maximum_value_control);
+
+        controls->add(range_selectors_bar);
     #endif
 
     return controls;

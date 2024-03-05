@@ -181,19 +181,20 @@ enum ParameterRangeType {
 // direct control over a Parameter Range from menu
 class ParameterRangeMenuItem : public DirectNumberControl<float> {
     public:
-        DataParameterBase **parameter = nullptr;
+        FloatParameter **parameter = nullptr;
         ParameterRangeType range_type;
-        //Parameter<TargetClass, DataType> *parameter = nullptr;
-
         bool show_output_mode = false;  // true if this widget should show the last post-modulation output value; false if it should show the pre-modulation value
 
-        ParameterRangeMenuItem(char *label, DataParameterBase **parameter, ParameterRangeType range_type) : DirectNumberControl(label) {
+        ParameterRangeMenuItem(char *label, FloatParameter **parameter, ParameterRangeType range_type) : DirectNumberControl(label) {
             strncpy(this->label, label, 20);
             this->parameter = parameter;
-            if (*parameter!=nullptr)
+            if (parameter!=nullptr && *parameter!=nullptr) {
+                Serial.println("parameter isn't null, getting normal.."); Serial_flush();
                 this->internal_value = (*parameter)->getCurrentNormalValue() * 100.0;
-            this->minimum_value = parameter->minimum_value; 
-            this->maximum_value = parameter->maximum_value; 
+                Serial.println("set getCurrentNormalValue()!"); Serial_flush();
+                this->minimum_value = (*parameter)->minimumNormalValue; 
+                this->maximum_value = (*parameter)->maximumNormalValue; 
+            }
             this->range_type = range_type;
 
             go_back_on_select = true;
@@ -203,7 +204,7 @@ class ParameterRangeMenuItem : public DirectNumberControl<float> {
         }
 
         // // true if this widget should show the last post-modulation output value; false if it should show the pre-modulation value
-        virtual ParameterValueMenuItem *set_show_output_mode(bool mode = true) {
+        virtual ParameterRangeMenuItem *set_show_output_mode(bool mode = true) {
             this->show_output_mode = mode;
             this->readOnly = true;
             return this;
@@ -220,30 +221,15 @@ class ParameterRangeMenuItem : public DirectNumberControl<float> {
         virtual float get_current_value() override {
             if (this->parameter==nullptr || *parameter==nullptr)
                 return 0;
-            /*if (this->debug) {
-                Serial.printf("ParameterValueMenuItem for %s (parameter %s) has currentValue ", this->label, this->parameter->label);
-                Serial.println(parameter->getCurrentValue());
-            }*/
-            //return (int) (parameter->getCurrentNormalValue() * 100.0); //(float)this->maximum_value);    // turn into percentage
-            //return (*parameter)->getCurrentNormalValue();
             if (this->range_type==MINIMUM)
-                return parameter->get_minimum_limit();
+                return (*parameter)->get_minimum_limit();
             else
-                return parameter->get_maximum_limit();
+                return (*parameter)->get_maximum_limit();
         }
 
         virtual const char *getFormattedValue() override {
             static char fmt[20] = "";
-            if (this->show_output_mode) {
-                return this->getFormattedOutputValue();
-            }
-            snprintf(fmt, 20, "%3s", (*parameter)->getFormattedValue()); 
-            return fmt;
-        }
-        virtual const char *getFormattedOutputValue() {
-            static char fmt[20] = "";
-            //snprintf(fmt, 20, "%s", this->parameter->getFormattedLastOutputValue());
-            snprintf(fmt, 20, (*parameter)->getFormattedLastOutputValue());
+            snprintf(fmt, 20, "%3s", (*parameter)->getFormattedValue(this->get_current_value()));//(*parameter)->getFormattedValue()); 
             return fmt;
         }
 
@@ -266,71 +252,39 @@ class ParameterRangeMenuItem : public DirectNumberControl<float> {
                 return;
            
             if (*parameter!=nullptr) {
-                /*if (this->debug) {
-                    Serial.printf(F("\tParameterMenuItem#set_current_value(%f): Calling setParamValue %f (max value %i) on Parameter %s\n"), value, value, this->maximum_value, this->parameter->label); Serial_flush();
-                }*/
-                //float v = (float)((float)value / (float)this->maximum_value);
-                //float v = (float)((float)value/(float)this->maximum_value); // / (float)this->maximum_value); // * (float)this->maximum_value);
                 float v = value;
-
                 /*if (this->debug) {
                     Serial.print(F("ParameterValueMenuItem#set_current_value() got v to pass: "));                    
                     Serial.println(v);
                 }*/
-                //this->parameter->setParamValue(v);    // turn into percentage
                 //if (this->debug) Serial.printf(F("ParameterValueMenuItem#set_current_value(%f) about to call updateValueFromNormal(%f) (maximum_value is %i)\n"), value, v, this->maximum_value);
-                //(*parameter)->updateValueFromNormal(v);
                 if (this->range_type==MINIMUM)
-                    return parameter->set_minimum_limit(v);
+                    return (*parameter)->set_minimum_limit(v);
                 else
-                    return parameter->set_maximum_limit(v);
-                } 
+                    return (*parameter)->set_maximum_limit(v);
+            } 
         }
 
-        // directly increase the parameter's value
+        // directly increase the parameter's range value
         virtual void increase_value() override {
-            //this->debug = true;
-            (*parameter)->incrementValue();
-            this->internal_value = (*parameter)->getCurrentNormalValue(); //this->maximum_value;
-            //if (this->debug) Serial.printf(F("ParameterValueMenuItem#increase_value updated internal_value to %f (from %f * 100.0)\n"), internal_value, parameter->getCurrentNormalValue());
-            //this->debug = false;
+            if (this->range_type==MINIMUM) {
+                (*parameter)->set_minimum_limit((*parameter)->get_minimum_limit() + this->get_current_step());
+                this->internal_value = (*parameter)->get_minimum_limit();
+            } else {
+                (*parameter)->set_maximum_limit((*parameter)->get_maximum_limit() + this->get_current_step());
+                this->internal_value = (*parameter)->get_maximum_limit();
+            }
         }
         // directly decrease the parameter's value
         virtual void decrease_value() override {
-            //this->debug = true;
-
-            (*parameter)->decrementValue();
-            this->internal_value = (*parameter)->getCurrentNormalValue(); // * 100.0; //this->maximum_value;
-            //if (this->debug) Serial.printf(F("ParameterValueMenuItem#decrease_value updated internal_value to %f (from %f * 100.0)\n"), internal_value, parameter->getCurrentNormalValue());
-            //this->debug = false;
+            if (this->range_type==MINIMUM) {
+                (*parameter)->set_minimum_limit((*parameter)->get_minimum_limit() - this->get_current_step());
+                this->internal_value = (*parameter)->get_minimum_limit(); 
+            } else {
+                (*parameter)->set_maximum_limit((*parameter)->get_maximum_limit() - this->get_current_step());
+                this->internal_value = (*parameter)->get_maximum_limit();
+            }
         }
-
-        /*virtual bool knob_left() override {
-            if (readOnly) return false;
-            //if (this->debug) Serial.printf(F("------ ParameterValueMenuItem#knob_left, internal_value=%f\n"), internal_value);
-            increase_value();
-            //if (this->debug) Serial.printf(F("------ ParameterValueMenuItem#knob_left, about to call change_value(%f)\n"), internal_value);
-            change_value(this->internal_value);
-            //if (this->debug) Serial.printf(F(">------<\n"));
-            return true;
-        }
-        virtual bool knob_right() override {
-            if (readOnly) return false;
-            //if (this->debug) Serial.printf(F("------ ParameterValueMenuItem#knob_right, internal_value=%f\n"), internal_value);
-            decrease_value();
-            //if (this->debug) Serial.printf(F("------ ParameterValueMenuItem#knob_right, about to call change_value(%f)\n"), internal_value);
-            change_value(this->internal_value);
-            //if (this->debug) Serial.printf(F(">------<\n"));
-            return true;
-        }
-        virtual bool button_select() override {
-            if (readOnly) return true;
-
-            this->internal_value = this->get_current_value();
-            change_value(this->internal_value);
-            
-            return go_back_on_select;
-        }*/
 
         virtual void change_value(int new_value) { //override { //
             float f = (float)new_value / 100.0;
@@ -415,6 +369,7 @@ class ParameterMapPercentageControl : public DirectNumberControl<float> {
     }
 
 };
+
 
 // compound menu item that shows a direct value-setter widget, 3x modulation amount widgets, and the last post-modulation output value
 class ParameterMenuItem : public SubMenuItemBar {
