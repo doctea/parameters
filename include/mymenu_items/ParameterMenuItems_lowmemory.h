@@ -91,6 +91,7 @@ struct lowmemory_controls_t {
     ParameterMenuItem *parameter_amount_controls;
     SubMenuItemBar *input_selectors_bar;
     SubMenuItemBar *polarity_submenu;
+    SubMenuItemBar *range_submenu;
     // pointer to the current control being edited
     FloatParameter * parameter;
 };

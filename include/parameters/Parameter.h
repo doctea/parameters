@@ -327,7 +327,24 @@ class DataParameterBase : public FloatParameter {
             this->currentNormalValue = this->dataToNormal(current_value); //(current_value - minimum_value) / (maximum_value - minimum_value);
             this->initialNormalValue = this->currentNormalValue;
 
+            this->set_minimum_limit(minimum_value);
+            this->set_maximum_limit(maximum_value);
+
             return this;
+        }
+
+        virtual DataType get_minimum_limit() {
+            return this->minimum_limit;
+        }
+        virtual DataType get_maximum_limit() {
+            return this->maximum_limit;
+        }
+
+        virtual void set_minimum_limit(DataType limit) {
+            this->minimum_limit = limit;
+        }
+        virtual void set_maximum_limit(DataType limit) {
+            this->maximum_limit = limit;
         }
 
         virtual DataType get_effective_minimum_data_value() {
@@ -726,16 +743,10 @@ class DataParameter : public DataParameterBase<DataType> {
         label->selectable = false;
         range_selectors_bar->add(label);
 
-        // todo: make a new ParameterValueMenuItem that will render the value correctly
-        //          and will also allow to be used by the lowmemory version
-        DirectNumberControl<DataType> *minimum_value_control = new DirectNumberControl<DataType>(
-            "Minimum", &this->minimum_limit, this->minimum_limit, this->minimumDataValue, this->maximumDataValue
-        );
+        ParameterRangeMenuItem *minimum_value_control = new ParameterRangeMenuItem("Minimum", &this->self, MINIMUM);
         range_selectors_bar->add(minimum_value_control);
 
-        DirectNumberControl<DataType> *maximum_value_control = new DirectNumberControl<DataType>(
-            "Maximum", &this->maximum_limit, this->minimum_limit, this->minimumDataValue, this->maximumDataValue
-        );
+        ParameterRangeMenuItem *maximum_value_control = new ParameterRangeMenuItem("Maximum", &this->self, MAXIMUM);
         range_selectors_bar->add(maximum_value_control);
 
         controls->add(range_selectors_bar);
