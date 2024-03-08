@@ -269,6 +269,31 @@ class FloatParameter : public BaseParameter {
         return this;
     }
 
+    virtual float getRangeMinimumLimit()  {
+        return this->minimumNormalValue;
+    };
+    virtual float getRangeMaximumLimit() {
+        return this->maximumNormalValue;
+    };
+    virtual void setRangeMinimumLimit(float v) {
+        //this->minimumNormalValue = v;
+    };
+    virtual void setRangeMaximumLimit(float v) {
+        //this->maximumNormalValue = v;
+    };
+    virtual void incrementRangeMinimumLimit() {
+        //this->minimumNormalValue += 0.1f;
+    };
+    virtual void decrementRangeMinimumLimit() {
+
+    };
+    virtual void incrementRangeMaximumLimit() {
+
+    };
+    virtual void decrementRangeMaximumLimit() {
+
+    };
+
     virtual void save_sequence_add_lines(LinkedList<String> *lines); 
     virtual bool load_parse_key_value(String key, String value);
     
@@ -330,6 +355,36 @@ class DataParameterBase : public FloatParameter {
             return this;
         }
 
+        virtual float getRangeMinimumLimit() override {
+            return this->minimum_limit;
+        }
+        virtual float getRangeMaximumLimit() override {
+            return this->maximum_limit;
+        }
+        virtual void setRangeMinimumLimit(DataType v) override {
+            this->minimum_limit = v;
+        }
+        virtual void setRangeMaximumLimit(DataType v) override {
+            this->maximum_limit = v;            
+        }
+        virtual void incrementRangeMinimumLimit() override {
+            this->setRangeMinimumLimit(this->getRangeMinimumLimit() + this->get_current_step(this->minimum_limit));
+            //this->internal_value = this->getRangeMinimumLimit();
+        }
+        virtual void decrementRangeMinimumLimit() override {
+            this->setRangeMinimumLimit(this->getRangeMinimumLimit() - this->get_current_step(this->minimum_limit));
+            //this->internal_value = this->getRangeMinimumLimit();
+        }
+        virtual void incrementRangeMaximumLimit() override {
+            this->setRangeMaximumLimit(this->getRangeMaximumLimit() + this->get_current_step(this->maximum_limit));
+            //this->internal_value = this->getRangeMaximumLimit();
+        }
+        virtual void decrementRangeMaximumLimit() override {
+            Serial.printf("%s#decrementRangeMaximumLimit() with maximum_limit=%s\n", this->label, this->getFormattedValue(this->maximum_limit));
+            this->setRangeMaximumLimit(this->getRangeMaximumLimit() - this->get_current_step(this->maximum_limit));
+            //this->internal_value = this->getRangeMaximumLimit();
+        }
+
         virtual DataType get_effective_minimum_data_value() {
             if (this->minimum_limit > this->minimumDataValue)
                 return this->minimum_limit;
@@ -381,7 +436,7 @@ class DataParameterBase : public FloatParameter {
 
         // update internal param and call setter on target
         virtual void updateValueFromData(DataType value) {
-            if (this->debug) { Serial.printf(F("Parameter#updateValueFromData(%i)\n"), value); Serial_flush(); }
+            if (this->debug) { Serial.printf("Parameter#updateValueFromData(%i)\n", value); Serial_flush(); }
 
             if (this->getCurrentDataValue()==value)
                 return;
@@ -587,10 +642,6 @@ class DataParameterBase : public FloatParameter {
             // hmm, if we want to do bounds, should we do it here?
             return constrain(value, this->minimumNormalValue, this->maximumNormalValue);
         }
-
-        #ifdef ENABLE_SCREEN
-            FLASHMEM virtual LinkedList<MenuItem *> *makeControls();
-        #endif
 };
 
 
@@ -698,37 +749,3 @@ class DataParameter : public DataParameterBase<DataType> {
         }
 
 };
-
-
-#ifdef ENABLE_SCREEN
-    #include "menuitems.h"
-    #include "submenuitem_bar.h"
-
-    template<class DataType>
-    FLASHMEM LinkedList<MenuItem *> *DataParameterBase<DataType>::makeControls() {
-        LinkedList<MenuItem *> *controls = FloatParameter::makeControls();
-
-        SubMenuItemBar *range_selectors_bar = new SubMenuItemBar("Range");
-        //range_selectors_bar->show_header = range_selectors_bar->show_sub_headers = false;
-
-        MenuItem *label = new MenuItem("Range");
-        label->selectable = false;
-        range_selectors_bar->add(label);
-
-        // todo: make a new ParameterValueMenuItem that will render the value correctly
-        //          and will also allow to be used by the lowmemory version
-        DirectNumberControl<DataType> *minimum_value_control = new DirectNumberControl<DataType>(
-            "Minimum", &this->minimum_limit, this->minimum_limit, this->minimumDataValue, this->maximumDataValue
-        );
-        range_selectors_bar->add(minimum_value_control);
-
-        DirectNumberControl<DataType> *maximum_value_control = new DirectNumberControl<DataType>(
-            "Maximum", &this->maximum_limit, this->minimum_limit, this->minimumDataValue, this->maximumDataValue
-        );
-        range_selectors_bar->add(maximum_value_control);
-
-        controls->add(range_selectors_bar);
-
-        return controls;
-    }
-#endif

@@ -9,7 +9,7 @@
 
 #include <LinkedList.h>
 
-// direct control over a Parameter from menu
+// direct control over a Parameter Value from menu
 class ParameterValueMenuItem : public DirectNumberControl<float> {
     public:
         FloatParameter **parameter = nullptr;
@@ -173,7 +173,6 @@ class ParameterValueMenuItem : public DirectNumberControl<float> {
         }
 };
 
-
 #include "submenuitem_bar.h"
 #include "parameter_inputs/ParameterInput.h"
 
@@ -234,6 +233,7 @@ class ParameterMapPercentageControl : public DirectNumberControl<float> {
     }
 
 };
+
 
 // compound menu item that shows a direct value-setter widget, 3x modulation amount widgets, and the last post-modulation output value
 class ParameterMenuItem : public SubMenuItemBar {

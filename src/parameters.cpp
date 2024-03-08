@@ -17,6 +17,7 @@
 #include "submenuitem.h"
 
 #include "mymenu_items/ParameterInputMenuItems.h"
+#include "mymenu_items/ParameterMenuItems_Range.h"
 
 // just main control, with amounts 
 FLASHMEM MenuItem *FloatParameter::makeControl() {
@@ -147,6 +148,23 @@ FLASHMEM LinkedList<MenuItem *> *FloatParameter::makeControls() {
 
         controls->add(polarity_selectors_bar);
     #endif
+
+    SubMenuItemBar *range_selectors_bar = new SubMenuItemBar("Range");
+    //range_selectors_bar->show_header = range_selectors_bar->show_sub_headers = false;
+
+    MenuItem *label = new MenuItem("Range");
+    label->selectable = false;
+    range_selectors_bar->add(label);
+
+    // todo: make a new ParameterValueMenuItem that will render the value correctly
+    //          and will also allow to be used by the lowmemory version
+    ParameterRangeMenuItem *minimum_value_control = new ParameterRangeMenuItem("Minimum", &this->self, MINIMUM);
+    range_selectors_bar->add(minimum_value_control);
+
+    ParameterRangeMenuItem *maximum_value_control = new ParameterRangeMenuItem("Maximum", &this->self, MAXIMUM);
+    range_selectors_bar->add(maximum_value_control);
+
+    controls->add(range_selectors_bar);
 
     return controls;
 }
