@@ -38,6 +38,7 @@ Build flags:
   - switch between bipolar/unipolar ranges on per-ParameterInput level, for both input and output
 - Incoming MIDI CC as a modulation source
 - Convert incoming analogue level to frequency in 1v/oct fashion, and output of corresponding MIDI note (with [midihelpers](https://github.com/doctea/midihelpers))
+- Simple LFO/random source types (VirtualParameterInputs)
 
 ## Probably working, but untested
 - Analogue inputs for other boards via [Rob Tillaart's ADS1X15 library](https://github.com/RobTillaart/ADS1X15)
@@ -60,6 +61,6 @@ Build flags:
 - Docs/examples how to use the library in a project from scratch
 - ~~Provide a manager class that encapsulates all the annoying stuff like setting up and checking the values (currently need to add code to do this in your app, see sidenhancy and usb_midi_clocker for examples)~~
 - Back port so it can be used by [sidenhancy](https://github.com/doctea/sidenhancy) again
-- Inputs from non-voltage sources, eg network, ~~MIDI~~, LFOs
+- Inputs from non-voltage sources, eg network, ~~MIDI~~, ~~LFOs~~
 - Better handling of how calibration is saved + loaded, ie more rigorously defined slots
 - ~~Allow to de-select (ie set to None) from a ParameterInputSelectorControl~~
