@@ -156,8 +156,6 @@ FLASHMEM LinkedList<MenuItem *> *FloatParameter::makeControls() {
     label->selectable = false;
     range_selectors_bar->add(label);
 
-    // todo: make a new ParameterValueMenuItem that will render the value correctly
-    //          and will also allow to be used by the lowmemory version
     ParameterRangeMenuItem *minimum_value_control = new ParameterRangeMenuItem("Minimum", &this->self, MINIMUM);
     range_selectors_bar->add(minimum_value_control);
 
@@ -165,6 +163,9 @@ FLASHMEM LinkedList<MenuItem *> *FloatParameter::makeControls() {
     range_selectors_bar->add(maximum_value_control);
 
     controls->add(range_selectors_bar);
+
+    ToggleControl<bool> *debug = new ToggleControl<bool>("Debug", &this->debug, nullptr);
+    controls->add(debug);
 
     return controls;
 }
