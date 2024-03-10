@@ -70,7 +70,7 @@ class VirtualParameterInput : public AnalogParameterInputBase<float> {
         }
 
         float get_source_value() {
-            const float sine_divisor = 500.0f;
+            const float sine_divisor = 100.0f;
             switch (lfo_mode) {
                 case LFO:  
                     return input_type==BIPOLAR ? 

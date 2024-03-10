@@ -134,6 +134,11 @@ class FloatParameter : public BaseParameter {
         return this->getFormattedValue(this->lastOutputNormalValue);
     }
 
+    virtual const char *getFormattedLimit(float range) {
+        //return parseFormattedDataType(range);
+        return "[n/a]";
+    }
+
     virtual void updateValueFromNormal(float value/*, float range = 1.0*/) override {
         // TODO: we might actually want this to do something?
         //Serial.printf(F("WARNING: dummy FloatParameter#updateValueFromNormal(%f) for '%s'\n"), value, this->label);
@@ -581,6 +586,11 @@ class DataParameterBase : public FloatParameter {
         virtual DataType constrainDataLimit(DataType value) {
             if (debug) Serial.printf("%s#constrainDataLimit(%3.3f): constraining to lie between %3.3f and %3.3f\n", this->label, (float)value, (float)this->minimumDataLimit, (float)this->maximumDataLimit);
             return constrain(value, this->minimumDataLimit, this->maximumDataLimit);
+        }
+
+        virtual const char *getFormattedLimit(float data_value) {
+            //float normal = this->dataToNormal(data_value);
+            return parseFormattedDataType((DataType)data_value);
         }
 
         #if !defined(USE_ARX_TYPE_TRAITS)

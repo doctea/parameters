@@ -56,17 +56,17 @@ class ParameterRangeMenuItem : public DirectNumberControl<float> {
 
         virtual const char *getFormattedValue() override {
             static char fmt[20] = "";
-            snprintf(fmt, 20, "%3s", (*parameter)->getFormattedValue(this->get_current_value()));//(*parameter)->getFormattedValue()); 
+            snprintf(fmt, 20, "%3s", (*parameter)->getFormattedLimit(this->get_current_value()));//(*parameter)->getFormattedValue()); 
             return fmt;
         }
 
         virtual const char *getFormattedInternalValue() override {
-            return (*parameter)->getFormattedValue(this->internal_value);
+            return (*parameter)->getFormattedLimit(this->internal_value);
         }
 
         virtual const char *getFormattedExtra() override {
             if ((*parameter)->is_modulatable())
-                return (*parameter)->getFormattedValue((*parameter)->getLastModulatedNormalValue());
+                return (*parameter)->getFormattedLimit((*parameter)->getLastModulatedNormalValue());
             return nullptr;
         }
 
