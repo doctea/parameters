@@ -381,7 +381,7 @@ class DataParameterBase : public FloatParameter {
 
         // update internal param and call setter on target
         virtual void updateValueFromData(DataType value) {
-            if (this->debug) { Serial.printf(F("Parameter#updateValueFromData(%i)\n"), value); Serial_flush(); }
+            if (this->debug) { Serial.printf("Parameter#updateValueFromData(%i)\n", value); Serial_flush(); }
 
             if (this->getCurrentDataValue()==value)
                 return;
