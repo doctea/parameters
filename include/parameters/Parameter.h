@@ -361,10 +361,10 @@ class DataParameterBase : public FloatParameter {
         virtual float getRangeMaximumLimit() override {
             return this->maximum_limit;
         }
-        virtual void setRangeMinimumLimit(DataType v) override {
+        virtual void setRangeMinimumLimit(float v) override {
             this->minimum_limit = v;
         }
-        virtual void setRangeMaximumLimit(DataType v) override {
+        virtual void setRangeMaximumLimit(float v) override {
             this->maximum_limit = v;            
         }
         virtual void incrementRangeMinimumLimit() override {
