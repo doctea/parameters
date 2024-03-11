@@ -416,17 +416,21 @@ class DataParameterBase : public FloatParameter {
                 Serial.printf("%s#", this->label);
                 Serial.printf("normalToData(%f) ", value);
                 //Serial.printf(", range is %i to %i ", this->minimumDataLimit, this->maximumDataLimit);
-                Serial.printf(",\trange is %3.3f to %3.3f ", this->minimumDataLimit, this->maximumDataLimit);
+                //Serial.printf(",\trange is %3.3f to %3.3f ", (float)this->minimumDataLimit, (float)this->maximumDataLimit);
+                Serial.printf(",\trange is %3.3f to %3.3f ", (float)this->get_effective_minimum_data_value(), (float)this->get_effective_maximum_data_value());
             }
             value = this->constrainNormal(value);
             DataType data = this->get_effective_minimum_data_value() + (value * (float)(this->get_effective_maximum_data_value() - this->get_effective_minimum_data_value()));
             //if (this->debug/* && value>=0.0f*/) if (Serial) Serial.printf(" => %i\n", data);
-            if (this->debug) if (Serial) Serial.printf(" => %3.3f\n", data);
+            if (this->debug) if (Serial) Serial.printf(" => %3.3f\n", (float)data);
             return data;
         }
         virtual float dataToNormal(DataType value) {
             //if (this->debug) Serial.printf("dataToNormal(%i) ", value);
-            if (this->debug) Serial.printf("%s#dataToNormal(%3.3f) ", this->label, value);
+            // TODO: so i think its something here, since incoming value can be lower than the effective minimum value we end up with a negative normal...?
+            // so, do we need to constrain the data value first...?
+            // so eg, 
+            if (this->debug) Serial.printf("%s#dataToNormal(%3.3f) ", this->label, (float)value);
             float normal = (float)(value - get_effective_minimum_data_value()) / (float)(get_effective_maximum_data_value() - get_effective_minimum_data_value());
             if (this->debug) Serial.printf(" => %3.3f\n", normal);
             return normal;
@@ -482,6 +486,7 @@ class DataParameterBase : public FloatParameter {
         virtual void sendCurrentTargetValue() {
             float value = this->getCurrentNormalValue() + this->modulateNormalValue;
             //if (this->debug) Serial.printf(F("\tin %s, got modulated value to set: %f\n"), this->label, value);
+            //TODO: maybe here, since value passsed into setTargetValueFromNormal seems to always be negative when range is set to 5%-10%...?!
             this->setTargetValueFromNormal(value);
         }
 
@@ -657,10 +662,13 @@ class DataParameterBase : public FloatParameter {
 
         // set the target from normalised post-modulation value
         virtual void setTargetValueFromNormal(float value, bool force = false) {
-            value = this->constrainNormal(value);
-            this->lastModulatedNormalValue = value;
+            float constrained_value = this->constrainNormal(value);
+            this->lastModulatedNormalValue = constrained_value;
             this->lastOutputNormalValue = this->lastModulatedNormalValue; // = value;
+            //TODO: hmm or maybe here, since it looks like 'value' being passed in is negative...
+            if (debug) Serial.printf("%s#setTargetValueFromNormal(%3.3f) got modulated value %3.3f, ", this->label, value, constrained_value);
             DataType value_to_send = this->normalToData(lastOutputNormalValue);
+            if (debug) Serial.printf("\tgot value_to_send=%3.3f\n", (float)value_to_send);
             this->setTargetValueFromData(value_to_send, force);
         }
 
