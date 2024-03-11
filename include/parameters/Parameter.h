@@ -430,6 +430,7 @@ class DataParameterBase : public FloatParameter {
             // TODO: so i think its something here, since incoming value can be lower than the effective minimum value we end up with a negative normal...?
             // so, do we need to constrain the data value first...?
             // so eg, 
+            value = constrainDataRange(value);
             if (this->debug) Serial.printf("%s#dataToNormal(%3.3f) ", this->label, (float)value);
             float normal = (float)(value - get_effective_minimum_data_value()) / (float)(get_effective_maximum_data_value() - get_effective_minimum_data_value());
             if (this->debug) Serial.printf(" => %3.3f\n", normal);
