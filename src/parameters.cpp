@@ -19,6 +19,8 @@
 #include "mymenu_items/ParameterInputMenuItems.h"
 #include "mymenu_items/ParameterMenuItems_Range.h"
 
+#include "menuitems_graphical_display.h"
+
 // just main control, with amounts 
 FLASHMEM MenuItem *FloatParameter::makeControl() {
     Debug_printf(F("FloatParameter#makeControl for %s\n"), this->label);
@@ -166,6 +168,8 @@ FLASHMEM LinkedList<MenuItem *> *FloatParameter::makeControls() {
 
     ToggleControl<bool> *debug = new ToggleControl<bool>("Debug", &this->debug, nullptr);
     controls->add(debug);
+
+    //controls->add(new GraphicalValueDisplay<float>("Value", &this->lastOutputNormalValue, this->minimumNormalValue, this->maximumNormalValue));
 
     return controls;
 }
