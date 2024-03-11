@@ -76,7 +76,7 @@ void create_low_memory_parameter_controls(const char *label, LinkedList<FloatPar
     if (lowmemory_controls.polarity_submenu==nullptr) {
         lowmemory_controls.polarity_submenu = new SubMenuItemBar("Polarities", false);
         lowmemory_controls.polarity_submenu->show_header = false;
-        lowmemory_controls.polarity_submenu->add(new MenuItem("Polarity"));
+        lowmemory_controls.polarity_submenu->add(new MenuItem("Polarity", false));
         lowmemory_controls.polarity_submenu->add(new ParameterConnectionPolarityTypeSelectorControl("Slot 1", &lowmemory_controls.parameter, 0));
         lowmemory_controls.polarity_submenu->add(new ParameterConnectionPolarityTypeSelectorControl("Slot 2", &lowmemory_controls.parameter, 1));
         lowmemory_controls.polarity_submenu->add(new ParameterConnectionPolarityTypeSelectorControl("Slot 3", &lowmemory_controls.parameter, 2));

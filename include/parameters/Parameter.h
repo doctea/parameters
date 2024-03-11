@@ -427,9 +427,6 @@ class DataParameterBase : public FloatParameter {
         }
         virtual float dataToNormal(DataType value) {
             //if (this->debug) Serial.printf("dataToNormal(%i) ", value);
-            // TODO: so i think its something here, since incoming value can be lower than the effective minimum value we end up with a negative normal...?
-            // so, do we need to constrain the data value first...?
-            // so eg, 
             value = constrainDataRange(value);
             if (this->debug) Serial.printf("%s#dataToNormal(%3.3f) ", this->label, (float)value);
             float normal = (float)(value - get_effective_minimum_data_value()) / (float)(get_effective_maximum_data_value() - get_effective_minimum_data_value());
@@ -666,7 +663,6 @@ class DataParameterBase : public FloatParameter {
             float constrained_value = this->constrainNormal(value);
             this->lastModulatedNormalValue = constrained_value;
             this->lastOutputNormalValue = this->lastModulatedNormalValue; // = value;
-            //TODO: hmm or maybe here, since it looks like 'value' being passed in is negative...
             if (debug) Serial.printf("%s#setTargetValueFromNormal(%3.3f) got modulated value %3.3f, ", this->label, value, constrained_value);
             DataType value_to_send = this->normalToData(lastOutputNormalValue);
             if (debug) Serial.printf("\tgot value_to_send=%3.3f\n", (float)value_to_send);

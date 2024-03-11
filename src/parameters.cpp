@@ -120,8 +120,7 @@ FLASHMEM LinkedList<MenuItem *> *FloatParameter::makeControls() {
         polarity_selectors_bar->show_header = false;
         polarity_selectors_bar->show_sub_headers = false;
 
-        MenuItem *polarity_spacer_1 = new MenuItem("Polarity");
-        polarity_spacer_1->selectable = false;           
+        MenuItem *polarity_spacer_1 = new MenuItem("Polarity",false);
         polarity_selectors_bar->add(polarity_spacer_1);
 
         // make the three polarity selector controls
@@ -152,7 +151,7 @@ FLASHMEM LinkedList<MenuItem *> *FloatParameter::makeControls() {
     #endif
 
     SubMenuItemBar *range_selectors_bar = new SubMenuItemBar("Range");
-    //range_selectors_bar->show_header = range_selectors_bar->show_sub_headers = false;
+    range_selectors_bar->show_header = false;
 
     MenuItem *label = new MenuItem("Range");
     label->selectable = false;
@@ -166,9 +165,8 @@ FLASHMEM LinkedList<MenuItem *> *FloatParameter::makeControls() {
 
     controls->add(range_selectors_bar);
 
-    ToggleControl<bool> *debug = new ToggleControl<bool>("Debug", &this->debug, nullptr);
-    controls->add(debug);
-
+    //ToggleControl<bool> *debug = new ToggleControl<bool>("Debug", &this->debug, nullptr);
+    //controls->add(debug);
     //controls->add(new GraphicalValueDisplay<float>("Value", &this->lastOutputNormalValue, this->minimumNormalValue, this->maximumNormalValue));
 
     return controls;
