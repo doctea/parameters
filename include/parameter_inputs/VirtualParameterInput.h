@@ -9,18 +9,24 @@
 
 #include "ads.h"
 
+// todo: options to configure LFO type, speed, etc
+// todo: support MIDI pitch generation
+
 enum lfo_option_id {
-    LFO,
-    RAND
+    LFO_FREE,
+    LFO_LOCKED,
+    RAND,
+    NUM
 };
 
 struct lfo_option_t {
-    char *name;
+    const char *name;
     lfo_option_id id;
 };
 
-lfo_option_t virtual_parameter_options[2] = {
-    { "LFO",  LFO },
+lfo_option_t virtual_parameter_options[lfo_option_id::NUM] = {
+    { "FreeLFO", LFO_FREE },
+    { "LockLFO", LFO_LOCKED },
     { "Rand", RAND }
 };
 #define MAX_LFO_ID (sizeof(virtual_parameter_options) / sizeof(Lfo_option_t))
@@ -28,9 +34,9 @@ lfo_option_t virtual_parameter_options[2] = {
 class VirtualParameterInput : public AnalogParameterInputBase<float> {
     public:
 
-        lfo_option_id lfo_mode = LFO;
+        lfo_option_id lfo_mode = LFO_LOCKED;
 
-        VirtualParameterInput(char *name, const char *group_name, lfo_option_id lfo_mode = LFO) : AnalogParameterInputBase(name, group_name) {
+        VirtualParameterInput(char *name, const char *group_name, lfo_option_id lfo_mode = LFO_LOCKED) : AnalogParameterInputBase(name, group_name) {
             this->lfo_mode = lfo_mode;
         }
 
@@ -70,12 +76,21 @@ class VirtualParameterInput : public AnalogParameterInputBase<float> {
         }
 
         float get_source_value() {
-            const float sine_divisor = 100.0f;
+            //static const float PI = 3.141592654f;
+
             switch (lfo_mode) {
-                case LFO:  
+                case LFO_FREE: {
+                    const float sine_divisor = 100.0f;
                     return input_type==BIPOLAR ? 
                         sin((float)ticks/sine_divisor) : 
                         0.5f + (sin((float)ticks/sine_divisor)/2.0);
+                }
+                case LFO_LOCKED: {
+                    float normal = ((float)(ticks % TICKS_PER_PHRASE))/(float)TICKS_PER_PHRASE;
+                    return input_type==BIPOLAR ? 
+                        sin(normal*2.0f*PI) :
+                        0.5f + ((sin(normal*2.0f*PI))/2.0);
+                }
                 case RAND: 
                     return input_type==BIPOLAR ? 
                         (float)random(-1000, 1000)/1000.0 : 
