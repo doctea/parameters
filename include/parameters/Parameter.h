@@ -688,6 +688,27 @@ class DataParameterBase : public FloatParameter {
             // hmm, if we want to do bounds, should we do it here?
             return constrain(value, this->minimumNormalValue, this->maximumNormalValue);
         }
+
+
+        void save_sequence_add_lines(LinkedList<String> *lines) override {
+            FloatParameter::save_sequence_add_lines(lines);
+
+            lines->add(String("parameter_") + String(this->label) + String("_range_minimum=") + String(this->minimumDataRange));
+            lines->add(String("parameter_") + String(this->label) + String("_range_maximum=") + String(this->maximumDataRange));
+        }
+
+        bool load_parse_key_value(const String incoming_key, String value) override {
+            if (incoming_key.startsWith("parameter_") + String(this->label) + String("_range_minimum")) {
+                this->setRangeMinimumLimit(value.toFloat());
+                return true;
+            } else if (incoming_key.startsWith("parameter_") + String(this->label) + String("_range_maximum")) {
+                this->setRangeMaximumLimit(value.toFloat());
+                return true;
+            } else {
+                return FloatParameter::load_parse_key_value(incoming_key, value);
+            }
+        }
+
 };
 
 
