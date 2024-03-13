@@ -35,6 +35,7 @@ class VirtualParameterInput : public AnalogParameterInputBase<float> {
         lfo_option_id lfo_mode = LFO_LOCKED;
 
         float free_sine_divisor = 100.0f;
+        float locked_period = 4.0f;
 
         VirtualParameterInput(char *name, const char *group_name, lfo_option_id lfo_mode = LFO_LOCKED) : AnalogParameterInputBase(name, group_name) {
             this->lfo_mode = lfo_mode;
@@ -82,13 +83,13 @@ class VirtualParameterInput : public AnalogParameterInputBase<float> {
         }
 
         float get_source_value() {
-            //static const float PI = 3.141592654f;
-
             switch (lfo_mode) {
                 case LFO_FREE: 
                     return calculate_lfo((float)ticks/free_sine_divisor);
-                case LFO_LOCKED:
-                    return calculate_lfo(((float)(ticks % TICKS_PER_PHRASE))/(float)TICKS_PER_PHRASE);
+                case LFO_LOCKED: {
+                    float adjusted = (float)TICKS_PER_BAR*locked_period;
+                    return calculate_lfo(((float)(ticks % (int_fast16_t)(adjusted)))/(float)(adjusted));
+                }
                 case RAND: 
                     return input_type==BIPOLAR ? 
                         (float)random(-1000, 1000)/1000.0 : 
