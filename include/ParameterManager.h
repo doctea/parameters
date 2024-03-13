@@ -243,7 +243,8 @@ class ParameterManager {
                         last_group_name = parameter_input->group_name;
                         snprintf(label, MENU_C_MAX, "%s ", last_group_name);
                     }
-                    this->addParameterInputMenuItems(menu, parameter_input, label); //label_prefix);
+                    //this->addParameterInputMenuItems(menu, parameter_input, label); //label_prefix);
+                    parameter_input->makeControls(this->memory_size, label);
                 }
             }
 
@@ -303,49 +304,6 @@ class ParameterManager {
                     }
                 }
                 return submenu;
-            }
-
-            FLASHMEM MenuItem *addParameterInputMenuItems(Menu *menu, BaseParameterInput *param_input, const char *label_prefix = "") {
-                // TODO: a new ParameterInputControl that allows to set expected input ranges
-                char label[MENU_C_MAX];
-                snprintf(label, MENU_C_MAX, "%s%s", label_prefix, param_input->name);
-                //char *label = param_input->name;
-
-                menu->add(new SeparatorMenuItem(label, param_input->colour));
-
-                //Debug_printf(F("\tdoing menu->add for ParameterInputDisplay with label '%s'\n"), label);
-                ParameterInputDisplay *parameter_input_display = new ParameterInputDisplay(label, this->memory_size, param_input);
-                #ifdef PARAMETER_INPUTS_USE_CALLBACKS
-                    param_input->add_parameter_input_callback_receiver(parameter_input_display);
-                #endif
-                menu->add(parameter_input_display);
-
-                /*if (param_input->supports_bipolar_input()) {
-                    // this from previous version where inputs could be set to output bipolar
-                    DualMenuItem *submenu = new DualMenuItem("Input/Output");
-                    submenu->set_default_colours(param_input->colour);
-                    submenu->show_header = false;
-
-                    submenu->add(new InputTypeSelectorControl("Input", &param_input->input_type)); // Input type
-
-                    //sprintf(label, "Out type for %s", param_input->name);
-                    //submenu->add(new InputTypeSelectorControl("Output", &param_input->output_type));   // Output type
-
-                    menu->add(submenu);
-                    return submenu;
-                }*/
-                if (param_input->supports_bipolar_input()) {
-                    // inputs now rely on their parameter to choose whether to use polar or bipolar version
-                    InputTypeSelectorControl *type_selector = new InputTypeSelectorControl("Input Type", &param_input->input_type);
-                    type_selector->default_fg = param_input->colour;
-                    //type_selector->show_header = false;
-                    menu->add(type_selector); // Input type
-
-                    // todo: maybe add options for inverted, rectified, etc?
-
-                    return type_selector;
-                }
-                return nullptr;
             }
 
             // create a menuitem for the passed-in parameter; returns nullptr if passed-in parameter is named "None"

@@ -5,6 +5,7 @@
 
 #include "../voltage_sources/VoltageSource.h"
 
+#include "bpm.h"
 #include "midi_helpers.h"
 
 #include "ads.h"
@@ -12,6 +13,7 @@
 // todo: options to configure LFO type, speed, etc
 // todo: support MIDI pitch generation
 
+// see ParameterInput.cpp for the string def
 enum lfo_option_id {
     LFO_FREE,
     LFO_LOCKED,
@@ -24,17 +26,15 @@ struct lfo_option_t {
     lfo_option_id id;
 };
 
-lfo_option_t virtual_parameter_options[lfo_option_id::NUM] = {
-    { "FreeLFO", LFO_FREE },
-    { "LockLFO", LFO_LOCKED },
-    { "Rand", RAND }
-};
+extern lfo_option_t virtual_parameter_options[lfo_option_id::NUM];
 #define MAX_LFO_ID (sizeof(virtual_parameter_options) / sizeof(Lfo_option_t))
 
 class VirtualParameterInput : public AnalogParameterInputBase<float> {
     public:
 
         lfo_option_id lfo_mode = LFO_LOCKED;
+
+        float free_sine_divisor = 100.0f;
 
         VirtualParameterInput(char *name, const char *group_name, lfo_option_id lfo_mode = LFO_LOCKED) : AnalogParameterInputBase(name, group_name) {
             this->lfo_mode = lfo_mode;
@@ -75,22 +75,20 @@ class VirtualParameterInput : public AnalogParameterInputBase<float> {
             return 64;
         }
 
+        float calculate_lfo(float normal) {
+            return input_type==BIPOLAR ? 
+                sin(normal*2.0f*PI) :
+                0.5f + ((sin(normal*2.0f*PI))/2.0);
+        }
+
         float get_source_value() {
             //static const float PI = 3.141592654f;
 
             switch (lfo_mode) {
-                case LFO_FREE: {
-                    const float sine_divisor = 100.0f;
-                    return input_type==BIPOLAR ? 
-                        sin((float)ticks/sine_divisor) : 
-                        0.5f + (sin((float)ticks/sine_divisor)/2.0);
-                }
-                case LFO_LOCKED: {
-                    float normal = ((float)(ticks % TICKS_PER_PHRASE))/(float)TICKS_PER_PHRASE;
-                    return input_type==BIPOLAR ? 
-                        sin(normal*2.0f*PI) :
-                        0.5f + ((sin(normal*2.0f*PI))/2.0);
-                }
+                case LFO_FREE: 
+                    return calculate_lfo((float)ticks/free_sine_divisor);
+                case LFO_LOCKED:
+                    return calculate_lfo(((float)(ticks % TICKS_PER_PHRASE))/(float)TICKS_PER_PHRASE);
                 case RAND: 
                     return input_type==BIPOLAR ? 
                         (float)random(-1000, 1000)/1000.0 : 
@@ -168,4 +166,10 @@ class VirtualParameterInput : public AnalogParameterInputBase<float> {
                 //Serial.println("Finishing read()"); Serial_flush();
             }
         }
+
+        #ifdef ENABLE_SCREEN
+        FLASHMEM
+        virtual SubMenuItemBar *makeControls(int16_t memory_size, const char *label_prefix = "") override;
+        #endif
+
 };

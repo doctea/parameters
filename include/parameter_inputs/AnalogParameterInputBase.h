@@ -75,10 +75,11 @@ class AnalogParameterInputBase : public ParameterInput {
     }
 
     virtual const char *getInputInfo() {
-      static char input_info[20] = "                ";
+      /*static char input_info[20] = "                ";
 
-      snprintf(input_info, 20, "Anlg %s%s", (this->inverted?"I":""), (this->map_unipolar_to_bipolar?"U":""));
-      return input_info;
+      //snprintf(input_info, 20, "Anlg %s%s", (this->inverted?"I":"")); //, (this->map_unipolar_to_bipolar?"U":""));
+      return input_info;*/
+      return "Analogue";
     }
 
     virtual const char *getInputValue() override {

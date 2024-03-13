@@ -13,6 +13,7 @@
 
 #ifdef ENABLE_SCREEN
   #include "menu.h"
+  #include "submenuitem_bar.h"
 #endif
 //#include "../parameters/Parameter.h"
 
@@ -37,10 +38,7 @@ class BaseParameterInput {
     const char *group_name = "General";
     char name[MAX_INPUT_NAME] = "Unnamed";
 
-    //BaseParameter *target_parameter = nullptr;
-
     bool inverted = false;
-    bool map_unipolar_to_bipolar = false;
 
     uint8_t input_type = BIPOLAR;
 
@@ -152,6 +150,11 @@ class BaseParameterInput {
           callback_receivers->get(i)->receive_value_update(currentValue);
         }
       }
+    #endif
+
+    #ifdef ENABLE_SCREEN
+      FLASHMEM
+      virtual SubMenuItemBar *makeControls(int16_t memory_size, const char *label_prefix = "");
     #endif
 
 };
