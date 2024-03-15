@@ -113,6 +113,13 @@ class FloatParameter : public BaseParameter {
         self = this;
     }
 
+    virtual float getMinimumDataLimit() {
+        return minimumNormalValue;
+    }
+    virtual float getMaximumDataLimit() {
+        return maximumNormalValue;
+    }
+
     virtual float getCurrentNormalValue() {
         return this->currentNormalValue;
     }
@@ -340,21 +347,21 @@ class DataParameterBase : public FloatParameter {
 
         virtual DataType getter() = 0 ; //{}
 
-        virtual DataParameterBase* initialise_values(DataType minimum_value, DataType maximum_value) { //float minimum_value = 0.0, float maximum_value = 100.0) {
+        virtual DataParameterBase* initialise_values(DataType minimumDataValue, DataType maximumDataValue) { //float minimumDataValue = 0.0, float maximumDataValue = 100.0) {
             DataType current_value = minimumDataLimit;
             current_value = this->getter();
 
-            return this->initialise_values(minimum_value, maximum_value, current_value);
+            return this->initialise_values(minimumDataValue, maximumDataValue, current_value);
         }
-        virtual DataParameterBase* initialise_values(DataType minimum_value, DataType maximum_value, DataType current_value) {
-            this->minimumDataLimit = minimum_value;
-            this->maximumDataLimit = maximum_value;
+        virtual DataParameterBase* initialise_values(DataType minimumDataValue, DataType maximumDataValue, DataType current_value) {
+            this->minimumDataLimit = minimumDataValue;
+            this->maximumDataLimit = maximumDataValue;
             this->currentDataValue = current_value;
             this->initialDataValue = current_value;
 
-            this->minimumNormalValue = 0.0f; //minimum_value;
-            this->maximumNormalValue = 1.0f; //maximum_value;
-            this->currentNormalValue = this->dataToNormal(current_value); //(current_value - minimum_value) / (maximum_value - minimum_value);
+            this->minimumNormalValue = 0.0f; //minimumDataValue;
+            this->maximumNormalValue = 1.0f; //maximumDataValue;
+            this->currentNormalValue = this->dataToNormal(current_value); //(current_value - minimumDataValue) / (maximumDataValue - minimumDataValue);
             this->initialNormalValue = this->currentNormalValue;
 
             this->minimumDataRange = minimumDataLimit;
@@ -363,11 +370,18 @@ class DataParameterBase : public FloatParameter {
             return this;
         }
 
+        virtual float getMinimumDataLimit() override {
+            return this->minimumDataLimit;
+        }
+        virtual float getMaximumDataLimit() override {
+            return this->maximumDataLimit;
+        }
+
         virtual float getRangeMinimumLimit() override {
-            return this->minimumDataRange;
+            return this->constrainDataLimit(this->minimumDataRange);
         }
         virtual float getRangeMaximumLimit() override {
-            return this->maximumDataRange;
+            return this->constrainDataLimit(this->maximumDataRange);
         }
         virtual void setRangeMinimumLimit(float v) override {
             this->minimumDataRange = v;
@@ -380,22 +394,22 @@ class DataParameterBase : public FloatParameter {
                 this->maximumDataRange = this->maximumDataLimit;
         }
         virtual void incrementRangeMinimumLimit() override {
-            Serial.printf("%s#incrementRangeMinimumLimit() with minimumDataRange=%s\n", this->label, this->getFormattedValue(this->minimumDataRange));
+            //Serial.printf("%s#incrementRangeMinimumLimit() with minimumDataRange=%s\n", this->label, this->getFormattedValue(this->minimumDataRange));
             this->setRangeMinimumLimit(this->incrementDataRange((DataType)this->getRangeMinimumLimit()));
             //this->setRangeMinimumLimit(this->getRangeMinimumLimit() + this->get_current_step(this->minimumDataRange));
         }
         virtual void decrementRangeMinimumLimit() override {
-            Serial.printf("%s#decrementRangeMinimumLimit() with minimumDataRange=%s\n", this->label, this->getFormattedValue(this->minimumDataRange));
+            //Serial.printf("%s#decrementRangeMinimumLimit() with minimumDataRange=%s\n", this->label, this->getFormattedValue(this->minimumDataRange));
             this->setRangeMinimumLimit(this->decrementDataRange((DataType)this->getRangeMinimumLimit()));
             //this->setRangeMinimumLimit(this->getRangeMinimumLimit() - this->get_current_step(this->minimumDataRange));
         }
         virtual void incrementRangeMaximumLimit() override {
-            Serial.printf("%s#incrementRangeMaximumLimit() with maximum_limit=%s\n", this->label, this->getFormattedValue(this->maximumDataRange));
+            //Serial.printf("%s#incrementRangeMaximumLimit() with maximum_limit=%s\n", this->label, this->getFormattedValue(this->maximumDataRange));
             this->setRangeMaximumLimit(this->incrementDataRange((DataType)this->getRangeMaximumLimit()));
             //this->setRangeMaximumLimit(this->getRangeMaximumLimit() + this->get_current_step(this->maximum_limit));
         }
         virtual void decrementRangeMaximumLimit() override {
-            Serial.printf("%s#decrementRangeMaximumLimit() with maximum_limit=%s\n", this->label, this->getFormattedValue(this->maximumDataRange));
+            //Serial.printf("%s#decrementRangeMaximumLimit() with maximum_limit=%s\n", this->label, this->getFormattedValue(this->maximumDataRange));
             this->setRangeMaximumLimit(this->decrementDataRange((DataType)this->getRangeMaximumLimit()));
             //this->setRangeMaximumLimit(this->getRangeMaximumLimit() - this->get_current_step(this->maximum_limit));
         }
@@ -442,7 +456,7 @@ class DataParameterBase : public FloatParameter {
             return this->currentDataValue;
         }
 
-        // setInitialValue in target value ie as a float to be multiplied by maximum_value
+        // setInitialValue in target value ie as a float to be multiplied by maximumDataValue
         virtual void setInitialValueFromNormal(float value) {
             this->currentNormalValue = value; // * this->maximumNormalValue;
             this->currentDataValue = this->normalToData(value); //->minimumDataLimit + (value * this->maximumNormalValue);
@@ -742,11 +756,11 @@ class DataParameter : public DataParameterBase<DataType> {
             //if (getter_func!=nullptr)
             //    this->setInitialValue();
         }
-        DataParameter(const char *label, TargetClass *target, void(TargetClass::*setter_func)(DataType), DataType(TargetClass::*getter_func)(), DataType minimum_value, DataType maximum_value) 
-            : DataParameter<TargetClass,DataType>(label, target, setter_func, getter_func) /* minimumDataLimit(minimum_value), maximumDataLimit(maximum_value), */
+        DataParameter(const char *label, TargetClass *target, void(TargetClass::*setter_func)(DataType), DataType(TargetClass::*getter_func)(), DataType minimumDataValue, DataType maximumDataValue) 
+            : DataParameter<TargetClass,DataType>(label, target, setter_func, getter_func) /* minimumDataLimit(minimumDataValue), maximumDataLimit(maximumDataValue), */
         {
-            this->minimumDataLimit = minimum_value;
-            this->maximumDataLimit = maximum_value;
+            this->minimumDataLimit = minimumDataValue;
+            this->maximumDataLimit = maximumDataValue;
         }
         DataParameter(const char *label, TargetClass *target, float initial_value_normal, void(TargetClass::*setter_func)(DataType)) 
             : DataParameter<TargetClass,DataType>(label, target, setter_func) {

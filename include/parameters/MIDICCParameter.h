@@ -38,9 +38,9 @@ class MIDICCParameter : public DataParameter<TargetClass,DataType> {
                 //this->debug = true;
         }
 
-        MIDICCParameter(const char* label, TargetClass *target, byte cc_number, byte channel, byte maximum_value, bool configurable = false) 
+        MIDICCParameter(const char* label, TargetClass *target, byte cc_number, byte channel, byte maximumDataValue, bool configurable = false) 
             : MIDICCParameter(label, target, cc_number, channel, configurable) {
-                this->maximumDataLimit = maximum_value;
+                this->maximumDataLimit = maximumDataValue;
         }
 
         /*virtual const char* getFormattedValue() override {

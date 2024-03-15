@@ -16,18 +16,36 @@ class ParameterRangeMenuItem : public DirectNumberControl<float> {
         ParameterRangeMenuItem(const char *label, FloatParameter **parameter, ParameterRangeType range_type) : DirectNumberControl(label) {
             this->parameter = parameter;
             if (parameter!=nullptr && *parameter!=nullptr) {
-                Serial.println("parameter isn't null, getting normal.."); Serial_flush();
+                //Serial.println("parameter isn't null, getting normal.."); Serial_flush();
                 this->internal_value = this->get_current_value(); //(*parameter)->getCurrentNormalValue();// * 100.0;
-                Serial.println("set getCurrentNormalValue()!"); Serial_flush();
-                this->minimum_value = (*parameter)->minimumNormalValue; 
-                this->maximum_value = (*parameter)->maximumNormalValue; 
+                //Serial.println("set getCurrentNormalValue()!"); Serial_flush();
+                this->minimumDataValue = (*parameter)->getMinimumDataLimit(); 
+                this->maximumDataValue = (*parameter)->getMaximumDataLimit(); 
             }
             this->range_type = range_type;
 
             go_back_on_select = true;
-            //this->minimum_value = parameter->minimum_value;
-            //this->maximum_value = parameter->maximum_value;
+            //this->minimumDataValue = parameter->minimumDataValue;
+            //this->maximumDataValue = parameter->maximumDataValue;
             //this->step = 0.01;
+        }
+
+        float getMinimumDataValue() override {
+            return (*parameter)->getMinimumDataLimit();
+        }
+        float getMaximumDataValue() override {
+            return (*parameter)->getMaximumDataLimit();
+        }
+
+        float get_internal_value() override {
+            switch (range_type) {
+                case ParameterRangeType::MINIMUM:
+                    return (*parameter)->getMinimumDataLimit();
+                case ParameterRangeType::MAXIMUM:
+                    return (*parameter)->getMaximumDataLimit();
+                default: 
+                    return 0.0f;
+            }
         }
 
         // // true if this widget should show the last post-modulation output value; false if it should show the pre-modulation value
@@ -40,7 +58,7 @@ class ParameterRangeMenuItem : public DirectNumberControl<float> {
         virtual bool action_opened() override {
             //Serial.printf("ParameterValueMenuItem#action_opened in %s ", this->label);
             //Serial.printf("get_current_value() is %f\n", this->parameter->getCurrentValue());
-            //this->internal_value = this->get_current_value() / 100.0; //->parameter->getCurrentValue() * this->maximum_value; //->getCurrentValue() * this->maximum_value;
+            //this->internal_value = this->get_current_value() / 100.0; //->parameter->getCurrentValue() * this->maximumDataValue; //->getCurrentValue() * this->maximumDataValue;
             return true;
         }
 
@@ -61,7 +79,8 @@ class ParameterRangeMenuItem : public DirectNumberControl<float> {
         }
 
         virtual const char *getFormattedInternalValue() override {
-            return (*parameter)->getFormattedLimit(this->internal_value);
+               // hmm, ideally we would fetch the underlying parameter's  here
+            return (*parameter)->getFormattedLimit(this->get_current_value());
         }
 
         virtual const char *getFormattedExtra() override {
@@ -84,7 +103,7 @@ class ParameterRangeMenuItem : public DirectNumberControl<float> {
                     Serial.print(F("ParameterValueMenuItem#set_current_value() got v to pass: "));                    
                     Serial.println(v);
                 }*/
-                //if (this->debug) Serial.printf(F("ParameterValueMenuItem#set_current_value(%f) about to call updateValueFromNormal(%f) (maximum_value is %i)\n"), value, v, this->maximum_value);
+                //if (this->debug) Serial.printf(F("ParameterValueMenuItem#set_current_value(%f) about to call updateValueFromNormal(%f) (maximumDataValue is %i)\n"), value, v, this->maximumDataValue);
                 if (this->range_type==MINIMUM)
                     return (*parameter)->setRangeMinimumLimit(v);
                 else

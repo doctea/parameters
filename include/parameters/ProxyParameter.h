@@ -8,12 +8,12 @@ class ProxyParameter : public DataParameterBase<DataType> {
 
     DataType *source, *target;
 
-    ProxyParameter(const char *label, DataType *source, DataType *target, DataType minimum_value, DataType maximum_value) 
+    ProxyParameter(const char *label, DataType *source, DataType *target, DataType minimumDataValue, DataType maximumDataValue) 
         : DataParameterBase<DataType>(label)
         {
             this->source = source;
             this->target = target;
-            this->initialise_values(minimum_value, maximum_value);
+            this->initialise_values(minimumDataValue, maximumDataValue);
         }
 
     virtual DataType getter() override {
