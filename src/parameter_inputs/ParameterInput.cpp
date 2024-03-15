@@ -62,6 +62,22 @@ lfo_option_t virtual_parameter_options[lfo_option_id::NUM] = {
 
         if (lfo_mode==LFO_FREE)
             submenu->add(new DirectNumberControl<float>("Speed", &this->free_sine_divisor, this->free_sine_divisor, 0.01f, 1000.0f));
+        else if (lfo_mode==LFO_LOCKED) {
+            LambdaSelectorControl<float> *period_control = new LambdaSelectorControl<float>(
+                "Period",
+                [=] (float v) -> void { this->locked_period = v; },
+                [=] (void) -> float { return this->locked_period; }
+            );
+            period_control->add_available_value(0.25f, "Beat");
+            period_control->add_available_value(0.5f,  "2xBeat");
+            period_control->add_available_value(0.75f, "3xBeat");
+            period_control->add_available_value(1.0f,  "Bar");
+            period_control->add_available_value(2.0f,  "2xBar");
+            period_control->add_available_value(4.0f,  "4xBar");
+            period_control->add_available_value(4.0f,  "Phrase");
+            period_control->add_available_value(8.0f,  "2xPhrase");
+            submenu->add(period_control);
+        }
 
         return submenu;
     }
