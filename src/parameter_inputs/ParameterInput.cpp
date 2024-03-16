@@ -73,11 +73,12 @@ lfo_option_t virtual_parameter_options[lfo_option_id::NUM] = {
             period_control->add_available_value(0.75f, "3xBeat");
             period_control->add_available_value(1.0f,  "Bar");
             period_control->add_available_value(2.0f,  "2xBar");
-            period_control->add_available_value(4.0f,  "4xBar");
+            period_control->add_available_value(3.0f,  "3xBar");
             period_control->add_available_value(4.0f,  "Phrase");
             period_control->add_available_value(8.0f,  "2xPhrase");
             submenu->add(period_control);
-
+        }
+        if(lfo_mode==LFO_FREE || lfo_mode==LFO_LOCKED) {
             DirectNumberControl<float> *phase_control = new DirectNumberControl<float>(
                 "Phase",
                 &this->locked_phase,

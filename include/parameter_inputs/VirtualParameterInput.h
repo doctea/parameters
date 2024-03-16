@@ -86,7 +86,7 @@ class VirtualParameterInput : public AnalogParameterInputBase<float> {
         float get_source_value() {
             switch (lfo_mode) {
                 case LFO_FREE: 
-                    return calculate_lfo((float)ticks/free_sine_divisor);
+                    return calculate_lfo(locked_phase + (float)ticks/free_sine_divisor);
                 case LFO_LOCKED: {
                     float adjusted = ((float)TICKS_PER_BAR*locked_period);
                     return calculate_lfo(locked_phase + ((float)(ticks % (int_fast16_t)(adjusted)))/(float)(adjusted));
