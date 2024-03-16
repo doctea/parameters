@@ -77,6 +77,15 @@ lfo_option_t virtual_parameter_options[lfo_option_id::NUM] = {
             period_control->add_available_value(4.0f,  "Phrase");
             period_control->add_available_value(8.0f,  "2xPhrase");
             submenu->add(period_control);
+
+            DirectNumberControl<float> *phase_control = new DirectNumberControl<float>(
+                "Phase",
+                &this->locked_phase,
+                this->locked_phase,
+                0.0f,
+                1.0f
+            );
+            submenu->add(phase_control);
         }
 
         return submenu;
