@@ -169,6 +169,42 @@ class VirtualParameterInput : public AnalogParameterInputBase<float> {
             }
         }
 
+        virtual LinkedList<String> *save_sequence_add_lines(LinkedList<String> *lines) override {
+            AnalogParameterInputBase::save_sequence_add_lines(lines);
+            
+            lines->add(String(prefix) + String(this->name) + String("_period") 
+                + String('=') + String(this->locked_period));
+            lines->add(String(prefix) + String(this->name) + String("_phase") 
+                + String('=') + String(this->locked_phase));
+            lines->add(String(prefix) + String(this->name) + String("_divisor") 
+                + String('=') + String(this->free_sine_divisor));
+            
+            return lines;
+        }
+
+        virtual bool load_parse_key_value(String key, String value) {
+            if(!key.startsWith(prefix)) return false;
+
+            key.replace(prefix,"");
+
+            if (!key.startsWith(this->name)) {
+                return AnalogParameterInputBase::load_parse_key_value(key, value);
+            }
+
+            if (key.endsWith("_period")) {
+                this->locked_period = value.toFloat();
+                return true;
+            } else if (key.endsWith("_phase")) {
+                this->locked_phase = value.toFloat();
+                return true;
+            } else if (key.endsWith("_divisor")) {
+                this->free_sine_divisor = value.toFloat();
+                return true;
+            }
+
+            return false;
+        }
+
         #ifdef ENABLE_SCREEN
         FLASHMEM
         virtual SubMenuItemBar *makeControls(int16_t memory_size, const char *label_prefix = "") override;
