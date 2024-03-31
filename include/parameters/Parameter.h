@@ -629,6 +629,7 @@ class DataParameterBase : public FloatParameter {
                 static char fmt[10] = "         ";
                 //sprintf(fmt, "%3i%% (float)",     (int)(100.0*value)); //->getCurrentValue());
                 snprintf(fmt, 10, "%3i%%", (int)(100.0f*value)); //->getCurrentValue());
+                //Serial.printf("parseFormattedDataType(float)\treturning '%s'\n", fmt);
                 return fmt;
             }
             virtual const char* parseFormattedDataType(unsigned int value) {
@@ -636,6 +637,7 @@ class DataParameterBase : public FloatParameter {
                 //sprintf(fmt, "%5u (unsigned)",   value); // (unsigned int)(this->maximumNormalValue*this->getCurrentNormalValue())); //getCurrentValue());
                 snprintf(fmt, 10, "%u",   value); // (unsigned int)(this->maximumNormalValue*this->getCurrentNormalValue())); //getCurrentValue());
                 // was "%5u"
+                //Serial.printf("parseFormattedDataType(uint)\treturning '%s'\n", fmt);
                 return fmt;
             }
             virtual const char* parseFormattedDataType(int value) {
@@ -643,12 +645,14 @@ class DataParameterBase : public FloatParameter {
                 //sprintf(fmt, "%5i (signed)",     value); // (int)(this->maximumNormalValue*this->getCurrentNormalValue())); //getCurrentValue());
                 snprintf(fmt, 10, "%i",   value); // (int)(this->maximumNormalValue*this->getCurrentNormalValue())); //getCurrentValue());
                 // was "%5i"
+                Serial.printf("parseFormattedDataType(int) returning '%s'\n", fmt);
                 return fmt;
             }
             virtual const char* parseFormattedDataType(byte value) {
                 static char fmt[10] = "         ";
                 //sprintf(fmt, "%5i (signed)",     value); // (int)(this->maximumNormalValue*this->getCurrentNormalValue())); //getCurrentValue());
                 snprintf(fmt, 10, "%3i",  value); // (int)(this->maximumNormalValue*this->getCurrentNormalValue())); //getCurrentValue());
+                //Serial.printf("parseFormattedDataType(byte) returning '%s'\n", fmt);
                 return fmt;
             }
         #else

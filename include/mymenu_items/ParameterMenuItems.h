@@ -25,6 +25,8 @@ class ParameterValueMenuItem : public DirectNumberControl<float> {
             this->minimumDataValue = 0.0f; 
             this->maximumDataValue = 1.0f; 
 
+            //this->debug = true;
+
             go_back_on_select = true;
             //this->minimumDataValue = parameter->minimumDataValue;
             //this->maximumDataValue = parameter->maximumDataValue;
@@ -68,7 +70,8 @@ class ParameterValueMenuItem : public DirectNumberControl<float> {
         virtual const char *getFormattedOutputValue() {
             static char fmt[20] = "";
             //snprintf(fmt, 20, "%s", this->parameter->getFormattedLastOutputValue());
-            snprintf(fmt, 20, (*parameter)->getFormattedLastOutputValue());
+            snprintf(fmt, 20, "%s", (*parameter)->getFormattedLastOutputValue());
+            if (this->debug) Serial.printf("%s#getFormattedOutputValue() returning\t'%s'\t\t(in ParameterValueMenuItem)\n", this->label, fmt);
             return fmt;
         }
 
