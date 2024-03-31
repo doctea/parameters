@@ -91,6 +91,8 @@ FLASHMEM FloatParameter *ParameterManager::addParameter(FloatParameter *paramete
 }
 
 FLASHMEM void ParameterManager::addParameters(LinkedList<FloatParameter*> *parameters) {
+    if (parameters==nullptr) 
+        return;
     Debug_println(F("ParameterManager#addParameters()..")); Serial_flush();
     Debug_printf(F("\t\tpassed @%p, has size %i\n"), parameters, parameters->size()); Serial_flush();
     for (unsigned int i = 0 ; i < parameters->size() ; i++) {

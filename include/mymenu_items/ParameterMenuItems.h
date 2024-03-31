@@ -217,6 +217,8 @@ class ParameterMenuItem : public SubMenuItemBar {
     ParameterMenuItem(const char *label, FloatParameter **proxy_parameter) 
        : SubMenuItemBar(label)
     {
+        this->show_header = false;
+        
         this->proxy_parameter = proxy_parameter;
 
         // add the direct Value changer
