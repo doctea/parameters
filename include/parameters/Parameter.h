@@ -645,7 +645,7 @@ class DataParameterBase : public FloatParameter {
                 //sprintf(fmt, "%5i (signed)",     value); // (int)(this->maximumNormalValue*this->getCurrentNormalValue())); //getCurrentValue());
                 snprintf(fmt, 10, "%i",   value); // (int)(this->maximumNormalValue*this->getCurrentNormalValue())); //getCurrentValue());
                 // was "%5i"
-                Serial.printf("parseFormattedDataType(int) returning '%s'\n", fmt);
+                //Serial.printf("parseFormattedDataType(int) returning '%s'\n", fmt);
                 return fmt;
             }
             virtual const char* parseFormattedDataType(byte value) {
