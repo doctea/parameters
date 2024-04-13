@@ -293,7 +293,7 @@ class ParameterManager {
                 char label[MAX_LABEL_LENGTH];
                 snprintf(label, MAX_LABEL_LENGTH, "Parameters for %s", submenu_label);
                 //LinkedList<DataParameter*> *parameters = behaviour_craftsynth->get_parameters();
-                SubMenuItem *submenu = new SubMenuItem(label, false);
+                SubMenuItem *submenu = new SubMenuItem(label);
                 for (unsigned int i = 0 ; i < parameters->size() ; i++) {
                     //char tmp[MENU_C_MAX];
                     //sprintf(tmp, "test item %i", i);
@@ -346,7 +346,7 @@ class ParameterManager {
                     const unsigned int size = this->voltage_sources->size();
 
                     if (!make_own_page) {
-                        SubMenuItem *submenuitem = new SubMenuItem("Voltage Source Calibration", false);
+                        SubMenuItem *submenuitem = new SubMenuItem("Voltage Source Calibration");
                         //submenuitem->debug = true;
 
                         for (unsigned int i = 0 ; i < size ; i++) {
