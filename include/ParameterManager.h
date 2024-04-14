@@ -517,7 +517,7 @@ class ParameterManager {
                                     this->update_mixers_sliced();
                                 else
                                     this->update_mixers();
-                                if(debug) { Serial.println(F("just did parameter_manager->update_inputs()..")); Serial_flush(); }
+                                if(debug && Serial) { Serial.println(F("just did parameter_manager->update_inputs()..")); Serial_flush(); }
                                 current_mode = 0;
                                 break;
                         }

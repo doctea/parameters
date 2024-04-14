@@ -118,6 +118,7 @@ class LowMemorySwitcherMenuItem : public MenuItem {
         //Serial.printf("switching lowmemory_controls.parameter pointer from @%p to @%p\n", lowmemory_controls.parameter, &this->parameter_selector->parameter);
         // dont actually display anything, just update the parameter_selector
         lowmemory_controls.parameter = this->parameter_selector->parameter;
+        // todo: tell the dependent controls to update their internal values etc
         return pos.y;
     }
 };

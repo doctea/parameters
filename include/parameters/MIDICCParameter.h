@@ -53,10 +53,8 @@ class MIDICCParameter : public DataParameter<TargetClass,DataType> {
         DataType last_value = -1;
         virtual void setTargetValueFromData(DataType value, bool force = false) override {
             if (this->target!=nullptr) {
-                if (this->debug) 
+                if (this->debug && Serial) 
                     Serial.printf("MIDICCParameter#setTargetValueFromData(%i, %i, %i)\n", cc_number, value, this->channel);
-
-                //return; // tracing through to find what is triggering crash...
 
                 if (last_value!=value || force)
                     this->target->sendControlChange(this->cc_number, value, this->channel);

@@ -498,7 +498,6 @@ class DataParameterBase : public FloatParameter {
         virtual void sendCurrentTargetValue() {
             float value = this->getCurrentNormalValue() + this->modulateNormalValue;
             //if (this->debug) Serial.printf(F("\tin %s, got modulated value to set: %f\n"), this->label, value);
-            //TODO: maybe here, since value passsed into setTargetValueFromNormal seems to always be negative when range is set to 5%-10%...?!
             this->setTargetValueFromNormal(value);
         }
 
@@ -681,16 +680,16 @@ class DataParameterBase : public FloatParameter {
             float constrained_value = this->constrainNormal(value);
             this->lastModulatedNormalValue = constrained_value;
             this->lastOutputNormalValue = this->lastModulatedNormalValue; // = value;
-            if (debug) Serial.printf("%s#setTargetValueFromNormal(%3.3f) got modulated value %3.3f, ", this->label, value, constrained_value);
+            if (debug && Serial) Serial.printf("%s#setTargetValueFromNormal(%3.3f) got modulated value %3.3f, ", this->label, value, constrained_value);
             DataType value_to_send = this->normalToData(lastOutputNormalValue);
-            if (debug) Serial.printf("\tgot value_to_send=%3.3f\n", (float)value_to_send);
+            if (debug && Serial) Serial.printf("\tgot value_to_send=%3.3f\n", (float)value_to_send);
             this->setTargetValueFromData(value_to_send, force);
         }
 
         virtual void setTargetValueFromData(DataType value, bool force = false) = 0;
 
         virtual DataType constrainDataRange(DataType value) {
-            if (debug) Serial.printf("%s#constrainDataRange(%3.3f): constraining to lie between %3.3f and %3.3f\n", this->label, (float)value, (float)this->minimumDataLimit, (float)this->maximumDataLimit);
+            if (debug && Serial) Serial.printf("%s#constrainDataRange(%3.3f): constraining to lie between %3.3f and %3.3f\n", this->label, (float)value, (float)this->minimumDataLimit, (float)this->maximumDataLimit);
             return constrain(value, this->get_effective_minimum_data_value(), this->get_effective_maximum_data_value());
         }
 
