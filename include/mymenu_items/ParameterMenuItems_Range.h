@@ -134,16 +134,23 @@ class ParameterRangeMenuItem : public DirectNumberControl<float> {
 
         virtual void change_value(int new_value) { //override { //
             float f = (float)new_value / 100.0;
-            //if (this->debug) Serial.printf(F("ParameterValueMenuItem#change_value(%i) about to call change_value(%f)\n"), new_value, new_value);
+            //if (this->debug) Serial.printf("ParameterRangeMenuItem#change_value(int=%i) about to call change_value(float=%f)\n", new_value, new_value);
             this->change_value(f);
         }
 
-        virtual void change_value(float new_value) {    // doesn't override, implements for normalled float?
+        virtual bool button_select() override {
+            //Serial.printf("ParameterRangeMenuItem#button_select - internal value is %3.3f!\n", this->get_internal_value());
+            //this->change_value(this->get_internal_value());
+
+            return go_back_on_select;
+        }
+
+        virtual void change_value(float new_value) override {    // doesn't override, implements for normalled float?
             if (readOnly) return;
             float last_value = this->get_current_value();
-            //if (this->debug) Serial.printf(F("ParameterValueMenuItem#change_value(%f)\t in %s\tabout to call set_current_value(%f)\n"), new_value, this->label);
+            //if (this->debug) Serial.printf("ParameterRangeMenuItem#change_value(%f)\t in %s\tabout to call set_current_value(%f)\n", new_value, this->label);
             this->set_current_value(new_value);
-            //if (this->debug) Serial.printf(F("ParameterValueMenuItem#change_value(%f)\t after set_current_value(%f) get_current_value is \n"), new_value, this->get_current_value());
+            //if (this->debug) Serial.printf("ParameterRangeMenuItem#change_value(%f)\t after set_current_value(%f) get_current_value is \n", new_value, this->get_current_value());
             if (on_change_handler!=nullptr) {
                 //if (this->debug)  { Serial.println(F("NumberControl calling on_change_handler")); Serial_flush(); }
                 on_change_handler(last_value, this->internal_value); //this->get_internal_value());
