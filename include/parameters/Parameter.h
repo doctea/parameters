@@ -387,11 +387,13 @@ class DataParameterBase : public FloatParameter {
             this->minimumDataRange = v;
             if (this->minimumDataRange < this->minimumDataLimit)
                 this->minimumDataRange = this->minimumDataLimit;
+            //this->minimumNormalValue = this->dataToNormal(minimumDataRange);
         }
         virtual void setRangeMaximumLimit(float v) override {
             this->maximumDataRange = v;
             if (this->maximumDataRange > this->maximumDataLimit)
                 this->maximumDataRange = this->maximumDataLimit;
+            //this->maximumNormalValue = this->dataToNormal(maximumDataRange);
         }
         virtual void incrementRangeMinimumLimit() override {
             //Serial.printf("%s#incrementRangeMinimumLimit() with minimumDataRange=%s\n", this->label, this->getFormattedValue(this->minimumDataRange));
