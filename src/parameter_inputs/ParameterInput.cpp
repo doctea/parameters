@@ -56,6 +56,9 @@ lfo_option_t virtual_parameter_options[lfo_option_id::NUM] = {
         return nullptr;
     }
 
+    // for caching available_values list for period controls, saves a couple of hundred bytes
+    LinkedList<LambdaSelectorControl<float>::option> *period_options = nullptr;
+
     FLASHMEM
     SubMenuItemBar *VirtualParameterInput::makeControls(int16_t memory_size, const char *label_prefix) {
         SubMenuItemBar *submenu = BaseParameterInput::makeControls(memory_size, label_prefix);
@@ -68,14 +71,19 @@ lfo_option_t virtual_parameter_options[lfo_option_id::NUM] = {
                 [=] (float v) -> void { this->locked_period = v; },
                 [=] (void) -> float { return this->locked_period; }
             );
-            period_control->add_available_value(0.25f, "Beat");
-            period_control->add_available_value(0.5f,  "2xBeat");
-            period_control->add_available_value(0.75f, "3xBeat");
-            period_control->add_available_value(1.0f,  "Bar");
-            period_control->add_available_value(2.0f,  "2xBar");
-            period_control->add_available_value(3.0f,  "3xBar");
-            period_control->add_available_value(4.0f,  "4xBar"); //Phrase");
-            period_control->add_available_value(8.0f,  "8xBar"); //2xPhrase");
+            if (period_options==nullptr) {
+                period_control->add_available_value(0.25f, "Beat");
+                period_control->add_available_value(0.5f,  "2xBeat");
+                period_control->add_available_value(0.75f, "3xBeat");
+                period_control->add_available_value(1.0f,  "Bar");
+                period_control->add_available_value(2.0f,  "2xBar");
+                period_control->add_available_value(3.0f,  "3xBar");
+                period_control->add_available_value(4.0f,  "4xBar"); //Phrase");
+                period_control->add_available_value(8.0f,  "8xBar"); //2xPhrase");
+                period_options = period_control->get_available_values();
+            } else {
+                period_control->set_available_values(period_options);
+            }
             submenu->add(period_control);
         }
         if(lfo_mode==LFO_FREE || lfo_mode==LFO_LOCKED) {
