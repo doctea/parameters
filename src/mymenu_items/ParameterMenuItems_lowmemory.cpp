@@ -5,16 +5,8 @@
 
 lowmemory_controls_t lowmemory_controls;
 
-void create_low_memory_parameter_controls(const char *label, LinkedList<FloatParameter*> *parameters, int_fast16_t default_fg) {
-    ////// control to select which parameter the other controls will edit
-    ParameterMenuItemSelector *parameter_selector = new ParameterMenuItemSelector(label, parameters);
-    //if (lowmemory_controls.parameter_selector==nullptr)
-        //lowmemory_controls.parameter_selector = new ParameterMenuItemSelector(label, parameters);
-    menu->add(new LowMemorySwitcherMenuItem((char*)"switcher", parameters, parameter_selector, default_fg));
-    lowmemory_controls.parameter = parameter_selector->parameter;
 
-    menu->add(parameter_selector);
-
+void create_low_memory_parameter_controls_actual() {
     ////// amount controls, to set percentage amounts 
     //ParameterMenuItem *parameter_amount_controls;
     if (lowmemory_controls.parameter_amount_controls==nullptr)
@@ -24,13 +16,10 @@ void create_low_memory_parameter_controls(const char *label, LinkedList<FloatPar
     // controls to choose which ParameterInputs to use for each slot
     // then set up a generic submenuitembar to hold the input selectors
     if (lowmemory_controls.input_selectors_bar==nullptr) {
-        lowmemory_controls.input_selectors_bar = new SubMenuItemBar("Inputs");
-        lowmemory_controls.input_selectors_bar->show_header = false;
-        lowmemory_controls.input_selectors_bar->show_sub_headers = false;
+        lowmemory_controls.input_selectors_bar = new SubMenuItemBar("Inputs", false, false);
 
         // some spacers so that the input controls align with the corresponding amount controls
-        MenuItem *spacer1 = new MenuItem("Inputs");
-        spacer1->selectable = false;           
+        MenuItem *spacer1 = new MenuItem("Inputs", false);
         lowmemory_controls.input_selectors_bar->add(spacer1);
 
         // make the three source selector controls
@@ -66,8 +55,7 @@ void create_low_memory_parameter_controls(const char *label, LinkedList<FloatPar
         lowmemory_controls.input_selectors_bar->add(source_selector_3);
 
         // empty column at end of bar
-        MenuItem *spacer2 = new MenuItem("");
-        spacer2->selectable = false;
+        MenuItem *spacer2 = new MenuItem("", false);
         lowmemory_controls.input_selectors_bar->add(spacer2);
     }
     menu->add(lowmemory_controls.input_selectors_bar);
@@ -85,27 +73,37 @@ void create_low_memory_parameter_controls(const char *label, LinkedList<FloatPar
     menu->add(lowmemory_controls.polarity_submenu);
 
     // range limit controls
-    SubMenuItemBar *range_selectors_bar;
     if (lowmemory_controls.range_submenu==nullptr) {
-        Serial.println("create_low_memory_parameter_controls: setting up range_submenu");
-        range_selectors_bar = new SubMenuItemBar("Range");
-        range_selectors_bar->show_header = false; 
+        lowmemory_controls.range_submenu = new SubMenuItemBar("Range", true, false);
 
-        MenuItem *label = new MenuItem("Range");
-        label->selectable = false;
-        range_selectors_bar->add(label);
+        MenuItem *label = new MenuItem("Range", false);
+        lowmemory_controls.range_submenu->add(label);
 
-        Serial.println("creating ParameterRangeMenuItem 1..");
         ParameterRangeMenuItem *minimum_value_control = new ParameterRangeMenuItem("Minimum", &lowmemory_controls.parameter, MINIMUM);
-        Serial.println("created ParameterRangeMenuItem 1!"); Serial_flush();
-        range_selectors_bar->add(minimum_value_control);
+        lowmemory_controls.range_submenu->add(minimum_value_control);
 
-        Serial.println("creating ParameterRangeMenuItem 2.."); Serial_flush();
         ParameterRangeMenuItem *maximum_value_control = new ParameterRangeMenuItem("Maximum", &lowmemory_controls.parameter, MAXIMUM);
-        range_selectors_bar->add(maximum_value_control);
-
-        lowmemory_controls.range_submenu = range_selectors_bar;
+        lowmemory_controls.range_submenu->add(maximum_value_control);
     }
     menu->add(lowmemory_controls.range_submenu);
 
+}
+
+void create_low_memory_parameter_controls(const char *label, LinkedList<FloatParameter*> *parameters, int_fast16_t default_fg) {
+    ////// control to select which parameter the other controls will edit
+    ParameterMenuItemSelector *parameter_selector = new ParameterMenuItemSelector(label, parameters);
+    //if (lowmemory_controls.parameter_selector==nullptr)
+        //lowmemory_controls.parameter_selector = new ParameterMenuItemSelector(label, parameters);
+    menu->add(new LowMemorySwitcherMenuItem((char*)"switcher", parameters, parameter_selector, default_fg));
+    lowmemory_controls.parameter = parameter_selector->parameter;
+    menu->add(parameter_selector);
+
+    create_low_memory_parameter_controls_actual();
+}
+
+void create_low_memory_parameter_controls(const char *label, FloatParameter *parameter, int_fast16_t default_fg) {
+    menu->add(new LowMemoryEmbedMenuItem((char*)"single", parameter, default_fg));
+    lowmemory_controls.parameter = parameter;
+
+    create_low_memory_parameter_controls_actual();
 }

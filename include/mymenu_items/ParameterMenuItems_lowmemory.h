@@ -84,8 +84,9 @@ class ParameterMenuItemSelector : public SelectorControl<int_least16_t> { //publ
 #include "ParameterInputMenuItems.h"
 
 
-/// controls for allowing the same parmeter menu items to be re-used on multiple pages
+/// controls for allowing the same parameter menu items to be re-used on multiple pages
 
+// store pointers to the controls to re-use
 struct lowmemory_controls_t {
     // re-usable controls
     ParameterMenuItem *parameter_amount_controls;
@@ -93,14 +94,12 @@ struct lowmemory_controls_t {
     SubMenuItemBar *polarity_submenu;
     SubMenuItemBar *range_submenu;
     // pointer to the current control being edited
-    FloatParameter * parameter;
+    FloatParameter *parameter;
 };
 extern lowmemory_controls_t lowmemory_controls;
 
-// "dummy" invisible control that switches single instances of editor controls 
-// so that when this control is rendered, the correct parameter is swapped into be displayed/edited
-// todo: make a version of this that doesn't allow require a ParameterMenuItem to do the switching, so can re-use
-//       controls on eg the CV-to-MIDI pages where we want one set of editors per page dedicated to editing one parameter
+// "dummy" invisible control that allows to switch single instances of editor controls to operate on chosen parameter
+// so that when this control is rendered, the correct parameter is swapped in to be displayed/edited
 class LowMemorySwitcherMenuItem : public MenuItem {
     public:
     LinkedList<FloatParameter*> *parameters = nullptr;
@@ -123,6 +122,32 @@ class LowMemorySwitcherMenuItem : public MenuItem {
     }
 };
 
+// "dummy" invisible control that allows re-use of single instance of editor controls for a single parameter
+class LowMemoryEmbedMenuItem : public MenuItem {
+    public:
+    //LinkedList<FloatParameter*> *parameters = nullptr;
+    //ParameterMenuItemSelector *parameter_selector = nullptr;
+    FloatParameter *parameter = nullptr;
+
+    LowMemoryEmbedMenuItem(char *label, FloatParameter *parameter, int_fast16_t default_fg) 
+        : MenuItem(label) {
+            this->parameter = parameter;
+            //this->parameter_selector = parameter_selector;
+            this->default_fg = default_fg;
+            this->selectable = false;
+    }
+
+    virtual int display(Coord pos, bool selected, bool opened) override {
+        //Serial.printf("switching lowmemory_controls.parameter pointer from @%p to @%p\n", lowmemory_controls.parameter, &this->parameter_selector->parameter);
+        // dont actually display anything, just update the parameter_selector
+        //lowmemory_controls.parameter = this->parameter_selector->parameter;
+        lowmemory_controls.parameter = this->parameter;
+        // todo: tell the dependent controls to update their internal values etc
+        return pos.y;
+    }
+};
+
 // create 'low-memory' controls for a list of parameters
-// re-uses the same actual controls, inserting a dummy LowMemorySwitcherMenuItem so that the correct item is pointed at
+// re-uses the same actual controls, inserting a dummy LowMemorySwitcherMenuItem or LowMemroryEmbedMenuItem so that the correct item is pointed at
 void create_low_memory_parameter_controls(const char *label, LinkedList<FloatParameter*> *parameters, int_fast16_t default_fg = C_WHITE);
+void create_low_memory_parameter_controls(const char *label, FloatParameter *parameters, int_fast16_t default_fg = C_WHITE);
