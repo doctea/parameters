@@ -10,7 +10,7 @@ void create_low_memory_parameter_controls_actual() {
     ////// amount controls, to set percentage amounts 
     //ParameterMenuItem *parameter_amount_controls;
     if (lowmemory_controls.parameter_amount_controls==nullptr)
-        lowmemory_controls.parameter_amount_controls = new ParameterMenuItem("Amounts", &lowmemory_controls.parameter);
+        lowmemory_controls.parameter_amount_controls = new ParameterMenuItem("Amounts", &lowmemory_controls.parameter, false);
     menu->add(lowmemory_controls.parameter_amount_controls);
 
     // controls to choose which ParameterInputs to use for each slot

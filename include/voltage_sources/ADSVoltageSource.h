@@ -75,7 +75,6 @@ class ADSVoltageSource : public ADSVoltageSourceBase {
 
             #ifndef FAST_VOLTAGE_READS
                 // do three readings from ADC and average them
-                //int16_t adcReading = ads_source->readADC(channel);
                 int16_t value1 = ads_source->readADC(channel);
                 int16_t value2 = ads_source->readADC(channel);
                 int16_t value3 = ads_source->readADC(channel);
