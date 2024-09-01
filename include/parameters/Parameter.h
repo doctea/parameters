@@ -89,7 +89,7 @@ class BaseParameter {
             return false;
         }
 
-        virtual void save_sequence_add_lines(LinkedList<String> *lines) {}
+        virtual void save_pattern_add_lines(LinkedList<String> *lines) {}
 
         // called when a BaseParameterInput that was targetting this item release control of this parameter
 };
@@ -306,7 +306,7 @@ class FloatParameter : public BaseParameter {
 
     };
 
-    virtual void save_sequence_add_lines(LinkedList<String> *lines); 
+    virtual void save_pattern_add_lines(LinkedList<String> *lines); 
     virtual bool load_parse_key_value(String key, String value);
     
     #ifdef ENABLE_SCREEN
@@ -709,8 +709,8 @@ class DataParameterBase : public FloatParameter {
         }
 
 
-        void save_sequence_add_lines(LinkedList<String> *lines) override {
-            FloatParameter::save_sequence_add_lines(lines);
+        void save_pattern_add_lines(LinkedList<String> *lines) override {
+            FloatParameter::save_pattern_add_lines(lines);
 
             lines->add(String("parameter_") + String(this->label) + String("_range_minimum=") + String(this->minimumDataRange));
             lines->add(String("parameter_") + String(this->label) + String("_range_maximum=") + String(this->maximumDataRange));

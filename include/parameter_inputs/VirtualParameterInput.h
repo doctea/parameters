@@ -169,8 +169,8 @@ class VirtualParameterInput : public AnalogParameterInputBase<float> {
             }
         }
 
-        virtual LinkedList<String> *save_sequence_add_lines(LinkedList<String> *lines) override {
-            AnalogParameterInputBase::save_sequence_add_lines(lines);
+        virtual LinkedList<String> *save_pattern_add_lines(LinkedList<String> *lines) override {
+            AnalogParameterInputBase::save_pattern_add_lines(lines);
             
             lines->add(String(prefix) + String(this->name) + String("_period") 
                 + String('=') + String(this->locked_period));

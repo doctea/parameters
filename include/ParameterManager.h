@@ -454,15 +454,15 @@ class ParameterManager {
             // do the available_parameter_inputs first // TODO: maybe we don't want to always save the ParameterInput settings here, if for example we're saving a passed-in list of Parameters?
             const uint_fast16_t size = available_inputs->size();
             for (uint_fast16_t i = 0 ; i < size ; i++) {
-                //Serial.printf("save_sequence_add_lines() on input %i/%i, \tfreeram is %u\n", i+1, size, freeRam());
-                available_inputs->get(i)->save_sequence_add_lines(lines);
+                //Serial.printf("save_pattern_add_lines() on input %i/%i, \tfreeram is %u\n", i+1, size, freeRam());
+                available_inputs->get(i)->save_pattern_add_lines(lines);
             }
 
             // then to the parameters
             const uint_fast16_t actual_size = list_to_save->size();
             for (uint_fast16_t i = 0 ; i < actual_size ; i++) {
-                //Serial.printf("save_sequence_add_lines() on parameter %i/%i, \tfreeram is %u\n", i+1, size, freeRam());
-                list_to_save->get(i)->save_sequence_add_lines(lines);
+                //Serial.printf("save_pattern_add_lines() on parameter %i/%i, \tfreeram is %u\n", i+1, size, freeRam());
+                list_to_save->get(i)->save_pattern_add_lines(lines);
             }
 
             return lines;

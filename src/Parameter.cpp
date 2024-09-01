@@ -99,11 +99,11 @@ float FloatParameter::get_amount_for_slot(int8_t slot) {
 }
 
 // get the lines required to save the state of this parameter mapping to a file
-void FloatParameter::save_sequence_add_lines(LinkedList<String> *lines) {
+void FloatParameter::save_pattern_add_lines(LinkedList<String> *lines) {
     // save parameter base values (save normalised value; let's hope that this is precise enough to restore from!)
     String line = String("parameter_value_") + String(this->label) + "=" + String(this->getCurrentNormalValue());
     lines->add(line);
-    //Serial.printf("PARAMETERS\t%s:\tsave_sequence_add_lines saving line:\t%s\n", this->label, line.c_str());
+    //Serial.printf("PARAMETERS\t%s:\save_pattern_add_lines saving line:\t%s\n", this->label, line.c_str());
 
     if (this->is_modulatable()) {
         #define MAX_SAVELINE 255
@@ -129,7 +129,7 @@ void FloatParameter::save_sequence_add_lines(LinkedList<String> *lines) {
                 this->connections[slot].amount,
                 this->connections[slot].polar_mode==UNIPOLAR ? "unipolar" : "bipolar"
             );
-            //Serial.printf("PARAMETERS\t%s:\tsave_sequence_add_lines saving line:\t%s\n", this->label, line);
+            //Serial.printf("PARAMETERS\t%s:\save_pattern_add_lines saving line:\t%s\n", this->label, line);
             lines->add(String(line));
         }
     }

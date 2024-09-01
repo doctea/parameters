@@ -104,7 +104,7 @@ class BaseParameterInput {
 
     static const char *prefix; // = "parameter_input_";  // have to initialise these in the cpp file apparently
     static const char *input_type_suffix; // = "_input_type";
-    virtual LinkedList<String> *save_sequence_add_lines(LinkedList<String> *lines) {
+    virtual LinkedList<String> *save_pattern_add_lines(LinkedList<String> *lines) {
       // eg,
       //  parameter_input_A_input_type=bipolar
       

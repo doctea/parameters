@@ -80,12 +80,12 @@ class MIDICCParameter : public DataParameter<TargetClass,DataType> {
             }
             return FloatParameter::load_parse_key_value(key, value);
         }
-        void save_sequence_add_lines(LinkedList<String> *lines) override {
+        void save_pattern_add_lines(LinkedList<String> *lines) override {
             if (this->configurable) {
                 lines->add(String("midi_cc_parameter_value_") + String(this->label) + String("_channel=") + String(this->channel));
                 lines->add(String("midi_cc_parameter_value_") + String(this->label) + String("_cc=") + String(this->cc_number));
             }
-            FloatParameter::save_sequence_add_lines(lines);
+            FloatParameter::save_pattern_add_lines(lines);
         }
 };
 
