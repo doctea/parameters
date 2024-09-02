@@ -1,5 +1,4 @@
-#ifndef VOLTAGEPARAMETERINPUT__INCLUDED
-#define VOLTAGEPARAMETERINPUT__INCLUDED
+#pragma once
 
 #include "ParameterInput.h"
 #include "AnalogParameterInputBase.h"
@@ -45,7 +44,7 @@ class VoltageParameterInput : public AnalogParameterInputBase<float> {
         virtual uint8_t get_voltage_pitch() {
             //return get_midi_pitch_for_voltage(this->voltage_source->get_voltage_pitch());
             if (this->voltage_source==nullptr) 
-                Debug_printf(F("%c#get_voltage_pitch() has no voltage_source?!"), this->name); Serial_flush();
+                Debug_printf("%c#get_voltage_pitch() has no voltage_source?!", this->name); Serial_flush();
             return this->voltage_source->get_voltage_pitch();
         }
 
@@ -65,16 +64,16 @@ class VoltageParameterInput : public AnalogParameterInputBase<float> {
                     Serial.print((uint32_t) this->ads->toVoltage(intermediate));
                     Serial.printf(", final %i", (uint32_t) currentValue*1000.0);
                     Serial.println();*/
-                    Debug_printf(F("%c: VoltageParameterInput->read() got voltage "), this->name); //
+                    Debug_printf("%c: VoltageParameterInput->read() got voltage ", this->name); //
                     Debug_println(currentValue);
                 }
                 #endif
 
                 #ifdef ENABLE_PRINTF
                 if (this->debug) {
-                    Debug_printf(F("VoltageParameterInput#read() for '%c': got currentValue "), this->name); Serial_flush();
+                    Debug_printf("VoltageParameterInput#read() for '%c': got currentValue ", this->name); Serial_flush();
                     Debug_print(currentValue); Serial_flush();
-                    Debug_print(F(" converted to normal ")); Serial_flush();
+                    Debug_print(" converted to normal "); Serial_flush();
                     Debug_println(normal); Serial_flush();
                 }
                 #endif
@@ -85,9 +84,9 @@ class VoltageParameterInput : public AnalogParameterInputBase<float> {
                     if (this->callback != nullptr) {
                         if (this->debug) {
                             Debug_print(this->name);
-                            Debug_print(F(": calling callback("));
+                            Debug_print(": calling callback(");
                             Debug_print(normal);
-                            Debug_println(F(")"));
+                            Debug_println(")");
                             Serial_flush();
                         }      
                         (*this->callback)(normal);
@@ -118,5 +117,3 @@ class VoltageParameterInput : public AnalogParameterInputBase<float> {
             }
         }
 };
-
-#endif
