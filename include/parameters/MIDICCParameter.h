@@ -4,20 +4,11 @@
 #include "parameters/Parameter.h"
 //#include "midi/midi_out_wrapper.h"
 
+#include "midi_helpers.h"
+
 #ifdef ENABLE_SCREEN
     #include "menu.h"
 #endif
-
-// interface for classes that can receive MIDI CC data
-class IMIDICCTarget {
-    public:
-        virtual void sendControlChange(uint8_t cc_number, uint8_t value, uint8_t channel) {};
-};
-
-class IMIDIProxiedCCTarget : public IMIDICCTarget {
-    public:
-        virtual void sendProxiedControlChange(uint8_t cc_number, uint8_t value, uint8_t channel) {};
-};
 
 // for applying modulation to a value before sending CC values out to the target device
 // eg, a synth's cutoff value
