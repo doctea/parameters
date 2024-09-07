@@ -19,8 +19,9 @@ class MIDI_CC_Source {
         //Serial.printf("update_parameter_inputs_cc received %i, %i, %i\n", number, value, channel);
         const uint_fast16_t size = this->parameter_inputs->size();
         for (uint_fast16_t i = 0 ; i < size ; i++) {
-            if (this->parameter_inputs->get(i)->responds_to(number, channel)) {
-                this->parameter_inputs->get(i)->receive_control_change(number, value, channel);
+            MIDIParameterInput *parameter_input = this->parameter_inputs->get(i);
+            if (parameter_input->responds_to(number, channel)) {
+                parameter_input->receive_control_change(number, value, channel);
             }
         }
     }
