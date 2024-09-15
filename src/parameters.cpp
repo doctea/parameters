@@ -21,7 +21,7 @@
 
 #include "menuitems_graphical_display.h"
 
-// just main control, with amounts 
+// just main control, with (no?) amounts 
 FLASHMEM MenuItem *FloatParameter::makeControl() {
     Debug_printf(F("FloatParameter#makeControl for %s\n"), this->label);
     // first set up the submenu to hold the values
@@ -100,14 +100,20 @@ FLASHMEM LinkedList<MenuItem *> *FloatParameter::makeControls() {
     // list for storing all the controls we're about to add
     LinkedList<MenuItem *> *controls = new LinkedList<MenuItem *>();
 
+    // add any custom controls that the particular parameter type wants to add (eg CC+channel selectors for MIDICCParameters)
+    this->addCustomTypeControls(controls);
+
+    // if can't be modulated then just add simple control
+    // todo: is this actually used by anything?  what does it do?
     if (!this->is_modulatable()) {
         Debug_printf(F("WARNING: %s is NOT modulatable but asked to create modulatable controls!"), this->label);
         controls->add(this->makeControl());
         return controls;
     }
+
     // first, set up the submenu to hold the controls for the amounts
     // this is handled by its own compound control type, 'ParameterMenuItem'
-    ParameterMenuItem *fullmenuitem = new ParameterMenuItem(this->label, &this->self);
+    ParameterMenuItem *fullmenuitem = new ParameterMenuItem("Amounts"/*this->label*/, &this->self, false);
     controls->add(fullmenuitem);
 
     #ifndef DISABLE_PARAMETER_INPUT_SELECTORS

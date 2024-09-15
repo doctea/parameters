@@ -8,6 +8,7 @@
 
 #ifdef ENABLE_SCREEN
     #include "menu.h"
+    #include "submenuitem_bar.h"
 #endif
 
 // for applying modulation to a value before sending CC values out to the target device
@@ -56,7 +57,7 @@ class MIDICCParameter : public DataParameter<TargetClass,DataType> {
             }
         }
 
-        bool load_parse_key_value(String key, String value) override {
+        virtual bool load_parse_key_value(String key, String value) override {
             if (this->configurable) {
                 String prefix = String("midi_cc_parameter_value_") + String(this->label) + String("_");
                 if (key.startsWith(prefix)) {
@@ -71,13 +72,42 @@ class MIDICCParameter : public DataParameter<TargetClass,DataType> {
             }
             return FloatParameter::load_parse_key_value(key, value);
         }
-        void save_pattern_add_lines(LinkedList<String> *lines) override {
+        virtual void save_pattern_add_lines(LinkedList<String> *lines) override {
             if (this->configurable) {
-                lines->add(String("midi_cc_parameter_value_") + String(this->label) + String("_channel=") + String(this->channel));
-                lines->add(String("midi_cc_parameter_value_") + String(this->label) + String("_cc=") + String(this->cc_number));
+                String prefix = String("midi_cc_parameter_value_") + String(this->label); //+ String("_");
+                lines->add(prefix + String("_channel=") + String(this->channel));
+                lines->add(prefix + String("_cc=") + String(this->cc_number));
             }
             FloatParameter::save_pattern_add_lines(lines);
         }
+
+        //FLASHMEM virtual LinkedList<MenuItem *> *makeControls() override;
+        FLASHMEM
+        virtual LinkedList<MenuItem *> *addCustomTypeControls(LinkedList<MenuItem *> *controls) override { 
+            if (this->configurable) {
+                SubMenuItem *bar = new SubMenuItemBar("Settings", true, false);
+
+                bar->add(new DirectNumberControl<byte>(
+                    "Output CC", //label, 
+                    &this->cc_number,
+                    this->cc_number,
+                    MIDI_MIN_VELOCITY,
+                    MIDI_MAX_VELOCITY
+                ));
+
+                bar->add(new DirectNumberControl<byte>(
+                    "Output MIDI Channel", 
+                    &this->channel,
+                    this->channel,
+                    MIDI_MIN_CHANNEL,
+                    MIDI_MAX_CHANNEL
+                ));
+
+                // insert controls at the top
+                controls->add(bar);
+            }
+            return controls; 
+        };
 };
 
 // for parameters where we want to both accept updates from a mapping (eg a keyboard routed to the device), while also applying modulation before sending the actual value out to the target device, eg, modwheel

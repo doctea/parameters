@@ -281,6 +281,7 @@ class ParameterManager {
                         Debug_printf("addParameterSubMenuItems() adding non-modulatable item %i aka '%s'\n", i, parameters->get(i)->label);
                         MenuItem *item = this->makeMenuItemForParameter(parameters->get(i));
                         item->set_default_colours(default_fg_colour);
+                        menu->add(new SeparatorMenuItem(item->label, default_fg_colour));
                         menu->add(item);
                     }
                 }
@@ -300,6 +301,7 @@ class ParameterManager {
                     //submenu->add(new MenuItem(tmp));
                     if (parameters->get(i)->is_modulatable()) {
                         Debug_printf("getModulatableParameterSubMenuItems(menu, '%s') processing parameter %i\n", label, i);
+                        submenu->add(new SeparatorMenuItem(parameters->get(i)->label));
                         submenu->add(this->makeMenuItemsForParameter(parameters->get(i)));
                     }
                 }
