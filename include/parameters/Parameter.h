@@ -380,10 +380,10 @@ class DataParameterBase : public FloatParameter {
         }
 
         virtual float getRangeMinimumLimit() override {
-            return this->constrainDataLimit(this->minimumDataRange);
+            return this->constrainDataToLimit(this->minimumDataRange);
         }
         virtual float getRangeMaximumLimit() override {
-            return this->constrainDataLimit(this->maximumDataRange);
+            return this->constrainDataToLimit(this->maximumDataRange);
         }
         virtual void setRangeMinimumLimit(float v) override {
             this->minimumDataRange = v;
@@ -400,21 +400,33 @@ class DataParameterBase : public FloatParameter {
         virtual void incrementRangeMinimumLimit() override {
             //Serial.printf("%s#incrementRangeMinimumLimit() with minimumDataRange=%s\n", this->label, this->getFormattedValue(this->minimumDataRange));
             this->setRangeMinimumLimit(this->incrementDataRange((DataType)this->getRangeMinimumLimit()));
+            // call updateValueFromData to ensure the current value is within the new range
+            // actually seems to happen anyway without needing to do this
+            //this->updateValueFromData(this->currentDataValue);
             //this->setRangeMinimumLimit(this->getRangeMinimumLimit() + this->get_current_step(this->minimumDataRange));
         }
         virtual void decrementRangeMinimumLimit() override {
             //Serial.printf("%s#decrementRangeMinimumLimit() with minimumDataRange=%s\n", this->label, this->getFormattedValue(this->minimumDataRange));
             this->setRangeMinimumLimit(this->decrementDataRange((DataType)this->getRangeMinimumLimit()));
+            // call updateValueFromData to ensure the current value is within the new range
+            // actually seems to happen anyway without needing to do this
+            //this->updateValueFromData(this->currentDataValue);
             //this->setRangeMinimumLimit(this->getRangeMinimumLimit() - this->get_current_step(this->minimumDataRange));
         }
         virtual void incrementRangeMaximumLimit() override {
             //Serial.printf("%s#incrementRangeMaximumLimit() with maximum_limit=%s\n", this->label, this->getFormattedValue(this->maximumDataRange));
             this->setRangeMaximumLimit(this->incrementDataRange((DataType)this->getRangeMaximumLimit()));
+            // call updateValueFromData to ensure the current value is within the new range
+            // actually seems to happen anyway without needing to do this
+            //this->updateValueFromData(this->currentDataValue);
             //this->setRangeMaximumLimit(this->getRangeMaximumLimit() + this->get_current_step(this->maximum_limit));
         }
         virtual void decrementRangeMaximumLimit() override {
             //Serial.printf("%s#decrementRangeMaximumLimit() with maximum_limit=%s\n", this->label, this->getFormattedValue(this->maximumDataRange));
             this->setRangeMaximumLimit(this->decrementDataRange((DataType)this->getRangeMaximumLimit()));
+            // call updateValueFromData to ensure the current value is within the new range
+            // actually seems to happen anyway without needing to do this
+            //this->updateValueFromData(this->currentDataValue);
             //this->setRangeMaximumLimit(this->getRangeMaximumLimit() - this->get_current_step(this->maximum_limit));
         }
 
@@ -445,7 +457,7 @@ class DataParameterBase : public FloatParameter {
         }
         virtual float dataToNormal(DataType value) {
             //if (this->debug) Serial.printf("dataToNormal(%i) ", value);
-            value = constrainDataRange(value);
+            value = constrainDataToRange(value);
             if (this->debug) Serial.printf("%s#dataToNormal(%3.3f) ", this->label, (float)value);
             float normal = (float)(value - get_effective_minimum_data_value()) / (float)(get_effective_maximum_data_value() - get_effective_minimum_data_value());
             if (this->debug) Serial.printf(" => %3.3f\n", normal);
@@ -571,41 +583,57 @@ class DataParameterBase : public FloatParameter {
             //if (this->debug) Serial.printf("Parameter#incrementDataValue(%i)..\n", value); Serial.printf("\ttaking value %i and doing ++ on it..", value);
             value += this->get_current_step(value);
             //if (this->debug) Serial.printf("\tgot %i.\n");
-            int new_value = this->constrainDataLimit(value);
+            int new_value = this->constrainDataToRange(value);
             //if (this->debug) Serial.printf("\tbecame %i (after constrain to %i:%i)..\n", new_value, this->minimumDataLimit, this->maximumDataLimit);
             return new_value;
         }
         // returns a decremented DataType version of input value (int) - down to the current Range minimum
         virtual DataType decrementDataValue(int value) {
-            value-= this->get_current_step(value);
-            return this->constrainDataLimit(value);
+            int orig_value = value;
+            value -= this->get_current_step(value);
+            // handle unsigned values that might wrap back around to max
+            if (value < this->get_effective_minimum_data_value() || value >= this->get_effective_maximum_data_value())
+                return this->get_effective_minimum_data_value();
+            return this->constrainDataToRange(value);
         }
         // returns an incremented DataType version of input value (float) - up to the current Range maximum
         virtual DataType incrementDataValue(float value) {
             //Serial.printf("%s#incrementDataValue(%f) float version\n", this->label, value);
             value += this->get_current_step(value);
-            return this->constrainDataLimit(value);
+            return this->constrainDataToRange(value);
         }
         // returns a decremented DataType version of input value (float) - down to the current Range minimum
         virtual DataType decrementDataValue(float value) {
+            float orig_value = value;
             value -= this->get_current_step(value);
-            return this->constrainDataLimit(value);
+            if (value < this->get_effective_minimum_data_value() || value >= this->get_effective_maximum_data_value())
+                return this->get_effective_minimum_data_value();
+            return this->constrainDataToRange(value);
         }
 
-        // increment a <DataType> value up to the maximum of maximumDataLimit -- ie, up to the actual hard maximum of the underlying Parameter
+        // increment a <DataType> Range value up to the maximum of maximumDataLimit -- ie, up to the actual hard maximum of the underlying Parameter
         virtual DataType incrementDataRange(DataType value) {
             value += this->get_current_step(value);
-            return this->constrainDataLimit(value);
+            return this->constrainDataToLimit(value);
         }
-        // decrement a <DataType> value up to the minimum of minimumDataLimit -- ie, up to the actual hard minimum of the underlying Parameter
+        // decrement a <DataType> Range value up to the minimum of minimumDataLimit -- ie, up to the actual hard minimum of the underlying Parameter
         virtual DataType decrementDataRange(DataType value) {
+            DataType orig_value = value;
             value -= this->get_current_step(value);
-            return this->constrainDataLimit(value);
+            if (value < this->minimumDataLimit || value >= this->maximumDataLimit)
+                return this->minimumDataLimit;
+            return this->constrainDataToLimit(value);
         }
         // constrain a <DataType> value to be within the minimum-maximum of the underlying Parameter
-        virtual DataType constrainDataLimit(DataType value) {
-            if (debug) Serial.printf("%s#constrainDataLimit(%3.3f): constraining to lie between %3.3f and %3.3f\n", this->label, (float)value, (float)this->minimumDataLimit, (float)this->maximumDataLimit);
+        virtual DataType constrainDataToLimit(DataType value) {
+            if (debug) Serial.printf("%s#constrainDataToLimit(%3.3f): constraining to lie between %3.3f and %3.3f\n", this->label, (float)value, (float)this->minimumDataLimit, (float)this->maximumDataLimit);
             return constrain(value, this->minimumDataLimit, this->maximumDataLimit);
+        }
+
+        // constrain a <DataType> value to be within the minimum-maximum of the current custom range
+        virtual DataType constrainDataToRange(DataType value) {
+            if (debug && Serial) Serial.printf("%s#constrainDataToRange(%3.3f): constraining to lie between %3.3f and %3.3f\n", this->label, (float)value, (float)this->minimumDataLimit, (float)this->maximumDataLimit);
+            return constrain(value, this->get_effective_minimum_data_value(), this->get_effective_maximum_data_value());
         }
 
         virtual const char *getFormattedLimit(float data_value) {
@@ -692,10 +720,6 @@ class DataParameterBase : public FloatParameter {
 
         virtual void setTargetValueFromData(DataType value, bool force = false) = 0;
 
-        virtual DataType constrainDataRange(DataType value) {
-            if (debug && Serial) Serial.printf("%s#constrainDataRange(%3.3f): constraining to lie between %3.3f and %3.3f\n", this->label, (float)value, (float)this->minimumDataLimit, (float)this->maximumDataLimit);
-            return constrain(value, this->get_effective_minimum_data_value(), this->get_effective_maximum_data_value());
-        }
 
         virtual float constrainNormal(float value) {
             // TODO: check if polar/bipolar?

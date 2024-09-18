@@ -24,8 +24,8 @@ class MIDICCParameter : public DataParameter<TargetClass,DataType> {
             : DataParameter<TargetClass,DataType>(label, target) {
                 this->cc_number = cc_number;
                 this->channel = channel;
-                this->minimumDataLimit = 0;
-                this->maximumDataLimit = 127;
+                this->minimumDataLimit = this->minimumDataRange = 0;
+                this->maximumDataLimit = this->maximumDataRange = 127;
                 this->configurable = configurable;
                 //this->debug = true;
         }
