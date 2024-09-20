@@ -589,7 +589,6 @@ class DataParameterBase : public FloatParameter {
         }
         // returns a decremented DataType version of input value (int) - down to the current Range minimum
         virtual DataType decrementDataValue(int value) {
-            int orig_value = value;
             value -= this->get_current_step(value);
             // handle unsigned values that might wrap back around to max
             if (value < this->get_effective_minimum_data_value() || value >= this->get_effective_maximum_data_value())
@@ -604,7 +603,6 @@ class DataParameterBase : public FloatParameter {
         }
         // returns a decremented DataType version of input value (float) - down to the current Range minimum
         virtual DataType decrementDataValue(float value) {
-            float orig_value = value;
             value -= this->get_current_step(value);
             if (value < this->get_effective_minimum_data_value() || value >= this->get_effective_maximum_data_value())
                 return this->get_effective_minimum_data_value();
@@ -618,7 +616,6 @@ class DataParameterBase : public FloatParameter {
         }
         // decrement a <DataType> Range value up to the minimum of minimumDataLimit -- ie, up to the actual hard minimum of the underlying Parameter
         virtual DataType decrementDataRange(DataType value) {
-            DataType orig_value = value;
             value -= this->get_current_step(value);
             if (value < this->minimumDataLimit || value >= this->maximumDataLimit)
                 return this->minimumDataLimit;
