@@ -103,3 +103,41 @@ FLASHMEM void ParameterManager::addParameters(LinkedList<FloatParameter*> *param
     }
     Debug_println(F("finished in addParameters"));
 }
+
+
+#ifdef ENABLE_SCREEN
+    #include "menuitems_quickpage.h"
+
+    FLASHMEM void ParameterManager::addAllParameterInputMenuItems(Menu *menu, bool page_per_input) {
+        const char *last_group_name = nullptr;
+
+        menu->add_page("QuickJumpInputs");
+        CustomQuickPagesMenuItem *quickjump = new CustomQuickPagesMenuItem("QuickJump to Inputs");
+        menu->add(quickjump);
+        page_t *started_page = menu->get_selected_page();   // for remembering what page the quickjump menu itself is
+
+        // add the behaviours quickjump page to the 'main' menu quickjump list
+        menu->remember_opened_page(menu->get_page_index_for_name(menu->get_selected_page()->title));
+
+        for (unsigned int i = 0 ; i < available_inputs->size() ; i++) {
+            BaseParameterInput *parameter_input = available_inputs->get(i);
+            //Serial.printf("!!! Adding parameter menu items for %s\tfrom %s!\n", parameter_input->name, parameter_input->group_name);
+            char label[MENU_C_MAX];
+            if (last_group_name!=parameter_input->group_name || page_per_input) {                        
+                if (page_per_input)
+                    snprintf(label, MENU_C_MAX, "%s: %s", parameter_input->group_name, parameter_input->name);
+                else
+                    snprintf(label, MENU_C_MAX, "%s inputs", parameter_input->group_name);
+                menu->add_page(label, parameter_input->colour);
+                last_group_name = parameter_input->group_name;
+                snprintf(label, MENU_C_MAX, "%s ", last_group_name);
+
+                // add page to behaviour quickjump, so long as isn't itself
+                if (started_page!=menu->get_selected_page())
+                    quickjump->add_page(menu->get_selected_page());
+            }
+            //this->addParameterInputMenuItems(menu, parameter_input, label); //label_prefix);
+            parameter_input->makeControls(this->memory_size, label);
+        }
+    }
+#endif

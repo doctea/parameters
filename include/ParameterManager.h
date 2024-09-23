@@ -228,25 +228,9 @@ class ParameterManager {
         }
 
         #ifdef ENABLE_SCREEN
-            FLASHMEM void addAllParameterInputMenuItems(Menu *menu, bool page_per_input = false) {
-                const char *last_group_name = nullptr;
-                for (unsigned int i = 0 ; i < available_inputs->size() ; i++) {
-                    BaseParameterInput *parameter_input = available_inputs->get(i);
-                    //Serial.printf("!!! Adding parameter menu items for %s\tfrom %s!\n", parameter_input->name, parameter_input->group_name);
-                    char label[MENU_C_MAX];
-                    if (last_group_name!=parameter_input->group_name || page_per_input) {                        
-                        if (page_per_input)
-                            snprintf(label, MENU_C_MAX, "%s: %s", parameter_input->group_name, parameter_input->name);
-                        else
-                            snprintf(label, MENU_C_MAX, "%s inputs", parameter_input->group_name);
-                        menu->add_page(label, parameter_input->colour);
-                        last_group_name = parameter_input->group_name;
-                        snprintf(label, MENU_C_MAX, "%s ", last_group_name);
-                    }
-                    //this->addParameterInputMenuItems(menu, parameter_input, label); //label_prefix);
-                    parameter_input->makeControls(this->memory_size, label);
-                }
-            }
+            //#include "menuitems_quickpage.h"
+            
+            FLASHMEM void addAllParameterInputMenuItems(Menu *menu, bool page_per_input = false);
 
             // add all the available parameters to the main menu
             FLASHMEM void addAllParameterMenuItems(Menu *menu) {
@@ -370,21 +354,23 @@ class ParameterManager {
 
                         menu->add(submenuitem);
                     } else {
-                        menu->add_page("Calibration");
-                        for (unsigned int i = 0 ; i < size ; i++) {
-                            //Serial.printf(F("\tParameterManager#addAllVoltageSourceCalibrationMenuItems() for voltage_source %i/%i\n"), i+1, size); Serial_flush();
-                            
-                            VoltageSourceBase *voltage_source = this->voltage_sources->get(i);
-                            menu->add(voltage_source->makeCalibrationControls(i));
-                            //Serial.println("addAllVoltageSourceCalibrationMenuItems did makeCalibrationControls!");
-                            #if defined(ENABLE_CALIBRATION_STORAGE)
-                                menu->add(voltage_source->makeCalibrationLoadSaveControls(i));
-                            #endif
+                        if(size>0){
+                            menu->add_page("Calibration");
+                            for (unsigned int i = 0 ; i < size ; i++) {
+                                //Serial.printf(F("\tParameterManager#addAllVoltageSourceCalibrationMenuItems() for voltage_source %i/%i\n"), i+1, size); Serial_flush();
+                                
+                                VoltageSourceBase *voltage_source = this->voltage_sources->get(i);
+                                menu->add(voltage_source->makeCalibrationControls(i));
+                                //Serial.println("addAllVoltageSourceCalibrationMenuItems did makeCalibrationControls!");
+                                #if defined(ENABLE_CALIBRATION_STORAGE)
+                                    menu->add(voltage_source->makeCalibrationLoadSaveControls(i));
+                                #endif
 
-                            //submenuitem->add(new MenuItem("Test"));
+                                //submenuitem->add(new MenuItem("Test"));
 
-                            //Serial.println(F("\t\taddAllVoltageSourceCalibrationMenuItems done!")); Serial_flush();
-                            //Serial.printf(F("\tfinished with voltage_source %i\n"), i);
+                                //Serial.println(F("\t\taddAllVoltageSourceCalibrationMenuItems done!")); Serial_flush();
+                                //Serial.printf(F("\tfinished with voltage_source %i\n"), i);
+                            }
                         }
                     }
                 }
