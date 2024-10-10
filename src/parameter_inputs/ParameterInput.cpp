@@ -58,6 +58,7 @@ lfo_option_t virtual_parameter_options[lfo_option_id::NUM] = {
 
     // for caching available_values list for period controls, saves a couple of hundred bytes
     LinkedList<LambdaSelectorControl<float>::option> *period_options = nullptr;
+    LinkedList<LambdaSelectorControl<uint32_t>::option> *sh_period_options = nullptr;
 
     FLASHMEM
     SubMenuItemBar *VirtualParameterInput::makeControls(int16_t memory_size, const char *label_prefix) {
@@ -95,6 +96,28 @@ lfo_option_t virtual_parameter_options[lfo_option_id::NUM] = {
                 1.0f
             );
             submenu->add(phase_control);
+        }
+        if (lfo_mode==RAND) {
+            LambdaSelectorControl<uint32_t> *period_control = new LambdaSelectorControl<uint32_t>(
+                "S&H Period",
+                [=] (uint32_t v) -> void { this->sh_ticks = v; },
+                [=] (void) -> uint32_t { return this->sh_ticks; }
+            );
+            if (sh_period_options==nullptr) {
+                period_control->add_available_value(0,      "None");
+                period_control->add_available_value(PPQN/8, "32nd");
+                period_control->add_available_value(PPQN/4, "16th");
+                period_control->add_available_value(PPQN/2, "8th");
+                period_control->add_available_value(PPQN,   "Beat");
+                period_control->add_available_value(PPQN*2, "2xBeat");
+                period_control->add_available_value(PPQN*BEATS_PER_BAR,    "Bar");
+                period_control->add_available_value(PPQN*BEATS_PER_BAR*2,  "2xBar"); //Phrase");
+                period_control->add_available_value(PPQN*BEATS_PER_PHRASE, "Phrase"); //2xPhrase");
+                sh_period_options = period_control->get_available_values();
+            } else {
+                period_control->set_available_values(sh_period_options);
+            }
+            submenu->add(period_control);        
         }
 
         return submenu;

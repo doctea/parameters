@@ -31,12 +31,16 @@ extern lfo_option_t virtual_parameter_options[lfo_option_id::NUM];
 
 class VirtualParameterInput : public AnalogParameterInputBase<float> {
     public:
+        float last_sample = 0;
+        uint32_t last_sample_tick = 0;
 
         lfo_option_id lfo_mode = LFO_LOCKED;
 
         float free_sine_divisor = 100.0f;
         float locked_period = 4.0f;
         float locked_phase = 0.0f;
+
+        uint32_t sh_ticks = 0;
 
         VirtualParameterInput(char *name, const char *group_name, lfo_option_id lfo_mode = LFO_LOCKED) : AnalogParameterInputBase(name, group_name) {
             this->lfo_mode = lfo_mode;
@@ -92,9 +96,14 @@ class VirtualParameterInput : public AnalogParameterInputBase<float> {
                     return calculate_lfo(locked_phase + ((float)(ticks % (int_fast16_t)(adjusted)))/(float)(adjusted));
                 }
                 case RAND: 
-                    return input_type==BIPOLAR ? 
-                        (float)random(-1000, 1000)/1000.0 : 
-                        (float)random(0, 1000)/1000.0;
+                    // todo: expand S&H functionality to be usable by other types
+                    if (last_sample_tick!=ticks && (sh_ticks==0 || (sh_ticks>0 && (ticks % sh_ticks == 0 || ticks >= last_sample_tick+sh_ticks)))) {
+                        last_sample_tick = ticks;
+                        last_sample = input_type==BIPOLAR ? 
+                            (float)random(-1000, 1000)/1000.0 : 
+                            (float)random(0, 1000)/1000.0;
+                    }
+                    return last_sample;
                 default: return 0.0f;
             }
         }
@@ -178,6 +187,8 @@ class VirtualParameterInput : public AnalogParameterInputBase<float> {
                 + String('=') + String(this->locked_phase));
             lines->add(String(prefix) + String(this->name) + String("_divisor") 
                 + String('=') + String(this->free_sine_divisor));
+            lines->add(String(prefix) + String(this->name) + String("_sh_ticks")
+                + String('=') + String(this->sh_ticks));
             
             return lines;
         }
@@ -199,6 +210,9 @@ class VirtualParameterInput : public AnalogParameterInputBase<float> {
                 return true;
             } else if (key.endsWith("_divisor")) {
                 this->free_sine_divisor = value.toFloat();
+                return true;
+            } else if (key.endsWith("_sh_ticks")) {
+                this->sh_ticks = value.toInt();
                 return true;
             }
 
