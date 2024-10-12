@@ -64,9 +64,9 @@ lfo_option_t virtual_parameter_options[lfo_option_id::NUM] = {
     SubMenuItemBar *VirtualParameterInput::makeControls(int16_t memory_size, const char *label_prefix) {
         SubMenuItemBar *submenu = BaseParameterInput::makeControls(memory_size, label_prefix);
 
-        if (lfo_mode==LFO_FREE)
+        if (lfo_mode==LFO_FREE) {
             submenu->add(new DirectNumberControl<float>("Speed", &this->free_sine_divisor, this->free_sine_divisor, 0.01f, 1000.0f));
-        else if (lfo_mode==LFO_LOCKED) {
+        } else if (lfo_mode==LFO_LOCKED) {
             LambdaSelectorControl<float> *period_control = new LambdaSelectorControl<float>(
                 "Period",
                 [=] (float v) -> void { this->locked_period = v; },
@@ -97,9 +97,9 @@ lfo_option_t virtual_parameter_options[lfo_option_id::NUM] = {
             );
             submenu->add(phase_control);
         }
-        if (lfo_mode==RAND) {
+        //if (lfo_mode==RAND) {
             LambdaSelectorControl<uint32_t> *period_control = new LambdaSelectorControl<uint32_t>(
-                "S&H Period",
+                "S&H On",
                 [=] (uint32_t v) -> void { this->sh_ticks = v; },
                 [=] (void) -> uint32_t { return this->sh_ticks; }
             );
@@ -118,7 +118,7 @@ lfo_option_t virtual_parameter_options[lfo_option_id::NUM] = {
                 period_control->set_available_values(sh_period_options);
             }
             submenu->add(period_control);        
-        }
+        //}
 
         return submenu;
     }

@@ -31,16 +31,17 @@ extern lfo_option_t virtual_parameter_options[lfo_option_id::NUM];
 
 class VirtualParameterInput : public AnalogParameterInputBase<float> {
     public:
-        float last_sample = 0;
-        uint32_t last_sample_tick = 0;
-
         lfo_option_id lfo_mode = LFO_LOCKED;
 
+        // wave parameters
         float free_sine_divisor = 100.0f;
         float locked_period = 4.0f;
         float locked_phase = 0.0f;
 
+        // track sample & hold state
         uint32_t sh_ticks = 0;
+        float last_sample = 0;
+        uint32_t last_sample_tick = 0;
 
         VirtualParameterInput(char *name, const char *group_name, lfo_option_id lfo_mode = LFO_LOCKED) : AnalogParameterInputBase(name, group_name) {
             this->lfo_mode = lfo_mode;
@@ -88,24 +89,27 @@ class VirtualParameterInput : public AnalogParameterInputBase<float> {
         }
 
         float get_source_value() {
-            switch (lfo_mode) {
-                case LFO_FREE: 
-                    return calculate_lfo(locked_phase + (float)ticks/free_sine_divisor);
-                case LFO_LOCKED: {
-                    float adjusted = ((float)TICKS_PER_BAR*locked_period);
-                    return calculate_lfo(locked_phase + ((float)(ticks % (int_fast16_t)(adjusted)))/(float)(adjusted));
-                }
-                case RAND: 
-                    // todo: expand S&H functionality to be usable by other types
-                    if (last_sample_tick!=ticks && (sh_ticks==0 || (sh_ticks>0 && (ticks % sh_ticks == 0 || ticks >= last_sample_tick+sh_ticks)))) {
-                        last_sample_tick = ticks;
+            if (last_sample_tick!=ticks && (sh_ticks==0 || (sh_ticks>0 && (ticks % sh_ticks == 0 || ticks >= last_sample_tick+sh_ticks)))) {
+                last_sample_tick = ticks;
+
+                switch (lfo_mode) {
+                    case LFO_FREE: 
+                        last_sample = calculate_lfo(locked_phase + (float)ticks/free_sine_divisor);
+                        break;
+                    case LFO_LOCKED: {
+                        float adjusted = ((float)TICKS_PER_BAR*locked_period);
+                        last_sample = calculate_lfo(locked_phase + ((float)(ticks % (int_fast16_t)(adjusted)))/(float)(adjusted));
+                        break;
+                    }
+                    case RAND: 
                         last_sample = input_type==BIPOLAR ? 
                             (float)random(-1000, 1000)/1000.0 : 
                             (float)random(0, 1000)/1000.0;
-                    }
-                    return last_sample;
-                default: return 0.0f;
+                        break;;
+                    default: return 0.0f;
+                }
             }
+            return last_sample;
         }
 
         virtual void read() override {
@@ -198,6 +202,7 @@ class VirtualParameterInput : public AnalogParameterInputBase<float> {
 
             key.replace(prefix,"");
 
+            // todo: check if this is sane way to make sure that we're loading for the correct item?
             if (!key.startsWith(this->name)) {
                 return AnalogParameterInputBase::load_parse_key_value(key, value);
             }
