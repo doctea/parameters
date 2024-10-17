@@ -59,22 +59,28 @@ class MIDICCParameter : public DataParameter<TargetClass,DataType> {
 
         virtual bool load_parse_key_value(String key, String value) override {
             if (this->configurable) {
-                String prefix = String("midi_cc_parameter_value_") + String(this->label) + String("_");
+                Serial.printf("MIDICCParameter named '%s' asked to load_parse_key_value with '%s' => '%s'..", this->label, key.c_str(), value.c_str());
+                String prefix = String("parameter_value_") + String(this->label) + String("_");
+                Serial.printf("Checking if starts with '%s'..", prefix.c_str());
                 if (key.startsWith(prefix)) {
+                    Serial.println("YES! now checking if endswith '_channel' or '_cc'..");
                     if (key.endsWith("_channel")) {
+                        Serial.println("YES! Ends with _channel");
                         this->channel = value.toInt();
                         return true;
                     } else if (key.endsWith("_cc")) {
+                        Serial.println("YES! Ends with _cc");
                         this->cc_number = value.toInt();
                         return true;
                     }
                 }
+                Serial.println("no match.");
             }
             return FloatParameter::load_parse_key_value(key, value);
         }
         virtual void save_pattern_add_lines(LinkedList<String> *lines) override {
             if (this->configurable) {
-                String prefix = String("midi_cc_parameter_value_") + String(this->label); //+ String("_");
+                String prefix = String("parameter_value_") + String(this->label); //+ String("_");
                 lines->add(prefix + String("_channel=") + String(this->channel));
                 lines->add(prefix + String("_cc=") + String(this->cc_number));
             }

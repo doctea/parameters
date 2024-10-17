@@ -69,14 +69,14 @@ class VoltageParameterInput : public AnalogParameterInputBase<float> {
                 }
                 #endif
 
-                #ifdef ENABLE_PRINTF
+                /*#ifdef ENABLE_PRINTF
                 if (this->debug) {
                     Debug_printf("VoltageParameterInput#read() for '%c': got currentValue ", this->name); Serial_flush();
                     Debug_print(currentValue); Serial_flush();
                     Debug_print(" converted to normal "); Serial_flush();
                     Debug_println(normal); Serial_flush();
                 }
-                #endif
+                #endif*/
 
                 #ifdef PARAMETER_INPUTS_USE_CALLBACKS
                     float normal = this->get_normal_value_unipolar(currentValue);
