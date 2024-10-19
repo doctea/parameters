@@ -284,16 +284,22 @@ class ParameterConnectionPolarityTypeSelectorControl : public SelectorControl<in
     }
 
     virtual void setter (int_least8_t new_value) {
-        (*this->parameter)->connections[slot_number].polar_mode = new_value;
+        if (this->parameter != nullptr)
+            (*this->parameter)->connections[slot_number].polar_mode = new_value;
         actual_value_index = new_value;
     }
     virtual int_least8_t getter () {
         //return clock_mode; //selected_value_index;
-        return (*this->parameter)->connections[slot_number].polar_mode;
+        if (this->parameter != nullptr)
+            return (*this->parameter)->connections[slot_number].polar_mode;
+        return VALUE_TYPE::UNIPOLAR;
     }
 
     virtual int renderValue(bool selected, bool opened, uint16_t width) override {
-        this->default_fg = (*this->parameter)->connections[slot_number].parameter_input->colour;
+        if (this->parameter != nullptr && (*this->parameter)->connections[slot_number].parameter_input != nullptr)
+            this->default_fg = (*this->parameter)->connections[slot_number].parameter_input->colour;
+        else
+            this->default_fg = C_WHITE;
         return SelectorControl::renderValue(selected, opened, width);
     }
 
