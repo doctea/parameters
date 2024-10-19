@@ -541,6 +541,9 @@ class DataParameterBase : public FloatParameter {
             else if (time_since_changed>=75)    return (DataType) (8);
             else                                return (DataType) (10);
         }
+        virtual DataType get_current_step(unsigned int ignored) {
+            return get_current_step((int)ignored);
+        }
 
         virtual DataType get_current_step(float ignored) {
             // do knob acceleration
@@ -577,7 +580,23 @@ class DataParameterBase : public FloatParameter {
             //if (this->debug) Serial.printf(F("became '%s' (normal %f)\n"), this->getFormattedValue(this->getCurrentDataValue()), this->getCurrentNormalValue());
         }
 
-
+        // returns an incremented DataType version of input value (unsigned int) - up to the current Range maximum
+        virtual DataType incrementDataValue(unsigned int value) {
+            //if (this->debug) Serial.printf("Parameter#incrementDataValue(%i)..\n", value); Serial.printf("\ttaking value %i and doing ++ on it..", value);
+            value += this->get_current_step((int)value);
+            //if (this->debug) Serial.printf("\tgot %i.\n");
+            int new_value = this->constrainDataToRange(value);
+            //if (this->debug) Serial.printf("\tbecame %i (after constrain to %i:%i)..\n", new_value, this->minimumDataLimit, this->maximumDataLimit);
+            return new_value;
+        }
+        // returns a decremented DataType version of input value (int) - down to the current Range minimum
+        virtual DataType decrementDataValue(unsigned int value) {
+            value -= this->get_current_step((int)value);
+            // handle unsigned values that might wrap back around to max
+            if ((DataType)value < this->get_effective_minimum_data_value() || (DataType)value >= this->get_effective_maximum_data_value())
+                return this->get_effective_minimum_data_value();
+            return this->constrainDataToRange(value);
+        }
         // returns an incremented DataType version of input value (int) - up to the current Range maximum
         virtual DataType incrementDataValue(int value) {
             //if (this->debug) Serial.printf("Parameter#incrementDataValue(%i)..\n", value); Serial.printf("\ttaking value %i and doing ++ on it..", value);
@@ -591,7 +610,7 @@ class DataParameterBase : public FloatParameter {
         virtual DataType decrementDataValue(int value) {
             value -= this->get_current_step(value);
             // handle unsigned values that might wrap back around to max
-            if (value < this->get_effective_minimum_data_value() || value >= this->get_effective_maximum_data_value())
+            if ((DataType)value < this->get_effective_minimum_data_value() || (DataType)value >= this->get_effective_maximum_data_value())
                 return this->get_effective_minimum_data_value();
             return this->constrainDataToRange(value);
         }
@@ -604,7 +623,7 @@ class DataParameterBase : public FloatParameter {
         // returns a decremented DataType version of input value (float) - down to the current Range minimum
         virtual DataType decrementDataValue(float value) {
             value -= this->get_current_step(value);
-            if (value < this->get_effective_minimum_data_value() || value >= this->get_effective_maximum_data_value())
+            if ((DataType)value < this->get_effective_minimum_data_value() || (DataType)value >= this->get_effective_maximum_data_value())
                 return this->get_effective_minimum_data_value();
             return this->constrainDataToRange(value);
         }

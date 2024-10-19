@@ -25,7 +25,8 @@ class SaveableParameterBase {
         if (this->nice_label==nullptr) {
             if (label==nullptr)
                 label = this->label;
-            String s = String(label).replace('_', ' ');
+            String s = String(label);
+            s.replace('_', ' ');
             //s[0] = String(s.charAt(0)).toUpperCase().charAt(0);
             s[0] = toupper(s[0]);
             String *st = new String(s);
