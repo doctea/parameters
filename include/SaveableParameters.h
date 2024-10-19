@@ -12,7 +12,7 @@
 
 class SaveableParameterBase {
     public:
-    const char *label = nullptr;
+    char label[40];
     const char *category_name = nullptr;
     const char *nice_label = nullptr;
 
@@ -40,10 +40,12 @@ class SaveableParameterBase {
     }
 
     SaveableParameterBase(const char *label, const char *category_name, bool *variable_recall_enabled = nullptr, bool *variable_save_enabled = nullptr) :
-        label(label), 
+        //label(label), 
         category_name(category_name),
         variable_recall_enabled(variable_recall_enabled ? variable_recall_enabled : &this->recall_enabled), 
-        variable_save_enabled(variable_save_enabled ? variable_save_enabled : &this->save_enabled) {}
+        variable_save_enabled(variable_save_enabled ? variable_save_enabled : &this->save_enabled) {
+            strncpy(this->label, label, 40);
+        }
         
     virtual String get_line() { return String(nop_label); }
     virtual bool parse_key_value(String key, String value) {
@@ -233,7 +235,7 @@ class LSaveableParameter : virtual public SaveableParameterBase {
                 return *this->variable; 
             return (DataType) 0; 
         };
-
+        
         LSaveableParameter(
             const char *label,
             const char *category_name,
