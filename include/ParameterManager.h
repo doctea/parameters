@@ -1,5 +1,4 @@
-#ifndef PARAMETERMANAGER__INCLUDED
-#define PARAMETERMANAGER__INCLUDED
+#pragma once
 
 #if defined(USE_UCLOCK) 
     #if defined(CORE_TEENSY)
@@ -82,8 +81,8 @@ class ParameterManager {
         FLASHMEM void addParameters(LinkedList<FloatParameter*> *parameters);
         
         // initialise devices and add all their voltage sources
-        FLASHMEM void auto_init_devices() {
-            Debug_printf(F("ParameterManager#auto_init_devices)\n"));
+        //FLASHMEM  // making this FLASHMEM seems to cause crashes?!
+        void auto_init_devices() {
             //char parameter_input_name = 'A';
             for (uint_least8_t i = 0 ; i < devices->size() ; i++) {
                 ADCDeviceBase *device = this->devices->get(i);
@@ -101,6 +100,8 @@ class ParameterManager {
                     counter++;
                 }
             }
+
+            Debug_println("Finished auto_init_devices.");
         }
 
         FASTRUN BaseParameterInput *getInputForName(const char *input_name) {
@@ -182,7 +183,9 @@ class ParameterManager {
         FASTRUN void update_inputs() {
             const uint_fast8_t available_inputs_size = available_inputs->size();
             for (uint_fast8_t i = 0 ; i < available_inputs_size ; i++) {
+                //Serial.printf("ParameterManager#update_inputs updating input [%i/%i].. ", i+1, available_inputs_size); Serial_flush();
                 available_inputs->get(i)->loop();
+                //Serial.println("looped()!"); Serial_flush();
             }
         }
 
@@ -535,4 +538,3 @@ class ParameterManager {
 
 extern ParameterManager *parameter_manager;
 
-#endif

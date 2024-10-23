@@ -67,10 +67,13 @@ FLASHMEM VoltageSourceBase *ParameterManager::addVoltageSource(VoltageSourceBase
     Debug_printf(F("ParameterManager#addVoltageSource(%p)\n"), voltage_source);
     #if defined(LOAD_CALIBRATION_ON_BOOT) && defined(ENABLE_CALIBRATION_STORAGE)
         //Debug_printf(F("Loading calibration for %i!\n"), voltage_source->slot);
-        Debug_printf("Loading calibration for %i!\n", voltage_source->slot);
+        Debug_printf("Loading calibration for VoltageSource with global_slot=%i!\n", voltage_source->global_slot);
         voltage_source->load_calibration();
     #endif
 
+    if (voltage_source==nullptr) {
+        Serial.println("WARNING: ParameterManager#addVoltageSource() was passed a nullptr!!!");
+    }
     this->voltage_sources->add(voltage_source);
     return voltage_source;
 }

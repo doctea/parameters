@@ -49,6 +49,11 @@ class VoltageParameterInput : public AnalogParameterInputBase<float> {
         }
 
         virtual void read() override {
+            if(this->voltage_source==nullptr) {
+                Serial.printf("ERROR in VoltageParameterInput#read(): voltage_source is null for %s\n", this->name); Serial_flush();
+                return;
+            }
+
             float currentValue = this->voltage_source->get_voltage_normal();
             
             if (this->is_significant_change(currentValue, this->lastValue)) {
