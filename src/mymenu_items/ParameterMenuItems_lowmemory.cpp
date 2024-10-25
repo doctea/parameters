@@ -68,7 +68,7 @@ void create_low_memory_parameter_controls_actual() {
         lowmemory_controls.polarity_submenu->add(new ParameterConnectionPolarityTypeSelectorControl("Slot 1", &lowmemory_controls.parameter, 0));
         lowmemory_controls.polarity_submenu->add(new ParameterConnectionPolarityTypeSelectorControl("Slot 2", &lowmemory_controls.parameter, 1));
         lowmemory_controls.polarity_submenu->add(new ParameterConnectionPolarityTypeSelectorControl("Slot 3", &lowmemory_controls.parameter, 2));
-        lowmemory_controls.polarity_submenu->add(new MenuItem(""));
+        lowmemory_controls.polarity_submenu->add(new MenuItem("")); // so that we use 5 columns, in order to align with the other rows of elements // todo: make this indicate something eg graph values?
     }
     menu->add(lowmemory_controls.polarity_submenu);
 

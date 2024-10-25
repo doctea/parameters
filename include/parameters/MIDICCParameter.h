@@ -16,7 +16,7 @@
 template<class TargetClass=IMIDICCTarget, class DataType=uint8_t>
 class MIDICCParameter : public DataParameter<TargetClass,DataType> {
     public:
-        byte cc_number = 0, channel = 0;
+        byte cc_number = MIDI_MIN_CC, channel = MIDI_CHANNEL_OMNI;
 
         bool configurable = false;
 
@@ -24,8 +24,8 @@ class MIDICCParameter : public DataParameter<TargetClass,DataType> {
             : DataParameter<TargetClass,DataType>(label, target) {
                 this->cc_number = cc_number;
                 this->channel = channel;
-                this->minimumDataLimit = this->minimumDataRange = 0;
-                this->maximumDataLimit = this->maximumDataRange = 127;
+                this->minimumDataLimit = this->minimumDataRange = MIDI_MIN_CC;
+                this->maximumDataLimit = this->maximumDataRange = MIDI_MAX_CC;
                 this->configurable = configurable;
                 //this->debug = true;
         }

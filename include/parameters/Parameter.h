@@ -877,3 +877,69 @@ class DataParameter : public DataParameterBase<DataType> {
         }
 
 };
+
+
+#include "functional-vlpp.h"
+template<class DataType = float>
+class LDataParameter : public DataParameterBase<DataType> {
+    public:
+
+        using setter_func_def = vl::Func<void(DataType)>;
+        using getter_func_def = vl::Func<DataType(void)>;
+
+        setter_func_def setter_func = [=](DataType v) -> void {};
+        getter_func_def getter_func = [=]() -> DataType { return this->minimumDataRange; };
+
+        LDataParameter(const char *label) 
+            : DataParameterBase<DataType>(label) {
+        }
+        LDataParameter(const char *label, DataType initial_value_normal) 
+            : LDataParameter<DataType>(label) {
+            this->initialNormalValue = initial_value_normal;
+        }
+        LDataParameter(const char *label, setter_func_def setter_func) 
+            : LDataParameter<DataType>(label) {
+            this->setter_func = setter_func;
+        }
+        LDataParameter(const char *label, setter_func_def setter_func, getter_func_def getter_func) 
+            : LDataParameter<DataType>(label, setter_func)
+        {
+            this->getter_func = getter_func;
+        }
+        LDataParameter(const char *label, setter_func_def setter_func, getter_func_def getter_func, DataType minimumDataValue, DataType maximumDataValue) 
+            : LDataParameter<DataType>(label, setter_func, getter_func)
+        {
+            this->minimumDataLimit = minimumDataValue;
+            this->maximumDataLimit = maximumDataValue;
+        }
+        LDataParameter(const char *label, float initial_value_normal, setter_func_def setter_func) 
+            : LDataParameter<DataType>(label, setter_func) {
+            this->initialNormalValue = initial_value_normal;
+            //this->setInitialValueFromNormal(initial_value_normal);
+        }
+
+        virtual DataType getCurrentDataValue() override {
+            return this->getter();
+        }
+        virtual float getCurrentNormalValue() override {
+            return this->dataToNormal(this->getCurrentDataValue());
+        }
+
+        virtual DataType getter() override {
+           return this->currentDataValue;
+        }
+
+        virtual void setInitialValue() {
+            this->setInitialValueFromData(this->getter_func());
+        }
+
+        // actually set the target from data, do the REAL setter call on target
+        DataType last_sent_value = -1;
+        virtual void setTargetValueFromData(DataType value, bool force = false) {
+            // early return if this value is the same as last one and we aren't being asked to force it
+            if (!force && last_sent_value==value)
+                return;
+
+            this->setter_func((DataType)value);
+        }
+};
