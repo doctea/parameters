@@ -43,9 +43,12 @@ class VoltageParameterInput : public AnalogParameterInputBase<float> {
         }
         virtual uint8_t get_voltage_pitch() {
             //return get_midi_pitch_for_voltage(this->voltage_source->get_voltage_pitch());
-            if (this->voltage_source==nullptr) 
+            if (this->voltage_source==nullptr) {
                 Debug_printf("%c#get_voltage_pitch() has no voltage_source?!", this->name); Serial_flush();
-            return this->voltage_source->get_voltage_pitch();
+                return NOTE_OFF;
+            } else {
+                return this->voltage_source->get_voltage_pitch();
+            }
         }
 
         virtual void read() override {

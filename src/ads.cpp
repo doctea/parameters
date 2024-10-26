@@ -3,6 +3,8 @@
 #include "ads.h"
 //#include "mtof.h"
 
+#include "midi_helpers.h"
+
 #ifndef PIN_SDA
   #define PIN_SDA SDA
 #endif
@@ -77,13 +79,13 @@ float get_corrected_voltage (float voltageFromAdc) {
 };
 */
 
-int get_midi_pitch_for_voltage(float voltageFromAdc, int pitch_offset) {
+int8_t get_midi_pitch_for_voltage(float voltageFromAdc, int8_t pitch_offset) {
   //int pitch = pitch_offset + round(/*scaler **/get_corrected_voltage(voltageFromAdc) * 12.0);
-  int pitch = pitch_offset + round(voltageFromAdc * 12.0);
+  int8_t pitch = constrain(pitch_offset + round(voltageFromAdc * 12.0f), MIDI_MIN_NOTE, MIDI_MAX_NOTE);
   return pitch;
 }
 
-float get_frequency_for_voltage(float voltageFromAdc, int pitch_offset) { // was 36
+float get_frequency_for_voltage(float voltageFromAdc, int8_t pitch_offset) { // was 36
   // get the tuning root -- Keystep is C1=1.0v, so start on C
   // TODO: configurable tuning from different note / 1.0v = A mode
   float base_freq = get_frequency_for_pitch(pitch_offset);
@@ -94,10 +96,12 @@ float get_frequency_for_voltage(float voltageFromAdc, int pitch_offset) { // was
   return freq;
 }
 
-float get_frequency_for_pitch(int pitch, int base_pitch) {
+// todo: turn this into a lookup table
+float get_frequency_for_pitch(int8_t pitch, int8_t base_pitch) {
   //float freq = mtof.toFrequency((float)pitch);
   // tune from 440hz
-  float freq = 440.0 * pow(2.0, ((float)(pitch - base_pitch) / 12.0));
+  int8_t p = constrain(pitch - base_pitch, MIDI_MIN_NOTE, MIDI_MAX_NOTE);
+  float freq = 440.0 * pow(2.0, ((float)(p) / 12.0));
   //Serial.printf("get_frequency_for_pitch(%u) return freq %u\n", pitch, (freq));
   return freq;
 }

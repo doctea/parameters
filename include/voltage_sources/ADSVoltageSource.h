@@ -1,5 +1,4 @@
-#ifndef ADSVOLTAGESOURCE__INCLUDED
-#define ADSVOLTAGESOURCE__INCLUDED
+#pragma once
 
 #include "debug.h"
 
@@ -127,4 +126,3 @@ class ADSVoltageSource : public ADSVoltageSourceBase {
 
 };
 
-#endif

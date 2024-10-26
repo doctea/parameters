@@ -1,5 +1,4 @@
-#ifndef ADS24v__INCLUDED
-#define ADS24v__INCLUDED
+#pragma once
 
 #include "VoltageSource.h"
 #include "ADSVoltageSource.h"
@@ -10,9 +9,6 @@
 template<class ADS1X15Type>
 class ADS24vVoltageSource : public ADSVoltageSource<ADS1X15Type> {
     public:
-        //float correction_value_1 = 1182.0;
-        //float correction_value_2 = 0.041;
-
         ADS24vVoltageSource(int global_slot, ADS1X15Type *ads_source, byte channel, float maximum_input_voltage = 10.0) :
             ADSVoltageSource<ADS1X15Type>(global_slot, ads_source, channel, maximum_input_voltage, true) {
                 // note this passes 'true' as the last argument above, because this can support 1v/oct
@@ -64,4 +60,3 @@ class ADS24vVoltageSource : public ADSVoltageSource<ADS1X15Type> {
         #endif*/
 };
 
-#endif

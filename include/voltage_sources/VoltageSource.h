@@ -1,5 +1,4 @@
-#ifndef VOLTAGE_SOURCE__INCLUDED
-#define VOLTAGE_SOURCE__INCLUDED
+#pragma once
 
 #include "Arduino.h"
 
@@ -16,8 +15,8 @@ class VoltageSourceBase {
     public:
         bool debug = false;
 
-        float current_value = 0.0;
-        float last_value = 0.0;
+        float current_value = 0.0f;
+        float last_value = 0.0f;
 
         float maximum_input_voltage;
 
@@ -62,11 +61,11 @@ class VoltageSourceBase {
 
         #if defined(ENABLE_CALIBRATION_STORAGE)
             virtual void load_calibration() {
-                Serial.printf("VoltageSourceBase: load_calibration for unknown input!");
+                Serial.printf("VoltageSourceBase: empty load_calibration for unknown input!\n");
                 // todo: make VoltageSource know its name so that it knows where to load from
             }
             virtual void save_calibration() {
-                Serial.printf("VoltageSourceBase: load_calibration for unknown input!");
+                Serial.printf("VoltageSourceBase: empty load_calibration for unknown input!\n");
                 // todo: make VoltageSource know its name so that it knows where to save to
             }
         #endif
@@ -83,4 +82,3 @@ class VoltageSourceBase {
         #endif
 
 };
-#endif
