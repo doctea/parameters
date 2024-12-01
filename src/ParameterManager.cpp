@@ -143,4 +143,42 @@ FLASHMEM void ParameterManager::addParameters(LinkedList<FloatParameter*> *param
             parameter_input->makeControls(this->memory_size, label);
         }
     }
+
+    #include "mymenu_items/ParameterInputViewCombined.h"
+
+    // TODO: this currently has to be done after the parameterinputdisplay controls have already been generated -- modify so that it does not rely on this!
+    FLASHMEM void ParameterManager::addAllParameterInputOverviews(Menu *menu) {
+        const char *last_group_name = nullptr;
+
+        menu->add_page("QuickJumpOverview");
+        CustomQuickPagesMenuItem *quickjump = new CustomQuickPagesMenuItem("QuickJump to Overviews");
+        menu->add(quickjump);
+        page_t *started_page = menu->get_selected_page();   // for remembering what page the quickjump menu itself is
+
+        menu->remember_opened_page(menu->get_page_index_for_name(menu->get_selected_page()->title));
+
+        ParameterInputCombinedDisplay *combined_display;
+
+        for (unsigned int i = 0 ; i < available_inputs->size() ; i++) {
+            BaseParameterInput *parameter_input = available_inputs->get(i);
+            //Serial.printf("!!! Adding parameter menu items for %s\tfrom %s!\n", parameter_input->name, parameter_input->group_name);
+            char label[MENU_C_MAX];
+            if (last_group_name!=parameter_input->group_name) {                        
+                snprintf(label, MENU_C_MAX, "%s Overview", parameter_input->group_name);
+                menu->add_page(label, parameter_input->colour);
+                last_group_name = parameter_input->group_name;
+                //snprintf(label, MENU_C_MAX, "%s ", last_group_name);
+
+                combined_display = new ParameterInputCombinedDisplay(label, menu->tft->height() - 20);
+                menu->add(combined_display);
+
+                // add page to behaviour quickjump, so long as isn't itself
+                if (started_page!=menu->get_selected_page())
+                    quickjump->add_page(menu->get_selected_page());
+            }
+
+            combined_display->add_parameter_input_display(parameter_input->parameter_input_display);
+        }
+
+    }
 #endif

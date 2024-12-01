@@ -234,6 +234,7 @@ class ParameterManager {
             //#include "menuitems_quickpage.h"
             
             FLASHMEM void addAllParameterInputMenuItems(Menu *menu, bool page_per_input = false);
+            FLASHMEM void addAllParameterInputOverviews(Menu *menu);
 
             // add all the available parameters to the main menu
             FLASHMEM void addAllParameterMenuItems(Menu *menu) {

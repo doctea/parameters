@@ -31,6 +31,7 @@ class VoltageParameterInput : public AnalogParameterInputBase<float> {
                     40,
                     "MIDI pitch for %3.3f is %s\n", 
                     this->voltage_source->get_voltage(), 
+                    //get_note_name(get_voltage_pitch()).c_str()
                     get_note_name(get_voltage_pitch()).c_str()
                 );
                 return extra_output;
@@ -43,11 +44,23 @@ class VoltageParameterInput : public AnalogParameterInputBase<float> {
         }
         virtual uint8_t get_voltage_pitch() {
             //return get_midi_pitch_for_voltage(this->voltage_source->get_voltage_pitch());
+            return get_midi_pitch_for_voltage(get_voltage()); //this->voltage_source->get_voltage();
+        }
+
+        virtual float get_voltage() {
             if (this->voltage_source==nullptr) {
                 Debug_printf("%c#get_voltage_pitch() has no voltage_source?!", this->name); Serial_flush();
-                return NOTE_OFF;
+                return 0.0;
             } else {
-                return this->voltage_source->get_voltage_pitch();
+                return this->voltage_source->get_voltage();
+            }
+        }
+        virtual float fetch_current_voltage() {
+            if (this->voltage_source==nullptr) {
+                Debug_printf("%c#fetch_current_voltage() has no voltage_source?!", this->name); Serial_flush();
+                return 0.0;
+            } else {
+                return this->voltage_source->fetch_current_voltage();
             }
         }
 

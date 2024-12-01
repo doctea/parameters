@@ -14,6 +14,7 @@
 #ifdef ENABLE_SCREEN
   #include "menu.h"
   #include "submenuitem_bar.h"
+  class ParameterInputDisplay;  // so that we can re-use the parameterinputdisplay for combined overview...
 #endif
 //#include "../parameters/Parameter.h"
 
@@ -34,6 +35,10 @@ class BaseParameterInput {
     FLASHMEM void toggleDebug() {
       this->debug =! this->debug;
     }
+
+    #ifdef ENABLE_SCREEN
+      ParameterInputDisplay *parameter_input_display = nullptr;  // so that we can re-use the parameterinputdisplay for combined overview...
+    #endif
 
     const char *group_name = "General";
     char name[MAX_INPUT_NAME] = "Unnamed";

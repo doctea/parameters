@@ -5,6 +5,7 @@
 #include "submenuitem_bar.h"
 #include "mymenu_items/ParameterInputMenuItems.h"
 #include "mymenu_items/ParameterInputViewMenuItems.h"
+#include "mymenu_items/ParameterInputTypeSelector.h"
 
 const char *BaseParameterInput::prefix = "parameter_input_";
 const char *BaseParameterInput::input_type_suffix = "_input_type";
@@ -30,6 +31,7 @@ lfo_option_t virtual_parameter_options[lfo_option_id::NUM] = {
         #ifdef PARAMETER_INPUTS_USE_CALLBACKS
             param_input->add_parameter_input_callback_receiver(parameter_input_display);
         #endif
+        this->parameter_input_display = parameter_input_display;
         menu->add(parameter_input_display);
 
         if (this->supports_bipolar_input()) {
