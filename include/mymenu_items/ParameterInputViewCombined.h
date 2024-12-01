@@ -6,11 +6,13 @@
 #include "colours.h"
 
 #include "../parameter_inputs/ParameterInput.h"
+#include "../parameter_inputs/VoltageParameterInput.h"
 
 #include <LinkedList.h>
 
-
 #include "bpm.h"    // because we need to know the current ticks
+
+#include "midi_helpers.h"
 
 //template<unsigned long memory_size>
 class ParameterInputCombinedDisplay : public MenuItem {
@@ -39,6 +41,34 @@ class ParameterInputCombinedDisplay : public MenuItem {
         virtual int display(Coord pos, bool selected, bool opened) override {
             //Serial.println("MidiOutputSelectorControl display()!");
             pos.y = this->header(label, pos, selected, opened);
+
+            for (int i = 0 ; i < displays->size() ; i++) {
+                if (displays->get(i)!=nullptr) {
+                    tft->setCursor(pos.x, pos.y);
+                    this->colours(false, displays->get(i)->default_fg);
+                    if (displays->get(i)->parameter_input->supports_pitch()) {
+                        //tft->printf("%s ", (char*)displays->get(i)->parameter_input->getInputValue());
+                        VoltageParameterInput *casted_input = (VoltageParameterInput*)displays->get(i)->parameter_input;
+                        float voltage_value = casted_input->get_voltage();
+                        //Serial.printf("voltage_value=%3.3f\n", voltage_value);
+                        char info[MENU_C_MAX];
+                        snprintf(info,
+                            MENU_C_MAX, 
+                            "% 3.3f %3s ",
+                            voltage_value,
+                            (char*)get_note_name_c(casted_input->get_voltage_pitch())
+                        );
+                        tft->printf(info);
+                    } else {
+                        tft->printf("%3s ", (char*)displays->get(i)->parameter_input->getInputValue());
+                    }
+                    tft->printf("| ");
+                    pos.x = tft->getCursorX();
+                }
+            }
+            tft->println();
+            pos.y = tft->getCursorY();
+            pos.x = 0;
 
             int graph_height = (this->graph_height - pos.y) / displays->size();
 
