@@ -39,7 +39,7 @@ lfo_option_t virtual_parameter_options[lfo_option_id::NUM] = {
             submenu->show_header = false;
             submenu->default_fg = this->colour;
             // inputs now rely on their parameter to choose whether to use polar or bipolar version
-            InputTypeSelectorControl *type_selector = new InputTypeSelectorControl("Polarity", &this->input_type);
+            InputTypeSelectorControl<> *type_selector = new InputTypeSelectorControl<>("Polarity", &this->input_type);
             type_selector->default_fg = this->colour;
             //type_selector->show_header = false;
             submenu->add(type_selector);

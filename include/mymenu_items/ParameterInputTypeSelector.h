@@ -1,12 +1,15 @@
 #pragma once
 
+#include "ParameterTypes.h"
+
+template<class DataType=VALUE_TYPE>
 class InputTypeSelectorControl : public SelectorControl<int_least16_t> {
     int actual_value_index;
-    byte *target = nullptr;
+    VALUE_TYPE *target = nullptr;
 
     public:
 
-    InputTypeSelectorControl(const char *label, byte *target) : SelectorControl(label) {
+    InputTypeSelectorControl(const char *label, VALUE_TYPE *target) : SelectorControl(label) {
         this->target = target;
         actual_value_index = *target;
         this->selected_value_index = this->actual_value_index = this->getter();
@@ -24,7 +27,7 @@ class InputTypeSelectorControl : public SelectorControl<int_least16_t> {
     }
 
     virtual void setter (int_least16_t new_value) {
-        *target = new_value;
+        *target = (VALUE_TYPE)new_value;
         actual_value_index = new_value;
     }
     virtual int_least16_t getter () {

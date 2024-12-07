@@ -1,5 +1,4 @@
-#ifndef MIDICCPARAMETER__INCLUDED
-#define MIDICCPARAMETER__INCLUDED
+#pragma once
 
 #include "parameters/Parameter.h"
 //#include "midi/midi_out_wrapper.h"
@@ -145,4 +144,3 @@ class MIDICCProxyParameter : public MIDICCParameter<TargetClass,DataType> {
         }
 };
 
-#endif

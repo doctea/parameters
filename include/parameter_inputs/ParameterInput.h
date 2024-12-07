@@ -45,7 +45,7 @@ class BaseParameterInput {
 
     bool inverted = false;
 
-    uint8_t input_type = BIPOLAR;
+    VALUE_TYPE input_type = BIPOLAR;
 
     uint16_t colour = 0xFFFF;
     BaseParameterInput(char *name, const char *group_name = "General") {
@@ -123,7 +123,7 @@ class BaseParameterInput {
       if(!key.startsWith(prefix)) return false;
 
       key.replace(prefix,"");
-      uint8_t *target = nullptr;
+      VALUE_TYPE *target = nullptr;
 
       if (key.endsWith(input_type_suffix)) {
         key.replace(input_type_suffix,"");
