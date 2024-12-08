@@ -7,6 +7,10 @@
 // todo: make CVOutputParameter more agnostic about underlying library so it can support other DACs
 #include "DAC8574.h"
 
+// todo: add auto-calibration ability
+// todo: figure out an interface to allow using CVOutputParameter as a 1v/oct output from MIDI...
+// todo: make able to switch between unipolar/bipolar modes, with different calibration for each
+
 #ifdef ENABLE_SCREEN
     #include "menu.h"
     #include "submenuitem_bar.h"
@@ -27,8 +31,8 @@ class CVOutputParameter : public DataParameter<TargetClass,DataType> {
         DataType calibrated_min_output_voltage = 0.33;
         DataType calibrated_max_output_voltage = 9.53;
 
-        uint16_t calibrated_lowest_value  = 2163; 
-        uint16_t calibrated_highest_value = 62455;
+        uint16_t calibrated_lowest_value  = 1487; //2163; 
+        uint16_t calibrated_highest_value = 62321; //62455;
 
         bool configurable = false;
 
@@ -55,7 +59,7 @@ class CVOutputParameter : public DataParameter<TargetClass,DataType> {
             return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
         }
 
-        virtual DataType get_calibrated_voltage(DataType intended_voltage) {
+        /*virtual DataType get_calibrated_voltage(DataType intended_voltage) {
             // if 0.0 gives -0.351
                 // then to get real 0.0 we need to add 0.351 to it
             // if 10.0 gives 10.297
@@ -85,12 +89,14 @@ class CVOutputParameter : public DataParameter<TargetClass,DataType> {
             intended_voltage = map(intended_voltage, this->minimumDataLimit, this->maximumDataLimit, real_zero, real_apex);
 
             return intended_voltage;
-        }
+        }*/
         
         virtual uint16_t get_calibrated_dac_value(DataType uncalibrated_voltage) {
-            DataType calibrated_voltage = get_calibrated_voltage(uncalibrated_voltage);
+            //DataType calibrated_voltage = get_calibrated_voltage(uncalibrated_voltage);
 
-            uint16_t dac_value = (float)__UINT16_MAX__ * (calibrated_voltage / this->maximumDataLimit);
+            uint16_t dac_value = (float)__UINT16_MAX__ * (uncalibrated_voltage / this->maximumDataLimit);
+
+            dac_value = map(dac_value, 0, __UINT16_MAX__, calibrated_lowest_value, calibrated_highest_value);
 
             return dac_value;
         }
