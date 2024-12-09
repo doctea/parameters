@@ -216,3 +216,10 @@ bool FloatParameter::load_parse_key_value(const String incoming_key, String valu
     //Serial.printf(F("PARAMETERS\tWARNING: Couldn't find a Parameter for name %s\n"), parameter_name.c_str());
     return false;
 }
+
+#include "parameters/CVOutputParameter.h"
+#include "menu_messages.h"
+
+void Calibratable::start_calibration() {
+    parameter_manager->calibrate_output(this);
+}

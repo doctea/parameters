@@ -181,6 +181,10 @@ class ParameterManager {
 
         // update the ParameterInputs with the latest values from the VoltageSources
         FASTRUN void update_inputs() {
+            // process any waiting calibration
+            // TODO: see if we can move this back here again
+            //this->process_calibration();
+
             const uint_fast8_t available_inputs_size = available_inputs->size();
             for (uint_fast8_t i = 0 ; i < available_inputs_size ; i++) {
                 //Serial.printf("ParameterManager#update_inputs updating input [%i/%i].. ", i+1, available_inputs_size); Serial_flush();
@@ -535,6 +539,13 @@ class ParameterManager {
                 }
             }
         }
+
+        Calibratable *parameter_to_calibrate = nullptr;
+        // tell ParameterManager to calibrate this output the next chance it gets
+        void calibrate_output(Calibratable *parameter_to_calibrate) {
+            this->parameter_to_calibrate = parameter_to_calibrate;
+        };
+        void process_calibration();
 };
 
 extern ParameterManager *parameter_manager;

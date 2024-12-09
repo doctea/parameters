@@ -15,12 +15,19 @@
     #include "menu.h"
     #include "submenuitem_bar.h"
     #include "mymenu_items/ParameterInputTypeSelector.h"
+    #include "menuitems_lambda.h"
 #endif
+
+// todo: figure out a way to include these from a file
+class VoltageParameterInput;
+uint16_t calibrate_find_dac_value_for(int channel, VoltageParameterInput *src, float intended_voltage, bool inverted = false);
+uint16_t calibrate_find_dac_value_for(int channel, char *input_name, float intended_voltage, bool inverted = false);
+void parameter_manager_calibrate(Calibratable* v);
 
 // for applying modulation to a value before sending CC values out to the target device
 // eg, a synth's cutoff value
 template<class TargetClass=DAC8574, class DataType=float>
-class CVOutputParameter : public DataParameter<TargetClass,DataType> {
+class CVOutputParameter : public DataParameter<TargetClass,DataType>, public Calibratable {
     public:
         byte channel = 0;
         //DataType floor, ceiling;
@@ -28,13 +35,15 @@ class CVOutputParameter : public DataParameter<TargetClass,DataType> {
         bool inverted = false;
         VALUE_TYPE polarity = VALUE_TYPE::UNIPOLAR;
 
-        DataType calibrated_min_output_voltage = 0.33;
-        DataType calibrated_max_output_voltage = 9.53;
+        //DataType calibrated_min_output_voltage = 0.33;
+        //DataType calibrated_max_output_voltage = 9.53;
 
-        uint16_t calibrated_lowest_value  = 1487; //2163; 
-        uint16_t calibrated_highest_value = 62321; //62455;
+        uint16_t calibrated_lowest_value  = 2044; //1487; //2163; 
+        uint16_t calibrated_highest_value = 59386; //62321; //62455;
 
         bool configurable = false;
+
+        VoltageParameterInput *calibration_input = nullptr;
 
         CVOutputParameter(const char* label, TargetClass *target, byte channel, VALUE_TYPE polarity_mode = VALUE_TYPE::UNIPOLAR, bool inverted = false, float floor = 0.0f, float ceiling = 10.0f, bool configurable = false)
             : DataParameter<TargetClass,DataType>(label, target) {
@@ -48,6 +57,10 @@ class CVOutputParameter : public DataParameter<TargetClass,DataType> {
                 //this->debug = true;
         }
 
+        virtual void set_parameter_input_for_calibration(VoltageParameterInput *calibration_input) {
+            this->calibration_input = calibration_input;
+        }
+
         /*virtual const char* getFormattedValue() override {
             static char fmt[MENU_C_MAX] = "              ";
             sprintf(fmt, "%i", this->getCurrentDataValue());
@@ -55,6 +68,14 @@ class CVOutputParameter : public DataParameter<TargetClass,DataType> {
             return fmt;
         };*/
 
+
+        void calibrate() override {
+            Serial.printf("Finding lowest value..\n");
+            this->calibrated_lowest_value = calibrate_find_dac_value_for(this->channel, this->calibration_input, 0.0, this->inverted);
+            Serial.printf("Finding highest value..\n");
+            this->calibrated_highest_value = calibrate_find_dac_value_for(this->channel, this->calibration_input, 10.0, this->inverted);
+        }
+        
         virtual DataType map(DataType x, DataType in_min, DataType in_max, DataType out_min, DataType out_max) {
             return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
         }
@@ -195,6 +216,10 @@ class CVOutputParameter : public DataParameter<TargetClass,DataType> {
             InputTypeSelectorControl<> *type_selector = new InputTypeSelectorControl<>("Polarity", &this->polarity);
             bar1->add(type_selector);
             bar1->add(new ToggleControl<bool>("Invert", &this->inverted));
+            bar1->add(new LambdaActionItem("Calibrate", [=](void) -> void { 
+                parameter_manager_calibrate(this);
+                //this->start_calibration(); 
+            }));
 
             SubMenuItem *bar2 = new SubMenuItemBar("Settings", true, false);
             bar2->add(new DirectNumberControl<uint16_t>("uni min dac", &calibrated_lowest_value,  calibrated_lowest_value,  0, __UINT16_MAX__));

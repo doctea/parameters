@@ -38,6 +38,13 @@
 class BaseParameterInput;
 class BaseParameter;
 
+class Calibratable {
+    public:
+    virtual void calibrate() = 0;
+
+    void start_calibration();
+};
+
 #ifdef ENABLE_SCREEN
     class MenuItem;
     template<class DataType> class SelectorControl;

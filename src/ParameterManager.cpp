@@ -107,6 +107,15 @@ FLASHMEM void ParameterManager::addParameters(LinkedList<FloatParameter*> *param
     Debug_println(F("finished in addParameters"));
 }
 
+void ParameterManager::process_calibration() {
+    volatile static bool calibrating = false;
+    if (!calibrating && this->parameter_to_calibrate!=nullptr) {
+        calibrating = true;
+        this->parameter_to_calibrate->calibrate();
+        calibrating = false;
+        this->parameter_to_calibrate = nullptr;
+    }
+}
 
 #ifdef ENABLE_SCREEN
     #include "menuitems_quickpage.h"
@@ -182,3 +191,8 @@ FLASHMEM void ParameterManager::addParameters(LinkedList<FloatParameter*> *param
 
     }
 #endif
+
+
+void parameter_manager_calibrate(Calibratable* v) {
+    parameter_manager->calibrate_output(v);
+}
