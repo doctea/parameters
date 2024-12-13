@@ -489,6 +489,13 @@ class ParameterManager {
             }
         }
 
+        void process_pending() {
+            uint_fast16_t size = available_parameters->size();
+            for (uint_fast16_t i = 0 ; i < size ; i++) {
+                available_parameters->get(i)->process_pending();
+            }
+        }
+
         // handle slicing stages of update and throttling updates - also update mixers
         void throttled_update_cv_input__all(int time_between_cv_input_updates = 5, bool slice_stages = false, bool slice_mixers = false) {
             {
@@ -515,6 +522,8 @@ class ParameterManager {
                                     this->update_mixers();
                                 if(debug && Serial) { Serial.println(F("just did parameter_manager->update_inputs()..")); Serial_flush(); }
                                 current_mode = 0;
+
+                                this->process_pending();
                                 break;
                         }
                     } else {
@@ -533,6 +542,7 @@ class ParameterManager {
                         else
                             this->update_mixers();
                         }
+                        this->process_pending();
                         if(debug) { Serial.println(F("just did parameter_manager->update_inputs()..")); Serial_flush(); }
                     }
                     time_of_last_param_update = millis();

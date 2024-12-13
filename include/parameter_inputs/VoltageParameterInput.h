@@ -43,8 +43,7 @@ class VoltageParameterInput : public AnalogParameterInputBase<float> {
             return this->voltage_source->supports_pitch();
         }
         virtual uint8_t get_voltage_pitch() {
-            //return get_midi_pitch_for_voltage(this->voltage_source->get_voltage_pitch());
-            return get_midi_pitch_for_voltage(get_voltage()); //this->voltage_source->get_voltage();
+            return get_midi_pitch_for_voltage(get_voltage(), 0);
         }
 
         virtual float get_voltage() {

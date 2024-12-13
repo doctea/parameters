@@ -96,6 +96,8 @@ class BaseParameter {
             return false;
         }
 
+        virtual void process_pending() {}
+
         virtual void save_pattern_add_lines(LinkedList<String> *lines) {}
 
         // called when a BaseParameterInput that was targetting this item release control of this parameter

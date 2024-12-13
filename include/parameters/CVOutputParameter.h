@@ -131,6 +131,9 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
             return dac_value;
         }
 
+        bool is_pending_value = false;
+        uint16_t pending_value = 0; 
+
         uint16_t last_value = 0;
         virtual void setTargetValueFromData(DataType value, bool force = false) override {
             if (this->target!=nullptr) {
@@ -141,19 +144,28 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
                 uint16_t calibrated_dac_value = get_dac_value_for_voltage(value);
 
                 if (last_value!=calibrated_dac_value || force) {
-                    if (Serial) Serial.printf("%u\t: %s#setTargetValueFromData(%u)!\n", micros(), this->label, calibrated_dac_value);
-                    this->target->write(channel, calibrated_dac_value);
-                    int error = this->target->lastError();
-                    if (error>0) {
-                        if (Serial) Serial.printf("\t!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! got error code %02x!\n", error);
-                    }
-                    if (Serial) Serial.printf("%u\t: %s#completed write!\n", micros(), this->label);
+                    //this->target->write(channel, calibrated_dac_value);
+                    this->pending_value = calibrated_dac_value;
+                    this->is_pending_value = true;
                 }
 
                 last_value = calibrated_dac_value;
             } else {
                 if (this->debug) Serial.printf("WARNING: No target set in CVParameter#setTargetValueFromData in '%s'!\n", this->label);
             }
+        }
+
+        virtual void process_pending() override {
+            if (is_pending_value) {
+                if (Serial) Serial.printf("%u\t: %s#setTargetValueFromData(%u)!\n", micros(), this->label, pending_value);
+                this->target->write(channel, pending_value);
+                int error = this->target->lastError();
+                if (error>0) {
+                    if (Serial) Serial.printf("\t!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! got error code %02x!\n", error);
+                }
+                if (Serial) Serial.printf("%u\t: %s#completed write!\n", micros(), this->label);
+                is_pending_value = false;
+            }            
         }
 
         virtual bool load_parse_key_value(String key, String value) override {
