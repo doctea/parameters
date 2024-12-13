@@ -102,6 +102,7 @@ float get_frequency_for_pitch(int8_t pitch, int8_t base_pitch) {
   // tune from 440hz
   int8_t p = constrain(pitch - base_pitch, MIDI_MIN_NOTE, MIDI_MAX_NOTE);
   float freq = 440.0 * pow(2.0, ((float)(p) / 12.0));
+  //float freq = 55.0 * pow(2.0, ((float)(p) / 12.0));
   //Serial.printf("get_frequency_for_pitch(%u) return freq %u\n", pitch, (freq));
   return freq;
 }
