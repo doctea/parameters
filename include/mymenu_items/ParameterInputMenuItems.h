@@ -66,7 +66,7 @@ class ParameterInputSelectorControl : public SelectorControl<int_least16_t> {
 
     virtual int find_parameter_input_index_for_label(char *name) {
         if (strcmp(name, "None")==0)
-            return num_values;
+            return this->get_num_values();
         if (this->available_parameter_inputs==nullptr)
             return -1;
         const uint_fast16_t size = this->available_parameter_inputs->size();
@@ -148,7 +148,7 @@ class ParameterInputSelectorControl : public SelectorControl<int_least16_t> {
 
         pos.y = header(label, pos, selected, opened);
       
-        int num_values = this->available_parameter_inputs->size(); //NUM_AVAILABLE_PARAMETERS;
+        int num_values = this->get_num_values(); //this->available_parameter_inputs->size(); //NUM_AVAILABLE_PARAMETERS;
         //Serial.printf(F("\tdisplay got num_values %i\n"), num_values); Serial_flush();
 
         if (!opened) {
