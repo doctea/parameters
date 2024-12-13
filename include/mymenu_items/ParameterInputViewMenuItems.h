@@ -120,7 +120,7 @@ class ParameterInputDisplay : public MenuItem
             const int_fast16_t base_row = pos.y;
             static float ticks_per_pixel = (float)memory_size / (float)tft->width();
 
-            // todo: draw a grey line at the "zero" position
+            // draw a grey line at the "zero" position
             int_fast16_t zero_position_y = parameter_input->input_type==BIPOLAR ? graph_height/2 : graph_height;
             tft->drawLine(0, base_row + zero_position_y, tft->width(), base_row + zero_position_y, halfbright_colour);
 

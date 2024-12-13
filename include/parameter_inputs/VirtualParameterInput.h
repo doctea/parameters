@@ -10,7 +10,7 @@
 
 #include "ads.h"
 
-// todo: options to configure LFO type, speed, etc
+// todo: (more) options to configure LFO type, speed, etc
 // todo: support MIDI pitch generation
 
 // see ParameterInput.cpp for the string def

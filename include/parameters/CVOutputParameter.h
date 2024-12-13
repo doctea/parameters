@@ -140,11 +140,10 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
                 if (this->debug && Serial) 
                     Serial.printf("CVParameter#setTargetValueFromData(%3.3f, %i)\n", value, this->channel);
 
-                // TODO: calibrate value here...
                 uint16_t calibrated_dac_value = get_dac_value_for_voltage(value);
 
                 if (last_value!=calibrated_dac_value || force) {
-                    //this->target->write(channel, calibrated_dac_value);
+                    // only store the pending value, for setting DAC value later during process_pending
                     this->pending_value = calibrated_dac_value;
                     this->is_pending_value = true;
                 }
@@ -155,6 +154,7 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
             }
         }
 
+        // called after all parameter modulation processing has been done so that reading and writing don't get entangled and cause problems
         virtual void process_pending() override {
             if (is_pending_value) {
                 if (Serial) Serial.printf("%u\t: %s#setTargetValueFromData(%u)!\n", micros(), this->label, pending_value);

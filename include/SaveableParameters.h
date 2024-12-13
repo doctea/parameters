@@ -1,7 +1,5 @@
-// todo: move this into a libary so can be used by other projects and inside libraries?
-//          maybe into the parameters library?
-//          or do we need an entire 'serialiser' load/save library?  `file_manager` branch, save load, etc..?
-// todo: rename this to something else !
+// todo: do we need an entire 'serialiser' load/save library?  `file_manager` branch, save load, etc..?
+// todo: rename this to something else as calling it '..Parameter' risks confusing it with actual Parameters; maybe "Setting" or "Option" or something?
 
 #pragma once
 

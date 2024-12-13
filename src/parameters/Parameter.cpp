@@ -112,7 +112,7 @@ void FloatParameter::save_pattern_add_lines(LinkedList<String> *lines) {
         //          ^^ this could be the SaveableParameter class, used as a wrapper.  would require SaveableParameter to be able to add multiple lines to the save file
         // todo: make these mappings part of an extra type of thing (like a "preset clip"?), rather than associated with sequence?
         // todo: move these to be saved with the project instead?
-        for (int slot = 0 ; slot < MAX_SLOT_CONNECTIONS ; slot++) { // TODO: MAX_CONNECTION_SLOTS...?
+        for (uint_fast8_t slot = 0 ; slot < MAX_SLOT_CONNECTIONS ; slot++) { // TODO: MAX_CONNECTION_SLOTS...?
             if (this->connections[slot].parameter_input==nullptr) continue;      // skip if no parameter_input configured in this slot
             if (this->connections[slot].amount==0.00) continue;                     // skip if no amount configured for this slot
 

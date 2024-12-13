@@ -8,7 +8,7 @@
 extern ParameterManager *parameter_manager;
 class VoltageParameterInput;
 
-// TODO: allow to deselect a selector (ie set None)
+// TODO: allow to deselect a selector (ie set None) -- believe this was done a long time ago? (2024-12-13)
 
 // Selector to choose a ParameterInput from the available list to use a Source; 
 // Also used more directly by objects/parameters that can only feed from one ParameterInput at a time, eg CVInput
