@@ -1,5 +1,4 @@
-#ifndef ADCDEVICE__INCLUDED
-#define ADCDEVICE__INCLUDED
+#pragma once
 
 extern int initialised_voltage_source_count;
 
@@ -17,5 +16,3 @@ class ADCDeviceBase {
         virtual VoltageSourceBase *make_voltage_source(int global_slot) = 0;
 
 };
-
-#endif
