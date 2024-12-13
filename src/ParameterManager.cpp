@@ -193,6 +193,6 @@ void ParameterManager::process_calibration() {
 #endif
 
 
-void parameter_manager_calibrate(Calibratable* v) {
+void parameter_manager_calibrate(ICalibratable* v) {
     parameter_manager->calibrate_output(v);
 }

@@ -22,12 +22,12 @@
 class VoltageParameterInput;
 uint16_t calibrate_find_dac_value_for(int channel, VoltageParameterInput *src, float intended_voltage, bool inverted = false);
 uint16_t calibrate_find_dac_value_for(int channel, char *input_name, float intended_voltage, bool inverted = false);
-void parameter_manager_calibrate(Calibratable* v);
+void parameter_manager_calibrate(ICalibratable* v);
 
 // for applying modulation to a value before sending CC values out to the target device
 // eg, a synth's cutoff value
 template<class TargetClass=DAC8574, class DataType=float>
-class CVOutputParameter : public DataParameter<TargetClass,DataType>, public Calibratable {
+class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, virtual public ICalibratable, virtual public IMIDINoteAndCCTarget {
     public:
         byte channel = 0;
         //DataType floor, ceiling;
@@ -140,8 +140,15 @@ class CVOutputParameter : public DataParameter<TargetClass,DataType>, public Cal
                 // TODO: calibrate value here...
                 uint16_t calibrated_dac_value = get_dac_value_for_voltage(value);
 
-                if (last_value!=calibrated_dac_value || force) 
+                if (last_value!=calibrated_dac_value || force) {
+                    if (Serial) Serial.printf("%u\t: %s#setTargetValueFromData(%u)!\n", micros(), this->label, calibrated_dac_value);
                     this->target->write(channel, calibrated_dac_value);
+                    int error = this->target->lastError();
+                    if (error>0) {
+                        if (Serial) Serial.printf("\t!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! got error code %02x!\n", error);
+                    }
+                    if (Serial) Serial.printf("%u\t: %s#completed write!\n", micros(), this->label);
+                }
 
                 last_value = calibrated_dac_value;
             } else {
@@ -231,4 +238,22 @@ class CVOutputParameter : public DataParameter<TargetClass,DataType>, public Cal
 
             return controls; 
         };
+
+        virtual float get_voltage_for_pitch(int8_t pitch, int16_t detune_cents = 0) {
+            if(!is_valid_note(pitch))
+                return 0.0;
+            return constrain((float)pitch / 12.0, this->minimumDataRange, this->maximumDataRange);
+        }
+
+        virtual void sendNoteOn(uint8_t pitch, uint8_t velocity, uint8_t channel) {
+            if(is_valid_note(pitch)) {
+                float voltage_for_pitch = get_voltage_for_pitch(pitch);
+                Serial.printf("%s#sendNoteOn(pitch=%3i,....)\t", this->label, pitch);
+                Serial.printf("-> %3s,\t", get_note_name_c(pitch));
+                Serial.printf("got voltage_for_pitch = %3.3f\n", voltage_for_pitch);
+                this->updateValueFromData(voltage_for_pitch);
+            }
+        }
+        virtual void sendNoteOff(uint8_t pitch, uint8_t velocity, uint8_t channel) {
+        }
 };

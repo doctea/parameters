@@ -3,7 +3,7 @@
 #include "SimplyAtomic.h"
 #include "ParameterManager.h"
 
-// todo: possibly move this whole thing into CVOutputParameter, or Calibratable...?
+// todo: possibly move this whole thing into CVOutputParameter, or ICalibratable...?
 // or like, a DACDevice family of classes 
 
 #include "DAC8574.h"
@@ -61,7 +61,7 @@ uint16_t calibrate_find_dac_value_for(int channel, VoltageParameterInput *src, f
                 if (last_guess_din < guess_din) {
                     Serial.println("OVERSHOT 1!");
                     overshot = true;
-                    tolerance *= 2.0;
+                    tolerance *= 1.25;
                     Serial.printf("Set tolerance to %3.3f\n", tolerance);
                 }
                 last_guess_din = guess_din;
@@ -71,7 +71,7 @@ uint16_t calibrate_find_dac_value_for(int channel, VoltageParameterInput *src, f
                 if (last_guess_din > guess_din) {
                     Serial.println("OVERSHOT 2!");
                     overshot = true;
-                    tolerance *= 2.0;
+                    tolerance *= 1.25;
                     Serial.printf("Set tolerance to %3.3f\n", tolerance);
                 }
                 last_guess_din = guess_din;
@@ -97,11 +97,12 @@ uint16_t calibrate_find_dac_value_for(int channel, VoltageParameterInput *src, f
             Serial.printf("Tried %i\t", last_guess_din);
             Serial.printf("And got result %3.3f", last_read);
             if (inverted) Serial.printf(" (inverted)");
+            Serial.printf("\t(making difference of %3.3f)", fabs(max(actual_read,intended_voltage) - min(actual_read,intended_voltage)));
             Serial.println();
 
             //Serial.printf(" (wanted %3.3f)\n", intended_voltage);
 
-        } while (fabs(actual_read) - fabs(intended_voltage) > tolerance);
+        } while (fabs(max(actual_read,intended_voltage) - min(actual_read,intended_voltage)) > tolerance);
 
         Serial.printf("got actual_read=%3.3f ", actual_read);
         Serial.printf("(%3.3f distance from intended %3.3f, with final tolerance %3.3f) ", fabs(actual_read) - fabs(intended_voltage), intended_voltage, tolerance);

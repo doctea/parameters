@@ -38,7 +38,7 @@
 class BaseParameterInput;
 class BaseParameter;
 
-class Calibratable {
+class ICalibratable {
     public:
     virtual void calibrate() = 0;
 

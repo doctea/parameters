@@ -540,9 +540,9 @@ class ParameterManager {
             }
         }
 
-        Calibratable *parameter_to_calibrate = nullptr;
+        ICalibratable *parameter_to_calibrate = nullptr;
         // tell ParameterManager to calibrate this output the next chance it gets
-        void calibrate_output(Calibratable *parameter_to_calibrate) {
+        void calibrate_output(ICalibratable *parameter_to_calibrate) {
             this->parameter_to_calibrate = parameter_to_calibrate;
         };
         void process_calibration();

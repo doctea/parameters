@@ -220,6 +220,6 @@ bool FloatParameter::load_parse_key_value(const String incoming_key, String valu
 #include "parameters/CVOutputParameter.h"
 #include "menu_messages.h"
 
-void Calibratable::start_calibration() {
+void ICalibratable::start_calibration() {
     parameter_manager->calibrate_output(this);
 }
