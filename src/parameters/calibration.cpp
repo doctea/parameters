@@ -10,6 +10,10 @@
 extern DAC8574 *dac_output;
 
 uint16_t calibrate_find_dac_value_for(int channel, VoltageParameterInput *src, float intended_voltage, bool inverted) {
+    if (src==nullptr) {
+        Serial.printf("calibrate_find_dac_value_for(channel=%u) passed a null VoltageParameterInput!\n", channel);
+        return intended_voltage * 65535.0;
+    }
     parameter_manager->update_voltage_sources();
     parameter_manager->update_inputs();
     src->read();
