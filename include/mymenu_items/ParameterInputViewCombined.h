@@ -22,8 +22,8 @@ class ParameterInputCombinedDisplay : public MenuItem {
 
         int graph_height = 50;
 
-        ParameterInputCombinedDisplay(char *label, int total_height = 150, ParameterInputDisplay *item1 = nullptr, ParameterInputDisplay *item2 = nullptr, ParameterInputDisplay *item3 = nullptr)
-            : MenuItem(label) {
+        ParameterInputCombinedDisplay(char *label, int total_height = 150, ParameterInputDisplay *item1 = nullptr, ParameterInputDisplay *item2 = nullptr, ParameterInputDisplay *item3 = nullptr, bool selectable = false, bool show_header = false)
+            : MenuItem(label, selectable, show_header) {
                 if (item1!=nullptr) displays->add(item1);
                 if (item2!=nullptr) displays->add(item2);
                 if (item3!=nullptr) displays->add(item3);
