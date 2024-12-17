@@ -1,5 +1,7 @@
 #pragma once
 
+#if ENABLE_CV_INPUT
+
 #include "debug.h"
 
 #include "VoltageSource.h"
@@ -126,3 +128,4 @@ class ADSVoltageSource : public ADSVoltageSourceBase {
 
 };
 
+#endif

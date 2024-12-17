@@ -1,12 +1,6 @@
 #include "parameter_inputs/ParameterInput.h"
 #include "parameter_inputs/VirtualParameterInput.h"
 
-#include "menuitems_lambda.h"
-#include "submenuitem_bar.h"
-#include "mymenu_items/ParameterInputMenuItems.h"
-#include "mymenu_items/ParameterInputViewMenuItems.h"
-#include "mymenu_items/ParameterInputTypeSelector.h"
-
 const char *BaseParameterInput::prefix = "parameter_input_";
 const char *BaseParameterInput::input_type_suffix = "_input_type";
 
@@ -17,6 +11,12 @@ lfo_option_t virtual_parameter_options[lfo_option_id::NUM] = {
 };
 
 #ifdef ENABLE_SCREEN
+    #include "menuitems_lambda.h"
+    #include "submenuitem_bar.h"
+    #include "mymenu_items/ParameterInputMenuItems.h"
+    #include "mymenu_items/ParameterInputViewMenuItems.h"
+    #include "mymenu_items/ParameterInputTypeSelector.h"
+
     FLASHMEM
     SubMenuItemBar *BaseParameterInput::makeControls(int16_t memory_size, const char *label_prefix) {
         // TODO: a new ParameterInputControl that allows to set expected input ranges

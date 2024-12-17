@@ -86,7 +86,7 @@ class MIDICCParameter : public DataParameter<TargetClass,DataType> {
             FloatParameter::save_pattern_add_lines(lines);
         }
 
-        //FLASHMEM virtual LinkedList<MenuItem *> *makeControls() override;
+        #ifdef USE_SCREEN
         FLASHMEM
         virtual LinkedList<MenuItem *> *addCustomTypeControls(LinkedList<MenuItem *> *controls) override { 
             if (this->configurable) {
@@ -113,6 +113,7 @@ class MIDICCParameter : public DataParameter<TargetClass,DataType> {
             }
             return controls; 
         };
+        #endif
 };
 
 // for parameters where we want to both accept updates from a mapping (eg a keyboard routed to the device), while also applying modulation before sending the actual value out to the target device, eg, modwheel

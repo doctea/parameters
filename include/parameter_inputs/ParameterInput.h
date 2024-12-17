@@ -1,5 +1,9 @@
 #pragma once
 
+#ifndef FLASHMEM
+  #define FLASHMEM
+#endif
+
 #include "ParameterTypes.h"
 
 #include <Arduino.h>

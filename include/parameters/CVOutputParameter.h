@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef ENABLE_CV_OUTPUT
+
 #include "parameters/Parameter.h"
 
 #include "midi_helpers.h"
@@ -269,3 +271,5 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
         virtual void sendNoteOff(uint8_t pitch, uint8_t velocity, uint8_t channel) {
         }
 };
+
+#endif

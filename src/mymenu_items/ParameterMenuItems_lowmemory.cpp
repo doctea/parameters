@@ -1,3 +1,5 @@
+#ifdef USE_SCREEN
+
 #include "parameters/Parameter.h"
 #include "mymenu_items/ParameterMenuItems_lowmemory.h"
 
@@ -124,3 +126,5 @@ void create_low_memory_parameter_controls(const char *label, FloatParameter *par
 
     create_low_memory_parameter_controls_actual();
 }
+
+#endif

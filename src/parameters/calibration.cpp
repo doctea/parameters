@@ -1,6 +1,9 @@
+#ifdef ENABLE_CV_OUTPUT
 
 #include "parameters/calibration.h"
-#include "SimplyAtomic.h"
+#ifdef USE_ATOMIC
+    #include "SimplyAtomic.h"
+#endif
 #include "ParameterManager.h"
 
 // todo: possibly move this whole thing into CVOutputParameter, or ICalibratable...?
@@ -40,7 +43,10 @@ uint16_t calibrate_find_dac_value_for(int channel, VoltageParameterInput *src, f
 
     //if (inverted) intended_voltage = 10.0 - intended_voltage;
 
-    ATOMIC(){
+    #ifdef USE_ATOMIC
+    ATOMIC()
+    #endif
+    {
         do {
             dac_output->write(
                 channel, 
@@ -122,3 +128,6 @@ uint16_t calibrate_find_dac_value_for(int channel, char *input_name, float inten
 
     return calibrate_find_dac_value_for(channel, src, intended_voltage, inverted);
 }
+
+
+#endif

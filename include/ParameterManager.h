@@ -12,6 +12,10 @@
     #endif    
 #endif
 
+#ifndef FASTRUN
+    #define FASTRUN 
+#endif
+
 //#include "Config.h"
 
 #include "debug.h"
@@ -200,6 +204,7 @@ class ParameterManager {
             //unsigned long update_mixers_started = micros();
             //ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
                 const uint_fast16_t available_parameters_size = this->available_parameters->size();
+                if (debug && Serial) Serial.printf("update_mixers has %i parameters to process\n", available_parameters_size);
                 for (uint_fast16_t i = 0 ; i < available_parameters_size ; i++) {
                     if (this->available_parameters->get(i)!=nullptr)
                         this->available_parameters->get(i)->update_mixer();
@@ -512,6 +517,7 @@ class ParameterManager {
                                 //if(debug) Serial.println("just did parameter_manager->update_voltage_sources().."); Serial_flush();
                                 //if(debug) Serial.println("about to do parameter_manager->update_inputs().."); Serial_flush();
                                 this->update_inputs();
+                                if(debug && Serial) { Serial.println(F("just did parameter_manager->update_inputs()..")); Serial_flush(); }
                                 //if(debug) Serial.println("about to do parameter_manager->update_mixers().."); Serial_flush();
                                 current_mode++;
                                 break;
@@ -520,7 +526,7 @@ class ParameterManager {
                                     this->update_mixers_sliced();
                                 else
                                     this->update_mixers();
-                                if(debug && Serial) { Serial.println(F("just did parameter_manager->update_inputs()..")); Serial_flush(); }
+                                if(debug && Serial) { Serial.println(F("just did parameter_manager->update_mixers()..")); Serial_flush(); }
                                 current_mode = 0;
 
                                 this->process_pending();
@@ -532,18 +538,21 @@ class ParameterManager {
                         //if(debug) Serial.println("just did parameter_manager->update_voltage_sources().."); Serial_flush();
                         //if(debug) Serial.println("about to do parameter_manager->update_inputs().."); Serial_flush();
                         this->update_inputs();
+                        if(debug) { Serial.println(F("just did parameter_manager->update_inputs()..")); Serial_flush(); }
                         //if(debug) Serial.println("about to do parameter_manager->update_mixers().."); Serial_flush();
                         #ifdef USE_ATOMIC
                         ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
                         #endif
                         {
+                        if(debug) Serial.println("about to do parameter_manager->update_mixers().."); Serial_flush();
+
                         if (slice_mixers)
                             this->update_mixers_sliced();
                         else
                             this->update_mixers();
                         }
+
                         this->process_pending();
-                        if(debug) { Serial.println(F("just did parameter_manager->update_inputs()..")); Serial_flush(); }
                     }
                     time_of_last_param_update = millis();
                 }

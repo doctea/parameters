@@ -157,7 +157,7 @@ class FloatParameter : public BaseParameter {
 
     virtual void updateValueFromNormal(float value/*, float range = 1.0*/) override {
         // TODO: we might actually want this to do something?
-        //Serial.printf(F("WARNING: dummy FloatParameter#updateValueFromNormal(%f) for '%s'\n"), value, this->label);
+        Serial.printf("WARNING: dummy FloatParameter#updateValueFromNormal(%f) for '%s'\n", value, this->label);
     };
 
     virtual void on_unbound(BaseParameterInput *input) {
@@ -318,6 +318,19 @@ class FloatParameter : public BaseParameter {
     virtual void save_pattern_add_lines(LinkedList<String> *lines); 
     virtual bool load_parse_key_value(String key, String value);
     
+    //DataType lastGetterValue;
+    virtual void update_mixer() {
+        float modulation_value = this->get_modulation_value();
+        float current_value = this->currentNormalValue;
+        Serial.printf("update_mixer() in %s got current_value=");
+        Serial.println(current_value);
+        //if (modulateNormalValue!=lastModulatedNormalValue) {
+            //this->sendCurrentTargetValue();
+            lastModulatedNormalValue = constrain(current_value + modulation_value, this->minimumNormalValue, this->maximumNormalValue);
+            //lastGetterValue = current_value;
+        //}
+    }
+
     #ifdef ENABLE_SCREEN
         FLASHMEM virtual MenuItem *makeControl();
         FLASHMEM virtual LinkedList<MenuItem *> *makeControls();
@@ -513,6 +526,10 @@ class DataParameterBase : public FloatParameter {
         virtual void update_mixer() {
             this->modulateNormalValue = this->get_modulation_value();
             DataType current_value = this->getCurrentDataValue();
+            if (debug) {
+                Serial.printf("update_mixer() in %s got current_value=", this->label);
+                Serial.println(current_value);
+            }
             if (modulateNormalValue!=lastModulatedNormalValue) {
                 this->sendCurrentTargetValue();
                 lastModulatedNormalValue = modulateNormalValue;

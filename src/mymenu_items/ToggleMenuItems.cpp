@@ -1,3 +1,5 @@
+#ifdef USE_SCREEN
+
 #include "mymenu_items/ToggleMenuItems.h"
 
 bool ToggleParameterControl::action_opened() {
@@ -13,3 +15,5 @@ bool ToggleParameterControl::action_opened() {
     //this->parameter->setParamValue(((DataParameter*)parameter)->getCurrentValue() < 0.5);
     return false;   // don't 'open'
 }
+
+#endif
