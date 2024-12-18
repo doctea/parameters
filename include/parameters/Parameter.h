@@ -322,8 +322,10 @@ class FloatParameter : public BaseParameter {
     virtual void update_mixer() {
         float modulation_value = this->get_modulation_value();
         float current_value = this->currentNormalValue;
-        Serial.printf("update_mixer() in %s got current_value=");
-        Serial.println(current_value);
+        if (debug) {
+            Serial.printf("update_mixer() in %s\tgot current_value=", this->label);
+            Serial.println(current_value);
+        }
         //if (modulateNormalValue!=lastModulatedNormalValue) {
             //this->sendCurrentTargetValue();
             lastModulatedNormalValue = constrain(current_value + modulation_value, this->minimumNormalValue, this->maximumNormalValue);
@@ -527,7 +529,7 @@ class DataParameterBase : public FloatParameter {
             this->modulateNormalValue = this->get_modulation_value();
             DataType current_value = this->getCurrentDataValue();
             if (debug) {
-                Serial.printf("update_mixer() in %s got current_value=", this->label);
+                Serial.printf("update_mixer() in %s\tgot current_value=", this->label);
                 Serial.println(current_value);
             }
             if (modulateNormalValue!=lastModulatedNormalValue) {

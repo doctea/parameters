@@ -1,4 +1,4 @@
-#ifdef USE_SCREEN
+#ifdef ENABLE_SCREEN
 
 #include "parameters/Parameter.h"
 #include "mymenu_items/ParameterMenuItems_lowmemory.h"

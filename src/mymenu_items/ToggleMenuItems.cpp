@@ -1,4 +1,4 @@
-#ifdef USE_SCREEN
+#ifdef ENABLE_SCREEN
 
 #include "mymenu_items/ToggleMenuItems.h"
 

@@ -71,6 +71,9 @@ class ADSVoltageSource : public ADSVoltageSourceBase {
                 Debug_printf(F("ADSVoltageSource#fetch_current_voltage reading from channel %i, check you're using correct address ADC board if crash here!\n"), this->channel);
 
             if (!ads_source->isConnected()) {
+                if (this->debug) {
+                    Serial.printf("ADSVoltageSource#fetch_current_voltage(): underlying ADC isn't connected!\n");
+                }
                 return 0.0f;
             }
 

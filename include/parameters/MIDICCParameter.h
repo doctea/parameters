@@ -86,7 +86,7 @@ class MIDICCParameter : public DataParameter<TargetClass,DataType> {
             FloatParameter::save_pattern_add_lines(lines);
         }
 
-        #ifdef USE_SCREEN
+        #ifdef ENABLE_SCREEN
         FLASHMEM
         virtual LinkedList<MenuItem *> *addCustomTypeControls(LinkedList<MenuItem *> *controls) override { 
             if (this->configurable) {
