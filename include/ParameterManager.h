@@ -164,12 +164,12 @@ class ParameterManager {
             voltage_sources->get(last_read)->update();
 
             //if (this->debug) Serial.printf(F("ParameterManager#update_voltage_sources() just did read from %i\n"), last_read);
-            /*#ifdef ENABLE_PRINTF
-                if (this->debug) {
+            //#ifdef ENABLE_PRINTF
+                if (Serial && this->debug) {
                     //Serial.printf("Reading from ADC %i...", last_read);
-                    Serial.printf(F("update_voltage_sources read value %f\n"), voltage_sources->get(last_read)->current_value);
+                    Serial.printf("update_voltage_sources read value %f\n", voltage_sources->get(last_read)->current_value);
                 }
-            #endif*/
+            //#endif
 
             last_read++;
             if (last_read>=size)
