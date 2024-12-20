@@ -559,6 +559,39 @@ class ParameterManager {
             }
         }
 
+
+        void output_parameter_representation(int columns = 100) {
+            // don't bother if serial isn't connected
+            if (!Serial)
+                return;
+
+            char line[columns+1];
+            memset(line, ' ', columns);
+            line[0] = '|';
+            line[columns-1] = '|';
+            line[columns] = '\0';
+            for (int i = 0 ; i < this->available_parameters->size() ; i++) {
+                FloatParameter *p = this->available_parameters->get(i);
+                if (strcmp(p->label,"None")==0)
+                    continue;
+                float v = p->getLastModulatedNormalValue();
+                int pos = constrain((float)columns * v, 0, columns-1);
+                line[pos] = '0' + i;
+            }
+
+            for (int i = 0 ; i < this->available_inputs->size() ; i++) {
+                BaseParameterInput *p = this->available_inputs->get(i);
+                //if (strcmp(p->label,"None")==0)
+                //    continue;
+                float v = p->get_normal_value_unipolar();
+                int pos = constrain((float)(columns * v), 0, columns-1);
+                line[pos] = 'A' + i;
+            }
+
+            Serial.println(line);
+        }
+
+
         ICalibratable *parameter_to_calibrate = nullptr;
         // tell ParameterManager to calibrate this output the next chance it gets
         void calibrate_output(ICalibratable *parameter_to_calibrate) {
