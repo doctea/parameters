@@ -159,15 +159,15 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
         // called after all parameter modulation processing has been done so that reading and writing don't get entangled and cause problems
         virtual void process_pending() override {
             if (is_pending_value) {
-                if (Serial) Serial.printf("%u\t: %s#setTargetValueFromData(%u)!\n", micros(), this->label, pending_value);
+                if (this->debug && Serial) Serial.printf("%u\t: %s#setTargetValueFromData(%u)!\n", micros(), this->label, pending_value);
                 this->target->write(channel, pending_value);
                 int error = this->target->lastError();
                 if (error>0) {
-                    if (Serial) Serial.printf("\t!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! got error code %02x!\n", error);
+                    if (this->debug && Serial) Serial.printf("\t!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! got error code %02x!\n", error);
                 }
-                if (Serial) Serial.printf("%u\t: %s#completed write!\n", micros(), this->label);
+                if (this->debug && Serial) Serial.printf("%u\t: %s#completed write!\n", micros(), this->label);
                 is_pending_value = false;
-            }            
+            }
         }
 
         virtual bool load_parse_key_value(String key, String value) override {
@@ -260,15 +260,19 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
         }
 
         virtual void sendNoteOn(uint8_t pitch, uint8_t velocity, uint8_t channel) {
-            if(is_valid_note(pitch)) {
-                float voltage_for_pitch = get_voltage_for_pitch(pitch);
+            if (!is_valid_note(pitch))
+                return;
+
+            float voltage_for_pitch = get_voltage_for_pitch(pitch);
+            if (this->debug && Serial) {
                 Serial.printf("%s#sendNoteOn(pitch=%3i,....)\t", this->label, pitch);
                 Serial.printf("-> %3s,\t", get_note_name_c(pitch));
                 Serial.printf("got voltage_for_pitch = %3.3f\n", voltage_for_pitch);
-                this->updateValueFromData(voltage_for_pitch);
             }
+            this->updateValueFromData(voltage_for_pitch);
         }
         virtual void sendNoteOff(uint8_t pitch, uint8_t velocity, uint8_t channel) {
+            // todo: should probably have an option to drop the output voltage to 0 when no notes are left?
         }
 };
 

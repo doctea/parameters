@@ -18,6 +18,8 @@
 
 //#include "Config.h"
 
+//#define ENABLE_DEBUG_SERIAL 
+
 #include "debug.h"
 
 #include "voltage_sources/VoltageSource.h"
@@ -90,16 +92,16 @@ class ParameterManager {
             //char parameter_input_name = 'A';
             for (uint_least8_t i = 0 ; i < devices->size() ; i++) {
                 ADCDeviceBase *device = this->devices->get(i);
-                Debug_printf(F("ParameterManager#auto_init_devices calling init() on device %i of %i\n"), i+1, devices->size());
+                Debug_printf("ParameterManager#auto_init_devices calling init() on device %i of %i\n", i+1, devices->size());
                 device->init();
 
                 VoltageSourceBase *vs = device->make_voltage_source();
                 uint_least8_t counter = 0;
                 while (vs != nullptr) {
-                    Debug_printf(F("\tParameterManager#auto_init_devices adding voltage source count %i\n"), counter);
+                    Debug_printf("\tParameterManager#auto_init_devices adding voltage source count %i\n", counter);
                     this->addVoltageSource(vs);
                     //this->addInput(device->make_input_for_source(parameter_input_name++, vs));
-                    Debug_printf(F("\tParameterManager#auto_init_devices calling make_voltage_source on count %i\n"), counter);
+                    Debug_printf("\tParameterManager#auto_init_devices calling make_voltage_source on count %i\n", counter);
                     vs = device->make_voltage_source();
                     counter++;
                 }

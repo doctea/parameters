@@ -43,6 +43,8 @@ bool ParameterManager::save_voltage_calibration(int slot) {
 
 #include "ParameterManager.h"
 
+#include "debug.h"
+
 LinkedList<BaseParameterInput*> *ParameterManager::get_available_pitch_inputs() {
     static LinkedList<BaseParameterInput*> *available_pitch_inputs = new LinkedList<BaseParameterInput*>();
     static bool already_calculated = false;
@@ -58,13 +60,14 @@ LinkedList<BaseParameterInput*> *ParameterManager::get_available_pitch_inputs() 
 }
 
 FLASHMEM ADCDeviceBase *ParameterManager::addADCDevice(ADCDeviceBase *device) {
-    Debug_printf(F("ParameterManager#addADCDevice(%p)\n"), device);
+    Debug_printf("ParameterManager#addADCDevice(%p)\n", device);
     this->devices->add(device);
     return device;
 }
 
 FLASHMEM VoltageSourceBase *ParameterManager::addVoltageSource(VoltageSourceBase *voltage_source) {
-    Debug_printf(F("ParameterManager#addVoltageSource(%p)\n"), voltage_source);
+    Debug_printf("ParameterManager#addVoltageSource(%p)\n", voltage_source);
+    Serial.printf("ParameterManager#addVoltageSource(%p)\n", voltage_source);
     #if defined(LOAD_CALIBRATION_ON_BOOT) && defined(ENABLE_CALIBRATION_STORAGE)
         //Debug_printf(F("Loading calibration for %i!\n"), voltage_source->slot);
         Debug_printf("Loading calibration for VoltageSource with global_slot=%i!\n", voltage_source->global_slot);
@@ -79,7 +82,7 @@ FLASHMEM VoltageSourceBase *ParameterManager::addVoltageSource(VoltageSourceBase
 }
 
 BaseParameterInput *ParameterManager::addInput(BaseParameterInput *input) {
-    Debug_printf(F("ParameterManager#addInput(%p)\n"), input);
+    Debug_printf("ParameterManager#addInput(%p)\n", input);
     #ifdef ENABLE_SCREEN
         input->colour = parameter_input_colours[this->available_inputs->size() % (sizeof(parameter_input_colours)/2)];
     #endif
@@ -88,7 +91,7 @@ BaseParameterInput *ParameterManager::addInput(BaseParameterInput *input) {
 }
 
 FLASHMEM FloatParameter *ParameterManager::addParameter(FloatParameter *parameter) {
-    Debug_printf(F("ParameterManager#addParameter(%p), labeled '%s'\n"), parameter, parameter->label);
+    Debug_printf("ParameterManager#addParameter(%p), labeled '%s'\n", parameter, parameter->label);
     this->available_parameters->add(parameter);
     return parameter;
 }
