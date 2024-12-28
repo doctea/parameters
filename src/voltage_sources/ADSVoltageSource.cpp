@@ -1,7 +1,7 @@
 #include "voltage_sources/ADSVoltageSource.h"
 #include "voltage_sources/ADS24vVoltageSource.h"
 
-#ifdef ENABLE_SCREEN
+#if defined(ENABLE_SCREEN) && defined(ENABLE_CV_INPUT)
     #include "submenuitem_bar.h"
     #include "menuitems_object.h"
     //#include "ParameterManager.h"
@@ -23,7 +23,7 @@
             1200.0, 
             nullptr
         );
-        ctrl1->step = 0.25;
+        ctrl1->step = 0.1;
         ctrl1->float_mult = 10.0;
         ctrl1->float_unit = ' ';
 
@@ -36,7 +36,7 @@
             0.099, 
             nullptr
         );
-        ctrl2->step = 0.00025;
+        ctrl2->step = 0.0001;
         ctrl2->float_mult = 100000.0;
         ctrl2->float_unit = ' ';
 
@@ -82,6 +82,7 @@
         #define FILEPATH_CALIBRATION_FORMAT       "calib_volt_src_%i.txt"
     #endif
     
+    #ifdef ENABLE_CV_INPUT
     FLASHMEM void ADSVoltageSourceBase::load_calibration() {
         // todo: make VoltageSource know its name so that it knows where to load from
         //Debug_printf("ADSVoltageSourceBase: load_calibration for slot!\n", slot);
@@ -150,4 +151,5 @@
         //myFile.close();
         Debug_printf("\tEnd of save_calibration.\n");
     }
+    #endif
 #endif

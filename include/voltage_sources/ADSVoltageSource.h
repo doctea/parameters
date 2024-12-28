@@ -1,6 +1,6 @@
 #pragma once
 
-#if ENABLE_CV_INPUT
+#ifdef ENABLE_CV_INPUT
 
 #include "debug.h"
 
