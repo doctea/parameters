@@ -10,9 +10,9 @@
 // or like, a DACDevice family of classes 
 
 #include "DAC8574.h"
-extern DAC8574 *dac_output;
+//extern DAC8574 *dac_output;
 
-uint16_t calibrate_find_dac_value_for(int channel, VoltageParameterInput *src, float intended_voltage, bool inverted) {
+uint16_t calibrate_find_dac_value_for(DAC8574 *dac_output, int channel, VoltageParameterInput *src, float intended_voltage, bool inverted) {
     if (src==nullptr) {
         Serial.printf("calibrate_find_dac_value_for(channel=%u) passed a null VoltageParameterInput!\n", channel);
         return intended_voltage * 65535.0;
@@ -44,7 +44,7 @@ uint16_t calibrate_find_dac_value_for(int channel, VoltageParameterInput *src, f
     //if (inverted) intended_voltage = 10.0 - intended_voltage;
 
     #ifdef USE_ATOMIC
-    ATOMIC()
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
     #endif
     {
         do {
@@ -123,10 +123,10 @@ uint16_t calibrate_find_dac_value_for(int channel, VoltageParameterInput *src, f
     return guess_din;
 }
 
-uint16_t calibrate_find_dac_value_for(int channel, char *input_name, float intended_voltage, bool inverted) {
+uint16_t calibrate_find_dac_value_for(DAC8574 *dac_output, int channel, char *input_name, float intended_voltage, bool inverted) {
     VoltageParameterInput *src = (VoltageParameterInput*)parameter_manager->getInputForName(input_name);
 
-    return calibrate_find_dac_value_for(channel, src, intended_voltage, inverted);
+    return calibrate_find_dac_value_for(dac_output, channel, src, intended_voltage, inverted);
 }
 
 

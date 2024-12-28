@@ -42,7 +42,7 @@ class ParameterInputCombinedDisplay : public MenuItem {
             //Serial.println("MidiOutputSelectorControl display()!");
             pos.y = this->header(label, pos, selected, opened);
 
-            for (int i = 0 ; i < displays->size() ; i++) {
+            for (uint_fast8_t i = 0 ; i < displays->size() ; i++) {
                 if (displays->get(i)!=nullptr) {
                     tft->setCursor(pos.x, pos.y);
                     this->colours(false, displays->get(i)->default_fg);
@@ -70,9 +70,9 @@ class ParameterInputCombinedDisplay : public MenuItem {
             pos.y = tft->getCursorY();
             pos.x = 0;
 
-            int graph_height = (this->graph_height - pos.y) / displays->size();
+            uint_fast16_t graph_height = (this->graph_height - pos.y) / displays->size();
 
-            for (int i = 0 ; i < displays->size() ; i++) {
+            for (uint_fast8_t i = 0 ; i < displays->size() ; i++) {
                 if (displays->get(i)!=nullptr) {
                     pos.y = displays->get(i)->draw_graph(pos, graph_height);
                 }

@@ -1,6 +1,6 @@
 
 //#ifndef F
-    #define F(X) X
+    //#define F(X) X
 //#endif
 
 #ifndef Serial_flush

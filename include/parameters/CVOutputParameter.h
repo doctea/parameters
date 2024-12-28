@@ -1,13 +1,17 @@
 #pragma once
 
+//#define ENABLE_CV_OUTPUT 0x4C 
+
 #ifdef ENABLE_CV_OUTPUT
 
 #include "parameters/Parameter.h"
 
+#include "calibration.h"
+
 #include "midi_helpers.h"
 
 // todo: make CVOutputParameter more agnostic about underlying library so it can support other DACs
-#include "DAC8574.h"
+#include <DAC8574.h>
 
 // todo: add auto-calibration ability
 // todo: figure out an interface to allow using CVOutputParameter as a 1v/oct output from MIDI...
@@ -22,8 +26,8 @@
 
 // todo: figure out a way to include these from a file
 class VoltageParameterInput;
-uint16_t calibrate_find_dac_value_for(int channel, VoltageParameterInput *src, float intended_voltage, bool inverted = false);
-uint16_t calibrate_find_dac_value_for(int channel, char *input_name, float intended_voltage, bool inverted = false);
+uint16_t calibrate_find_dac_value_for(DAC8574 *dac_output, int channel, VoltageParameterInput *src, float intended_voltage, bool inverted = false);
+uint16_t calibrate_find_dac_value_for(DAC8574 *dac_output, int channel, char *input_name, float intended_voltage, bool inverted = false);
 void parameter_manager_calibrate(ICalibratable* v);
 
 // for applying modulation to a value before sending CC values out to the target device
@@ -73,9 +77,9 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
 
         void calibrate() override {
             Serial.printf("Finding lowest value..\n");
-            this->calibrated_lowest_value = calibrate_find_dac_value_for(this->channel, this->calibration_input, 0.0, this->inverted);
+            this->calibrated_lowest_value = calibrate_find_dac_value_for(this->target, this->channel, this->calibration_input, 0.0, this->inverted);
             Serial.printf("Finding highest value..\n");
-            this->calibrated_highest_value = calibrate_find_dac_value_for(this->channel, this->calibration_input, 10.0, this->inverted);
+            this->calibrated_highest_value = calibrate_find_dac_value_for(this->target, this->channel, this->calibration_input, 10.0, this->inverted);
         }
         
         virtual DataType map(DataType x, DataType in_min, DataType in_max, DataType out_min, DataType out_max) {
@@ -204,7 +208,7 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
         FLASHMEM
         virtual LinkedList<MenuItem *> *addCustomTypeControls(LinkedList<MenuItem *> *controls) override { 
             if (this->configurable) {
-                SubMenuItem *bar = new SubMenuItemBar("Settings", true, false);
+                //SubMenuItem *bar = new SubMenuItemBar("Settings", true, false);
 
                 /*bar->add(new DirectNumberControl<byte>(
                     "Output CC", //label, 

@@ -153,7 +153,8 @@ class ParameterManager {
         }*/
 
         // read the values, but don't pass them on outside
-        FASTRUN void update_voltage_sources() {
+        //FASTRUN 
+        void update_voltage_sources() {
             //if (this->debug) Serial.printf(F("ParameterManager#update_voltage_sources()"));
             // round robin reading so they get a chance to settle in between adc reads?
             const uint_fast8_t size = voltage_sources->size();
@@ -392,7 +393,7 @@ class ParameterManager {
             //#endif
         #endif
 
-        int find_slot_for_voltage(VoltageSourceBase *source) {
+        FASTRUN int find_slot_for_voltage(VoltageSourceBase *source) {
             for (unsigned int i = 0 ; i < voltage_sources->size() ; i++) {
                 if (voltage_sources->get(i) == source)
                     return i;
@@ -478,12 +479,12 @@ class ParameterManager {
 
         unsigned long time_of_last_param_update = 0;
 
-        bool ready_for_next_update(unsigned int time_between_cv_input_updates = 5) {
+        FASTRUN bool ready_for_next_update(unsigned int time_between_cv_input_updates = 5) {
             return millis() - time_of_last_param_update > time_between_cv_input_updates;
         }
 
         // update inputs WITHOUT also updating mixers
-        void throttled_update_cv_inputs(int time_between_cv_input_updates = 5) {
+        FASTRUN void throttled_update_cv_inputs(int time_between_cv_input_updates = 5) {
             #ifdef USE_ATOMIC
             ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
             #endif
@@ -496,7 +497,7 @@ class ParameterManager {
             }
         }
 
-        void process_pending() {
+        FASTRUN void process_pending() {
             uint_fast16_t size = available_parameters->size();
             for (uint_fast16_t i = 0 ; i < size ; i++) {
                 available_parameters->get(i)->process_pending();
@@ -504,7 +505,7 @@ class ParameterManager {
         }
 
         // handle slicing stages of update and throttling updates - also update mixers
-        void throttled_update_cv_input__all(int time_between_cv_input_updates = 5, bool slice_stages = false, bool slice_mixers = false) {
+        FASTRUN void throttled_update_cv_input__all(int time_between_cv_input_updates = 5, bool slice_stages = false, bool slice_mixers = false) {
             {
                 if (ready_for_next_update()) {
                     if (slice_stages) {
@@ -561,8 +562,7 @@ class ParameterManager {
             }
         }
 
-
-        void output_parameter_representation(int columns = 100) {
+        FASTRUN void output_parameter_representation(int columns = 100) {
             // don't bother if serial isn't connected
             if (!Serial)
                 return;
@@ -572,7 +572,7 @@ class ParameterManager {
             line[0] = '|';
             line[columns-1] = '|';
             line[columns] = '\0';
-            for (int i = 0 ; i < this->available_parameters->size() ; i++) {
+            for (uint_fast16_t i = 0 ; i < this->available_parameters->size() ; i++) {
                 FloatParameter *p = this->available_parameters->get(i);
                 if (strcmp(p->label,"None")==0)
                     continue;
@@ -581,7 +581,7 @@ class ParameterManager {
                 line[pos] = '0' + i;
             }
 
-            for (int i = 0 ; i < this->available_inputs->size() ; i++) {
+            for (uint_fast8_t i = 0 ; i < this->available_inputs->size() ; i++) {
                 BaseParameterInput *p = this->available_inputs->get(i);
                 //if (strcmp(p->label,"None")==0)
                 //    continue;

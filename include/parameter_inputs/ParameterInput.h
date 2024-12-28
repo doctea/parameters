@@ -1,8 +1,8 @@
 #pragma once
 
-#ifndef FLASHMEM
+/*#ifndef FLASHMEM
   #define FLASHMEM
-#endif
+#endif*/
 
 #include "ParameterTypes.h"
 

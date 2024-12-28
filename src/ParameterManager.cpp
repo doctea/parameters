@@ -189,7 +189,8 @@ void ParameterManager::process_calibration() {
                     quickjump->add_page(menu->get_selected_page());
             }
 
-            combined_display->add_parameter_input_display(parameter_input->parameter_input_display);
+            if (combined_display!=nullptr) 
+                combined_display->add_parameter_input_display(parameter_input->parameter_input_display);
         }
 
     }
