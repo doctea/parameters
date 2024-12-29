@@ -476,7 +476,7 @@ class DataParameterBase : public FloatParameter {
             value = this->constrainNormal(value);
             DataType data = this->get_effective_minimum_data_value() + (value * (float)(this->get_effective_maximum_data_value() - this->get_effective_minimum_data_value()));
             //if (this->debug/* && value>=0.0f*/) if (Serial) Serial.printf(" => %i\n", data);
-            if (this->debug) if (Serial) Serial.printf(" => %3.3f\n", (float)data);
+            if (this->debug && Serial) Serial.printf(" => %3.3f\n", (float)data);
             return data;
         }
         virtual float dataToNormal(DataType value) {

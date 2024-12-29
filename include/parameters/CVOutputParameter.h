@@ -163,13 +163,20 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
         // called after all parameter modulation processing has been done so that reading and writing don't get entangled and cause problems
         virtual void process_pending() override {
             if (is_pending_value) {
-                if (this->debug && Serial) Serial.printf("%u\t: %s#setTargetValueFromData(%u)!\n", micros(), this->label, pending_value);
+                if (this->debug && Serial) Serial.printf("%u\t: %s#setTargetValueFromData(%u) on channel %u!\n", micros(), this->label, pending_value, channel);
                 this->target->write(channel, pending_value);
+                /* // for testing all channels
+                this->target->write(1, pending_value);
+                this->target->write(2, pending_value);
+                this->target->write(3, pending_value);*/
                 int error = this->target->lastError();
                 if (error>0) {
                     if (this->debug && Serial) Serial.printf("\t!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! got error code %02x!\n", error);
                 }
-                if (this->debug && Serial) Serial.printf("%u\t: %s#completed write!\n", micros(), this->label);
+                if (this->debug && Serial) {
+                    Serial.printf("%u\t: %s#completed write!\n", micros(), this->label);
+                    Serial.printf("%u\t: %s#reading back %u (wrote %u)\n", micros(), this->label, this->target->read(channel), pending_value);
+                }
                 is_pending_value = false;
             }
         }

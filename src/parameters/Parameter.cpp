@@ -37,6 +37,9 @@ void FloatParameter::set_slot_input(int8_t slot, BaseParameterInput *parameter_i
         if (Serial) Serial.printf("%s#set_slot_input(%i) isn't a valid slot number!\n", this->label, slot);
         return;
     }
+    if (parameter_input==nullptr) {
+        if (Serial) Serial.printf("%s#set_slot_input(%i) was passed a nullptr!\n", this->label, slot);
+    }
     this->connections[slot].parameter_input = parameter_input;
     /*#ifdef ENABLE_SCREEN
         if (parameter_input!=nullptr) {
