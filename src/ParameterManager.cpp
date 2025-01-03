@@ -169,7 +169,7 @@ void ParameterManager::process_calibration() {
 
         menu->remember_opened_page(menu->get_page_index_for_name(menu->get_selected_page()->title));
 
-        ParameterInputCombinedDisplay *combined_display;
+        ParameterInputCombinedDisplay *combined_display = nullptr;
 
         for (unsigned int i = 0 ; i < available_inputs->size() ; i++) {
             BaseParameterInput *parameter_input = available_inputs->get(i);
