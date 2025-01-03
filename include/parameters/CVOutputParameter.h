@@ -174,6 +174,7 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
                     if (this->debug && Serial) Serial.printf("\t!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! got error code %02x!\n", error);
                 }
                 if (this->debug && Serial) {
+                    // note that this actually reads back from the device to confirm the write was successful, so it's a bit slow
                     Serial.printf("%u\t: %s#completed write!\n", micros(), this->label);
                     Serial.printf("%u\t: %s#reading back %u (wrote %u)\n", micros(), this->label, this->target->read(channel), pending_value);
                 }

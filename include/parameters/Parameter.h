@@ -1,5 +1,10 @@
 #pragma once
 
+#ifndef MODULATION_THRESHOLD
+    //#define MODULATION_THRESHOLD 0.02
+    #define MODULATION_THRESHOLD 0.01
+#endif
+
 #include "ParameterTypes.h"
 
 #include <Arduino.h>

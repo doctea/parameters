@@ -212,7 +212,7 @@ FLASHMEM LinkedList<MenuItem *> *FloatParameter::makeControls() {
     bool FloatParameter::is_modulation_slot_active(int slot) {
         if (!is_valid_slot(slot)) return false;
 
-        return (this->connections[slot].parameter_input!=nullptr && abs(this->connections[slot].amount) > 0.02);
+        return (this->connections[slot].parameter_input!=nullptr && abs(this->connections[slot].amount) >= MODULATION_THRESHOLD);
     }
     // get the modulation amount to use
     float FloatParameter::get_modulation_value() {
