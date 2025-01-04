@@ -31,6 +31,32 @@ uint16_t calibrate_find_dac_value_for(DAC8574 *dac_output, int channel, VoltageP
 uint16_t calibrate_find_dac_value_for(DAC8574 *dac_output, int channel, char *input_name, float intended_voltage, bool inverted = false);
 void parameter_manager_calibrate(ICalibratable* v);
 
+
+#if defined(ENABLE_CALIBRATION_STORAGE)
+    #ifdef ENABLE_SD
+        #define STORAGE SD
+        #include "SdFat.h"
+    #endif
+    #ifdef ENABLE_LITTLEFS
+        #define STORAGE LittleFS
+        #include <LittleFS.h>
+    #endif
+
+    //#include "SD.h"
+    #ifdef ENABLE_SD
+        #include "SD.h"
+        #define FILEPATH_CVOUTPUT_CALIBRATION_FORMAT       "calibration_cvoutput_%s.txt"
+        #define FILE_READ_MODE FILE_READ
+        #define FILE_WRITE_MODE FILE_WRITE_BEGIN
+    #elif defined (ENABLE_LITTLEFS)
+        // LittleFS has maximum filepath length of 31 characters
+        #define FILE_READ_MODE "r"
+        #define FILE_WRITE_MODE "w"
+        #define FILEPATH_CVOUTPUT_CALIBRATION_FORMAT       "calib_cvout_%s.txt"
+    #endif
+#endif
+
+
 // for applying modulation to a value before sending CC values out to the target device
 // eg, a synth's cutoff value
 template<class TargetClass=DAC8574, class DataType=float>
@@ -61,6 +87,10 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
 
                 this->inverted = inverted;
                 this->polarity = polarity_mode;
+
+                #ifdef LOAD_CALIBRATION_ON_BOOT
+                    this->load_calibration();
+                #endif
                 //this->debug = true;
         }
 
@@ -262,11 +292,13 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
             InputTypeSelectorControl<> *type_selector = new InputTypeSelectorControl<>("Polarity", &this->polarity);
             bar1->add(type_selector);
             bar1->add(new ToggleControl<bool>("Invert", &this->inverted));
-            bar1->add(new LambdaActionItem("Calibrate", [=](void) -> void { 
+
+            SubMenuItem *bar2 = new SubMenuItemBar("Calibration", true, false);
+            bar2->add(new LambdaActionItem("Calibrate", [=](void) -> void { 
                 parameter_manager_calibrate(this);
                 //this->start_calibration(); 
             }));
-            bar1->add(new ParameterInputSelectorControl<CVOutputParameter>(
+            bar2->add(new ParameterInputSelectorControl<CVOutputParameter>(
                 "Cal Input", 
                 this,
                 &CVOutputParameter::set_calibration_parameter_input,
@@ -274,14 +306,21 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
                 parameter_manager->get_available_pitch_inputs(),
                 this->calibration_input
             ));
+            bar2->add(new LambdaActionConfirmItem("Save Calibration", [=](void) -> void { 
+                this->save_calibration(); 
+            }));
+            bar2->add(new LambdaActionConfirmItem("Load Calibration", [=](void) -> void { 
+                this->load_calibration(); 
+            }));
 
-            SubMenuItem *bar2 = new SubMenuItemBar("Settings", true, false);
-            bar2->add(new DirectNumberControl<uint16_t>("uni min dac", &calibrated_lowest_value,  calibrated_lowest_value,  0, __UINT16_MAX__));
-            bar2->add(new DirectNumberControl<uint16_t>("uni max dac", &calibrated_highest_value, calibrated_highest_value, 0, __UINT16_MAX__));
+            SubMenuItem *bar3 = new SubMenuItemBar("Settings", true, false);
+            bar3->add(new DirectNumberControl<uint16_t>("uni min dac", &calibrated_lowest_value,  calibrated_lowest_value,  0, __UINT16_MAX__));
+            bar3->add(new DirectNumberControl<uint16_t>("uni max dac", &calibrated_highest_value, calibrated_highest_value, 0, __UINT16_MAX__));
 
             // insert controls at the top
             controls->add(bar1);
             controls->add(bar2);
+            controls->add(bar3);           
 
             return controls; 
         };
@@ -306,6 +345,88 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
         }
         virtual void sendNoteOff(uint8_t pitch, uint8_t velocity, uint8_t channel) {
             // todo: should probably have an option to drop the output voltage to 0 when no notes are left?
+        }
+
+
+        virtual void save_calibration() override {
+            // todo: make VoltageSource know its name so that it knows where to save to
+            Debug_printf("CVOutputParameter: save_calibration for slot %i!\n", global_slot);
+            //int slot = parameter_manager.find_slot_for_voltage(this);
+
+            //parameter_manager->save_voltage_calibration(slot);
+
+            Debug_printf("\tfor slot %s, saving calibration values %u : %u\n", this->label, this->calibrated_lowest_value, this->calibrated_highest_value);
+        
+            char filename[255] = "";
+            snprintf(filename, 255, FILEPATH_CVOUTPUT_CALIBRATION_FORMAT, this->label); //, preset_number);
+            Debug_printf("\tsave_calibration() opening %s\n", filename);
+
+            if (STORAGE.exists(filename)) {
+                Debug_println("\tfile exists - removing!");
+                STORAGE.remove(filename);
+            }
+
+            File myFile = STORAGE.open(filename, FILE_WRITE_MODE /*FILE_WRITE_BEGIN*/);
+            if (myFile) {
+                //myFile.printf("correction_value_1=%6.6f\n", this->correction_value_1);
+                //myFile.printf("correction_value_2=%6.6f\n", this->correction_value_2);
+                myFile.printf("calibrated_lowest_value=%u\n", this->calibrated_lowest_value);
+                myFile.printf("calibrated_highest_value=%u\n", this->calibrated_highest_value);
+                myFile.close();
+                Debug_printf("\tsaved!\n");
+                //message_log("Saved calibration!");
+            } else {
+                Debug_printf("\tError saving calibration!\n");
+                //message_log("Error saving calibration!");
+            }
+            //myFile.close();
+            Debug_printf("\tEnd of save_calibration.\n");
+        }
+        virtual void load_calibration() override {
+            // todo: make VoltageSource know its name so that it knows where to load from
+            //Debug_printf("CVOutputParameter: load_calibration for slot!\n", slot);
+            Serial_printf("CVOutputParameter: load_calibration for slot %s!\n", this->label);
+            //int slot = parameter_manager.find_slot_for_voltage(this);
+
+            //parameter_manager->load_voltage_calibration(slot); //, this);
+            File myFile;
+
+            if (!STORAGE.mediaPresent()) {
+                Serial_println("No SD card found!");
+                return;
+            }
+
+            char filename[255] = "";
+            snprintf(filename, 255, FILEPATH_CVOUTPUT_CALIBRATION_FORMAT, this->label); //, preset_number);
+            Debug_printf("\tload_calibration() opening '%s' for global slot %s\n", filename, this->label);
+            myFile.setTimeout(0);
+            myFile = STORAGE.open(filename, FILE_READ_MODE);
+
+            if (!myFile) {
+                //Debug_printf("\tError: Couldn't open '%s' for reading for slot %i!\n", filename, slot);
+                Serial_printf("\tError: Couldn't open '%s' for reading for global slot %s!\n", filename, this->label);
+                return; // false;
+            }
+            String line;
+            while (myFile.available()) {
+                line = myFile.readStringUntil('\n');
+                String key = line.substring(0, line.indexOf("="));
+                String value = line.substring(line.indexOf("=")+1);
+                Debug_printf("\tfor %s, found value '%s' => %6.6f\n", key.c_str(), value.c_str(), value.toFloat());
+                /*if (key.equals("correction_value_1")) {
+                    this->correction_value_1 = value.toFloat();
+                } else if (key.equals("correction_value_2")) {
+                    this->correction_value_2 = value.toFloat();
+                }*/
+                if (key.equals("calibrated_lowest_value")) {
+                    this->calibrated_lowest_value = value.toInt();
+                } else if (key.equals("calibrated_highest_value")) {
+                    this->calibrated_highest_value = value.toInt();            
+                }
+            }
+            myFile.close();
+
+            Debug_printf("for slot %i, got calibration values %u : %u\n", this->label, this->calibrated_lowest_value, this->calibrated_highest_value);
         }
 };
 

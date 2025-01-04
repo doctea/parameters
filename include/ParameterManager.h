@@ -84,6 +84,7 @@ class ParameterManager {
         //FLASHMEM 
         BaseParameterInput *addInput(BaseParameterInput *input);
         FLASHMEM FloatParameter *addParameter(FloatParameter *parameter);
+        FLASHMEM FloatParameter *addParameter(ICalibratable *parameter);
         FLASHMEM void addParameters(LinkedList<FloatParameter*> *parameters);
         
         // initialise devices and add all their voltage sources
@@ -603,6 +604,14 @@ class ParameterManager {
             return this->parameter_to_calibrate!=nullptr;
         }
         void process_calibration();
+
+        // todo: this is currently only used by the CVOutputParameter; so perhaps we should come up with a way to make this more specific to that class?
+        // called at end of setup() to load all calibrations
+        void load_all_calibrations() {
+            for (uint_fast8_t i = 0 ; i < available_parameters->size() ; i++) {
+                available_parameters->get(i)->load_calibration();
+            }
+        }
 };
 
 extern ParameterManager *parameter_manager;

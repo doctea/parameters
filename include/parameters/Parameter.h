@@ -47,7 +47,10 @@ class ICalibratable {
     public:
     virtual void calibrate() = 0;
 
-    void start_calibration();
+    virtual void start_calibration();
+
+    virtual void save_calibration() {}
+    virtual void load_calibration() {}
 };
 
 #ifdef ENABLE_SCREEN
@@ -93,6 +96,7 @@ class BaseParameter {
             //static char noval = "[none]";
             return "[none]";
         };
+        // called when a BaseParameterInput that was targetting this item release control of this parameter
         virtual void on_unbound(BaseParameterInput*) {}
 
         virtual void update_mixer() {}
@@ -105,7 +109,8 @@ class BaseParameter {
 
         virtual void save_pattern_add_lines(LinkedList<String> *lines) {}
 
-        // called when a BaseParameterInput that was targetting this item release control of this parameter
+        // todo: this is currently only used by the CVOutputParameter; so perhaps we should come up with a way to make this more specific to that class? 
+        virtual void load_calibration() {}
 };
 
 // floattype-backed Parameter class from which usable types descend
