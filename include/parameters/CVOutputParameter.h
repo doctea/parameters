@@ -4,6 +4,8 @@
 
 #ifdef ENABLE_CV_OUTPUT
 
+#include "debug.h"
+
 #include "parameters/Parameter.h"
 
 #include "calibration.h"
@@ -104,7 +106,7 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
             } else {
                 Serial_printf("CVOutputParameter#set_calibration_parameter_input(nullptr) in %s\n", this->label);
             }
-            this->calibration_input = calibration_input;
+            this->calibration_input = (VoltageParameterInput*)calibration_input;
         }
         virtual void set_calibration_parameter_input(const char *input_name) {
             this->set_calibration_parameter_input(parameter_manager->getInputForName(input_name));
@@ -119,9 +121,9 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
 
 
         void calibrate() override {
-            Serial_printf("Finding lowest value..\n");
+            Serial.println("Finding lowest value..\n");
             this->calibrated_lowest_value = calibrate_find_dac_value_for(this->target, this->channel, this->calibration_input, 0.0, this->inverted);
-            Serial_printf("Finding highest value..\n");
+            Serial.println("Finding highest value..\n");
             this->calibrated_highest_value = calibrate_find_dac_value_for(this->target, this->channel, this->calibration_input, 10.0, this->inverted);
         }
         
@@ -391,10 +393,12 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
             //parameter_manager->load_voltage_calibration(slot); //, this);
             File myFile;
 
-            if (!STORAGE.mediaPresent()) {
-                Serial_println("No SD card found!");
-                return;
-            }
+            #ifdef ENABLE_SD
+                if (!STORAGE.mediaPresent()) {
+                    Serial_println("No SD card found!");
+                    return;
+                }
+            #endif
 
             char filename[255] = "";
             snprintf(filename, 255, FILEPATH_CVOUTPUT_CALIBRATION_FORMAT, this->label); //, preset_number);

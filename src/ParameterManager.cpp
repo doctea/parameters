@@ -96,7 +96,7 @@ FLASHMEM FloatParameter *ParameterManager::addParameter(FloatParameter *paramete
     return parameter;
 }
 
-FLASHMEM FloatParameter *ParameterManager::addParameter(ICalibratable *parameter) {
+/*FLASHMEM FloatParameter *ParameterManager::addParameter(ICalibratable *parameter) {
     Debug_printf("ParameterManager#addParameter(%p), labeled '%s'\n", parameter, parameter->label);
     this->available_parameters->add((FloatParameter*)parameter);
     #ifdef LOAD_CALIBRATION_ON_BOOT
@@ -104,7 +104,7 @@ FLASHMEM FloatParameter *ParameterManager::addParameter(ICalibratable *parameter
         parameter->load_calibration();
     #endif
     return (FloatParameter*)parameter;
-}
+}*/
 
 FLASHMEM void ParameterManager::addParameters(LinkedList<FloatParameter*> *parameters) {
     if (parameters==nullptr) 

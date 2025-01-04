@@ -84,7 +84,7 @@ class ParameterManager {
         //FLASHMEM 
         BaseParameterInput *addInput(BaseParameterInput *input);
         FLASHMEM FloatParameter *addParameter(FloatParameter *parameter);
-        FLASHMEM FloatParameter *addParameter(ICalibratable *parameter);
+        //FLASHMEM FloatParameter *addParameter(ICalibratable *parameter);
         FLASHMEM void addParameters(LinkedList<FloatParameter*> *parameters);
         
         // initialise devices and add all their voltage sources
