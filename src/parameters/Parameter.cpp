@@ -226,5 +226,5 @@ bool FloatParameter::load_parse_key_value(const String incoming_key, String valu
 #endif
 
 void ICalibratable::start_calibration() {
-    parameter_manager->calibrate_output(this);
+    parameter_manager->queue_calibration(this);
 }

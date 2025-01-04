@@ -21,6 +21,7 @@
     #include "menu.h"
     #include "submenuitem_bar.h"
     #include "mymenu_items/ParameterInputTypeSelector.h"
+    #include "mymenu_items/ParameterInputMenuItems.h"
     #include "menuitems_lambda.h"
 #endif
 
@@ -63,8 +64,20 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
                 //this->debug = true;
         }
 
-        virtual void set_parameter_input_for_calibration(VoltageParameterInput *calibration_input) {
+        virtual BaseParameterInput *get_calibration_parameter_input() {
+            return this->calibration_input;
+        }
+
+        virtual void set_calibration_parameter_input(BaseParameterInput *calibration_input) {
+            if (calibration_input!=nullptr) {
+                Serial_printf("CVOutputParameter#set_calibration_parameter_input(%s) in %s\n", calibration_input->name, this->label);
+            } else {
+                Serial_printf("CVOutputParameter#set_calibration_parameter_input(nullptr) in %s\n", this->label);
+            }
             this->calibration_input = calibration_input;
+        }
+        virtual void set_calibration_parameter_input(const char *input_name) {
+            this->set_calibration_parameter_input(parameter_manager->getInputForName(input_name));
         }
 
         /*virtual const char* getFormattedValue() override {
@@ -76,9 +89,9 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
 
 
         void calibrate() override {
-            Serial.printf("Finding lowest value..\n");
+            Serial_printf("Finding lowest value..\n");
             this->calibrated_lowest_value = calibrate_find_dac_value_for(this->target, this->channel, this->calibration_input, 0.0, this->inverted);
-            Serial.printf("Finding highest value..\n");
+            Serial_printf("Finding highest value..\n");
             this->calibrated_highest_value = calibrate_find_dac_value_for(this->target, this->channel, this->calibration_input, 10.0, this->inverted);
         }
         
@@ -253,6 +266,14 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
                 parameter_manager_calibrate(this);
                 //this->start_calibration(); 
             }));
+            bar1->add(new ParameterInputSelectorControl<CVOutputParameter>(
+                "Cal Input", 
+                this,
+                &CVOutputParameter::set_calibration_parameter_input,
+                &CVOutputParameter::get_calibration_parameter_input,
+                parameter_manager->get_available_pitch_inputs(),
+                this->calibration_input
+            ));
 
             SubMenuItem *bar2 = new SubMenuItemBar("Settings", true, false);
             bar2->add(new DirectNumberControl<uint16_t>("uni min dac", &calibrated_lowest_value,  calibrated_lowest_value,  0, __UINT16_MAX__));

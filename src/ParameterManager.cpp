@@ -112,7 +112,7 @@ FLASHMEM void ParameterManager::addParameters(LinkedList<FloatParameter*> *param
 
 void ParameterManager::process_calibration() {
     volatile static bool calibrating = false;
-    if (!calibrating && this->parameter_to_calibrate!=nullptr) {
+    if (!calibrating && this->pending_calibration()) {
         calibrating = true;
         this->parameter_to_calibrate->calibrate();
         calibrating = false;
@@ -198,5 +198,5 @@ void ParameterManager::process_calibration() {
 
 
 void parameter_manager_calibrate(ICalibratable* v) {
-    parameter_manager->calibrate_output(v);
+    parameter_manager->queue_calibration(v);
 }
