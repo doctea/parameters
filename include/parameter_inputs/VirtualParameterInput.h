@@ -225,8 +225,8 @@ class VirtualParameterInput : public AnalogParameterInputBase<float> {
         }
 
         #ifdef ENABLE_SCREEN
-        FLASHMEM
-        virtual SubMenuItemBar *makeControls(int16_t memory_size, const char *label_prefix = "") override;
+            FLASHMEM
+            virtual SubMenuItemBar *makeControls(int16_t memory_size, const char *label_prefix = "") override;
         #endif
 
 };

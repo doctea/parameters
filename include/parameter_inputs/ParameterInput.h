@@ -1,16 +1,11 @@
 #pragma once
 
-/*#ifndef FLASHMEM
-  #define FLASHMEM
-#endif*/
-
 #include "ParameterTypes.h"
 
 #include <Arduino.h>
 #include <String>
 
 #include "ads.h"
-
 #include "debug.h"
 
 #include "LinkedList.h"
