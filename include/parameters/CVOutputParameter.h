@@ -300,6 +300,7 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
                 parameter_manager_calibrate(this);
                 //this->start_calibration(); 
             }));
+
             bar2->add(new ParameterInputSelectorControl<CVOutputParameter>(
                 "Cal Input", 
                 this,
@@ -308,21 +309,69 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
                 parameter_manager->get_available_pitch_inputs(),
                 this->calibration_input
             ));
-            bar2->add(new LambdaActionConfirmItem("Save Calibration", [=](void) -> void { 
+            bar2->add(
+                new LambdaNumberControl<float>(
+                    "Value", 
+                    [=] (float value) -> void {}, 
+                    [=] () -> float { 
+                        if (this->calibration_input!=nullptr) 
+                            return this->calibration_input->get_voltage(); 
+                        return 0.0;
+                    },
+                    nullptr,
+                    -10.0,
+                    10.0,
+                    false, 
+                    false
+                )
+            );               
+
+            SubMenuItem *bar3 = new SubMenuItemBar("Settings", true, false);
+            //bar3->add(new DirectNumberControl<uint16_t>("uni min dac", &calibrated_lowest_value,  calibrated_lowest_value,  0, __UINT16_MAX__));
+            //bar3->add(new DirectNumberControl<uint16_t>("uni max dac", &calibrated_highest_value, calibrated_highest_value, 0, __UINT16_MAX__));
+
+            bar3->add(new LambdaNumberControl<uint16_t>("uni min dac", 
+                [=] (uint16_t value) -> void { 
+                    this->calibrated_lowest_value = value; 
+                    this->setTargetValueFromData(this->getCurrentDataValue(), true);
+                }, 
+                [=] () -> uint16_t { 
+                    return this->calibrated_lowest_value; 
+                },
+                nullptr,
+                0,
+                __UINT16_MAX__,
+                true, 
+                true
+            ));
+            bar3->add(new LambdaNumberControl<uint16_t>("uni max dac", 
+                [=] (uint16_t value) -> void { 
+                    this->calibrated_highest_value = value; 
+                    this->setTargetValueFromData(this->getCurrentDataValue(), true);
+                }, 
+                [=] () -> uint16_t { 
+                    return this->calibrated_highest_value; 
+                },
+                nullptr,
+                0,
+                __UINT16_MAX__,
+                true, 
+                true
+            ));
+
+            SubMenuItem *bar4 = new SubMenuItemBar("Calibration", true, false);
+            bar4->add(new LambdaActionConfirmItem("Save Calibration", [=](void) -> void { 
                 this->save_calibration(); 
             }));
-            bar2->add(new LambdaActionConfirmItem("Load Calibration", [=](void) -> void { 
+            bar4->add(new LambdaActionConfirmItem("Load Calibration", [=](void) -> void { 
                 this->load_calibration(); 
             }));
 
-            SubMenuItem *bar3 = new SubMenuItemBar("Settings", true, false);
-            bar3->add(new DirectNumberControl<uint16_t>("uni min dac", &calibrated_lowest_value,  calibrated_lowest_value,  0, __UINT16_MAX__));
-            bar3->add(new DirectNumberControl<uint16_t>("uni max dac", &calibrated_highest_value, calibrated_highest_value, 0, __UINT16_MAX__));
-
             // insert controls at the top
             controls->add(bar1);
+            controls->add(bar4);         
             controls->add(bar2);
-            controls->add(bar3);           
+            controls->add(bar3);              
 
             return controls; 
         };
