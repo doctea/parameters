@@ -111,6 +111,8 @@ class BaseParameter {
 
         // todo: this is currently only used by the CVOutputParameter; so perhaps we should come up with a way to make this more specific to that class? 
         virtual void load_calibration() {}
+        virtual LinkedList<MenuItem*> *makeCalibrationControls() { return nullptr; }
+        virtual MenuItem *makeCalibrationLoadSaveControls() { return nullptr; }
 };
 
 // floattype-backed Parameter class from which usable types descend

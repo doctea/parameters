@@ -93,6 +93,9 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
                 #ifdef LOAD_CALIBRATION_ON_BOOT
                     this->load_calibration();
                 #endif
+
+                // force setting output to the starting value
+                this->setTargetValueFromData(this->getCurrentDataValue(), true);
                 //this->debug = true;
         }
 
@@ -280,11 +283,6 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
                 ));*/
 
                 // TODO: ... calibration settings maybe?
-
-                //controls->add(new ActionConfirmItem("Start calibrating", &start_calibration));
-            
-                //controls->add(new DirectNumberControl<DataType>("uni min", &calibrated_min_output_voltage, calibrated_min_output_voltage, -20.0, 20.0));
-                //controls->add(new DirectNumberControl<DataType>("uni max", &calibrated_max_output_voltage, calibrated_max_output_voltage, 0.0, 20.0));
             }
 
             // calibration settings..
@@ -295,12 +293,16 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
             bar1->add(type_selector);
             bar1->add(new ToggleControl<bool>("Invert", &this->inverted));
 
-            SubMenuItem *bar2 = new SubMenuItemBar("Calibration", true, false);
-            bar2->add(new LambdaActionItem("Calibrate", [=](void) -> void { 
-                parameter_manager_calibrate(this);
-                //this->start_calibration(); 
-            }));
+            // insert controls at the top
+            controls->add(bar1);
 
+            return controls; 
+        };
+
+        virtual LinkedList<MenuItem*> *makeCalibrationControls() { 
+            LinkedList<MenuItem*> *controls = new LinkedList<MenuItem*>();
+
+            SubMenuItem *bar2 = new SubMenuItemBar("Calibration", true, false);
             bar2->add(new ParameterInputSelectorControl<CVOutputParameter>(
                 "Cal Input", 
                 this,
@@ -309,9 +311,11 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
                 parameter_manager->get_available_pitch_inputs(),
                 this->calibration_input
             ));
-            bar2->add(
-                new LambdaNumberControl<float>(
-                    "Value", 
+            bar2->add(new LambdaActionItem("Calibrate", [=](void) -> void { 
+                parameter_manager_calibrate(this);
+            }));
+            LambdaNumberControl<float> *input = new LambdaNumberControl<float>(
+                    "Input", 
                     [=] (float value) -> void {}, 
                     [=] () -> float { 
                         if (this->calibration_input!=nullptr) 
@@ -323,12 +327,27 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
                     10.0,
                     false, 
                     false
-                )
-            );               
+                );
+            input->setReadOnly(true);
+            input->selectable = false;
+            bar2->add(input );               
 
             SubMenuItem *bar3 = new SubMenuItemBar("Settings", true, false);
             //bar3->add(new DirectNumberControl<uint16_t>("uni min dac", &calibrated_lowest_value,  calibrated_lowest_value,  0, __UINT16_MAX__));
             //bar3->add(new DirectNumberControl<uint16_t>("uni max dac", &calibrated_highest_value, calibrated_highest_value, 0, __UINT16_MAX__));
+            bar3->add(new LambdaNumberControl<DataType>("Output", 
+                [=] (float value) -> void { 
+                    this->setTargetValueFromData(value, true);
+                }, 
+                [=] () -> float { 
+                    return this->getCurrentDataValue(); 
+                },
+                nullptr,
+                this->minimumDataRange,
+                this->maximumDataRange,
+                true, 
+                true
+            ));
 
             bar3->add(new LambdaNumberControl<uint16_t>("uni min dac", 
                 [=] (uint16_t value) -> void { 
@@ -359,22 +378,25 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
                 true
             ));
 
-            SubMenuItem *bar4 = new SubMenuItemBar("Calibration", true, false);
-            bar4->add(new LambdaActionConfirmItem("Save Calibration", [=](void) -> void { 
+            controls->add(bar2);
+            controls->add(bar3);
+
+            return controls;
+        }
+
+        virtual MenuItem *makeCalibrationLoadSaveControls() { 
+            //LinkedList<MenuItem*> *controls = new LinkedList<MenuItem*>();
+
+            SubMenuItem *bar4 = new SubMenuItemBar("Calibration", false, false);
+            bar4->add(new LambdaActionConfirmItem("Save", [=](void) -> void { 
                 this->save_calibration(); 
             }));
-            bar4->add(new LambdaActionConfirmItem("Load Calibration", [=](void) -> void { 
+            bar4->add(new LambdaActionConfirmItem("Load", [=](void) -> void {
                 this->load_calibration(); 
             }));
 
-            // insert controls at the top
-            controls->add(bar1);
-            controls->add(bar4);         
-            controls->add(bar2);
-            controls->add(bar3);              
-
-            return controls; 
-        };
+            return bar4;
+        }
 
         virtual float get_voltage_for_pitch(int8_t pitch, int16_t detune_cents = 0) {
             if(!is_valid_note(pitch))

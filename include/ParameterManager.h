@@ -372,7 +372,7 @@ class ParameterManager {
                         menu->add(submenuitem);
                     } else {
                         if(size>0){
-                            menu->add_page("Calibration");
+                            menu->add_page("Input Calibration");
                             for (unsigned int i = 0 ; i < size ; i++) {
                                 //Serial.printf(F("\tParameterManager#addAllVoltageSourceCalibrationMenuItems() for voltage_source %i/%i\n"), i+1, size); Serial_flush();
                                 
@@ -391,7 +391,42 @@ class ParameterManager {
                         }
                     }
                 }
-            //#endif
+
+                #ifdef ENABLE_CV_OUTPUT
+                    void addAllCVOutputCalibrationMenuItems(Menu *menu) {
+                        bool page_created = false;
+                        Serial.printf("------------\nParameterManager#addAllCVOutputCalibrationMenuItems() has %i parameters to potentially add  calibrations for\n", this->available_parameters->size());
+                        const unsigned int size = this->available_parameters->size();
+                        for (unsigned int i = 0 ; i < size ; i++) {
+                            Serial.printf("\tParameterManager#addAllCVOutputCalibrationMenuItems() for parameter %i/%i\n", i+1, size); Serial_flush();
+                            Serial.printf("Parameter name is '%s'\n", this->available_parameters->get(i)->label);
+                            
+                            FloatParameter *parameter = this->available_parameters->get(i);
+                            LinkedList<MenuItem *> *calibration_controls = parameter->makeCalibrationControls();
+                            if (calibration_controls!=nullptr) {
+                                Serial.println("Got some controls..."); Serial_flush();
+                                if (!page_created) {
+                                    menu->add_page("Output Calibration");
+                                    page_created = true;                                    
+                                }
+                                menu->add(new SeparatorMenuItem(parameter->label));
+                                Serial.println("Adding calibration controls..."); Serial_flush();
+                                menu->add(calibration_controls);
+                                Serial.println("Added calibration controls!"); Serial_flush();
+                                #if defined(ENABLE_CALIBRATION_STORAGE)
+                                    menu->add(parameter->makeCalibrationLoadSaveControls());
+                                #endif
+                            } else {
+                                Serial.printf("Nothing to add for parameter %i\n", i);
+                            }
+
+                            Serial.println("\t\taddAllCVOutputCalibrationMenuItems done!"); Serial_flush();
+                            Serial.printf("\tfinished with parameter %i\n", i);
+
+                            Serial.printf("free ram is %u\n", freeRam());
+                        }                    
+                    }
+                #endif
         #endif
 
         FASTRUN int find_slot_for_voltage(VoltageSourceBase *source) {
@@ -607,11 +642,14 @@ class ParameterManager {
 
         // todo: this is currently only used by the CVOutputParameter; so perhaps we should come up with a way to make this more specific to that class?
         // called at end of setup() to load all calibrations
+        // todo: this should probably also be where the VoltageSource calibrations are loaded too
         void load_all_calibrations() {
             for (uint_fast8_t i = 0 ; i < available_parameters->size() ; i++) {
                 available_parameters->get(i)->load_calibration();
             }
         }
+
+
 };
 
 extern ParameterManager *parameter_manager;
