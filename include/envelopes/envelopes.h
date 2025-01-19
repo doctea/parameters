@@ -1,5 +1,3 @@
-// TODO: envelopes should use float or something as underlying type, rather than poor-resolution int/midi CC like it does currently!
-// TODO: allow envelope outputs to be registered as ParameterInputs so that they can be used as modulation sources
 // TODO: allow Envelopes to have their types dynamically switched... (will be very tricky due to needing different UI..)
 
 #pragma once

@@ -3,6 +3,7 @@
 #pragma once
 
 #ifdef ENABLE_ENVELOPES
+#ifdef ENABLE_ENVELOPES_AS_PARAMETER_INPUTS
 
 #include "ParameterInput.h"
 #include "AnalogParameterInputBase.h"
@@ -64,4 +65,5 @@ class EnvelopeParameterInput : public virtual AnalogParameterInputBase<float> {
         #endif*/
 };
 
+#endif
 #endif
