@@ -17,10 +17,10 @@
 
 class EnvelopeParameterInput : public virtual AnalogParameterInputBase<float> {
     public:
-
         EnvelopeBase *envelope;
 
-        EnvelopeParameterInput(char *name, const char *group_name, EnvelopeBase *envelope) : AnalogParameterInputBase(name, group_name) {
+        EnvelopeParameterInput(char *name, const char *group_name, EnvelopeBase *envelope) 
+            : AnalogParameterInputBase(name, group_name, 0.005, UNIPOLAR) {
             this->envelope = envelope;
         }
 

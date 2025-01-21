@@ -196,6 +196,8 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
 
                 uint16_t calibrated_dac_value = get_dac_value_for_voltage(value);
 
+                this->currentDataValue = value;
+
                 if (last_value!=calibrated_dac_value || force) {
                     // only store the pending value, for setting DAC value later during process_pending
                     this->pending_value = calibrated_dac_value;
@@ -336,11 +338,11 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
             //bar3->add(new DirectNumberControl<uint16_t>("uni min dac", &calibrated_lowest_value,  calibrated_lowest_value,  0, __UINT16_MAX__));
             //bar3->add(new DirectNumberControl<uint16_t>("uni max dac", &calibrated_highest_value, calibrated_highest_value, 0, __UINT16_MAX__));
             bar3->add(new LambdaNumberControl<DataType>("Output", 
-                [=] (float value) -> void { 
+                [=] (DataType value) -> void { 
                     this->setTargetValueFromData(value, true);
                 }, 
-                [=] () -> float { 
-                    return this->getCurrentDataValue(); 
+                [=] () -> DataType { 
+                    return this->getCurrentDataValue();
                 },
                 nullptr,
                 this->minimumDataRange,
@@ -348,6 +350,7 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
                 true, 
                 true
             ));
+            //if (strcmp(this->label, "CVPO1-A")==0) bar3->items->get(0)->debug = true;
 
             bar3->add(new LambdaNumberControl<uint16_t>("uni min dac", 
                 [=] (uint16_t value) -> void { 
