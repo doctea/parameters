@@ -52,16 +52,28 @@ class ParameterManager {
         FloatParameter *param_none = nullptr;        // 'blank' parameter used as default mapping
 
         #ifdef ENABLE_SCREEN
-        uint16_t parameter_input_colours[9] = {
+        // https://rgbcolorpicker.com/565/table
+        uint16_t parameter_input_colours[15] = {
             RED,
             YELLOW,
-            BLUE,
-            PURPLE,
+            0x867d, // skyblue // cornflourblue BLUE,
             ORANGE,
+            0x7fe0, // chartreuse
+            0xfbea, // coral
+            0x8dd1, // darkseagreen
+            0xfb56, // hotpink
+            0xdd1b, // plum
+            0xd5fa, // thistle
+            0xfea0, // gold
+            0xef31, // khaki
+            0xdfff, // lightcyan
+            0xbaba, // mediumorchid
+            0x07ef, // springgreen
+            /*PURPLE,
             32 + ((YELLOW + BLUE) / 3),
             (ORANGE + BLUE) / 2,
             (GREEN + RED) / 2,
-            (GREEN + ORANGE) / 2
+            (GREEN + ORANGE) / 2*/
         };
         #endif
 
