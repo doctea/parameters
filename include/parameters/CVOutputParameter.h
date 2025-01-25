@@ -90,13 +90,21 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
                 this->inverted = inverted;
                 this->polarity = polarity_mode;
 
+                //this->debug = true;
+                if (this->debug) Serial_printf("=== %s doing initial constructor, loading calibration, and sending initial value...", this->label);
+
                 #ifdef LOAD_CALIBRATION_ON_BOOT
+                    // note that this probably won't actually load anything because SD has not yet been initialised!
                     this->load_calibration();
                 #endif
 
                 // force setting output to the starting value
+
                 this->setTargetValueFromData(this->getCurrentDataValue(), true);
-                //this->debug = true;
+                this->process_pending();
+
+                if (this->debug) Serial_printf("=== %s done initial constructor, loading calibration, and sending initial value.", this->label);
+                //this->debug = false;
         }
 
         virtual BaseParameterInput *get_calibration_parameter_input() {
@@ -187,12 +195,11 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
 
         bool is_pending_value = false;
         uint16_t pending_value = 0; 
-
         uint16_t last_value = 0;
+
         virtual void setTargetValueFromData(DataType value, bool force = false) override {
             if (this->target!=nullptr) {
-                if (this->debug && Serial) 
-                    Serial.printf("CVParameter#setTargetValueFromData(%3.3f, %i)\n", value, this->channel);
+                if (this->debug) Serial_printf("CVParameter#setTargetValueFromData(%3.3f, %i)\n", value, this->channel);
 
                 uint16_t calibrated_dac_value = get_dac_value_for_voltage(value);
 
@@ -200,20 +207,21 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
 
                 if (last_value!=calibrated_dac_value || force) {
                     // only store the pending value, for setting DAC value later during process_pending
+                    if (this->debug) Serial_printf("%s: storing pending_value = %u\t from input value %3.3f\n", this->label, pending_value, value);
                     this->pending_value = calibrated_dac_value;
                     this->is_pending_value = true;
                 }
 
                 last_value = calibrated_dac_value;
             } else {
-                if (this->debug) Serial.printf("WARNING: No target set in CVParameter#setTargetValueFromData in '%s'!\n", this->label);
+                if (this->debug) Serial_printf("WARNING: target object is nullptr in CVParameter#setTargetValueFromData in '%s'!\n", this->label);
             }
         }
 
         // called after all parameter modulation processing has been done so that reading and writing don't get entangled and cause problems
         virtual void process_pending() override {
             if (is_pending_value) {
-                if (this->debug && Serial) Serial.printf("%u\t: %s#setTargetValueFromData(%u) on channel %u!\n", micros(), this->label, pending_value, channel);
+                if (this->debug) Serial_printf("%u\t: %s#setTargetValueFromData(%u) on channel %u!\n", micros(), this->label, pending_value, channel);
                 this->target->write(channel, pending_value);
                 /* // for testing all channels
                 this->target->write(1, pending_value);
@@ -221,12 +229,12 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
                 this->target->write(3, pending_value);*/
                 int error = this->target->lastError();
                 if (error>0) {
-                    if (this->debug && Serial) Serial.printf("\t!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! got error code %02x!\n", error);
+                    if (this->debug) Serial_printf("\t!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! got error code %02x!\n", error);
                 }
-                if (this->debug && Serial) {
+                if (this->debug) {
                     // note that this actually reads back from the device to confirm the write was successful, so it's a bit slow
-                    Serial.printf("%u\t: %s#completed write!\n", micros(), this->label);
-                    Serial.printf("%u\t: %s#reading back %u (wrote %u)\n", micros(), this->label, this->target->read(channel), pending_value);
+                    Serial_printf("%u\t: %s#completed write!\n", micros(), this->label);
+                    Serial_printf("%u\t: %s#reading back %u (wrote %u)\n", micros(), this->label, this->target->read(channel), pending_value);
                 }
                 is_pending_value = false;
             }
@@ -313,7 +321,7 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
                 parameter_manager->get_available_pitch_inputs(),
                 this->calibration_input
             ));
-            bar2->add(new LambdaActionItem("Calibrate", [=](void) -> void { 
+            bar2->add(new LambdaActionConfirmItem("Calibrate", [=](void) -> void { 
                 parameter_manager_calibrate(this);
             }));
             LambdaNumberControl<float> *input = new LambdaNumberControl<float>(
@@ -503,6 +511,9 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
                 }
             }
             myFile.close();
+
+            // now re-send value, which should now be based on the newly loaded calibration data
+            this->setTargetValueFromData(this->getCurrentDataValue(), true);
 
             Debug_printf("for slot %i, got calibration values %u : %u\n", this->label, this->calibrated_lowest_value, this->calibrated_highest_value);
         }
