@@ -426,11 +426,26 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
                 Serial.printf("got voltage_for_pitch = %3.3f\n", voltage_for_pitch);
             }
             this->updateValueFromData(voltage_for_pitch);
+
+            if (gate_bank>=0 && gate_manager!=nullptr) {
+                gate_manager->send_gate_on(gate_bank, gate_number);
+            }
         }
         virtual void sendNoteOff(uint8_t pitch, uint8_t velocity, uint8_t channel) {
             // todo: should probably have an option to drop the output voltage to 0 when no notes are left?
+            if (gate_bank>=0 && gate_manager!=nullptr) {
+                gate_manager->send_gate_off(gate_bank, gate_number);
+            }
         }
 
+        IGateTarget *gate_manager = nullptr;
+        int8_t gate_bank = -1, gate_number = 0;
+
+        virtual void set_gate_outputter(IGateTarget *gate_manager, int8_t gate_bank, int8_t gate_number) {
+            this->gate_manager = gate_manager;
+            this->gate_bank = gate_bank;
+            this->gate_number = gate_number;
+        }
 
         virtual void save_calibration() override {
             // todo: make VoltageSource know its name so that it knows where to save to
