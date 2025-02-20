@@ -134,6 +134,36 @@ class FloatParameter : public BaseParameter {
         self = this;
     }
 
+    uint32_t last_slewed_at = 0;
+    float last_slewed_value = 0.0f;
+    virtual float get_slew_rate() {
+        return 0.001f;
+    }
+    virtual float get_slewed_value(float normal) {
+        uint32_t delta = millis() - last_slewed_at;
+        last_slewed_at = millis();
+        
+        float slew_rate = this->get_slew_rate() * (float)delta;
+        float diff = normal - last_slewed_value;
+
+        if (this->debug && Serial)
+            Serial.printf("%s#get_slewed_value()\tnormal=%3.3f,\tlast_slewed_value=%3.3f,\tdiff=%3.3f,\tslew_rate=%3.3f\n", this->label, normal, last_slewed_value, diff, slew_rate);
+
+        if (diff > slew_rate) {
+            normal = last_slewed_value + slew_rate;
+
+        } else if (diff < -slew_rate) {
+            normal = last_slewed_value - slew_rate;
+        } else
+            if (this->debug && Serial) Serial.printf("slewed to normal\n");
+
+        if (Serial) {
+            //Serial.printf("%s#get_slewed_value()\treturning %f\n", this->label, normal);
+        }
+        last_slewed_value = normal;
+        return normal;
+    }
+
     virtual float getMinimumDataLimit() {
         return minimumNormalValue;
     }
@@ -544,11 +574,11 @@ class DataParameterBase : public FloatParameter {
                 Serial.printf("update_mixer() in %s\tgot current_value=", this->label);
                 Serial.println(current_value);
             }
-            if (modulateNormalValue!=lastModulatedNormalValue) {
+            //if (modulateNormalValue!=lastModulatedNormalValue) {
                 this->sendCurrentTargetValue();
                 lastModulatedNormalValue = modulateNormalValue;
                 lastGetterValue = current_value;
-            }
+            //}
         }
 
         virtual void sendCurrentTargetValue() {
@@ -762,16 +792,27 @@ class DataParameterBase : public FloatParameter {
             };
         #endif
 
-
+        DataType last_sent_value = 0;    
         // set the target from normalised post-modulation value
         virtual void setTargetValueFromNormal(float value, bool force = false) {
             float constrained_value = this->constrainNormal(value);
             this->lastModulatedNormalValue = constrained_value;
-            this->lastOutputNormalValue = this->lastModulatedNormalValue; // = value;
+            //this->lastOutputNormalValue = this->lastModulatedNormalValue; // = value;
             if (debug && Serial) Serial.printf("%s#setTargetValueFromNormal(%3.3f) got modulated value %3.3f, ", this->label, value, constrained_value);
-            DataType value_to_send = this->normalToData(lastOutputNormalValue);
+
+            float slewed_value = this->get_slewed_value(constrained_value);
+            if (this->debug && Serial) Serial.printf("%s:\tslewed from\t%3.3f\tto %3.3f\n", this->label, constrained_value, slewed_value);
+
+            lastOutputNormalValue = slewed_value;
+
+            DataType value_to_send = this->normalToData(slewed_value);
             if (debug && Serial) Serial.printf("\tgot value_to_send=%3.3f\n", (float)value_to_send);
-            this->setTargetValueFromData(value_to_send, force);
+
+            if (true || value_to_send!=last_sent_value) {
+                last_sent_value = value_to_send;
+                this->setTargetValueFromData(value_to_send, force);
+            }
+            //this->setTargetValueFromData(value_to_send, force);
         }
 
         virtual void setTargetValueFromData(DataType value, bool force = false) = 0;
