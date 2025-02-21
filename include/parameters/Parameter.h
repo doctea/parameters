@@ -832,17 +832,17 @@ class DataParameterBase : public FloatParameter {
             if (debug && Serial) Serial.printf("%s#setTargetValueFromNormal(%3.3f) got modulated value %3.3f, ", this->label, value, constrained_value);
 
             float slewed_value = constrained_value;
-            //if (slewing || lastModulatedNormalValue!=lastOutputNormalValue) {
+            if (slewing || lastModulatedNormalValue!=lastOutputNormalValue) {
                 slewed_value = this->get_slewed_value(constrained_value);
                 if (this->debug && Serial) Serial.printf("%s:\tslewed from\t%3.3f\tto %3.3f\n", this->label, constrained_value, slewed_value);
-            //}
+            }
 
             //float slewed_value = this->get_slewed_value(constrained_value);          
 
             DataType value_to_send = this->normalToData(slewed_value);
             if (debug && Serial) Serial.printf("\tgot value_to_send=%3.3f\n", (float)value_to_send);
 
-            if (true || value_to_send!=last_sent_value) {
+            if (force || value_to_send!=last_sent_value) {
                 this->lastRealOutputNormalValue = slewed_value;
                 last_sent_value = value_to_send;
                 this->setTargetValueFromData(value_to_send, force);
