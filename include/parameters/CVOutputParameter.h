@@ -203,7 +203,9 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
 
                 uint16_t calibrated_dac_value = get_dac_value_for_voltage(value);
 
-                this->currentDataValue = value;
+                // TODO: without this, output value widget doesn't update; with it, 
+                // slew doesn't work since it incorrectly records the mid-slew value as the current target value
+                //this->currentDataValue = value;
 
                 if (last_value!=calibrated_dac_value || force) {
                     // only store the pending value, for setting DAC value later during process_pending
