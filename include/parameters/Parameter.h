@@ -140,21 +140,28 @@ class FloatParameter : public BaseParameter {
     uint32_t last_slewed_at = 0;
     float last_slewed_value = 0.0f;
     // todo: make this control whether slew is enabled or disabled
+    bool slew_enabled = false;
     bool slewing = false;
     // todo: tweak this slew value; make it configurable from the screen/modulation
-    float slew_rate = 0.005f;
+    float slew_rate = (0.001f) / 10.0f;
     virtual float get_slew_rate() {
         return slew_rate;
     }
-    virtual float set_slew_rate(float slew_rate) {
+    
+    // weirdly, having this here seems to cause lockups when usb is connected..?
+    /*virtual void set_slew_rate(float slew_rate) {
         this->slew_rate = slew_rate;
-    }
+    }*/
     virtual float get_slewed_value(float normal) {
+        if (!slew_enabled) {
+            last_slewed_value = normal;
+            return normal;
+        }
         uint32_t delta = millis() - last_slewed_at;
         last_slewed_at = millis();
 
         // todo: make slew rate a function of the delta time
-        float slew_rate = this->get_slew_rate();// * (float)delta;
+        float slew_rate = this->get_slew_rate() * (float)delta;
         float diff = normal - this->lastRealOutputNormalValue;
         
         if (debug) {
@@ -824,7 +831,7 @@ class DataParameterBase : public FloatParameter {
         DataType last_sent_value = 0;
         // set the target from normalised post-modulation value
         virtual void setTargetValueFromNormal(float value, bool force = false) {
-            if (strcmp(this->label, "CVPO1-A")==0) this->debug = true; else this->debug = false;
+            //if (strcmp(this->label, "CVPO1-A")==0) this->debug = true; else this->debug = false;
 
             float constrained_value = this->constrainNormal(value);
             this->lastModulatedNormalValue = constrained_value;
@@ -842,7 +849,7 @@ class DataParameterBase : public FloatParameter {
             DataType value_to_send = this->normalToData(slewed_value);
             if (debug && Serial) Serial.printf("\tgot value_to_send=%3.3f\n", (float)value_to_send);
 
-            if (true || value_to_send!=last_sent_value) {
+            if (force || value_to_send!=last_sent_value) {
                 this->lastRealOutputNormalValue = slewed_value;
                 last_sent_value = value_to_send;
                 this->setTargetValueFromData(value_to_send, force);
