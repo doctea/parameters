@@ -90,9 +90,6 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
                 this->inverted = inverted;
                 this->polarity = polarity_mode;
 
-                // todo: probably make this off by default, and configurable..
-                this->slew_enabled = true;
-
                 //this->debug = true;
                 if (this->debug) Serial_printf("=== %s doing initial constructor, loading calibration, and sending initial value...", this->label);
 
