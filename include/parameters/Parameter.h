@@ -130,6 +130,9 @@ class FloatParameter : public BaseParameter {
 
     float lastRealOutputNormalValue = 0.0f;
 
+    // todo: use this!
+    char float_unit = '%';
+
     FloatParameter *self = this;
 
     FloatParameter(const char *label) : BaseParameter(label) {
@@ -485,6 +488,7 @@ class DataParameterBase : public FloatParameter {
             this->minimumDataRange = v;
             if (this->minimumDataRange < this->minimumDataLimit)
                 this->minimumDataRange = this->minimumDataLimit;
+            if (this->debug) Serial.printf("%s#setRangeMinimumLimit(%3.3f) => %3.3f\t(minimumDataLimit is %3.3f)\n", this->label, v, this->minimumDataRange, this->minimumDataLimit);
             //this->minimumNormalValue = this->dataToNormal(minimumDataRange);
         }
         virtual void setRangeMaximumLimit(float v) override {
@@ -874,18 +878,18 @@ class DataParameterBase : public FloatParameter {
         }
 
 
-        void save_pattern_add_lines(LinkedList<String> *lines) override {
+        virtual void save_pattern_add_lines(LinkedList<String> *lines) override {
             FloatParameter::save_pattern_add_lines(lines);
 
-            lines->add(String("parameter_") + String(this->label) + String("_range_minimum=") + String(this->minimumDataRange));
-            lines->add(String("parameter_") + String(this->label) + String("_range_maximum=") + String(this->maximumDataRange));
+            lines->add(String("parameter_") + String(this->label) + String("_range_minimum=") + String(this->getRangeMinimumLimit()));
+            lines->add(String("parameter_") + String(this->label) + String("_range_maximum=") + String(this->getRangeMaximumLimit()));
         }
 
-        bool load_parse_key_value(const String incoming_key, String value) override {
-            if (incoming_key.startsWith("parameter_") + String(this->label) + String("_range_minimum")) {
+        virtual bool load_parse_key_value(const String incoming_key, String value) override {
+            if (incoming_key.startsWith(String("parameter_") + String(this->label) + String("_range_minimum"))) {
                 this->setRangeMinimumLimit(value.toFloat());
                 return true;
-            } else if (incoming_key.startsWith("parameter_") + String(this->label) + String("_range_maximum")) {
+            } else if (incoming_key.startsWith(String("parameter_") + String(this->label) + String("_range_maximum"))) {
                 this->setRangeMaximumLimit(value.toFloat());
                 return true;
             } else {

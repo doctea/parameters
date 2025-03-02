@@ -132,7 +132,7 @@ void FloatParameter::save_pattern_add_lines(LinkedList<String> *lines) {
                 this->connections[slot].amount,
                 this->connections[slot].polar_mode==UNIPOLAR ? "unipolar" : "bipolar"
             );
-            //Serial.printf("PARAMETERS\t%s:\save_pattern_add_lines saving line:\t%s\n", this->label, line);
+            if (debug) Serial.printf("PARAMETERS\t%s#save_pattern_add_lines saving line:\t%s\n", this->label, line);
             lines->add(String(line));
         }
     }
@@ -140,6 +140,8 @@ void FloatParameter::save_pattern_add_lines(LinkedList<String> *lines) {
 
 // parse a key+value pair to restore the state 
 bool FloatParameter::load_parse_key_value(const String incoming_key, String value) {
+    if (debug) Serial.printf("PARAMETERS\tFloatParameter#load_parse_key_value passed '%s' => '%s'...\n", incoming_key.c_str(), value.c_str());
+
     const char *prefix = "parameter_";
     const char *prefix_base = "parameter_value_";
     const char separator = '_', subseparator = '|';
@@ -150,7 +152,7 @@ bool FloatParameter::load_parse_key_value(const String incoming_key, String valu
         //key.replace(prefix_base,"");
         //key = key.substring(strlen(prefix_base));
         if (key.substring(strlen(prefix_base)).equals(this->label)) {
-            //Serial.printf("NOTICE: Matched key '%s' with '%s' - setting parameter value from '%s'\n", key.c_str(), this->label, value.c_str());
+            if (debug) Serial.printf("NOTICE: Matched key '%s' with '%s' - setting parameter value from '%s' - returning\n", key.c_str(), this->label, value.c_str());
             this->updateValueFromNormal(value.toFloat());
             return true;
         }
@@ -175,7 +177,7 @@ bool FloatParameter::load_parse_key_value(const String incoming_key, String valu
     const String parameter_name = key.substring(0, separator_1_position);
 
     if (parameter_name.equals(this->label)) {
-        //Serial.printf("NOTICE: Matched key '%s' with prefix '%s' and parameter_name '%s'\n", key.c_str(), prefix, this->label);
+        if (debug) Serial.printf("NOTICE: Matched key '%s' with prefix '%s' and parameter_name '%s' - returning\n", key.c_str(), prefix, this->label);
 
         const uint_fast8_t slot_number = key.substring(separator_1_position+1).toInt();
 
@@ -206,7 +208,7 @@ bool FloatParameter::load_parse_key_value(const String incoming_key, String valu
             mode = value.substring(separator_3_position+1).equals("unipolar") ? UNIPOLAR : BIPOLAR;
         }
 
-        //if (Serial) Serial.printf("NOTICE: in %s,\t Got split string '%s', slot_number %i, modulation amount %3.3f and mode %s\n", this->label, input_name.c_str(), slot_number, amount, mode == -1 ? "unset" :  (mode==UNIPOLAR ? "unipolar" : "bipolar"));
+        if (Serial) Serial.printf("NOTICE: in %s,\t Got split string '%s', slot_number %i, modulation amount %3.3f and mode %s\n", this->label, input_name.c_str(), slot_number, amount, mode == -1 ? "unset" :  (mode==UNIPOLAR ? "unipolar" : "bipolar"));
 
         this->set_slot_input (slot_number, input_name.c_str());
         this->set_slot_amount(slot_number, amount);

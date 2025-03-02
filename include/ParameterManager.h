@@ -460,8 +460,10 @@ class ParameterManager {
             if (key.startsWith(ParameterInput::prefix)) {
                 const uint_fast8_t available_inputs_count = available_inputs->size();
                 for (uint_fast8_t i = 0 ; i < available_inputs_count ; i++) {
-                    if (available_inputs->get(i)->load_parse_key_value(key, value))
+                    if (available_inputs->get(i)->load_parse_key_value(key, value)) {
+                        if (debug) Serial.printf("ParameterManager#fast_load_parse_key_value(%s, %s)\tfound a match in parameter_input: %s!\n", key.c_str(), value.c_str(), available_inputs->get(i)->name);
                         return true;
+                    }
                 }
                 // we probably want to return early here, since 'parameter_input_' hasn't been handled by any existing parameter_input, 
                 // and so its probably a waste of time searching through all the parameters asking for it?
@@ -489,6 +491,7 @@ class ParameterManager {
 
                 FloatParameter *parameter = list_to_search->get(actual_index);
                 if (parameter!=nullptr && parameter->load_parse_key_value(key, value)) {
+                    if (debug) Serial.printf("ParameterManager#fast_load_parse_key_value(%s, %s)\tfound a match in parameter: %s!\n", key.c_str(), value.c_str(), parameter->label);
                     last_found_at = actual_index;
                     return true;
                 }
@@ -558,7 +561,7 @@ class ParameterManager {
                 if (ready_for_next_update()) {
                     if (slice_stages) {
                         static int_fast8_t current_mode = 0;
-                        if(debug) { Serial.println(F("about to do parameter_manager->update_voltage_sources()..")); Serial_flush(); }
+                        if (debug) { Serial.println(F("about to do parameter_manager->update_voltage_sources()..")); Serial_flush(); }
                         switch (current_mode) {
                             case 0:
                                 this->update_voltage_sources();

@@ -58,22 +58,22 @@ class MIDICCParameter : public DataParameter<TargetClass,DataType> {
 
         virtual bool load_parse_key_value(String key, String value) override {
             if (this->configurable) {
-                Serial.printf("MIDICCParameter named '%s' asked to load_parse_key_value with '%s' => '%s'..", this->label, key.c_str(), value.c_str());
+                if (this->debug) Serial.printf("MIDICCParameter named '%s' asked to load_parse_key_value with '%s' => '%s'..", this->label, key.c_str(), value.c_str());
                 String prefix = String("parameter_value_") + String(this->label) + String("_");
-                Serial.printf("Checking if starts with '%s'..", prefix.c_str());
+                if (this->debug) Serial.printf("Checking if starts with '%s'..", prefix.c_str());
                 if (key.startsWith(prefix)) {
-                    Serial.println("YES! now checking if endswith '_channel' or '_cc'..");
+                    if (this->debug) Serial.println("YES! now checking if endswith '_channel' or '_cc'..");
                     if (key.endsWith("_channel")) {
-                        Serial.println("YES! Ends with _channel");
+                        if (this->debug) Serial.println("YES! Ends with _channel");
                         this->channel = value.toInt();
                         return true;
                     } else if (key.endsWith("_cc")) {
-                        Serial.println("YES! Ends with _cc");
+                        if (this->debug) Serial.println("YES! Ends with _cc");
                         this->cc_number = value.toInt();
                         return true;
                     }
                 }
-                Serial.println("no match.");
+                if (this->debug) Serial.println("no match.");
             }
             return FloatParameter::load_parse_key_value(key, value);
         }
