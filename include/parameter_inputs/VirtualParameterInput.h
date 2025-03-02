@@ -182,18 +182,17 @@ class VirtualParameterInput : public AnalogParameterInputBase<float> {
             }
         }
 
+        const String string__equals = String('=');
         virtual LinkedList<String> *save_pattern_add_lines(LinkedList<String> *lines) override {
             AnalogParameterInputBase::save_pattern_add_lines(lines);
+
+            const String string__prefix_and_name = String(prefix) + String(this->name);
             
-            lines->add(String(prefix) + String(this->name) + String("_period") 
-                + String('=') + String(this->locked_period));
-            lines->add(String(prefix) + String(this->name) + String("_phase") 
-                + String('=') + String(this->locked_phase));
-            lines->add(String(prefix) + String(this->name) + String("_divisor") 
-                + String('=') + String(this->free_sine_divisor));
-            lines->add(String(prefix) + String(this->name) + String("_sh_ticks")
-                + String('=') + String(this->sh_ticks));
-            
+            lines->add(string__prefix_and_name + String("_period")  + string__equals + String(this->locked_period));
+            lines->add(string__prefix_and_name + String("_phase")   + string__equals + String(this->locked_phase));
+            lines->add(string__prefix_and_name + String("_divisor") + string__equals + String(this->free_sine_divisor));
+            lines->add(string__prefix_and_name + String("_sh_ticks")+ string__equals + String(this->sh_ticks));
+
             return lines;
         }
 
