@@ -877,19 +877,26 @@ class DataParameterBase : public FloatParameter {
             return constrain(value, this->minimumNormalValue, this->maximumNormalValue);
         }
 
+        const String prefix__parameter = String("parameter_");
+        const String prefix__range_minimum = String("_range_minimum=");
+        const String prefix__range_maximum = String("_range_maximum=");
 
         virtual void save_pattern_add_lines(LinkedList<String> *lines) override {
             FloatParameter::save_pattern_add_lines(lines);
 
-            lines->add(String("parameter_") + String(this->label) + String("_range_minimum=") + String(this->getRangeMinimumLimit()));
-            lines->add(String("parameter_") + String(this->label) + String("_range_maximum=") + String(this->getRangeMaximumLimit()));
+            const String label_string = String(this->label);
+
+            lines->add(prefix__parameter + label_string + prefix__range_minimum + String(this->getRangeMinimumLimit()));
+            lines->add(prefix__parameter + label_string + prefix__range_maximum + String(this->getRangeMaximumLimit()));
         }
 
         virtual bool load_parse_key_value(const String incoming_key, String value) override {
-            if (incoming_key.startsWith(String("parameter_") + String(this->label) + String("_range_minimum"))) {
+            const String label_string = String(this->label);
+
+            if (incoming_key.startsWith(prefix__parameter + label_string + prefix__range_minimum)) {
                 this->setRangeMinimumLimit(value.toFloat());
                 return true;
-            } else if (incoming_key.startsWith(String("parameter_") + String(this->label) + String("_range_maximum"))) {
+            } else if (incoming_key.startsWith(prefix__parameter + label_string + prefix__range_maximum)) {
                 this->setRangeMaximumLimit(value.toFloat());
                 return true;
             } else {
