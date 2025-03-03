@@ -8,16 +8,16 @@
 
 #include <LinkedList.h>
 
+extern const char *true_label;
+extern const char *enable_label;
+extern const char *warning_label;
+extern const char *nop_label;
+
 class SaveableParameterBase {
     public:
     char label[40];
     const char *category_name = nullptr;
     const char *nice_label = nullptr;
-
-    const char *true_label = "true";
-    const char *enable_label = "enabled";
-    const char *warning_label = " - WARNING: no target nor getter func!";
-    const char *nop_label = "; nop";
 
     const char *niceify(const char *label = nullptr) {
         if (this->nice_label==nullptr) {
@@ -224,12 +224,12 @@ class LSaveableParameter : virtual public SaveableParameterBase {
         using setter_func_def = vl::Func<void(DataType)>;
         using getter_func_def = vl::Func<DataType(void)>;
 
-        setter_func_def setter_func = [=](DataType v) -> void { 
-            if (variable!=nullptr) 
+        setter_func_def setter_func = [this](DataType v) -> void { 
+            if (this->variable!=nullptr) 
                 *this->variable = v; 
         };
-        getter_func_def getter_func = [=]() -> DataType { 
-            if (variable!=nullptr) 
+        getter_func_def getter_func = [this]() -> DataType { 
+            if (this->variable!=nullptr) 
                 return *this->variable; 
             return (DataType) 0; 
         };
@@ -354,7 +354,7 @@ class ParameterInputSaveableParameter : public SaveableParameter<TargetClass,Dat
 
 #ifdef ENABLE_SCREEN
     #include "menuitems_object_multitoggle.h"
-    class SaveableParameterOptionToggle : public MultiToggleItemClass<SaveableParameterBase> {
+    class SaveableParameterOptionToggle : virtual public MultiToggleItemClass<SaveableParameterBase> {
         SaveableParameterBase *target = nullptr;
         public:
             SaveableParameterOptionToggle(SaveableParameterBase *target) : MultiToggleItemClass(target->niceify(), target, &SaveableParameterBase::set_recall_enabled, &SaveableParameterBase::is_recall_enabled)
