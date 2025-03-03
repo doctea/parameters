@@ -90,6 +90,8 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
                 this->inverted = inverted;
                 this->polarity = polarity_mode;
 
+                this->float_unit = 'v';
+
                 //this->debug = true;
                 if (this->debug) Serial_printf("=== %s doing initial constructor, loading calibration, and sending initial value...", this->label);
 

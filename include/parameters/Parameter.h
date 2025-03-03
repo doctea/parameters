@@ -130,7 +130,6 @@ class FloatParameter : public BaseParameter {
 
     float lastRealOutputNormalValue = 0.0f;
 
-    // todo: use this!
     char float_unit = '%';
 
     FloatParameter *self = this;
@@ -785,7 +784,7 @@ class DataParameterBase : public FloatParameter {
             virtual const char* parseFormattedDataType(float value) {
                 static char fmt[10] = "         ";
                 //sprintf(fmt, "%3i%% (float)",     (int)(100.0*value)); //->getCurrentValue());
-                snprintf(fmt, 10, "%3i%%", (int)(100.0f*value)); //->getCurrentValue());
+                snprintf(fmt, 10, "%3i%c", (int)(100.0f*value), this->float_unit);
                 //Serial.printf("parseFormattedDataType(float)\treturning '%s'\n", fmt);
                 return fmt;
             }
@@ -819,12 +818,12 @@ class DataParameterBase : public FloatParameter {
                 if constexpr (std::is_integral<DataType>::value && std::is_same<DataType, bool>::value) {
                     snprintf(fmt, MAX_PARAMETER_NAME_LENGTH, "%s", this->getCurrentValue()?"On" : "Off");
                 } else if constexpr (std::is_floating_point<DataType>::value) {
-                    snprintf(fmt, MAX_PARAMETER_NAME_LENGTH, "%3i%% (float)",     (int)(100.0f*this->getCurrentDataValue())); //->getCurrentValue());
+                    snprintf(fmt, MAX_PARAMETER_NAME_LENGTH, "%3i%c (float)",     (int)(100.0f*this->getCurrentDataValue()), this->float_unit);
                 } else if constexpr (std::is_unsigned<DataType>::value) {
                     snprintf(fmt, MAX_PARAMETER_NAME_LENGTH, "%5u (unsigned)",    (unsigned int)(this->getCurrentDataValue()));
                                             //(unsigned int)(this->maximumDataLimit*this->getCurrentValue())); //getCurrentValue());
                 } else {
-                    snprintf(fmt, MAX_PARAMETER_NAME_LENGTH, "%5i (signed)",      (int)(this->getCurrentDataValue())); //getCurrentValue());
+                    snprintf(fmt, MAX_PARAMETER_NAME_LENGTH, "%5i (signed)",      (int)(this->getCurrentDataValue())); 
                                             //(int)(this->maximumDataLimit*this->getCurrentValue())); //getCurrentValue());
                 }
                 //Serial.printf("getFormattedValue: '%s'\n", fmt);

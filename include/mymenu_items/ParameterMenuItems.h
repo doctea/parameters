@@ -17,6 +17,14 @@ class ParameterValueMenuItem : public DirectNumberControl<float> {
 
         bool show_output_mode = false;  // true if this widget should show the last post-modulation output value; false if it should show the pre-modulation value
 
+        virtual char get_float_unit() override {
+            if (this->parameter==nullptr || *parameter==nullptr) {
+                return this->float_unit;
+            } else {
+                return (*parameter)->float_unit;
+            }
+        }
+
         ParameterValueMenuItem(char *label, FloatParameter **parameter) : DirectNumberControl(label) {
             strncpy(this->label, label, 20);
             this->parameter = parameter;
