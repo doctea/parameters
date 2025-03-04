@@ -598,7 +598,7 @@ class ParameterManager {
                         ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
                         #endif
                         {
-                        if(debug) Serial.println("about to do parameter_manager->update_mixers().."); Serial_flush();
+                        if(debug) { Serial.println("about to do parameter_manager->update_mixers().."); Serial_flush(); }
 
                         if (slice_mixers)
                             this->update_mixers_sliced();
