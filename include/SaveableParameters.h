@@ -44,6 +44,7 @@ class SaveableParameterBase {
         variable_save_enabled(variable_save_enabled ? variable_save_enabled : &this->save_enabled) {
             strncpy(this->label, label, 40);
         }
+    virtual ~SaveableParameterBase() {}
         
     virtual String get_line() { return String(nop_label); }
     virtual bool parse_key_value(String key, String value) {

@@ -11,6 +11,10 @@
 
 #include "bpm.h"    // because we need to know the current ticks
 
+#ifndef CALLOC_FUNC
+    #define CALLOC_FUNC calloc
+#endif
+
 #ifndef PARAMETER_INPUT_GRAPH_HEIGHT
     #define PARAMETER_INPUT_GRAPH_HEIGHT 50
 #endif
@@ -42,7 +46,7 @@ class ParameterInputDisplay : public MenuItem
 
             //logged = (memory_log*)malloc(memory_size * sizeof(float));
             //memset(logged, 0, memory_size*sizeof(float));
-            logged = (memory_log*)calloc(memory_size, sizeof(float));
+            logged = (memory_log*)CALLOC_FUNC(memory_size, sizeof(float));
         }
 
         virtual void configure(BaseParameterInput *parameter_input) {
