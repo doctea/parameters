@@ -142,6 +142,7 @@ class Weirdolope : public EnvelopeBase {
     Weirdolope(const char *label, setter_func_def setter) : EnvelopeBase(label, setter) {
         this->setMix(0.5);
     }
+    virtual ~Weirdolope() {}
 
     //int envelopeState = stage_t::OFF;
 

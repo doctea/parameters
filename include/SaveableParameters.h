@@ -382,7 +382,9 @@ class SaveableParameterWrapper : public SaveableParameterBase {
 };
 */
 
-
+#ifndef Debug_printf
+    #define Debug_printf(...)   {}
+#endif
 
 // todo: really, this should be part of the 'file_manager' branch stuff...?
 // and so should implement IParseKeyValueReceiver and ISaveKeyValueSource and donate boilerplate functions to handle that

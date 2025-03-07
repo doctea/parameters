@@ -49,6 +49,7 @@ class EnvelopeBase {
         this->label = label;
         this->setter = setter;
     }
+    virtual ~EnvelopeBase() {}
 
     stage_t stage = OFF;
     float velocity = 1.0f;         // triggered velocity

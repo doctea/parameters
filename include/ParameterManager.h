@@ -436,6 +436,9 @@ class ParameterManager {
                             Serial.printf("\tfinished with parameter %i\n", i);
 
                             Serial.printf("free ram is %u\n", freeRam());
+                            #ifdef ARDUINO_TEENSY41
+                                Serial.printf("free ext ram is %u\n", freeExtRam());
+                            #endif
                         }                    
                     }
                 #endif

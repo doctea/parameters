@@ -275,6 +275,7 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
         }
 
         //FLASHMEM virtual LinkedList<MenuItem *> *makeControls() override;
+        #ifdef ENABLE_SCREEN
         FLASHMEM
         virtual LinkedList<MenuItem *> *addCustomTypeControls(LinkedList<MenuItem *> *controls) override { 
             if (this->configurable) {
@@ -412,6 +413,7 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
 
             return bar4;
         }
+        #endif
 
         virtual float get_voltage_for_pitch(int8_t pitch, int16_t detune_cents = 0) {
             if(!is_valid_note(pitch))

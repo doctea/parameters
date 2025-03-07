@@ -12,6 +12,8 @@
 
 #include <parameters/Parameter.h>
 
+#include "submenuitem_bar.h"
+
 class VirtualMixerParameterInput : public AnalogParameterInputBase<float> {
     public:
         float source_value = 0.0f;
@@ -44,11 +46,13 @@ class VirtualMixerParameterInput : public AnalogParameterInputBase<float> {
             this->currentValue = source_value;
         }
 
-        virtual SubMenuItemBar *makeControls(int16_t memory_size, const char *label_prefix = "") override { 
-            SubMenuItemBar *a = AnalogParameterInputBase::makeControls(TICKS_PER_PHRASE);
-            LinkedList<MenuItem*> *p_controls = underlying_parameter->makeControls();
-            menu->add(p_controls);
-            return a;
-        }
+        #ifdef ENABLE_SCREEN
+            virtual SubMenuItemBar *makeControls(int16_t memory_size, const char *label_prefix = "") override { 
+                SubMenuItemBar *a = AnalogParameterInputBase::makeControls(TICKS_PER_PHRASE);
+                LinkedList<MenuItem*> *p_controls = underlying_parameter->makeControls();
+                menu->add(p_controls);
+                return a;
+            }
+        #endif
 
 };
