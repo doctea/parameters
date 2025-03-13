@@ -1,5 +1,3 @@
-#ifdef ENABLE_CV_OUTPUT
-
 #include "parameters/calibration.h"
 #ifdef USE_ATOMIC
     #include "SimplyAtomic.h"
@@ -9,7 +7,10 @@
 // todo: possibly move this whole thing into CVOutputParameter, or ICalibratable...?
 // or like, a DACDevice family of classes 
 
-#include "DAC8574.h"
+#if __has_include("DAC8574.h")
+    #include "DAC8574.h"
+#endif
+
 //extern DAC8574 *dac_output;
 
 uint16_t calibrate_find_dac_value_for(DAC8574 *dac_output, int channel, VoltageParameterInput *src, float intended_voltage, bool inverted) {
@@ -128,6 +129,3 @@ uint16_t calibrate_find_dac_value_for(DAC8574 *dac_output, int channel, char *in
 
     return calibrate_find_dac_value_for(dac_output, channel, src, intended_voltage, inverted);
 }
-
-
-#endif

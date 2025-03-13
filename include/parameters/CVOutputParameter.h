@@ -2,7 +2,7 @@
 
 //#define ENABLE_CV_OUTPUT 0x4C 
 
-#ifdef ENABLE_CV_OUTPUT
+#if defined(ENABLE_CV_OUTPUT) || defined(ENABLE_CV_OUTPUT_2) || defined(ENABLE_CV_OUTPUT_3)
 
 #include "debug.h"
 
