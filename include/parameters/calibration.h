@@ -1,5 +1,6 @@
-#include "parameter_inputs/VoltageParameterInput.h"
+#pragma once
 
+#include "parameter_inputs/VoltageParameterInput.h"
 
 class DAC8574;
 class VoltageParameterInput;

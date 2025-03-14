@@ -8,7 +8,7 @@
 
 #include "parameters/Parameter.h"
 
-#include "calibration.h"
+#include "icalibration.h"
 
 #include "midi_helpers.h"
 
@@ -451,6 +451,16 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
             this->gate_manager = gate_manager;
             this->gate_bank = gate_bank;
             this->gate_number = gate_number;
+        }
+
+        virtual bool needs_calibration() override {
+            return true;
+        }
+
+        virtual void output_calibration_data () override {
+            Serial.printf("CVOutputParameter calibration data for %s: calibrated_lowest_value=%u : calibrated_highest_value=%u\n", this->label, this->calibrated_lowest_value, this->calibrated_highest_value);
+            Serial.printf("calibrated_lowest_value=%u\n", this->calibrated_lowest_value);
+            Serial.printf("calibrated_highest_value=%u\n", this->calibrated_highest_value);
         }
 
         virtual void save_calibration() override {

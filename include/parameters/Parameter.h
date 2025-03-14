@@ -37,22 +37,13 @@
 
 #include <LinkedList.h>
 
+#include "calibration.h"
+
 //extern char NEXT_PARAMETER_NAME;
 
 //#include "ParameterInput.h"
 class BaseParameterInput;
 class BaseParameter;
-
-class ICalibratable {
-    public:
-    virtual void calibrate() = 0;
-
-    virtual void start_calibration();
-
-    virtual void save_calibration() {}
-    virtual void load_calibration() {}
-};
-
 #ifdef ENABLE_SCREEN
     class MenuItem;
     template<class DataType> class SelectorControl;
@@ -109,8 +100,14 @@ class BaseParameter {
 
         virtual void save_pattern_add_lines(LinkedList<String> *lines) {}
 
-        // todo: this is currently only used by the CVOutputParameter; so perhaps we should come up with a way to make this more specific to that class? 
-        virtual void load_calibration() {}
+        virtual void load_calibration() {}  // todo: the only reason this is here is because of CVOutputParameter at the moment; should probably be moved to ICalibratable and work out a way to do this better
+        virtual bool needs_calibration() {
+            return false;
+        }
+        virtual void output_calibration_data() {
+            Serial.printf("BaseParameter calibration data for %s: no calibration data\n", this->label);
+        }
+
         #ifdef ENABLE_SCREEN
             virtual LinkedList<MenuItem*> *makeCalibrationControls() { return nullptr; }
             virtual MenuItem *makeCalibrationLoadSaveControls() { return nullptr; }

@@ -8,6 +8,8 @@
     class Menu;
 #endif
 
+#include "icalibration.h"
+
 // base class for a voltage source, eg a wrapper around an ADC library
 class VoltageSourceBase {
     bool has_pitch_capability = false;
@@ -57,6 +59,13 @@ class VoltageSourceBase {
         }
         virtual uint8_t get_voltage_pitch() {
             return get_midi_pitch_for_voltage(this->get_voltage());
+        }
+
+        virtual bool needs_calibration() {
+            return false;
+        }
+        virtual void output_calibration_data() {
+            Serial.printf("VoltageSourceBase calibration data for slot %i: no calibration data\n", global_slot);
         }
 
         #if defined(ENABLE_CALIBRATION_STORAGE)

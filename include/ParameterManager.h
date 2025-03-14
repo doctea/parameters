@@ -35,6 +35,8 @@
   #include "submenuitem_bar.h"
   #include "mymenu_items/ParameterInputViewMenuItems.h"
   #include "colours.h"
+  #include "menuitems_lambda.h"
+  #include "menuitems_action.h"
 #endif
 
 int freeRam();
@@ -400,6 +402,18 @@ class ParameterManager {
                                 //Serial.println(F("\t\taddAllVoltageSourceCalibrationMenuItems done!")); Serial_flush();
                                 //Serial.printf(F("\tfinished with voltage_source %i\n"), i);
                             }
+
+                            // add a control that outputs the input calibration data to the serial port
+                            menu->add(new LambdaActionItem("Output Calibration Data", [=]() -> void {
+                                Serial.println("Outputting calibration data...");
+                                for (unsigned int i = 0 ; i < size ; i++) {
+                                    VoltageSourceBase *voltage_source = this->voltage_sources->get(i);
+                                    if (voltage_source->needs_calibration()) {
+                                        Serial.printf("Voltage Source %i: %i\n", i, voltage_source->global_slot);
+                                        voltage_source->output_calibration_data();
+                                    }
+                                }
+                            }));
                         }
                     }
                 }
@@ -439,7 +453,24 @@ class ParameterManager {
                             #ifdef ARDUINO_TEENSY41
                                 Serial.printf("free ext ram is %u\n", freeExtRam());
                             #endif
-                        }                    
+                        }
+                        
+                        // add a control that outputs the calibration data to the serial port
+                        menu->add(new LambdaActionItem("Output Calibration Data", [=]() -> void {
+                            Serial.println("Outputting input calibration data...");
+                            for (unsigned int i = 0 ; i < size ; i++) {
+                                FloatParameter *parameter = this->available_parameters->get(i);
+                                if (parameter==nullptr) {
+                                    Serial.printf("WARNING: parameter %i is null!\n", i);
+                                    continue;
+                                }
+                                if (parameter->needs_calibration()) {
+                                    Serial.printf("Parameter %i: %s\n", i, parameter->label); Serial_flush();
+                                    parameter->output_calibration_data();
+                                }
+                            }
+                            Serial.println("Outputting input calibration data done!");
+                        }));
                     }
                 #endif
         #endif

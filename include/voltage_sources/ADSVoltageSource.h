@@ -29,6 +29,16 @@ class ADSVoltageSourceBase : public VoltageSourceBase {
             virtual void load_calibration() override;
             virtual void save_calibration() override;
         #endif
+
+        virtual bool needs_calibration() override {
+            return true;
+        }
+
+        virtual void output_calibration_data() override {
+            Serial.printf("ADSVoltageSource calibration data for slot %i: correction_value_1=%6.6f : correction_value_2=%6.6f\n", global_slot, this->correction_value_1, this->correction_value_2);
+            Serial.printf("correction_value_1=%6.6f\n", this->correction_value_1);
+            Serial.printf("correction_value_2=%6.6f\n", this->correction_value_2);
+        }
         
 };
 
