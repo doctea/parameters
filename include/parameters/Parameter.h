@@ -876,16 +876,16 @@ class DataParameterBase : public FloatParameter {
         }
 
         const String prefix__parameter = String("parameter_");
-        const String prefix__range_minimum = String("_range_minimum=");
-        const String prefix__range_maximum = String("_range_maximum=");
+        const String prefix__range_minimum = String("_range_minimum");
+        const String prefix__range_maximum = String("_range_maximum");
 
         virtual void save_pattern_add_lines(LinkedList<String> *lines) override {
             FloatParameter::save_pattern_add_lines(lines);
 
             const String label_string = String(this->label);
 
-            lines->add(prefix__parameter + label_string + prefix__range_minimum + String(this->getRangeMinimumLimit()));
-            lines->add(prefix__parameter + label_string + prefix__range_maximum + String(this->getRangeMaximumLimit()));
+            lines->add(prefix__parameter + label_string + prefix__range_minimum + String('=') + String(this->getRangeMinimumLimit()));
+            lines->add(prefix__parameter + label_string + prefix__range_maximum + String('=') + String(this->getRangeMaximumLimit()));
         }
 
         virtual bool load_parse_key_value(const String incoming_key, String value) override {
