@@ -117,20 +117,20 @@ class ParameterValueMenuItem : public DirectNumberControl<float> {
 
         // directly increase the parameter's value
         virtual void increase_value() override {
-            //this->debug = true;
+            //this->debug = true; (*parameter)->debug = true;
             (*parameter)->incrementValue();
             this->internal_value = (*parameter)->getCurrentNormalValue(); //this->maximumDataValue;
-            //if (this->debug) Serial.printf(F("ParameterValueMenuItem#increase_value updated internal_value to %f (from %f * 100.0)\n"), internal_value, parameter->getCurrentNormalValue());
-            //this->debug = false;
+            if (this->debug) Serial.printf(F("ParameterValueMenuItem#increase_value updated internal_value to %f (from %f * 100.0)\n"), internal_value, (*parameter)->getCurrentNormalValue());
+            //this->debug = false; (*parameter)->debug = false;
         }
         // directly decrease the parameter's value
         virtual void decrease_value() override {
-            //this->debug = true;
+            //this->debug = true; (*parameter)->debug = true;
 
             (*parameter)->decrementValue();
             this->internal_value = (*parameter)->getCurrentNormalValue(); // * 100.0; //this->maximumDataValue;
-            //if (this->debug) Serial.printf(F("ParameterValueMenuItem#decrease_value updated internal_value to %f (from %f * 100.0)\n"), internal_value, parameter->getCurrentNormalValue());
-            //this->debug = false;
+            if (this->debug) Serial.printf(F("ParameterValueMenuItem#decrease_value updated internal_value to %f (from %f * 100.0)\n"), internal_value, (*parameter)->getCurrentNormalValue());
+            //this->debug = false; (*parameter)->debug = false;
         }
 
         virtual void change_value(int new_value) { //override { //
