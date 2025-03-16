@@ -179,7 +179,8 @@ bool FloatParameter::load_parse_key_value(const String incoming_key, String valu
     if (parameter_name.equals(this->label)) {
         if (debug) Serial.printf("NOTICE: Matched key '%s' with prefix '%s' and parameter_name '%s' - returning\n", key.c_str(), prefix, this->label);
 
-        const uint_fast8_t slot_number = key.substring(separator_1_position+1).toInt();
+        String next_segment = key.substring(separator_1_position+1);
+        const uint_fast8_t slot_number = next_segment.toInt();
 
         if (!is_valid_slot(slot_number)) {
             //if (Serial) Serial.printf("ERROR: in %s,\t got invalid slot number from '%s=%s'\n", this->label, incoming_key.c_str(), value.c_str());
@@ -203,7 +204,7 @@ bool FloatParameter::load_parse_key_value(const String incoming_key, String valu
             // just get the amount
             amount = value.substring(separator_2_position+1).toFloat();
         } else {
-            // new version -- polarity mode in the input!            
+            // new version -- polarity mode in the input!
             amount = value.substring(separator_2_position+1, separator_3_position).toFloat();
             mode = value.substring(separator_3_position+1).equals("unipolar") ? UNIPOLAR : BIPOLAR;
         }

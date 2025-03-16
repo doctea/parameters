@@ -22,6 +22,7 @@ class ProxyParameter : public DataParameterBase<DataType> {
 
     virtual void setTargetValueFromData(DataType value, bool force = false) override {
         *this->target = value;
+        this->lastOutputNormalValue = this->dataToNormal(value);
     }
 
     virtual float getCurrentNormalValue() override {
@@ -31,15 +32,14 @@ class ProxyParameter : public DataParameterBase<DataType> {
         return *this->source;
     }
 
-    virtual void updateValueFromNormal(float v) override {
-        *this->target = *this->source = this->normalToData(v);
-    }
-    virtual void updateValueFromData(DataType v) override {
-        /*if (Serial) { 
-            Serial.printf("ProxyParameter#updateValueFromData(");
-            Serial.print(v);
-            Serial.println(")");
-        }*/
-        *this->target = *this->source = v;        
-    }
+    /*virtual void updateValueFromNormal(float v) override {
+        this->last_sent_value = *this->target = *this->source = this->normalToData(v);
+        this->lastOutputNormalValue = v;
+    }*/
+    /*virtual void updateValueFromData(DataType v) override {
+       this->last_sent_value = *this->target = *this->source = v;
+       this->lastOutputNormalValue = this->dataToNormal(v);
+       //this->lastOutputValue = v;
+       //*this->target = *this->source = v;        
+    }*/
 };
