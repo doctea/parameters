@@ -598,18 +598,18 @@ class DataParameterBase : public FloatParameter {
             this->lastNormalValue = this->lastNormalValue;
 
             this->currentDataValue = value;
-            Serial.printf("DataParameterBase#updateValueFromData(%i) - currentDataValue=%i, about to call dataToNormal(%u)\n", value, this->currentDataValue, value);
+            if (this->debug) Serial.printf("DataParameterBase#updateValueFromData(%i) - currentDataValue=%i, about to call dataToNormal(%u)\n", value, this->currentDataValue, value);
             this->currentNormalValue = this->dataToNormal((DataType)value);
-            Serial.printf("called dataToNormal(%u) - currentNormalValue=%3.3f\n", value, this->currentNormalValue);
+            if (this->debug) Serial.printf("called dataToNormal(%u) - currentNormalValue=%3.3f\n", value, this->currentNormalValue);
 
             if (this->debug) {
                 Serial.printf("DataParameterBase#updateValueFromData(%i) - currentDataValue=%i, currentNormalValue=%3.3f\n", value, this->currentDataValue, this->currentNormalValue);
                 Serial_flush();
             }
 
-            Serial.println("DataParameterBase#updateValueFromData() - about to call sendCurrentTargetValue() -> ");
+            if (this->debug) Serial.println("DataParameterBase#updateValueFromData() - about to call sendCurrentTargetValue() -> ");
             this->sendCurrentTargetValue();
-            Serial.println("<- DataParameterBase#updateValueFromData() - called sendCurrentTargetValue()");
+            if (this->debug) Serial.println("<- DataParameterBase#updateValueFromData() - called sendCurrentTargetValue()");
         }
 
         DataType lastGetterValue;

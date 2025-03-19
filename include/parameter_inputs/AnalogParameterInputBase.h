@@ -50,17 +50,19 @@ class AnalogParameterInputBase : public ParameterInput {
 
     virtual DataType get_normal_value(DataType value, int output_type) {
       if (this->input_type==UNIPOLAR) {
-        value = constrain(value, 0.0, 1.0);
+        value = constrain(value, 0.0f, 1.0f);
       } else if (this->input_type==BIPOLAR) {
-        value = constrain(value, -1.0, 1.0);
+        value = constrain(value, -1.0f, 1.0f);
+        //value = constrain(value, -1.0f, 1.0f) / 2.0f;  // todo: experiment with this, as currently i believe bipolar output values are twice what they should be
       }
 
       if (this->input_type==output_type) {
         // dont need to do anything
       } else if (this->input_type==BIPOLAR && output_type==UNIPOLAR) {
-        value = 0.5f + (value/2.0);
+        value = 0.5f + (value/2.0f);
       } else if (this->input_type==UNIPOLAR && output_type==BIPOLAR) {
-        value = -1.0 + (value*2.0);
+        value = -1.0 + (value * 2.0f);
+        //value = -1.0 + (value); // * 2.0f; // todo: experiment with this, as currently i believe bipolar output values are twice what they should be
       }
 
       if (this->inverted) {
