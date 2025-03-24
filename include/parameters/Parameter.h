@@ -140,29 +140,44 @@ class FloatParameter : public BaseParameter {
     ////// slew rate stuff
     uint32_t last_slewed_at = 0;
     float last_slewed_value = 0.0f;
-    // todo: make this control whether slew is enabled or disabled
-    bool slew_enabled = false;
-    bool slewing = false;
-    // todo: tweak this slew value; make it configurable from the screen/modulation
-    float slew_rate = (0.001f) / 10.0f;
-    virtual float get_slew_rate() {
-        return slew_rate;
-    }
-    
+
+    bool slew_enabled = false;      // enable/disable slewing
+    bool slewing = false;           // track whether we are currently slewing or not
+
+    // actual slew values - amount of change per millisecond (then divided by 10)
+    const float slowest_slew_rate = 0.001f;
+    const float fastest_slew_rate = 0.1f;
+    float slew_rate = (fastest_slew_rate) / 10.0f;
+
+    // normalised value for use by menus / modulation
+    float slew_rate_normal = 1.0f;
+
     // weirdly, having this here seems to cause lockups when usb is connected..?
     /*virtual void set_slew_rate(float slew_rate) {
-        this->slew_rate = slew_rate;
+        //this->slew_rate = slew_rate;
+        this->slew_rate = map(slew_rate, 0.0f, 1.0f, slowest_slew_rate, fastest_slew_rate) / 10.0f;
     }*/
+
+    virtual float get_slew_rate_normal() {
+        return slew_rate_normal;
+    }
+    virtual void set_slew_rate_normal(float slew_rate_normal) {
+        this->slew_rate_normal = slew_rate_normal;
+        this->slew_rate = map(slew_rate_normal, 0.0f, 1.0f, slowest_slew_rate, fastest_slew_rate) / 100.0f;
+        if (debug && Serial) Serial.printf("%s#set_slew_rate_normal(%3.3f) - slew_rate is %3.3f\n", this->label, slew_rate_normal, this->slew_rate);
+    }
+    
     virtual float get_slewed_value(float normal) {
-        if (!slew_enabled) {
+        if (!slew_enabled || slew_rate_normal>=1.0f) {
             last_slewed_value = normal;
             return normal;
         }
         uint32_t delta = millis() - last_slewed_at;
         last_slewed_at = millis();
 
-        // todo: make slew rate a function of the delta time
-        float slew_rate = this->get_slew_rate() * (float)delta;
+        if (debug && Serial) Serial.printf("%s#get_slewed_value() - slewing enabled, slew_rate is %3.3f, slew_rate_normal is %3.3f\n", this->label, this->slew_rate, this->slew_rate_normal);
+
+        float slew_rate = this->slew_rate * (float)delta;
         float diff = normal - this->lastRealOutputNormalValue;
         
         if (debug) {
