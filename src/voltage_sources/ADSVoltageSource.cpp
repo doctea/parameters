@@ -48,6 +48,7 @@
         DirectNumberControl<float> *current_value_disp = new DirectNumberControl<float> 
             ("current", &this->current_value, this->current_value, -10.0, 10.0, nullptr);
         current_value_disp->readOnly = true;
+        current_value_disp->selectable = false;
         current_value_disp->float_unit = 'v';
         submenu->add(current_value_disp);
 
