@@ -29,7 +29,8 @@ class ParameterValueMenuItem : public DirectNumberControl<float> {
             strncpy(this->label, label, 20);
             this->parameter = parameter;
             if (*parameter!=nullptr)
-                this->internal_value = (*parameter)->getCurrentNormalValue() * 100.0;
+                //this->internal_value = (*parameter)->getCurrentNormalValue() * 100.0;
+                this->internal_value = (*parameter)->getLastModulatedNormalValue() * 100.0;
             this->minimumDataValue = 0.0f; 
             this->maximumDataValue = 1.0f; 
 

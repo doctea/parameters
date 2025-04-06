@@ -583,6 +583,9 @@ class DataParameterBase : public FloatParameter {
         virtual DataType getCurrentDataValue() {
             return this->currentDataValue;
         }
+        virtual DataType getLastDataValue() {
+            return this->lastDataValue;
+        }
 
         // setInitialValue in target value ie as a float to be multiplied by maximumDataValue
         virtual void setInitialValueFromNormal(float value) {

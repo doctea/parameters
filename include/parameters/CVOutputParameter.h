@@ -355,7 +355,8 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
                     this->setTargetValueFromData(value, true);
                 }, 
                 [=] () -> DataType { 
-                    return this->getCurrentDataValue();
+                    //return this->getCurrentDataValue();
+                    return this->getLastDataValue();
                 },
                 nullptr,
                 this->minimumDataRange,
