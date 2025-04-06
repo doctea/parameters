@@ -27,7 +27,6 @@
         #define USE_ARX_TYPE_TRAITS
     #endif
 #endif
-//#include <stddef.h>
 
 #ifdef USE_ARX_TYPE_TRAITS
     #include <ArxTypeTraits.h>
@@ -245,7 +244,7 @@ class FloatParameter : public BaseParameter {
 
     virtual void updateValueFromNormal(float value/*, float range = 1.0*/) override {
         // TODO: we might actually want this to do something?
-        Serial.printf("WARNING: dummy FloatParameter#updateValueFromNormal(%f) for '%s'\n", value, this->label);
+        Serial.printf((const char*)F("WARNING: dummy FloatParameter#updateValueFromNormal(%f) for '%s'\n"), value, this->label);
     };
 
     virtual void on_unbound(BaseParameterInput *input) {
@@ -255,10 +254,10 @@ class FloatParameter : public BaseParameter {
     }
 
     virtual void incrementValue() {
-        Serial.printf(F("WARNING: dummy FloatParameter#incrementValue() for '%s'\n"), this->label);
+        Serial.printf((const char*)F("WARNING: dummy FloatParameter#incrementValue() for '%s'\n"), this->label);
     }
     virtual void decrementValue() {
-        Serial.printf(F("WARNING: dummy FloatParameter#decrementValue() for '%s'\n"), this->label);
+        Serial.printf((const char*)F("WARNING: dummy FloatParameter#decrementValue() for '%s'\n"), this->label);
     }
 
     // parameter input mixing / modulation stuff
@@ -717,10 +716,10 @@ class DataParameterBase : public FloatParameter {
         // decrement the value and update
         virtual void decrementValue() override {
             //this->debug = true;
-            if (this->debug) Serial.printf(F("--\nDataParameterBase#decrementValue() for '%s', initial FormattedValue '%s' (normal %f)"), this->label, this->getFormattedValue(this->getCurrentDataValue()), this->getCurrentNormalValue());
+            if (this->debug) Serial.printf((const char*)F("--\nDataParameterBase#decrementValue() for '%s', initial FormattedValue '%s' (normal %f)"), this->label, this->getFormattedValue(this->getCurrentDataValue()), this->getCurrentNormalValue());
             this->updateValueFromData(this->decrementDataValue((DataType)this->getCurrentDataValue()));
             this->last_changed_at = millis();
-            if (this->debug) Serial.printf(F("DataParameterBase#decrementValue() for '%s' became %s (normal %f)\n--\n"), this->label, this->getFormattedValue(this->getCurrentDataValue()), this->getCurrentNormalValue());
+            if (this->debug) Serial.printf((const char*)F("DataParameterBase#decrementValue() for '%s' became %s (normal %f)\n--\n"), this->label, this->getFormattedValue(this->getCurrentDataValue()), this->getCurrentNormalValue());
         }
 
         // returns an incremented DataType version of input value (unsigned int) - up to the current Range maximum

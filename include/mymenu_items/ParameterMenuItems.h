@@ -120,7 +120,7 @@ class ParameterValueMenuItem : public DirectNumberControl<float> {
             //this->debug = true; (*parameter)->debug = true;
             (*parameter)->incrementValue();
             this->internal_value = (*parameter)->getCurrentNormalValue(); //this->maximumDataValue;
-            if (this->debug) Serial.printf(F("ParameterValueMenuItem#increase_value updated internal_value to %f (from %f * 100.0)\n"), internal_value, (*parameter)->getCurrentNormalValue());
+            if (this->debug) Serial.printf((const char*)F("ParameterValueMenuItem#increase_value updated internal_value to %f (from %f * 100.0)\n"), internal_value, (*parameter)->getCurrentNormalValue());
             //this->debug = false; (*parameter)->debug = false;
         }
         // directly decrease the parameter's value
@@ -129,7 +129,7 @@ class ParameterValueMenuItem : public DirectNumberControl<float> {
 
             (*parameter)->decrementValue();
             this->internal_value = (*parameter)->getCurrentNormalValue(); // * 100.0; //this->maximumDataValue;
-            if (this->debug) Serial.printf(F("ParameterValueMenuItem#decrease_value updated internal_value to %f (from %f * 100.0)\n"), internal_value, (*parameter)->getCurrentNormalValue());
+            if (this->debug) Serial.printf((const char*)F("ParameterValueMenuItem#decrease_value updated internal_value to %f (from %f * 100.0)\n"), internal_value, (*parameter)->getCurrentNormalValue());
             //this->debug = false; (*parameter)->debug = false;
         }
 
