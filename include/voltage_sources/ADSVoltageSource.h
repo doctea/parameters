@@ -5,7 +5,8 @@
 #include "debug.h"
 
 #include "VoltageSource.h"
-#include "ADS1X15.h"
+#if __has_include("ADS1X15.h")
+    #include "ADS1X15.h"
 
 #ifdef ENABLE_SCREEN
     //#include "menuitems.h"
@@ -140,5 +141,7 @@ class ADSVoltageSource : public ADSVoltageSourceBase {
         };
 
 };
+
+#endif
 
 #endif

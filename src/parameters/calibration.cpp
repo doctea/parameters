@@ -9,7 +9,6 @@
 
 #if __has_include("DAC8574.h")
     #include "DAC8574.h"
-#endif
 
 //extern DAC8574 *dac_output;
 
@@ -129,3 +128,5 @@ uint16_t calibrate_find_dac_value_for(DAC8574 *dac_output, int channel, char *in
 
     return calibrate_find_dac_value_for(dac_output, channel, src, intended_voltage, inverted);
 }
+
+#endif

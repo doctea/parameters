@@ -1,5 +1,7 @@
 #pragma once
 
+#include "compatibility.h"
+
 #include "ParameterTypes.h"
 
 #include <Arduino.h>
