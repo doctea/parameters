@@ -1,5 +1,4 @@
-#ifndef ANALOGPARAMETERINPUTBASE__INCLUDED
-#define ANALOGPARAMETERINPUTBASE__INCLUDED
+#pragma once
 
 #include <Arduino.h>
 
@@ -24,10 +23,11 @@ class AnalogParameterInputBase : public ParameterInput {
     DataType sensitivity = 0.005;
       
     AnalogParameterInputBase() {};
-    AnalogParameterInputBase(char *name, const char *group_name = "General", DataType in_sensitivity = 0.005, VALUE_TYPE input_type = BIPOLAR) : ParameterInput(name, group_name) {
+    AnalogParameterInputBase(char *name, const char *group_name = "General", DataType in_sensitivity = 0.005, VALUE_TYPE input_type = BIPOLAR, bool inverted = false) : ParameterInput(name, group_name) {
       //this->name = name;
       this->sensitivity = in_sensitivity;
       this->input_type = input_type;
+      this->inverted = inverted;
     }
 
     virtual void setInverted(bool invert = true) {
@@ -49,6 +49,10 @@ class AnalogParameterInputBase : public ParameterInput {
     }
 
     virtual DataType get_normal_value(DataType value, int output_type) {
+      if (this->inverted) {
+        value = 1.0f - ((float)value); 
+      }
+
       if (this->input_type==UNIPOLAR) {
         value = constrain(value, 0.0f, 1.0f);
       } else if (this->input_type==BIPOLAR) {
@@ -63,10 +67,6 @@ class AnalogParameterInputBase : public ParameterInput {
       } else if (this->input_type==UNIPOLAR && output_type==BIPOLAR) {
         value = -1.0 + (value * 2.0f);
         //value = -1.0 + (value); // * 2.0f; // todo: experiment with this, as currently i believe bipolar output values are twice what they should be
-      }
-
-      if (this->inverted) {
-        value = 1.0f - ((float)value); // / this->max_input_value);
       }
 
       return value;
@@ -124,4 +124,3 @@ class AnalogParameterInputBase : public ParameterInput {
     }
 };
 
-#endif

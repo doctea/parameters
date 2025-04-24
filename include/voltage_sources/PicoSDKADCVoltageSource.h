@@ -18,6 +18,8 @@ class WorkshopVoltageSourceBase : public VoltageSourceBase {
     public:
         float correction_value_1 = 1.0; //0.976937;
         float correction_value_2 = 0.0; //0.0123321;
+        //float correction_value_1 = 2.0; //0.976937;
+        //float correction_value_2 = -0.5; //0.0123321;
 
         WorkshopVoltageSourceBase(int global_slot, bool supports_pitch = false) : VoltageSourceBase(global_slot, supports_pitch) {}
 
@@ -53,7 +55,7 @@ class WorkshopVoltageSource : public WorkshopVoltageSourceBase {
             this->bank = bank;
             this->channel = channel;
             this->maximum_input_voltage = maximum_input_voltage;
-            this->debug = true;
+            //this->debug = true;
         }
 
         // returns the last read raw voltage value
@@ -94,17 +96,19 @@ class WorkshopVoltageSource : public WorkshopVoltageSourceBase {
 
             if (this->debug) Serial.printf("in WorkshopVoltageSource#fetch_current_voltage() finishing (and returning %f)\n", voltageCorrected);
 
-            return voltageCorrected - maximum_input_voltage;
+            return maximum_input_voltage - voltageCorrected;
         }
 
         virtual float adcread_to_voltage(int16_t adcReading) {
-            float voltageFromAdc = adcReading * (maximum_input_voltage / 4095.0); // 12 bit ADC, 0-4095
+            float voltageFromAdc = float(adcReading) * (maximum_input_voltage / 4095.0); // 12 bit ADC, 0-4095
             return voltageFromAdc;
         }
 
         virtual float get_corrected_voltage(float voltageFromAdc) {
             return (voltageFromAdc * correction_value_1) + correction_value_2;
-        };
+            //return (voltageFromAdc + correction_value_2) * correction_value_1;
+            //return (voltageFromAdc - 0.25) * 2.0;
+        }
 
 };
 

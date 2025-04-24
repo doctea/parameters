@@ -13,7 +13,7 @@ class VoltageParameterInput : public AnalogParameterInputBase<float> {
     VoltageSourceBase *voltage_source = nullptr;
 
     public:
-        VoltageParameterInput(char *name, const char *group_name, VoltageSourceBase *voltage_source) : AnalogParameterInputBase(name, group_name) {
+        VoltageParameterInput(char *name, const char *group_name, VoltageSourceBase *voltage_source, float in_sensitivity = 0.005, VALUE_TYPE input_type = BIPOLAR, bool inverted = false) : AnalogParameterInputBase(name, group_name, in_sensitivity, input_type, inverted) {
             this->voltage_source = voltage_source;
         }
 
@@ -74,8 +74,10 @@ class VoltageParameterInput : public AnalogParameterInputBase<float> {
             if (this->is_significant_change(currentValue, this->lastValue)) {
                 this->lastValue = this->currentValue;
                 this->currentValue = currentValue;
-                //Serial.printf("%c: Setting this->currentValue to ", this->name);
-                //Serial.println(currentValue);
+                if (this->debug) {
+                    Serial.printf("VoltageParameterInput#read() in '%s':\tSetting this->currentValue to ", this->name);
+                    Serial.println(currentValue);
+                }
                 //this->currentValue = currentValue;
                 //this->currentValue = currentValue = this->get_normal_value(currentValue);
                 #ifdef ENABLE_PRINTF

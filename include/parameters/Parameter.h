@@ -341,18 +341,30 @@ class FloatParameter : public BaseParameter {
     virtual void set_slot_0_amount(float amount) {
         this->set_slot_amount(0, amount);
     }
+    virtual void set_slot_0_polarity(int polar_mode) {
+        this->set_slot_polarity(0, polar_mode);
+    }
+
     virtual void set_slot_1_input(BaseParameterInput *parameter_input) {
         this->set_slot_input(1,parameter_input);
     }
     virtual void set_slot_1_amount(float amount) {
         this->set_slot_amount(1, amount);
     }
+    virtual void set_slot_1_polarity(int polar_mode) {
+        this->set_slot_polarity(1, polar_mode);
+    }
+    
     virtual void set_slot_2_input(BaseParameterInput *parameter_input) {
         this->set_slot_input(2,parameter_input);
     }
     virtual void set_slot_2_amount(float amount) {
         this->set_slot_amount(2, amount);
     }
+    virtual void set_slot_2_polarity(int polar_mode) {
+        this->set_slot_polarity(2, polar_mode);
+    }
+
 
     virtual void reset_mappings() {
         this->set_slot_0_amount(0.0f);

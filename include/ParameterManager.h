@@ -675,7 +675,22 @@ class ParameterManager {
                 line[pos] = 'A' + i;
             }
 
-            Serial.println(line);
+            Serial.printf(line);
+            
+            // output a key to the parameters and inputs
+            /*for (uint_fast16_t i = 0 ; i < this->available_parameters->size() ; i++) {
+                FloatParameter *p = this->available_parameters->get(i);
+                if (strcmp(p->label,"None")==0)
+                    continue;
+                Serial.printf("%c=%s=%1.3f\t", '0'+i, p->label, p->getLastModulatedNormalValue());                
+            }*/
+            for (uint_fast8_t i = 0 ; i < this->available_inputs->size() ; i++) {
+                BaseParameterInput *p = this->available_inputs->get(i);
+                //if (strcmp(p->label,"None")==0)
+                //    continue;
+                Serial.printf("\t%c=%s=%1.3f", 'A'+i, p->name, p->get_normal_value_unipolar());
+            }
+            Serial.println();
         }
 
 
