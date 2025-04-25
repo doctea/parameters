@@ -10,9 +10,9 @@
 #include "ads.h"
 
 class VoltageParameterInput : public AnalogParameterInputBase<float> {
-    VoltageSourceBase *voltage_source = nullptr;
-
     public:
+        VoltageSourceBase *voltage_source = nullptr;
+
         VoltageParameterInput(char *name, const char *group_name, VoltageSourceBase *voltage_source, float in_sensitivity = 0.005, VALUE_TYPE input_type = BIPOLAR, bool inverted = false) : AnalogParameterInputBase(name, group_name, in_sensitivity, input_type, inverted) {
             this->voltage_source = voltage_source;
         }
