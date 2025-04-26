@@ -1095,8 +1095,8 @@ class LDataParameter : public DataParameterBase<DataType> {
         LDataParameter(const char *label, setter_func_def setter_func, getter_func_def getter_func, DataType minimumDataValue, DataType maximumDataValue) 
             : LDataParameter<DataType>(label, setter_func, getter_func)
         {
-            this->minimumDataLimit = minimumDataValue;
-            this->maximumDataLimit = maximumDataValue;
+            this->minimumDataLimit = this->minimumDataRange = minimumDataValue;
+            this->maximumDataLimit = this->maximumDataRange = maximumDataValue;
         }
         LDataParameter(const char *label, float initial_value_normal, setter_func_def setter_func) 
             : LDataParameter<DataType>(label, setter_func) {

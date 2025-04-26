@@ -1,3 +1,5 @@
+// classes to handle the multipled ADC inputs on the Music Thing Workshop Computer module
+
 #pragma once
 
 #ifdef ENABLE_CV_INPUT
@@ -75,7 +77,7 @@ class WorkshopVoltageSource : public WorkshopVoltageSourceBase {
 
             digitalWrite(MX_A, bank & 1);
             digitalWrite(MX_B, bank & 2);
-            
+
             // NB this seems to need 1us delay for pins to 'settle' before reading.
             sleep_us(1);
 
