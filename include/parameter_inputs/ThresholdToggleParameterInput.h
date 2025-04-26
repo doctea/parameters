@@ -9,6 +9,7 @@ class ThresholdToggleParameterInput : public VoltageParameterInput {
     vl::Func<void(bool)> callback;
 
     bool currentState = false;
+    bool firstRun = true;
 
     public:
         ThresholdToggleParameterInput(
@@ -29,28 +30,29 @@ class ThresholdToggleParameterInput : public VoltageParameterInput {
             //Serial.printf("ThresholdToggleParameterInput::read() %s\n", this->name);
             float readValue = this->voltage_source->get_voltage_normal();
 
-            if (this->is_significant_change(readValue, this->lastValue)) {
+            if (firstRun || this->is_significant_change(readValue, this->lastValue)) {
                 this->lastValue = readValue;
 
                 if (threshold < 0.0f && readValue >= -1.0f*this->threshold) {
-                    if (!this->currentState) {
+                    if (firstRun || !this->currentState) {
                         this->callback(false);  // todo: not sure why these callback states are inverted, but that's a problem for another time
                     }
                     this->currentState = true;
                     this->currentValue = 1.0f;
                 } else if (threshold > 0.0f && readValue < this->threshold) {
-                    if (!this->currentState) {
+                    if (firstRun || !this->currentState) {
                         this->callback(false);
                     }
                     this->currentState = true;
                     this->currentValue = 1.0f;
                 } else {
-                    if (this->currentState) {
+                    if (firstRun || this->currentState) {
                         this->callback(true);
                     }
                     this->currentState = false;
                     this->currentValue = 0.0f;
                 }
+                firstRun = false;
             }
         }
 };

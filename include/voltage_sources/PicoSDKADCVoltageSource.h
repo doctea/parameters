@@ -73,8 +73,9 @@ class WorkshopVoltageSource : public WorkshopVoltageSourceBase {
             if (!already_succeeded) 
                 Debug_printf("WorkshopVoltageSource#fetch_current_voltage reading from channel %i, check you're using correct address ADC board if crash here!\n", this->channel);
 
-            gpio_put(MX_A, ((bank >> 0)) & 1);
-            gpio_put(MX_B, ((bank >> 1)) & 1);
+            digitalWrite(MX_A, bank & 1);
+            digitalWrite(MX_B, bank & 2);
+            
             // NB this seems to need 1us delay for pins to 'settle' before reading.
             sleep_us(1);
 
