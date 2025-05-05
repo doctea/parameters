@@ -75,14 +75,79 @@ class WorkshopVoltageSource : public WorkshopVoltageSourceBase {
             if (!already_succeeded) 
                 Debug_printf("WorkshopVoltageSource#fetch_current_voltage reading from channel %i, check you're using correct address ADC board if crash here!\n", this->channel);
 
-            digitalWrite(MX_A, bank & 1);
-            digitalWrite(MX_B, bank & 2);
+            gpio_put(MX_A, bank & 1);
+            gpio_put(MX_B, bank & 2);
 
             // NB this seems to need 1us delay for pins to 'settle' before reading.
             sleep_us(1);
 
             adc_select_input(channel);
             int adcReading = adc_read();
+
+            float voltageFromAdc = this->adcread_to_voltage(adcReading);
+
+            if (this->debug) {
+                Serial.printf("WorkshopVoltageSource channel %i read ADC voltageFromAdc %i\t :", channel, adcReading); Serial_flush();
+            }
+
+            float voltageCorrected = this->get_corrected_voltage(voltageFromAdc);
+
+            if (this->debug) {
+                Serial.print(F(" after correction stage 2 got "));
+                Serial.println(voltageCorrected);
+            }
+
+            if (this->debug) Serial.printf("in WorkshopVoltageSource#fetch_current_voltage() finishing (and returning %f)\n", voltageCorrected);
+
+            return maximum_input_voltage - voltageCorrected;
+        }
+
+        virtual float adcread_to_voltage(int16_t adcReading) {
+            float voltageFromAdc = float(adcReading) * (maximum_input_voltage / 4095.0); // 12 bit ADC, 0-4095
+            return voltageFromAdc;
+        }
+
+        virtual float get_corrected_voltage(float voltageFromAdc) {
+            return (voltageFromAdc * correction_value_1) + correction_value_2;
+            //return (voltageFromAdc + correction_value_2) * correction_value_1;
+            //return (voltageFromAdc - 0.25) * 2.0;
+        }
+
+};
+
+#include "ComputerCard.h"
+
+class ComputerCardVoltageSource : public WorkshopVoltageSourceBase {
+    public:
+        byte channel = 0;
+        ComputerCard *sw = nullptr;
+
+        ComputerCardVoltageSource(int global_slot, ComputerCard *sw, byte channel, float maximum_input_voltage = 5.0, bool supports_pitch = false) 
+            : WorkshopVoltageSourceBase(global_slot, supports_pitch) {
+            this->sw = sw;
+            this->channel = channel;
+            this->maximum_input_voltage = maximum_input_voltage;
+            //this->debug = true;
+        }
+
+        // returns the last read raw voltage value
+        virtual float get_voltage() override {
+            //this->update();
+            return this->current_value;
+        }
+
+        bool already_succeeded = false;
+        virtual float fetch_current_voltage() override {
+            if (this->debug) {
+                Serial.printf("in WorkshopVoltageSource#fetch_current_voltage(slot=%i, channel=%i)..", global_slot, channel);
+                //Debug_printf(F("\tads_source is @%p, reading from channel %i\n"), this->ads_source, this->channel);
+            }            
+            if (!already_succeeded) 
+                Debug_printf("WorkshopVoltageSource#fetch_current_voltage reading from channel %i, check you're using correct address ADC board if crash here!\n", this->channel);
+
+            
+            int adcReading = channel < 3 ? sw->KnobVal((ComputerCard::Knob)channel) : 
+                             channel==3 ?  sw->SwitchVal() : sw->CVIn(channel-4);
 
             float voltageFromAdc = this->adcread_to_voltage(adcReading);
 
