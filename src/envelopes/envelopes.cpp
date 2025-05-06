@@ -108,7 +108,7 @@ stage_t operator++ (stage_t& d) {
             0.0f,
             10.0f
         ));
-        this->parameters->back()->debug = true;
+        //this->parameters->back()->debug = true;
 
         return this->parameters;
     }
