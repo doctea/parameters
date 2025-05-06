@@ -104,11 +104,12 @@ stage_t operator++ (stage_t& d) {
         
         this->parameters->add(new LDataParameter<float>(
             "Mix",
-            [=](int8_t v) -> void { this->setMix(v); },
-            [=](void) -> int8_t { return this->getMix(); },
+            [=](float v) -> void { this->setMix(v); },
+            [=](void) -> float { return this->getMix(); },
             0.0f,
             10.0f
         ));
+        this->parameters->back()->debug = true;
 
         return this->parameters;
     }
