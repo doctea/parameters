@@ -892,12 +892,18 @@ class DataParameterBase : public FloatParameter {
             float constrained_value = this->constrainNormal(value);
             this->lastModulatedNormalValue = constrained_value;
             //this->lastOutputNormalValue = this->lastModulatedNormalValue; // = value;
-            if (debug && Serial) Serial.printf("%s#setTargetValueFromNormal(%3.3f) got modulated value %3.3f, ", this->label, value, constrained_value);
+            if (debug && Serial) { 
+                Serial.printf("%s#setTargetValueFromNormal(%3.3f) got modulated value %3.3f, ", this->label, value, constrained_value);
+                Serial.flush();
+            }
 
             float slewed_value = constrained_value;
             if (slewing || lastModulatedNormalValue!=lastOutputNormalValue) {
                 slewed_value = this->get_slewed_value(constrained_value);
-                if (this->debug && Serial) Serial.printf("%s:\tslewed from\t%3.3f\tto %3.3f\n", this->label, constrained_value, slewed_value);
+                if (this->debug && Serial) {
+                    Serial.printf("%s:\tslewed from\t%3.3f\tto %3.3f\n", this->label, constrained_value, slewed_value);
+                    Serial.flush();
+                }
             }
 
             //float slewed_value = this->get_slewed_value(constrained_value);          

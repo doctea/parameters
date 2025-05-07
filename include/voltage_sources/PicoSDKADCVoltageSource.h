@@ -149,6 +149,12 @@ class ComputerCardVoltageSource : public WorkshopVoltageSourceBase {
             int adcReading = channel < 3 ? sw->KnobVal((ComputerCard::Knob)channel) : 
                              channel==3 ?  sw->SwitchVal() : sw->CVIn(channel-4);
 
+            if (channel > 3) {
+                //adcReading *= 2; // scale up the CV inputs to match the 0-5V range of the knobs
+                // todo: fix this properly?
+                adcReading += 2047; // 0-5V range
+            }
+
             float voltageFromAdc = this->adcread_to_voltage(adcReading);
 
             if (this->debug) {
@@ -162,13 +168,16 @@ class ComputerCardVoltageSource : public WorkshopVoltageSourceBase {
                 Serial.println(voltageCorrected);
             }
 
-            if (this->debug) Serial.printf("in WorkshopVoltageSource#fetch_current_voltage() finishing (and returning %f)\n", voltageCorrected);
+            if (this->debug) Serial.printf("in WorkshopVoltageSource#fetch_current_voltage() finishing!! (and returning %f)\n", voltageCorrected);
 
             return maximum_input_voltage - voltageCorrected;
         }
 
         virtual float adcread_to_voltage(int16_t adcReading) {
             float voltageFromAdc = float(adcReading) * (maximum_input_voltage / 4095.0); // 12 bit ADC, 0-4095
+            if (this->debug) {
+                Serial.printf("ComputerCardVoltageSource channel %i read ADC voltageFromAdc %i, converted to voltageFromAdc %3.3f\t :", channel, adcReading, voltageFromAdc); Serial_flush();
+            }
             return voltageFromAdc;
         }
 

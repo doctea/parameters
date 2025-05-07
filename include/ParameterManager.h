@@ -663,17 +663,17 @@ class ParameterManager {
                     continue;
                 float v = p->getLastModulatedNormalValue();
                 int pos = constrain((float)columns * v, 0, columns-1);
-                line[pos] = '0' + i;
+                line[pos] = '0' +  (i % '9');
             }
 
-            for (uint_fast8_t i = 0 ; i < this->available_inputs->size() ; i++) {
+            /*for (uint_fast8_t i = 0 ; i < this->available_inputs->size() ; i++) {
                 BaseParameterInput *p = this->available_inputs->get(i);
                 //if (strcmp(p->label,"None")==0)
                 //    continue;
                 float v = p->get_normal_value_unipolar();
                 int pos = constrain((float)(columns * v), 0, columns-1);
                 line[pos] = 'A' + i;
-            }
+            }*/
 
             Serial.printf(line);
             

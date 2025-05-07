@@ -29,6 +29,11 @@ class ThresholdToggleParameterInput : public VoltageParameterInput {
         virtual void read() override {
             //Serial.printf("ThresholdToggleParameterInput::read() %s\n", this->name);
             float readValue = this->voltage_source->get_voltage_normal();
+            if (inverted) {
+                readValue = 1.0f - readValue;
+            }
+
+            if (this->debug) Serial.printf("ThresholdToggleParameterInput::read() %s readValue %f\n", this->name, readValue);
 
             if (firstRun || this->is_significant_change(readValue, this->lastValue)) {
                 this->lastValue = readValue;
