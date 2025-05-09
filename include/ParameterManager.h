@@ -647,6 +647,7 @@ class ParameterManager {
             }
         }
 
+        // todo: allow to enable only parameters or only inputs
         FASTRUN void output_parameter_representation(int columns = 100) {
             // don't bother if serial isn't connected
             if (!Serial)
@@ -666,6 +667,7 @@ class ParameterManager {
                 line[pos] = '0' +  (i % '9');
             }
 
+            // TODO: re-enable this
             /*for (uint_fast8_t i = 0 ; i < this->available_inputs->size() ; i++) {
                 BaseParameterInput *p = this->available_inputs->get(i);
                 //if (strcmp(p->label,"None")==0)

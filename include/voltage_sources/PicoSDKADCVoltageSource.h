@@ -150,7 +150,7 @@ class ComputerCardVoltageSource : public WorkshopVoltageSourceBase {
                              channel==3 ?  sw->SwitchVal() : sw->CVIn(channel-4);
 
             if (channel > 3) {
-                adcReading *= 2; // scale up the CV inputs to match the 0-5V range of the knobs
+                //adcReading *= 2; // scale up the CV inputs to match the -6 to +6V range of the CV inputs
                 // todo: fix this properly?
                 //adcReading += 2047; // 0-5V range
             }
