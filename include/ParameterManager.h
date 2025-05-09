@@ -647,8 +647,15 @@ class ParameterManager {
             }
         }
 
+        enum VISUALISE_PARAM_MODE {
+            NONE = 0,
+            GRAPH_PARAMETER = 1,
+            GRAPH_INPUT = 2,
+            VALUE_PARAMETER = 4,    // too many to be useful, avoid
+            VALUE_INPUT = 8,
+        };
         // todo: allow to enable only parameters or only inputs
-        FASTRUN void output_parameter_representation(int columns = 100) {
+        FASTRUN void output_parameter_representation(int columns = 100, int8_t mode = GRAPH_PARAMETER | VALUE_INPUT) {
             // don't bother if serial isn't connected
             if (!Serial)
                 return;
@@ -658,39 +665,47 @@ class ParameterManager {
             line[0] = '|';
             line[columns-1] = '|';
             line[columns] = '\0';
-            for (uint_fast16_t i = 0 ; i < this->available_parameters->size() ; i++) {
-                FloatParameter *p = this->available_parameters->get(i);
-                if (strcmp(p->label,"None")==0)
-                    continue;
-                float v = p->getLastModulatedNormalValue();
-                int pos = constrain((float)columns * v, 0, columns-1);
-                line[pos] = '0' +  (i % '9');
-            }
 
-            // TODO: re-enable this
-            /*for (uint_fast8_t i = 0 ; i < this->available_inputs->size() ; i++) {
-                BaseParameterInput *p = this->available_inputs->get(i);
-                //if (strcmp(p->label,"None")==0)
-                //    continue;
-                float v = p->get_normal_value_unipolar();
-                int pos = constrain((float)(columns * v), 0, columns-1);
-                line[pos] = 'A' + i;
-            }*/
+            if (mode & GRAPH_PARAMETER) {
+                for (uint_fast16_t i = 0 ; i < this->available_parameters->size() ; i++) {
+                    FloatParameter *p = this->available_parameters->get(i);
+                    if (strcmp(p->label,"None")==0)
+                        continue;
+                    float v = p->getLastModulatedNormalValue();
+                    int pos = constrain((float)columns * v, 0, columns-1);
+                    line[pos] = '0' +  (i % '9');
+                }
+            }
+            if (mode & GRAPH_INPUT) {
+                // TODO: re-enable this
+                for (uint_fast8_t i = 0 ; i < this->available_inputs->size() ; i++) {
+                    BaseParameterInput *p = this->available_inputs->get(i);
+                    //if (strcmp(p->label,"None")==0)
+                    //    continue;
+                    float v = p->get_normal_value_unipolar();
+                    int pos = constrain((float)(columns * v), 0, columns-1);
+                    line[pos] = 'A' + i;
+                }
+            }
 
             Serial.printf(line);
             
             // output a key to the parameters and inputs
-            /*for (uint_fast16_t i = 0 ; i < this->available_parameters->size() ; i++) {
-                FloatParameter *p = this->available_parameters->get(i);
-                if (strcmp(p->label,"None")==0)
-                    continue;
-                Serial.printf("%c=%s=%1.3f\t", '0'+i, p->label, p->getLastModulatedNormalValue());                
-            }*/
-            for (uint_fast8_t i = 0 ; i < this->available_inputs->size() ; i++) {
-                BaseParameterInput *p = this->available_inputs->get(i);
-                //if (strcmp(p->label,"None")==0)
-                //    continue;
-                Serial.printf("\t%c=%s=%1.3f", 'A'+i, p->name, p->get_normal_value_unipolar());
+            if (mode & VALUE_PARAMETER) {
+                for (uint_fast16_t i = 0 ; i < this->available_parameters->size() ; i++) {
+                    FloatParameter *p = this->available_parameters->get(i);
+                    if (strcmp(p->label,"None")==0)
+                        continue;
+                    Serial.printf("%c=%s=%1.3f\t", '0'+i, p->label, p->getLastModulatedNormalValue());                
+                }
+            }
+            if (mode & VALUE_INPUT) {
+                for (uint_fast8_t i = 0 ; i < this->available_inputs->size() ; i++) {
+                    BaseParameterInput *p = this->available_inputs->get(i);
+                    //if (strcmp(p->label,"None")==0)
+                    //    continue;
+                    Serial.printf("\t%c=%s=%1.3f", 'A'+i, p->name, p->get_normal_value_unipolar());
+                }
             }
             Serial.println();
         }
