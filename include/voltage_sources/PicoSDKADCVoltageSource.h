@@ -47,7 +47,7 @@ class WorkshopVoltageSourceBase : public VoltageSourceBase {
         
 };
 
-class WorkshopVoltageSource : public WorkshopVoltageSourceBase {
+/*class WorkshopVoltageSource : public WorkshopVoltageSourceBase {
     public:
         byte bank = 0;
         byte channel = 0;
@@ -113,7 +113,7 @@ class WorkshopVoltageSource : public WorkshopVoltageSourceBase {
             //return (voltageFromAdc - 0.25) * 2.0;
         }
 
-};
+};*/
 
 #include "ComputerCard.h"
 
