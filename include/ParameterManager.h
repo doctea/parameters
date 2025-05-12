@@ -562,7 +562,7 @@ class ParameterManager {
 
         /* functions for handling updates of cv data */
 
-        unsigned long time_of_last_param_update = 0;
+        volatile unsigned long time_of_last_param_update = 0;
 
         FASTRUN bool ready_for_next_update(unsigned int time_between_cv_input_updates = 5) {
             return millis() - time_of_last_param_update > time_between_cv_input_updates;
