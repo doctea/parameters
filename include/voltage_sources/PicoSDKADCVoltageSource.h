@@ -8,8 +8,6 @@
 
 #include "VoltageSource.h"
 
-#include "computer.h"
-
 #ifdef ENABLE_SCREEN
     //#include "menuitems.h"
     class MenuItem;
