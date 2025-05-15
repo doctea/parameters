@@ -8,8 +8,6 @@
 
 #include "VoltageSource.h"
 
-#include "computer.h"
-
 #ifdef ENABLE_SCREEN
     //#include "menuitems.h"
     class MenuItem;
@@ -47,7 +45,7 @@ class WorkshopVoltageSourceBase : public VoltageSourceBase {
         
 };
 
-class WorkshopVoltageSource : public WorkshopVoltageSourceBase {
+/*class WorkshopVoltageSource : public WorkshopVoltageSourceBase {
     public:
         byte bank = 0;
         byte channel = 0;
@@ -113,7 +111,7 @@ class WorkshopVoltageSource : public WorkshopVoltageSourceBase {
             //return (voltageFromAdc - 0.25) * 2.0;
         }
 
-};
+};*/
 
 #include "ComputerCard.h"
 
@@ -146,8 +144,27 @@ class ComputerCardVoltageSource : public WorkshopVoltageSourceBase {
                 Debug_printf("WorkshopVoltageSource#fetch_current_voltage reading from channel %i, check you're using correct address ADC board if crash here!\n", this->channel);
 
             
-            int adcReading = channel < 3 ? sw->KnobVal((ComputerCard::Knob)channel) : 
-                             channel==3 ?  sw->SwitchVal() : sw->CVIn(channel-4);
+            //int adcReading = channel < 3 ? sw->KnobVal((ComputerCard::Knob)channel) : 
+            //                 channel==3 ?  sw->SwitchVal() : sw->CVIn(channel-4);
+
+            int adcReading;
+            switch (channel) {
+                case 0 ... 2:
+                    adcReading = sw->KnobVal((ComputerCard::Knob)channel);
+                    break;
+                case 3:
+                    adcReading = sw->SwitchVal();
+                    break;
+                case 4 ... 5:
+                    adcReading = sw->CVIn(channel-4);
+                    break;
+                case 6 ... 7:
+                    adcReading = sw->AudioIn(channel-6);
+                    break;
+                default:
+                    adcReading = 0;
+                    break;
+            }
 
             if (channel > 3) {
                 //adcReading *= 2; // scale up the CV inputs to match the -6 to +6V range of the CV inputs
