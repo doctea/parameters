@@ -115,6 +115,10 @@ class WorkshopVoltageSourceBase : public VoltageSourceBase {
 
 #include "ComputerCard.h"
 
+#ifdef LOCK_AROUND_ADC_READ
+    #include "core_safe.h" // for acquire_lock()
+#endif
+
 class ComputerCardVoltageSource : public WorkshopVoltageSourceBase {
     public:
         byte channel = 0;
@@ -148,6 +152,9 @@ class ComputerCardVoltageSource : public WorkshopVoltageSourceBase {
             //                 channel==3 ?  sw->SwitchVal() : sw->CVIn(channel-4);
 
             int adcReading;
+            #ifdef LOCK_AROUND_ADC_READ
+                acquire_lock();
+            #endif
             switch (channel) {
                 case 0 ... 2:
                     adcReading = sw->KnobVal((ComputerCard::Knob)channel);
@@ -165,6 +172,9 @@ class ComputerCardVoltageSource : public WorkshopVoltageSourceBase {
                     adcReading = 0;
                     break;
             }
+            #ifdef LOCK_AROUND_ADC_READ
+                release_lock();
+            #endif
 
             if (channel > 3) {
                 //adcReading *= 2; // scale up the CV inputs to match the -6 to +6V range of the CV inputs
