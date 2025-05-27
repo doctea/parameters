@@ -660,6 +660,8 @@ class ParameterManager {
             if (!Serial)
                 return;
 
+            static float *last_input_values = new float[this->available_inputs->size()];
+
             char line[columns+1];
             memset(line, ' ', columns);
             line[0] = '|';
@@ -704,7 +706,11 @@ class ParameterManager {
                     BaseParameterInput *p = this->available_inputs->get(i);
                     //if (strcmp(p->label,"None")==0)
                     //    continue;
-                    Serial.printf("\t%c=%s=%1.3f", 'A'+i, p->name, p->get_normal_value_unipolar());
+                    float v = p->get_normal_value_unipolar();
+                    
+                    Serial.printf("\t%c=%s=%1.3f %c", 'A'+i, p->name, v, 
+                        v<last_input_values[i] ? 'v' : v>last_input_values[i] ? '^' : ' ');
+                    last_input_values[i] = v;
                 }
             }
             Serial.println();
