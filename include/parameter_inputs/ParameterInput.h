@@ -42,7 +42,7 @@ class BaseParameterInput {
     #endif
 
     const char *group_name = "General";
-    char name[MAX_INPUT_NAME] = "Unnamed";
+    char name[MAX_INPUT_NAME+1] = "Unnamed";
 
     bool inverted = false;
 

@@ -123,6 +123,7 @@ class ComputerCardVoltageSource : public WorkshopVoltageSourceBase {
     public:
         byte channel = 0;
         ComputerCard *sw = nullptr;
+        int16_t real_value = 0;
 
         ComputerCardVoltageSource(int global_slot, ComputerCard *sw, byte channel, float maximum_input_voltage = 5.0, bool supports_pitch = false) 
             : WorkshopVoltageSourceBase(global_slot, supports_pitch) {
@@ -153,7 +154,12 @@ class ComputerCardVoltageSource : public WorkshopVoltageSourceBase {
 
             int adcReading;
             #ifdef LOCK_AROUND_ADC_READ
-                acquire_lock();
+                //acquire_lock();
+                if (!try_lock()) {
+                    //if (Serial) Serial.println(F("ComputerCardVoltageSource#fetch_current_voltage() failed to acquire lock, returning 0"));
+                    adcReading = real_value; // failed to acquire lock
+                } else {
+                
             #endif
             switch (channel) {
                 case 0 ... 2:
@@ -169,12 +175,20 @@ class ComputerCardVoltageSource : public WorkshopVoltageSourceBase {
                     adcReading = sw->AudioIn(channel-6);
                     break;
                 default:
+                    if (Serial) Serial.printf("ComputerCardVoltageSource#fetch_current_voltage() unknown channel %i, returning 0\n", channel);
                     adcReading = 0;
                     break;
             }
             #ifdef LOCK_AROUND_ADC_READ
                 release_lock();
+                }
+
             #endif
+
+            real_value = adcReading;
+            if (this->debug) {
+                Serial.printf("ComputerCardVoltageSource channel %i read ADC value %i\t :", channel, adcReading); Serial_flush();
+            }
 
             if (channel > 3) {
                 //adcReading *= 2; // scale up the CV inputs to match the -6 to +6V range of the CV inputs
@@ -184,25 +198,25 @@ class ComputerCardVoltageSource : public WorkshopVoltageSourceBase {
 
             float voltageFromAdc = this->adcread_to_voltage(adcReading);
 
-            if (this->debug) {
+            if (this->debug && Serial) {
                 Serial.printf("WorkshopVoltageSource channel %i read ADC voltageFromAdc %i\t :", channel, adcReading); Serial_flush();
             }
 
             float voltageCorrected = this->get_corrected_voltage(voltageFromAdc);
 
-            if (this->debug) {
+            if (this->debug && Serial) {
                 Serial.print(F(" after correction stage 2 got "));
                 Serial.println(voltageCorrected);
             }
 
-            if (this->debug) Serial.printf("in WorkshopVoltageSource#fetch_current_voltage() finishing!! (and returning %f)\n", voltageCorrected);
+            if (this->debug && Serial) Serial.printf("in WorkshopVoltageSource#fetch_current_voltage() finishing!! (and returning %f)\n", voltageCorrected);
 
             return maximum_input_voltage - voltageCorrected;
         }
 
         virtual float adcread_to_voltage(int16_t adcReading) {
             float voltageFromAdc = float(adcReading) * (maximum_input_voltage / 4095.0); // 12 bit ADC, 0-4095
-            if (this->debug) {
+            if (this->debug && Serial) {
                 Serial.printf("ComputerCardVoltageSource channel %i read ADC voltageFromAdc %i, converted to voltageFromAdc %3.3f\t :", channel, adcReading, voltageFromAdc); Serial_flush();
             }
             return voltageFromAdc;
