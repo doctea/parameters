@@ -335,6 +335,22 @@ class FloatParameter : public BaseParameter {
         this->connections[slot].polar_mode = polar_mode;
     }
 
+    // .. these untested 
+    virtual void set_slot_0_all(BaseParameterInput *parameter_input, float amount, int polar_mode) {
+        this->set_slot_x_all(0, parameter_input, amount, polar_mode);
+    }
+    virtual void set_slot_1_all(BaseParameterInput *parameter_input, float amount, int polar_mode) {
+        this->set_slot_x_all(1, parameter_input, amount, polar_mode);
+    }
+    virtual void set_slot_2_all(BaseParameterInput *parameter_input, float amount, int polar_mode) {
+        this->set_slot_x_all(2, parameter_input, amount, polar_mode);
+    }
+    virtual void set_slot_x_all(int8_t slot, BaseParameterInput *parameter_input, float amount, int polar_mode) {
+        this->set_slot_input(slot, parameter_input);
+        this->set_slot_amount(slot, amount);
+        this->set_slot_polarity(slot, polar_mode);
+    }
+
     virtual void set_slot_0_input(BaseParameterInput *parameter_input) {
         this->set_slot_input(0,parameter_input);
     }
