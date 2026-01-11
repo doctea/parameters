@@ -59,7 +59,7 @@ void parameter_manager_calibrate(ICalibratable* v);
 #endif
 
 
-// for applying modulation to a value before sending CC values out to the target device
+// for applying modulation to a value, before sending CC values out to the target device and triggering a gate if needed
 // eg, a synth's cutoff value
 template<class TargetClass=DAC8574, class DataType=float>
 class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, virtual public ICalibratable, virtual public IMIDINoteAndCCTarget {
@@ -79,6 +79,12 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
         bool configurable = false;
 
         VoltageParameterInput *calibration_input = nullptr;
+
+        // for sending gate signals when notes are triggered
+        IGateTarget *gate_manager = nullptr;
+        int8_t gate_bank = -1, gate_number = 0;
+        bool gate_is_on = false;    // track whether gate is currently on or off
+        bool gate_output_enabled = true;
 
         CVOutputParameter(const char* label, TargetClass *target, byte channel, VALUE_TYPE polarity_mode = VALUE_TYPE::UNIPOLAR, bool inverted = false, float floor = 0.0f, float ceiling = 10.0f, bool configurable = false)
             : DataParameter<TargetClass,DataType>(label, target) {
@@ -134,9 +140,9 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
 
 
         void calibrate() override {
-            Serial.println("Finding lowest value..\n");
+            Serial_println("Finding lowest value..\n");
             this->calibrated_lowest_value = calibrate_find_dac_value_for(this->target, this->channel, this->calibration_input, 0.0, this->inverted);
-            Serial.println("Finding highest value..\n");
+            Serial_println("Finding highest value..\n");
             this->calibrated_highest_value = calibrate_find_dac_value_for(this->target, this->channel, this->calibration_input, 10.0, this->inverted);
         }
         
@@ -434,24 +440,37 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
             }
             this->updateValueFromData(voltage_for_pitch);
 
-            if (gate_bank>=0 && gate_manager!=nullptr) {
+            if (get_gate_output_enabled() && gate_bank>=0 && gate_manager!=nullptr) {
+                gate_is_on = true;
                 gate_manager->send_gate_on(gate_bank, gate_number);
             }
         }
         virtual void sendNoteOff(uint8_t pitch, uint8_t velocity, uint8_t channel) {
             // todo: should probably have an option to drop the output voltage to 0 when no notes are left?
-            if (gate_bank>=0 && gate_manager!=nullptr) {
+            if ((get_gate_output_enabled() || gate_is_on) && gate_bank>=0 && gate_manager!=nullptr) {
+                gate_is_on = false;
                 gate_manager->send_gate_off(gate_bank, gate_number);
             }
         }
-
-        IGateTarget *gate_manager = nullptr;
-        int8_t gate_bank = -1, gate_number = 0;
 
         virtual void set_gate_outputter(IGateTarget *gate_manager, int8_t gate_bank, int8_t gate_number) {
             this->gate_manager = gate_manager;
             this->gate_bank = gate_bank;
             this->gate_number = gate_number;
+            this->gate_is_on = false;
+        }
+        virtual bool get_gate_output_enabled() {
+            return this->gate_output_enabled;
+        }
+        virtual void set_gate_output_enabled(bool enabled) {
+            if (!enabled && this->gate_is_on) {
+                // turn off gate if currently on
+                if (gate_bank>=0 && gate_manager!=nullptr) {
+                    gate_is_on = false;
+                    gate_manager->send_gate_off(gate_bank, gate_number);
+                }
+            }
+            this->gate_output_enabled = enabled;
         }
 
         virtual bool needs_calibration() override {
