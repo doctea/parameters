@@ -85,17 +85,12 @@ class ParameterManager {
 
         ParameterManager (unsigned long memory_size) {
             this->memory_size = memory_size;
+            this->available_inputs_hash = new Hashtable<String, BaseParameterInput*>();
         }
         ~ParameterManager () {}
 
         FLASHMEM void init() {
-            /*this->devices = new LinkedList<ADCDeviceBase*>();
-            this->voltage_sources = new LinkedList<VoltageSourceBase*>();
-            this->available_inputs = new LinkedList<BaseParameterInput*>();
-            this->available_parameters = new LinkedList<FloatParameter*>();*/
             this->param_none = this->addParameter(new FloatParameter((char*)"None"));
-
-            this->available_inputs_hash = new Hashtable<String, BaseParameterInput*>();
         }
 
         LinkedList<BaseParameterInput*> *get_available_pitch_inputs();
