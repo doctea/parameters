@@ -496,16 +496,19 @@ class ParameterManager {
             String value = line.substring(separator_index + 1);
 
             // first, do all the ParameterInputs (save their input/output type, ie bipolar/unipolar, etc)
-            // TODO: should probably move this into its own function that can be used to process parameter_inputs separately from parameters
-            //       will probably bring about some gains in wasted searching
             if (key.startsWith(ParameterInput::prefix)) {
                 if (debug && Serial) Serial.printf("ParameterManager#fast_load_parse_key_value(%s, %s)\tsearching ParameterInputs for match..\n", key.c_str(), value.c_str());
 
-                BaseParameterInput* input = *available_inputs_hash->get(key);
-                if (input != nullptr && input->load_parse_key_value(key, value)) {
-                    if (debug && Serial) 
-                        Serial.printf("ParameterManager#fast_load_parse_key_value(%s, %s)\tfound a match in parameter_input: %s!\n", key.c_str(), value.c_str(), input->name);
-                    return true;
+                key = key.substring(strlen(ParameterInput::prefix));
+                if (available_inputs_hash->containsKey(key)) {
+                    BaseParameterInput* input = *available_inputs_hash->get(key);
+                    if (input != nullptr && input->load_parse_key_value(key, value)) {
+                        if (debug && Serial) 
+                            Serial.printf("ParameterManager#fast_load_parse_key_value(%s, %s)\tfound a match in parameter_input: %s!\n", key.c_str(), value.c_str(), input->name);
+                        return true;
+                    }
+                } else {
+                    Serial.printf("WARNING: ParameterManager#load_parse_line() couldn't find ParameterInput with key '%s'\n", key.c_str());
                 }
             }
 
@@ -594,6 +597,17 @@ class ParameterManager {
 
             return lines;
         }*/
+
+        LinkedList<String> *save_pattern_parameter_inputs_add_lines(LinkedList<String> *lines) {
+            // do the available_parameter_inputs first
+            const uint_fast8_t size = available_inputs->size();
+            for (uint_fast8_t i = 0 ; i < size ; i++) {
+                //Serial.printf("save_pattern_add_lines() on input %i/%i, \tfreeram is %u\n", i+1, size, freeRam());
+                available_inputs->get(i)->save_pattern_add_lines(lines);
+            }
+
+            return lines;
+        }
 
         //virtual bool load_voltage_calibration();
         //virtual bool save_voltage_calibration();

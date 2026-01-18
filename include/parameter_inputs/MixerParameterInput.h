@@ -14,6 +14,8 @@
 
 #include "submenuitem_bar.h"
 
+// todo: save the parameters associated with this mixer input?
+
 class VirtualMixerParameterInput : public AnalogParameterInputBase<float> {
     public:
         float source_value = 0.0f;

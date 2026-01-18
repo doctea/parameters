@@ -138,7 +138,7 @@ void FloatParameter::save_pattern_add_lines(LinkedList<String> *lines) {
     }
 }
 
-bool FloatParameter::load_key_fragment(String key_fragment, String value) {
+bool FloatParameter::load_key_fragment(const String key_fragment, const String value) {
 
     char subseparator = '|';    // separator for slot input values
 
@@ -200,15 +200,14 @@ bool FloatParameter::load_key_fragment(String key_fragment, String value) {
 
 // parse a key+value pair to restore the state 
 bool FloatParameter::load_parse_key_value(const String incoming_key, String value) {
-    if (debug) Serial.printf("PARAMETERS\tFloatParameter#load_parse_key_value passed '%s' => '%s'...\n", incoming_key.c_str(), value.c_str());
+    if (debug)  Serial.printf("PARAMETERS\tFloatParameter#load_parse_key_value passed '%s' => '%s'...\n", incoming_key.c_str(), value.c_str());
 
     const char *prefix = "parameter/";
-    //const char *prefix_base = "parameter_value_";
     const char separator = '/', subseparator = '|';
 
     String key = String(incoming_key.c_str());
 
-    // first check that the key is a paremter at all
+    // first check that the key is a parameter at all
     if (!key.startsWith(prefix)) {
         return false;
     }
@@ -217,8 +216,8 @@ bool FloatParameter::load_parse_key_value(const String incoming_key, String valu
     key.replace(prefix, "");
     String parameter_name = key.substring(0, key.indexOf('/'));
 
+    // double-check that the parameter name matches this parameter
     if (!parameter_name.equals(this->label)) {
-        // not for this parameter
         return false;
     }
 
