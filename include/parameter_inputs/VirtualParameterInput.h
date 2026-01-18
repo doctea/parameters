@@ -188,10 +188,10 @@ class VirtualParameterInput : public AnalogParameterInputBase<float> {
 
             const String string__prefix_and_name = String(prefix) + String(this->name);
             
-            lines->add(string__prefix_and_name + String("_period")  + string__equals + String(this->locked_period));
-            lines->add(string__prefix_and_name + String("_phase")   + string__equals + String(this->locked_phase));
-            lines->add(string__prefix_and_name + String("_divisor") + string__equals + String(this->free_sine_divisor));
-            lines->add(string__prefix_and_name + String("_sh_ticks")+ string__equals + String(this->sh_ticks));
+            lines->add(string__prefix_and_name + String("/period")  + string__equals + String(this->locked_period));
+            lines->add(string__prefix_and_name + String("/phase")   + string__equals + String(this->locked_phase));
+            lines->add(string__prefix_and_name + String("/divisor") + string__equals + String(this->free_sine_divisor));
+            lines->add(string__prefix_and_name + String("/sh_ticks")+ string__equals + String(this->sh_ticks));
 
             return lines;
         }
@@ -206,16 +206,16 @@ class VirtualParameterInput : public AnalogParameterInputBase<float> {
                 return AnalogParameterInputBase::load_parse_key_value(key, value);
             }
 
-            if (key.endsWith("_period")) {
+            if (key.endsWith("/period")) {
                 this->locked_period = value.toFloat();
                 return true;
-            } else if (key.endsWith("_phase")) {
+            } else if (key.endsWith("/phase")) {
                 this->locked_phase = value.toFloat();
                 return true;
-            } else if (key.endsWith("_divisor")) {
+            } else if (key.endsWith("/divisor")) {
                 this->free_sine_divisor = value.toFloat();
                 return true;
-            } else if (key.endsWith("_sh_ticks")) {
+            } else if (key.endsWith("/sh_ticks")) {
                 this->sh_ticks = value.toInt();
                 return true;
             }

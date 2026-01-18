@@ -433,6 +433,12 @@ class FloatParameter : public BaseParameter {
     virtual void save_pattern_add_lines(LinkedList<String> *lines); 
     virtual bool load_parse_key_value(String key, String value);
     
+    // process a fragment of a key (after we've matched the parameter name and getting the
+    // trailing "/...." portion from it) and set the relevant value; return true if processed
+    // allows for subclasses of Parameter to extend the key parsing
+    virtual bool load_key_fragment(String key_fragment, String value);
+
+
     //DataType lastGetterValue;
     virtual void update_mixer() {
         float modulation_value = this->get_modulation_value();

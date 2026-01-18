@@ -250,32 +250,28 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
             }
         }
 
-        virtual bool load_parse_key_value(String key, String value) override {
-            if (this->configurable) {
-                //Serial.printf("CVParameter named '%s' asked to load_parse_key_value with '%s' => '%s'..", this->label, key.c_str(), value.c_str());
-                String prefix = String("parameter_value_") + String(this->label) + String("_");
-                //Serial.printf("Checking if starts with '%s'..", prefix.c_str());
-                if (key.startsWith(prefix)) {
-                    //Serial.println("YES! now checking if endswith '_channel' or '_cc'..");
-                    if (key.endsWith("_channel")) {
-                        Serial.println("YES! Ends with _channel");
-                        this->channel = value.toInt();
-                        return true;
-                    } /*else if (key.endsWith("_cc")) {
-                        Serial.println("YES! Ends with _cc");
-                        this->cc_number = value.toInt();
-                        return true;
-                    }*/
-                }
-                //Serial.println("no match.");
-            }
-            return FloatParameter::load_parse_key_value(key, value);
+        virtual bool load_key_fragment(String key_fragment, String value) override {
+            if (this->configurable && key_fragment.endsWith("channel")) {
+                if (this->debug) Serial_printf("NOTICE: Matched key '%s' with '%s' - setting parameter channel from '%s' - returning\n", key_fragment.c_str(), this->label, value.c_str());
+                this->channel = value.toInt();
+
+                return true;
+            } /*else if (key_fragment.endsWith("/cc")) {
+                if (debug) Serial.printf("NOTICE: Matched key '%s' with '%s' - setting parameter cc_number from '%s' - returning\n", key_fragment.c_str(), this->label, value.c_str());
+                this->cc_number = value.toInt();
+
+                return true;
+            }*/ 
+
+            return FloatParameter::load_key_fragment(key_fragment, value);
         }
+
         virtual void save_pattern_add_lines(LinkedList<String> *lines) override {
             if (this->configurable) {
-                String prefix = String("parameter_value_") + String(this->label); //+ String("_");
-                lines->add(prefix + String("_channel=") + String(this->channel));
-                //lines->add(prefix + String("_cc=") + String(this->cc_number));
+                lines->add(
+                    String("parameter/") + String(this->label) + 
+                    String("/channel=") + String(this->channel)
+                );
             }
             FloatParameter::save_pattern_add_lines(lines);
         }
