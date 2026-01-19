@@ -44,6 +44,7 @@ lfo_option_t virtual_parameter_options[lfo_option_id::NUM] = {
             //type_selector->show_header = false;
             submenu->add(type_selector);
 
+            // todo: invert should probably be valid even for non-bipolar inputs?
             submenu->add(new LambdaToggleControl(
                 "Invert", 
                 [=](bool v) -> void { this->setInverted(v); }, 

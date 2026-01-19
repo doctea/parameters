@@ -108,8 +108,8 @@ class BaseParameterInput {
       return (strcmp(label, this->name)==0);
     }
 
-    static const char *prefix; // = "parameter_input_";  // have to initialise these in the cpp file apparently
-    static const char *input_type_suffix; // = "_input_type";
+    static const char *prefix; // = "parameter_input/";  // have to initialise these in the cpp file apparently
+    static const char *input_type_suffix; // = "/input_type";
     virtual LinkedList<String> *save_pattern_add_lines(LinkedList<String> *lines) {
       // eg,
       //  parameter_input_A_input_type=bipolar
@@ -126,18 +126,20 @@ class BaseParameterInput {
       key.replace(prefix,"");
       VALUE_TYPE *target = nullptr;
 
+      // todo: separate into sub-elements and call an overridable subhandler, for inverted etc
+
       if (key.endsWith(input_type_suffix)) {
         key.replace(input_type_suffix,"");
         target = &this->input_type;
-      } 
 
-      if (target!=nullptr && key.equals(this->name)) {
-        if (value.equals("bipolar")) {        
-          *target = BIPOLAR;
-          return true;
-        } else if (value.equals("unipolar")) {
-          *target = UNIPOLAR;
-          return true;
+        if (target!=nullptr && key.equals(this->name)) {
+          if (value.equals("bipolar")) {        
+            *target = BIPOLAR;
+            return true;
+          } else if (value.equals("unipolar")) {
+            *target = UNIPOLAR;
+            return true;
+          }
         }
       }
       return false;

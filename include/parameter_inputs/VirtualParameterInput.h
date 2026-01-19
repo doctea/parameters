@@ -220,7 +220,7 @@ class VirtualParameterInput : public AnalogParameterInputBase<float> {
                 return true;
             }
 
-            return false;
+            return BaseParameterInput::load_parse_key_value(key, value);
         }
 
         #ifdef ENABLE_SCREEN

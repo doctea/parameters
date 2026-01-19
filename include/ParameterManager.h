@@ -484,6 +484,29 @@ class ParameterManager {
             return -1;
         }
 
+        bool load_parse_line_parameter_input(String key, String value) {
+            String k = String(key).replace(ParameterInput::prefix, "");   // remove prefix
+
+            int separator_index = k.indexOf('/');
+            if (separator_index==-1) {
+                //if (debug && Serial) 
+                if (debug && Serial) Serial.printf("ParameterManager#load_parse_line_parameter_input(%s, %s)\tno '/' found, skipping\n", key.c_str(), value.c_str());
+                return false;   // no '/' found
+            }
+
+            String input_name = k.substring(0, separator_index); // get the input name part
+            String element_name = k.substring(separator_index + 1); // get the sub-element part
+
+            if (available_inputs_hash->containsKey(input_name)) {
+                BaseParameterInput *input = *available_inputs_hash->get(input_name);
+                if (debug && Serial) Serial.printf("ParameterManager#load_parse_line_parameter_input(%s, %s)\tfound ParameterInput '%s' in hashmap, passing to load_parse_key_value..\n", key.c_str(), value.c_str(), input_name.c_str());
+                return input->load_parse_key_value(key, value);
+            } else {
+                if (debug && Serial) Serial.printf("ParameterManager#load_parse_line_parameter_input(%s, %s)\tWARNING: found no ParameterInput '%s' in hashmap!\n", key.c_str(), value.c_str(), input_name.c_str());
+            }
+            return false;               
+        }
+
         bool load_parse_line(String line) {
 
             int separator_index = line.indexOf('=');
@@ -497,19 +520,10 @@ class ParameterManager {
 
             // first, do all the ParameterInputs (save their input/output type, ie bipolar/unipolar, etc)
             if (key.startsWith(ParameterInput::prefix)) {
-                if (debug && Serial) Serial.printf("ParameterManager#fast_load_parse_key_value(%s, %s)\tsearching ParameterInputs for match..\n", key.c_str(), value.c_str());
+                if (debug && Serial) Serial.printf("ParameterManager#load_parse_line(%s, %s)\tsearching ParameterInputs for match..\n", key.c_str(), value.c_str());
 
-                key = key.substring(strlen(ParameterInput::prefix));
-                if (available_inputs_hash->containsKey(key)) {
-                    BaseParameterInput* input = *available_inputs_hash->get(key);
-                    if (input != nullptr && input->load_parse_key_value(key, value)) {
-                        if (debug && Serial) 
-                            Serial.printf("ParameterManager#fast_load_parse_key_value(%s, %s)\tfound a match in parameter_input: %s!\n", key.c_str(), value.c_str(), input->name);
-                        return true;
-                    }
-                } else {
-                    Serial.printf("WARNING: ParameterManager#load_parse_line() couldn't find ParameterInput with key '%s'\n", key.c_str());
-                }
+                if (this->load_parse_line_parameter_input(key, value))
+                    return true;
             }
 
             return false;
