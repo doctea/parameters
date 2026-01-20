@@ -196,31 +196,27 @@ class VirtualParameterInput : public AnalogParameterInputBase<float> {
             return lines;
         }
 
-        virtual bool load_parse_key_value(String key, String value) {
-            if(!key.startsWith(prefix)) return false;
+        virtual bool load_key_segment(String key_segment, String value) override {
+            if (debug) Serial.printf(
+                "VirtualParameterInput#load_key_segment(%s, %s) called..\n", 
+                key_segment.c_str(), value.c_str()
+            );
 
-            key.replace(prefix,"");
-
-            // todo: check if this is sane way to make sure that we're loading for the correct item?
-            if (!key.startsWith(this->name)) {
-                return AnalogParameterInputBase::load_parse_key_value(key, value);
-            }
-
-            if (key.endsWith("/period")) {
+            if (key_segment.endsWith("period")) {
                 this->locked_period = value.toFloat();
                 return true;
-            } else if (key.endsWith("/phase")) {
+            } else if (key_segment.endsWith("phase")) {
                 this->locked_phase = value.toFloat();
                 return true;
-            } else if (key.endsWith("/divisor")) {
+            } else if (key_segment.endsWith("divisor")) {
                 this->free_sine_divisor = value.toFloat();
                 return true;
-            } else if (key.endsWith("/sh_ticks")) {
+            } else if (key_segment.endsWith("sh_ticks")) {
                 this->sh_ticks = value.toInt();
                 return true;
-            }
+            } 
 
-            return BaseParameterInput::load_parse_key_value(key, value);
+            return AnalogParameterInputBase::load_key_segment(key_segment, value);
         }
 
         #ifdef ENABLE_SCREEN

@@ -120,30 +120,30 @@ class BaseParameterInput {
       return lines;
     }
 
-    virtual bool load_parse_key_value(String key, String value) {
-      if(!key.startsWith(prefix)) return false;
-
-      key.replace(prefix,"");
-      VALUE_TYPE *target = nullptr;
-
-      // todo: separate into sub-elements and call an overridable subhandler, for inverted etc
-
-      if (key.endsWith(input_type_suffix)) {
-        key.replace(input_type_suffix,"");
-        target = &this->input_type;
-
-        if (target!=nullptr && key.equals(this->name)) {
-          if (value.equals("bipolar")) {        
-            *target = BIPOLAR;
-            return true;
-          } else if (value.equals("unipolar")) {
-            *target = UNIPOLAR;
-            return true;
-          }
+    virtual bool load_key_segment(String key_segment, String value) {
+      if (debug) Serial.printf("BaseParameterInput#load_key_segment(%s, %s)..\n", key_segment.c_str(), value.c_str());
+      if (key_segment.equals("input_type")) {
+        if (value.equals("bipolar")) {
+          this->input_type = BIPOLAR;
+        } else if (value.equals("unipolar")) {
+          this->input_type = UNIPOLAR;
         }
+        if (debug) Serial.printf("  set input_type to %s\n", this->input_type==BIPOLAR ? "bipolar" : "unipolar");
+        return true;
       }
       return false;
     }
+
+    /*virtual bool load_parse_key_value(String key, String value) {
+      if(!key.startsWith(prefix)) return false;
+
+      String key_copy = String(key);
+      key_copy.replace(prefix,"");
+      key_copy.replace(this->name,"");
+      key_copy.replace('/',""); // remove any leading '/'
+
+      return this->load_key_segment(key_copy, value);
+    }*/
 
     #ifdef PARAMETER_INPUTS_USE_CALLBACKS
       LinkedList<ParameterInputCallbackReceiver*> *callback_receivers = new LinkedList<ParameterInputCallbackReceiver*> ();

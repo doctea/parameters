@@ -200,12 +200,12 @@ bool FloatParameter::load_key_fragment(const String key_fragment, const String v
 
 // parse a key+value pair to restore the state 
 bool FloatParameter::load_parse_key_value(const String incoming_key, String value) {
-    if (debug)  Serial.printf("PARAMETERS\tFloatParameter#load_parse_key_value passed '%s' => '%s'...\n", incoming_key.c_str(), value.c_str());
+    if (debug) Serial.printf("PARAMETERS\tFloatParameter#load_parse_key_value passed '%s' => '%s'...\n", incoming_key.c_str(), value.c_str());
 
     const char *prefix = "parameter/";
     const char separator = '/', subseparator = '|';
 
-    String key = String(incoming_key.c_str());
+    String key = String(incoming_key);
 
     // first check that the key is a parameter at all
     if (!key.startsWith(prefix)) {
@@ -223,6 +223,8 @@ bool FloatParameter::load_parse_key_value(const String incoming_key, String valu
 
     // strip off initial / and parameter name from key
     key.replace(String(parameter_name) + String("/"), "");
+
+    if (debug) Serial.printf("PARAMETERS\tFloatParameter#load_parse_key_value: stripped key is now '%s' (incoming_key was %s)\n", key.c_str(), incoming_key.c_str());
 
     return this->load_key_fragment(key, value);
 }
