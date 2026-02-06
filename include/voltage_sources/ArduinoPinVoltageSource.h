@@ -14,9 +14,20 @@ class ArduinoPinVoltageSource : public VoltageSourceBase {
         float correction_value_1 = 1.0; //0.976937;
         float correction_value_2 = 0.0; //0.0123321;
 
-        ArduinoPinVoltageSource(byte pin, float maximum_input_voltage = 5.0) {
+        // todo: probably move this into VoltageSourceBase and make it more generic, eg have a 'calibration' struct or something that can be used by any VoltageSource, and then have a method on VoltageSourceBase like 'apply_calibration(float raw_voltage)' that is called by the fetch_current_voltage() of each VoltageSource after it has read the raw voltage, and which applies the correction values etc to return the final voltage value?
+        float minimum_input_voltage = 0.0f;
+
+        bool invert = false;
+
+        ArduinoPinVoltageSource(int global_slot, byte pin, float minimum_input_voltage, float maximum_input_voltage = 5.0, bool invert = false, bool supports_pitch = false) 
+            : ArduinoPinVoltageSource(global_slot, pin, maximum_input_voltage, invert, supports_pitch) {
+            this->minimum_input_voltage = minimum_input_voltage;
+        }
+
+        ArduinoPinVoltageSource(int global_slot, byte pin, float maximum_input_voltage = 5.0, bool invert = false, bool supports_pitch = false) 
+            : VoltageSourceBase(global_slot, maximum_input_voltage, supports_pitch) {
             this->pin = pin;
-            this->maximum_input_voltage = maximum_input_voltage;
+            this->invert = invert;
             pinMode(pin,INPUT);
         }
 
@@ -29,10 +40,14 @@ class ArduinoPinVoltageSource : public VoltageSourceBase {
 
             int value = (value1+value2+value3) / 3;
 
-            //float voltageFromAdc = ads_source->toVoltage(value);
-            float voltageFromAdc = ((float)value/1024.0) * this->maximum_input_voltage;
-            //if ((int)voltageFromAdc==ADS1X15_INVALID_VOLTAGE)
-            //    return 0.0;
+            if (this->invert) 
+                value = 1023 - value;
+
+            float voltage_range = this->maximum_input_voltage - this->minimum_input_voltage;
+
+            //float voltageFromAdc = ((float)value/1024.0) * this->maximum_input_voltage;
+
+            float voltageFromAdc = ((float)value/1024.0) * voltage_range + this->minimum_input_voltage;
             
             return this->get_corrected_voltage(voltageFromAdc);
         }

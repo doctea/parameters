@@ -21,7 +21,10 @@ class WorkshopVoltageSourceBase : public VoltageSourceBase {
         //float correction_value_1 = 2.0; //0.976937;
         //float correction_value_2 = -0.5; //0.0123321;
 
-        WorkshopVoltageSourceBase(int global_slot, bool supports_pitch = false) : VoltageSourceBase(global_slot, supports_pitch) {}
+        WorkshopVoltageSourceBase(int global_slot, float maximum_input_voltage = 5.0, bool supports_pitch = false) 
+            : VoltageSourceBase(global_slot, maximum_input_voltage, supports_pitch) {}
+        WorkshopVoltageSourceBase(int global_slot, bool supports_pitch = false) 
+            : VoltageSourceBase(global_slot, supports_pitch) {}
 
         #if defined(ENABLE_SCREEN)
             FLASHMEM virtual MenuItem *makeCalibrationControls(int i) override;
@@ -126,10 +129,9 @@ class ComputerCardVoltageSource : public WorkshopVoltageSourceBase {
         int16_t real_value = 0;
 
         ComputerCardVoltageSource(int global_slot, ComputerCard *sw, byte channel, float maximum_input_voltage = 5.0, bool supports_pitch = false) 
-            : WorkshopVoltageSourceBase(global_slot, supports_pitch) {
+            : WorkshopVoltageSourceBase(global_slot, maximum_input_voltage, supports_pitch) {
             this->sw = sw;
             this->channel = channel;
-            this->maximum_input_voltage = maximum_input_voltage;
             //this->debug = true;
         }
 

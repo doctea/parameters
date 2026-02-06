@@ -20,13 +20,19 @@ class VoltageSourceBase {
         float current_value = 0.0f;
         float last_value = 0.0f;
 
-        float maximum_input_voltage;
+        float maximum_input_voltage = 10.0f;
 
         int global_slot = -1;
+        VoltageSourceBase(int global_slot, float maximum_input_voltage = 5.0, bool supports_pitch = false) 
+            : VoltageSourceBase(global_slot, supports_pitch) {
+            this->maximum_input_voltage = maximum_input_voltage;
+        }
+
         VoltageSourceBase(int global_slot, bool supports_pitch = false) {
             this->global_slot = global_slot;
             this->has_pitch_capability = supports_pitch;
         }
+
 
         // actually fetch the current value from ADC, put it in the current_value
         virtual float fetch_current_voltage() = 0;

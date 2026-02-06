@@ -19,7 +19,10 @@ class ADSVoltageSourceBase : public VoltageSourceBase {
         float correction_value_1 = 0.976937;
         float correction_value_2 = 0.0123321;
 
-        ADSVoltageSourceBase(int global_slot, bool supports_pitch = false) : VoltageSourceBase(global_slot, supports_pitch) {}
+        ADSVoltageSourceBase(int global_slot, float maximum_input_voltage = 5.0, bool supports_pitch = false) 
+            : VoltageSourceBase(global_slot, maximum_input_voltage, supports_pitch) {}
+        ADSVoltageSourceBase(int global_slot, bool supports_pitch = false) 
+            : VoltageSourceBase(global_slot, supports_pitch) {}
 
         #if defined(ENABLE_SCREEN)
             FLASHMEM virtual MenuItem *makeCalibrationControls(int i) override;
@@ -51,10 +54,9 @@ class ADSVoltageSource : public ADSVoltageSourceBase {
         ADS1X15Type *ads_source;
 
         ADSVoltageSource(int global_slot, ADS1X15Type *ads_source, byte channel, float maximum_input_voltage = 5.0, bool supports_pitch = false) 
-            : ADSVoltageSourceBase(global_slot, supports_pitch) {
+            : ADSVoltageSourceBase(global_slot, maximum_input_voltage, supports_pitch) {
             this->ads_source = ads_source;
             this->channel = channel;
-            this->maximum_input_voltage = maximum_input_voltage;
         }
 
         // ask the ADC for its current voltage

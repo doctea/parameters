@@ -76,6 +76,7 @@ class ParameterInputCombinedDisplay : public MenuItem {
                 if (displays->get(i)!=nullptr) {
                     pos.y = displays->get(i)->draw_graph(pos, graph_height);
                 }
+                tft->drawLine(0, pos.y, tft->width(), pos.y, TFT_DARKGREY);
             }
 
             return pos.y;
