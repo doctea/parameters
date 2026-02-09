@@ -85,6 +85,18 @@ int8_t get_midi_pitch_for_voltage(float voltageFromAdc, int8_t pitch_offset) {
   return pitch;
 }
 
+
+// todo: turn this into a lookup table
+float get_frequency_for_pitch(int8_t pitch, int base_pitch) {
+  //float freq = mtof.toFrequency((float)pitch);
+  // tune from 440hz
+  int p = constrain(pitch - base_pitch, MIDI_MIN_NOTE, MIDI_MAX_NOTE);
+  float freq = 440.0 * pow(2.0, ((float)(p) / 12.0));
+  //float freq = 55.0 * pow(2.0, ((float)(p) / 12.0));
+  //Serial.printf("get_frequency_for_pitch(%u) return freq %u\n", pitch, (freq));
+  return freq;
+}
+
 float get_frequency_for_voltage(float voltageFromAdc, int8_t pitch_offset) { // was 36
   // get the tuning root -- Keystep is C1=1.0v, so start on C
   // TODO: configurable tuning from different note / 1.0v = A mode
@@ -93,16 +105,5 @@ float get_frequency_for_voltage(float voltageFromAdc, int8_t pitch_offset) { // 
   //Serial.printf("v=%u, adjv=%u\t", (uint16_t)(voltageFromAdc*1000.0), (uint16_t)(adjusted_voltage*1000.0));
   float freq = base_freq * (pow(2.0, voltageFromAdc));
   //Serial.printf("becomes frequency %u\n", (uint16_t)freq);
-  return freq;
-}
-
-// todo: turn this into a lookup table
-float get_frequency_for_pitch(int8_t pitch, int8_t base_pitch) {
-  //float freq = mtof.toFrequency((float)pitch);
-  // tune from 440hz
-  int8_t p = constrain(pitch - base_pitch, MIDI_MIN_NOTE, MIDI_MAX_NOTE);
-  float freq = 440.0 * pow(2.0, ((float)(p) / 12.0));
-  //float freq = 55.0 * pow(2.0, ((float)(p) / 12.0));
-  //Serial.printf("get_frequency_for_pitch(%u) return freq %u\n", pitch, (freq));
   return freq;
 }

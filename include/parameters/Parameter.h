@@ -10,7 +10,7 @@
 #include <Arduino.h>
 #if defined(CORE_TEENSY)
     // use alternative method if Teensy - no ARXTypeTraits, FLASHMEM
-#elif defined(ARDUINO_ARCH_RP2040)
+#elif defined(ARDUINO_ARCH_RP2040) || defined(ARDUINO_ARCH_RP2350)
     // use alternative method if Raspberry Pico - ARXTypeTraits, no FLASHMEM define
     #ifndef FLASHMEM
         #define FLASHMEM
