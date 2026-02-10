@@ -927,10 +927,17 @@ class DataParameterBase : public FloatParameter {
             DataType value_to_send = this->normalToData(slewed_value);
             if (debug && Serial) Serial.printf("\tgot value_to_send=%3.3f\n", (float)value_to_send);
 
-            if (force || value_to_send!=last_sent_value) {
+            if (force || value_to_send!=this->last_sent_value) {
+                if (debug && Serial) Serial.printf("\tsending..."); Serial.flush();
                 this->lastRealOutputNormalValue = slewed_value;
-                last_sent_value = value_to_send;
-                this->setTargetValueFromData(value_to_send, force);
+                this->setTargetValueFromData(value_to_send, true); //force);
+                this->last_sent_value = value_to_send;
+                this->lastOutputNormalValue = slewed_value;
+            } else {
+                if (debug && Serial) {
+                    Serial.printf("\tnot sending! (force=%i, last_sent_value=%3.3f, value_to_send=%3.3f)\n", force, this->last_sent_value, value_to_send); 
+                    Serial.flush();
+                }
             }
             //this->setTargetValueFromData(value_to_send, force);
         }
@@ -1047,10 +1054,10 @@ class DataParameter : public DataParameterBase<DataType> {
         }
 
         // actually set the target from data, do the REAL setter call on target
-        DataType last_sent_value = -1;
+        //DataType last_sent_value = -1;
         virtual void setTargetValueFromData(DataType value, bool force = false) {
             // early return if this value is the same as last one and we aren't being asked to force it
-            if (!force && last_sent_value==value)
+            if (!force && this->last_sent_value==value)
                 return;
 
             if (this->target!=nullptr && this->setter_func!=nullptr) {
@@ -1143,10 +1150,10 @@ class LDataParameter : public DataParameterBase<DataType> {
         }
 
         // actually set the target from data, do the REAL setter call on target
-        DataType last_sent_value = -1;
+        //DataType last_sent_value = -1;
         virtual void setTargetValueFromData(DataType value, bool force = false) {
             // early return if this value is the same as last one and we aren't being asked to force it
-            if (!force && last_sent_value==value)
+            if (!force && this->last_sent_value==value)
                 return;
 
             this->setter_func((DataType)value);
