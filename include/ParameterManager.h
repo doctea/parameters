@@ -125,6 +125,17 @@ class ParameterManager {
             Debug_println("Finished auto_init_devices.");
         }
 
+        FASTRUN FloatParameter *getParameterForName(const char *parameter_name) {
+            // todo: turn into hashtable
+            const uint_fast8_t size = available_parameters->size();
+            for (uint_fast8_t i = 0 ; i < size ; i++) {
+                if (strcmp(available_parameters->get(i)->label, parameter_name)==0)
+                    return available_parameters->get(i);
+            }
+            Serial.printf("WARNING: getParameterForName couldn't find parameter with name '%s'\n", parameter_name);
+            return nullptr;
+        }
+
         FASTRUN BaseParameterInput *getInputForName(const char *input_name) {
             // todo: could perhaps mildly optimise this so that search starts at the last found entry, for very mild speedup when loading from save files?
             const uint_fast8_t size = available_inputs->size();
