@@ -188,39 +188,35 @@ class VirtualParameterInput : public AnalogParameterInputBase<float> {
 
             const String string__prefix_and_name = String(prefix) + String(this->name);
             
-            lines->add(string__prefix_and_name + String("_period")  + string__equals + String(this->locked_period));
-            lines->add(string__prefix_and_name + String("_phase")   + string__equals + String(this->locked_phase));
-            lines->add(string__prefix_and_name + String("_divisor") + string__equals + String(this->free_sine_divisor));
-            lines->add(string__prefix_and_name + String("_sh_ticks")+ string__equals + String(this->sh_ticks));
+            lines->add(string__prefix_and_name + String("~period")  + string__equals + String(this->locked_period));
+            lines->add(string__prefix_and_name + String("~phase")   + string__equals + String(this->locked_phase));
+            lines->add(string__prefix_and_name + String("~divisor") + string__equals + String(this->free_sine_divisor));
+            lines->add(string__prefix_and_name + String("~sh_ticks")+ string__equals + String(this->sh_ticks));
 
             return lines;
         }
 
-        virtual bool load_parse_key_value(String key, String value) {
-            if(!key.startsWith(prefix)) return false;
+        virtual bool load_key_segment(String key_segment, String value) override {
+            if (debug) Serial.printf(
+                "VirtualParameterInput#load_key_segment(%s, %s) called..\n", 
+                key_segment.c_str(), value.c_str()
+            );
 
-            key.replace(prefix,"");
-
-            // todo: check if this is sane way to make sure that we're loading for the correct item?
-            if (!key.startsWith(this->name)) {
-                return AnalogParameterInputBase::load_parse_key_value(key, value);
-            }
-
-            if (key.endsWith("_period")) {
+            if (key_segment.endsWith("period")) {
                 this->locked_period = value.toFloat();
                 return true;
-            } else if (key.endsWith("_phase")) {
+            } else if (key_segment.endsWith("phase")) {
                 this->locked_phase = value.toFloat();
                 return true;
-            } else if (key.endsWith("_divisor")) {
+            } else if (key_segment.endsWith("divisor")) {
                 this->free_sine_divisor = value.toFloat();
                 return true;
-            } else if (key.endsWith("_sh_ticks")) {
+            } else if (key_segment.endsWith("sh_ticks")) {
                 this->sh_ticks = value.toInt();
                 return true;
-            }
+            } 
 
-            return false;
+            return AnalogParameterInputBase::load_key_segment(key_segment, value);
         }
 
         #ifdef ENABLE_SCREEN

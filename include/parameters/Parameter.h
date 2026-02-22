@@ -433,6 +433,12 @@ class FloatParameter : public BaseParameter {
     virtual void save_pattern_add_lines(LinkedList<String> *lines); 
     virtual bool load_parse_key_value(String key, String value);
     
+    // process a fragment of a key (after we've matched the parameter name and getting the
+    // trailing "/...." portion from it) and set the relevant value; return true if processed
+    // allows for subclasses of Parameter to extend the key parsing
+    virtual bool load_key_fragment(String key_fragment, String value);
+
+
     //DataType lastGetterValue;
     virtual void update_mixer() {
         float modulation_value = this->get_modulation_value();
@@ -958,9 +964,9 @@ class DataParameterBase : public FloatParameter {
             return constrain(value, this->minimumNormalValue, this->maximumNormalValue);
         }
 
-        const String prefix__parameter = String("parameter_");
-        const String prefix__range_minimum = String("_range_minimum");
-        const String prefix__range_maximum = String("_range_maximum");
+        const String prefix__parameter = String("parameter~");
+        const String prefix__range_minimum = String("~range_minimum");
+        const String prefix__range_maximum = String("~range_maximum");
 
         virtual void save_pattern_add_lines(LinkedList<String> *lines) override {
             FloatParameter::save_pattern_add_lines(lines);
@@ -971,21 +977,18 @@ class DataParameterBase : public FloatParameter {
             lines->add(prefix__parameter + label_string + prefix__range_maximum + String('=') + String(this->getRangeMaximumLimit()));
         }
 
-        virtual bool load_parse_key_value(const String incoming_key, String value) override {
-            const String label_string = String(this->label);
-
-            if (incoming_key.startsWith(prefix__parameter + label_string + prefix__range_minimum)) {
+        // take a key fragment (the part after "parameter~label~") and load the value
+        virtual bool load_key_fragment(const String key_fragment, const String value) override {
+            if (key_fragment.equals("range_minimum")) {
                 this->setRangeMinimumLimit(value.toFloat());
                 return true;
-            } else if (incoming_key.startsWith(prefix__parameter + label_string + prefix__range_maximum)) {
-                //Serial.printf("load_parse_key_value(%s, %s) found new value to set in %s: %3.3f\n", incoming_key.c_str(), value.c_str(), this->label, value.toFloat());
+            } else if (key_fragment.equals("range_maximum")) {
                 this->setRangeMaximumLimit(value.toFloat());
                 return true;
-            } else {
-                return FloatParameter::load_parse_key_value(incoming_key, value);
             }
-        }
 
+            return FloatParameter::load_key_fragment(key_fragment, value);
+        }
 };
 
 

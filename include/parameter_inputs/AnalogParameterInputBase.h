@@ -122,5 +122,28 @@ class AnalogParameterInputBase : public ParameterInput {
         #endif
       }
     }
+
+    const String string__equals = String('=');
+    virtual LinkedList<String> *save_pattern_add_lines(LinkedList<String> *lines) override {
+        ParameterInput::save_pattern_add_lines(lines);
+
+        const String string__prefix_and_name = String(prefix) + String(this->name);       
+        lines->add(string__prefix_and_name + String("~inverted")  + string__equals + String(this->inverted ? "true" : "false"));
+
+        return lines;
+    }
+
+    virtual bool load_key_segment(String key_segment, String value) override {
+      if (debug) Serial.printf("AnalogParameterInputBase::load_key_segment(%s, %s)\n", key_segment.c_str(), value.c_str());
+      if (key_segment.equals("inverted")) {
+        if (value.equals("true")) {
+          this->inverted = true;
+        } else if (value.equals("false")) {
+          this->inverted = false;
+        }
+        return true;
+      }
+      return BaseParameterInput::load_key_segment(key_segment, value);
+    }
 };
 

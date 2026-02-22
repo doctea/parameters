@@ -56,32 +56,27 @@ class MIDICCParameter : public DataParameter<TargetClass,DataType> {
             }
         }
 
-        virtual bool load_parse_key_value(String key, String value) override {
+
+        virtual bool load_key_fragment(String key_fragment, String value) override {
             if (this->configurable) {
-                if (this->debug) Serial.printf("MIDICCParameter named '%s' asked to load_parse_key_value with '%s' => '%s'..", this->label, key.c_str(), value.c_str());
-                String prefix = String("parameter_value_") + String(this->label) + String("_");
-                if (this->debug) Serial.printf("Checking if starts with '%s'..", prefix.c_str());
-                if (key.startsWith(prefix)) {
-                    if (this->debug) Serial.println("YES! now checking if endswith '_channel' or '_cc'..");
-                    if (key.endsWith("_channel")) {
-                        if (this->debug) Serial.println("YES! Ends with _channel");
-                        this->channel = value.toInt();
-                        return true;
-                    } else if (key.endsWith("_cc")) {
-                        if (this->debug) Serial.println("YES! Ends with _cc");
-                        this->cc_number = value.toInt();
-                        return true;
-                    }
+                if (key_fragment.endsWith("channel")) {
+                    if (this->debug) Serial.printf("NOTICE: Matched key '%s' with '%s' - setting parameter channel from '%s' - returning\n", key_fragment.c_str(), this->label, value.c_str());
+                    this->channel = value.toInt();
+                    return true;
+                } else if (key_fragment.endsWith("cc")) {
+                    if (this->debug) Serial.printf("NOTICE: Matched key '%s' with '%s' - setting parameter cc_number from '%s' - returning\n", key_fragment.c_str(), this->label, value.c_str());
+                    this->cc_number = value.toInt();
+                    return true;
                 }
-                if (this->debug) Serial.println("no match.");
             }
-            return FloatParameter::load_parse_key_value(key, value);
+            return DataParameter<TargetClass,DataType>::load_key_fragment(key_fragment, value);
         }
+
         virtual void save_pattern_add_lines(LinkedList<String> *lines) override {
             if (this->configurable) {
-                String prefix = String("parameter_value_") + String(this->label); //+ String("_");
-                lines->add(prefix + String("_channel=") + String(this->channel));
-                lines->add(prefix + String("_cc=") + String(this->cc_number));
+                String prefix = String("parameter~") + String(this->label);
+                lines->add(prefix + String("~channel=") + String(this->channel));
+                lines->add(prefix + String("~cc=") + String(this->cc_number));
             }
             FloatParameter::save_pattern_add_lines(lines);
         }

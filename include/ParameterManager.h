@@ -30,6 +30,7 @@
 //#include "mymenu_items/ParameterInputViewMenuItems.h"
 
 #include <LinkedList.h>
+#include "Hashtable.h"
 
 #ifdef ENABLE_SCREEN
   #include "submenuitem_bar.h"
@@ -51,6 +52,9 @@ class ParameterManager {
         LinkedList<VoltageSourceBase*>  *voltage_sources = new LinkedList<VoltageSourceBase*>();  // voltage-measuring channels
         LinkedList<BaseParameterInput*> *available_inputs = new LinkedList<BaseParameterInput*>();  // ParameterInputs, ie wrappers around input mechanism, assignable to a Parameter
         LinkedList<FloatParameter*>     *available_parameters = new LinkedList<FloatParameter*>();        // Parameters, ie wrappers around destination object
+
+        Hashtable<String, BaseParameterInput*> *available_inputs_hash = nullptr; //= new Hashtable<String, BaseParameterInput*>();
+
         FloatParameter *param_none = nullptr;        // 'blank' parameter used as default mapping
 
         #ifdef ENABLE_SCREEN
@@ -81,14 +85,11 @@ class ParameterManager {
 
         ParameterManager (unsigned long memory_size) {
             this->memory_size = memory_size;
+            this->available_inputs_hash = new Hashtable<String, BaseParameterInput*>();
         }
         ~ParameterManager () {}
 
         FLASHMEM void init() {
-            /*this->devices = new LinkedList<ADCDeviceBase*>();
-            this->voltage_sources = new LinkedList<VoltageSourceBase*>();
-            this->available_inputs = new LinkedList<BaseParameterInput*>();
-            this->available_parameters = new LinkedList<FloatParameter*>();*/
             this->param_none = this->addParameter(new FloatParameter((char*)"None"));
         }
 
@@ -494,7 +495,70 @@ class ParameterManager {
             return -1;
         }
 
+        bool load_parse_line_parameter_input(const String key, const String value) {
+            String k = String(key).replace(ParameterInput::prefix, "");   // remove prefix
+
+            int separator_index = k.indexOf('~');
+            if (separator_index==-1) {
+                //if (debug && Serial) 
+                if (debug && Serial) Serial.printf("ParameterManager#load_parse_line_parameter_input(%s, %s)\tno '~' found, skipping\n", key.c_str(), value.c_str());
+                return false;   // no '~' found
+            }
+
+            String input_name = k.substring(0, separator_index); // get the input name part
+            String element_name = k.substring(separator_index + 1); // get the sub-element part
+
+            if (available_inputs_hash->containsKey(input_name)) {
+                BaseParameterInput *input = *available_inputs_hash->get(input_name);
+                if (debug && Serial) {
+                    Serial.printf(
+                        "ParameterManager#load_parse_line_parameter_input(%s, %s)"
+                        "\tfound ParameterInput named '%s' in hashmap, passing to load_key_segment_value(%s, %s)..\n", 
+                        key.c_str(), value.c_str(), input_name.c_str(), element_name.c_str(), value.c_str()
+                    );
+                    Serial.flush();
+                }
+                //return input->load_parse_key_value(key, value);
+                return input->load_key_segment(element_name, value);
+            } else {
+                if (debug && Serial) Serial.printf("ParameterManager#load_parse_line_parameter_input(%s, %s)\tWARNING: found no ParameterInput '%s' in hashmap!\n", key.c_str(), value.c_str(), input_name.c_str());
+            }
+            return false;               
+        }
+
+        bool load_parse_line(String line) {
+
+            int separator_index = line.indexOf('=');
+            if (separator_index==-1) {
+                if (debug && Serial) Serial.printf("ParameterManager#load_parse_line(%s)\tno '=' found, skipping\n", line.c_str());
+                return false;   // no '=' found
+            }
+
+            String key = line.substring(0, separator_index);
+            String value = line.substring(separator_index + 1);
+
+            // first, do all the ParameterInputs (save their input/output type, ie bipolar/unipolar, etc)
+            if (key.startsWith(ParameterInput::prefix)) {
+                if (debug && Serial) {
+                    Serial.printf(
+                        "ParameterManager#load_parse_line(%s)\tabout to call load_parse_line_parameter_input(%s,%s)..\n", 
+                        line.c_str(), 
+                        key.c_str(), 
+                        value.c_str()
+                    );
+                    Serial.flush();
+                }
+
+                if (this->load_parse_line_parameter_input(key, value))
+                    return true;
+            }
+
+            return false;
+        }
+
+        /*
         // attempt optimised search + update for passed in key+value, on all parameters or on passed-in list_to_search
+        // this is now redundant now that hashmaps are used
         bool fast_load_parse_key_value(String key, String value, LinkedList<FloatParameter*> *list_to_search = nullptr) {
             static LinkedList<FloatParameter*> *last_searched = nullptr;
             static uint_fast8_t last_found_at = 0;
@@ -503,10 +567,13 @@ class ParameterManager {
             // TODO: should probably move this into its own function that can be used to process parameter_inputs separately from parameters
             //       will probably bring about some gains in wasted searching
             if (key.startsWith(ParameterInput::prefix)) {
+                if (debug && Serial) Serial.printf("ParameterManager#fast_load_parse_key_value(%s, %s)\tsearching ParameterInputs for match..\n", key.c_str(), value.c_str());
+
                 const uint_fast8_t available_inputs_count = available_inputs->size();
+                // todo: replace this loop with a hashmap based on available_inputs, for speed
                 for (uint_fast8_t i = 0 ; i < available_inputs_count ; i++) {
                     if (available_inputs->get(i)->load_parse_key_value(key, value)) {
-                        if (debug) Serial.printf("ParameterManager#fast_load_parse_key_value(%s, %s)\tfound a match in parameter_input: %s!\n", key.c_str(), value.c_str(), available_inputs->get(i)->name);
+                        if (debug && Serial) Serial.printf("ParameterManager#fast_load_parse_key_value(%s, %s)\tfound a match in parameter_input: %s!\n", key.c_str(), value.c_str(), available_inputs->get(i)->name);
                         return true;
                     }
                 }
@@ -529,6 +596,8 @@ class ParameterManager {
             const uint_fast16_t search_up_to = last_found_at + actual_size;
 
             // start seach at the last found index, move through past the end of the list and wrap around again to the start
+            // this should ensure we find things quickly if the save file is in roughly the same order as the parameter list
+            // todo: use a hashmap for even faster searching
             for (uint_fast16_t i = last_found_at ; i < search_up_to ; i++) {
                 uint_fast16_t actual_index = i;  
                 if (actual_index>=actual_size)
@@ -536,7 +605,7 @@ class ParameterManager {
 
                 FloatParameter *parameter = list_to_search->get(actual_index);
                 if (parameter!=nullptr && parameter->load_parse_key_value(key, value)) {
-                    if (debug) Serial.printf("ParameterManager#fast_load_parse_key_value(%s, %s)\tfound a match in parameter: %s!\n", key.c_str(), value.c_str(), parameter->label);
+                    if (Serial && debug) Serial.printf("ParameterManager#fast_load_parse_key_value(%s, %s)\tfound a match in parameter: %s!\n", key.c_str(), value.c_str(), parameter->label);
                     last_found_at = actual_index;
                     return true;
                 }
@@ -544,9 +613,11 @@ class ParameterManager {
             //Serial.printf("WARNING: didn't find anything to process '%s' => '%s'\n", key.c_str(), value.c_str());
             return false;
         }
+        */
 
         // add all the lines from all parameters (or passed-in list_to_save) to the passed-in lines array
-        LinkedList<String> *add_all_save_lines(LinkedList<String> *lines, LinkedList<FloatParameter*> *list_to_save = nullptr) {
+        // don't think this is used?
+        /*LinkedList<String> *add_all_save_lines(LinkedList<String> *lines, LinkedList<FloatParameter*> *list_to_save = nullptr) {
             // use list of all parameters if no other list passed
             if (list_to_save==nullptr) 
                 list_to_save = this->available_parameters;
@@ -563,6 +634,17 @@ class ParameterManager {
             for (uint_fast16_t i = 0 ; i < actual_size ; i++) {
                 //Serial.printf("save_pattern_add_lines() on parameter %i/%i, \tfreeram is %u\n", i+1, size, freeRam());
                 list_to_save->get(i)->save_pattern_add_lines(lines);
+            }
+
+            return lines;
+        }*/
+
+        LinkedList<String> *save_pattern_parameter_inputs_add_lines(LinkedList<String> *lines) {
+            // do the available_parameter_inputs first
+            const uint_fast8_t size = available_inputs->size();
+            for (uint_fast8_t i = 0 ; i < size ; i++) {
+                //Serial.printf("save_pattern_add_lines() on input %i/%i, \tfreeram is %u\n", i+1, size, freeRam());
+                available_inputs->get(i)->save_pattern_add_lines(lines);
             }
 
             return lines;

@@ -87,6 +87,7 @@ BaseParameterInput *ParameterManager::addInput(BaseParameterInput *input) {
         input->colour = parameter_input_colours[this->available_inputs->size() % (sizeof(parameter_input_colours)/2)];
     #endif
     this->available_inputs->add(input);
+    this->available_inputs_hash->put(String(input->name), input);
     return input;
 }
 

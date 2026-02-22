@@ -104,7 +104,7 @@ float FloatParameter::get_amount_for_slot(int8_t slot) {
 // get the lines required to save the state of this parameter mapping to a file
 void FloatParameter::save_pattern_add_lines(LinkedList<String> *lines) {
     // save parameter base values (save normalised value; let's hope that this is precise enough to restore from!)
-    String line = String("parameter_value_") + String(this->label) + "=" + String(this->getCurrentNormalValue());
+    String line = String("parameter~") + String(this->label) + "~value=" + String(this->getCurrentNormalValue());
     lines->add(line);
     //Serial.printf("PARAMETERS\t%s:\save_pattern_add_lines saving line:\t%s\n", this->label, line.c_str());
 
@@ -123,7 +123,7 @@ void FloatParameter::save_pattern_add_lines(LinkedList<String> *lines) {
 
             // sequence save line looks like: `parameter_Filter Cutoff_0=A|1.000`
             //                                 ^^head ^^_^^param name^_slot=ParameterInputName|Amount
-            snprintf(line, MAX_SAVELINE, "parameter_%s_%i=%s|%3.3f|%s", 
+            snprintf(line, MAX_SAVELINE, "parameter~%s~slot~%i=%s|%3.3f|%s", 
                 this->label, 
                 slot, 
                 input_name,
@@ -138,55 +138,31 @@ void FloatParameter::save_pattern_add_lines(LinkedList<String> *lines) {
     }
 }
 
-// parse a key+value pair to restore the state 
-bool FloatParameter::load_parse_key_value(const String incoming_key, String value) {
-    if (debug) Serial.printf("PARAMETERS\tFloatParameter#load_parse_key_value passed '%s' => '%s'...\n", incoming_key.c_str(), value.c_str());
+bool FloatParameter::load_key_fragment(const String key_fragment, const String value) {
 
-    const char *prefix = "parameter_";
-    const char *prefix_base = "parameter_value_";
-    const char separator = '_', subseparator = '|';
+    char subseparator = '|';    // separator for slot input values
 
-    String key = String(incoming_key.c_str());
+    // check if it's a base value setting
+    if (key_fragment.endsWith("value")) {
+        if (this->debug) Serial.printf("NOTICE: Matched key_fragment '%s' with '%s' - setting parameter value from '%s' - returning\n", key_fragment.c_str(), this->label, value.c_str());
+        this->updateValueFromNormal(value.toFloat());
 
-    if (key.startsWith(prefix_base)) {
-        //key.replace(prefix_base,"");
-        //key = key.substring(strlen(prefix_base));
-        if (key.substring(strlen(prefix_base)).equals(this->label)) {
-            if (debug) Serial.printf("NOTICE: Matched key '%s' with '%s' - setting parameter value from '%s' - returning\n", key.c_str(), this->label, value.c_str());
-            this->updateValueFromNormal(value.toFloat());
-            return true;
-        }
-        //Serial.printf("WARNING: got a %s with value %s, but found no matching Parameter!\n", prefix_base, key.c_str(), value.c_str());
-        return false;
-    }
+        return true;
+    } else if (key_fragment.startsWith("slot~")) {
+        // it's a slot setting
 
-    // sequence save line looks like: `parameter_Filter Cutoff_0=A|1.000`
-    //                                 ^^head ^^_^^param name^_slot=ParameterInputName|Amount
-    if (!key.startsWith(prefix)) {
-        return false;
-    }
-    key.replace(prefix, "");
-    //key = key.substring(strlen(prefix));
-    const uint_fast8_t separator_1_position = key.indexOf(separator);
+        uint_fast8_t slot_number = key_fragment.substring(key_fragment.indexOf('~')+1).toInt();
 
-    if (separator_1_position<0) {
-        //if (Serial) Serial.printf("WARNING: in %s,\t didn't find separator_1 to split in key '%s', garbled line with value '%s'?", this->label, incoming_key.c_str(), value.c_str());
-        return false;
-    }
+        if (Serial && this->debug) 
+            Serial.printf("NOTICE: Matched key_fragment '%s'..\n", key_fragment.c_str());
 
-    const String parameter_name = key.substring(0, separator_1_position);
-
-    if (parameter_name.equals(this->label)) {
-        if (debug) Serial.printf("NOTICE: Matched key '%s' with prefix '%s' and parameter_name '%s' - returning\n", key.c_str(), prefix, this->label);
-
-        String next_segment = key.substring(separator_1_position+1);
-        const uint_fast8_t slot_number = next_segment.toInt();
-
+        // throw away if the slot number is invalid
         if (!is_valid_slot(slot_number)) {
             //if (Serial) Serial.printf("ERROR: in %s,\t got invalid slot number from '%s=%s'\n", this->label, incoming_key.c_str(), value.c_str());
             return false;
         }
 
+        // throw away if the value appears misformed
         const uint_fast8_t separator_2_position = value.indexOf(subseparator);
         if (separator_2_position<0) {
             //if (Serial) Serial.printf("WARNING: in %s,\t didn't find separator_2 to split in key '%s', garbled line with value '%s'?", this->label, incoming_key.c_str(), value.c_str());
@@ -219,8 +195,38 @@ bool FloatParameter::load_parse_key_value(const String incoming_key, String valu
         return true;
     }
 
-    //Serial.printf(F("PARAMETERS\tWARNING: Couldn't find a Parameter for name %s\n"), parameter_name.c_str());
     return false;
+}
+
+// parse a key+value pair to restore the state 
+bool FloatParameter::load_parse_key_value(const String incoming_key, String value) {
+    if (debug) Serial.printf("PARAMETERS\tFloatParameter#load_parse_key_value passed '%s' => '%s'...\n", incoming_key.c_str(), value.c_str());
+
+    const char *prefix = "parameter~";
+    const char separator = '~', subseparator = '|';
+
+    String key = String(incoming_key);
+
+    // first check that the key is a parameter at all
+    if (!key.startsWith(prefix)) {
+        return false;
+    }
+
+    // get the parameter name
+    key.replace(prefix, "");
+    String parameter_name = key.substring(0, key.indexOf(separator));
+
+    // double-check that the parameter name matches this parameter
+    if (!parameter_name.equals(this->label)) {
+        return false;
+    }
+
+    // strip off initial ~ and parameter name from key
+    key.replace(String(parameter_name) + String("~"), "");
+
+    if (debug) Serial.printf("PARAMETERS\tFloatParameter#load_parse_key_value: stripped key is now '%s' (incoming_key was %s)\n", key.c_str(), incoming_key.c_str());
+
+    return this->load_key_fragment(key, value);
 }
 
 #include "parameters/CVOutputParameter.h"
