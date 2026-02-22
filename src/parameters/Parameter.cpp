@@ -104,7 +104,7 @@ float FloatParameter::get_amount_for_slot(int8_t slot) {
 // get the lines required to save the state of this parameter mapping to a file
 void FloatParameter::save_pattern_add_lines(LinkedList<String> *lines) {
     // save parameter base values (save normalised value; let's hope that this is precise enough to restore from!)
-    String line = String("parameter/") + String(this->label) + "/value=" + String(this->getCurrentNormalValue());
+    String line = String("parameter~") + String(this->label) + "~value=" + String(this->getCurrentNormalValue());
     lines->add(line);
     //Serial.printf("PARAMETERS\t%s:\save_pattern_add_lines saving line:\t%s\n", this->label, line.c_str());
 
@@ -123,7 +123,7 @@ void FloatParameter::save_pattern_add_lines(LinkedList<String> *lines) {
 
             // sequence save line looks like: `parameter_Filter Cutoff_0=A|1.000`
             //                                 ^^head ^^_^^param name^_slot=ParameterInputName|Amount
-            snprintf(line, MAX_SAVELINE, "parameter/%s/slot/%i=%s|%3.3f|%s", 
+            snprintf(line, MAX_SAVELINE, "parameter~%s~slot~%i=%s|%3.3f|%s", 
                 this->label, 
                 slot, 
                 input_name,
@@ -148,10 +148,10 @@ bool FloatParameter::load_key_fragment(const String key_fragment, const String v
         this->updateValueFromNormal(value.toFloat());
 
         return true;
-    } else if (key_fragment.startsWith("slot/")) {
+    } else if (key_fragment.startsWith("slot~")) {
         // it's a slot setting
 
-        uint_fast8_t slot_number = key_fragment.substring(key_fragment.indexOf('/')+1).toInt();
+        uint_fast8_t slot_number = key_fragment.substring(key_fragment.indexOf('~')+1).toInt();
 
         if (Serial && this->debug) 
             Serial.printf("NOTICE: Matched key_fragment '%s'..\n", key_fragment.c_str());
@@ -202,8 +202,8 @@ bool FloatParameter::load_key_fragment(const String key_fragment, const String v
 bool FloatParameter::load_parse_key_value(const String incoming_key, String value) {
     if (debug) Serial.printf("PARAMETERS\tFloatParameter#load_parse_key_value passed '%s' => '%s'...\n", incoming_key.c_str(), value.c_str());
 
-    const char *prefix = "parameter/";
-    const char separator = '/', subseparator = '|';
+    const char *prefix = "parameter~";
+    const char separator = '~', subseparator = '|';
 
     String key = String(incoming_key);
 
@@ -214,15 +214,15 @@ bool FloatParameter::load_parse_key_value(const String incoming_key, String valu
 
     // get the parameter name
     key.replace(prefix, "");
-    String parameter_name = key.substring(0, key.indexOf('/'));
+    String parameter_name = key.substring(0, key.indexOf(separator));
 
     // double-check that the parameter name matches this parameter
     if (!parameter_name.equals(this->label)) {
         return false;
     }
 
-    // strip off initial / and parameter name from key
-    key.replace(String(parameter_name) + String("/"), "");
+    // strip off initial ~ and parameter name from key
+    key.replace(String(parameter_name) + String("~"), "");
 
     if (debug) Serial.printf("PARAMETERS\tFloatParameter#load_parse_key_value: stripped key is now '%s' (incoming_key was %s)\n", key.c_str(), incoming_key.c_str());
 

@@ -57,4 +57,15 @@ class VirtualMixerParameterInput : public AnalogParameterInputBase<float> {
             }
         #endif
 
+        virtual LinkedList<String> *save_pattern_add_lines(LinkedList<String> *lines) override {
+            AnalogParameterInputBase<float>::save_pattern_add_lines(lines);
+
+            // TODO: save the parameter stuff associated with this mixer input
+
+            // const String string__prefix_and_name = String(prefix) + String(this->name);       
+            // lines->add(string__prefix_and_name + String("~inverted")  + string__equals + String(this->inverted ? "true" : "false"));
+
+            return lines;
+        }
+
 };

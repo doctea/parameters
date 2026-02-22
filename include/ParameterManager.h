@@ -487,11 +487,11 @@ class ParameterManager {
         bool load_parse_line_parameter_input(const String key, const String value) {
             String k = String(key).replace(ParameterInput::prefix, "");   // remove prefix
 
-            int separator_index = k.indexOf('/');
+            int separator_index = k.indexOf('~');
             if (separator_index==-1) {
                 //if (debug && Serial) 
-                if (debug && Serial) Serial.printf("ParameterManager#load_parse_line_parameter_input(%s, %s)\tno '/' found, skipping\n", key.c_str(), value.c_str());
-                return false;   // no '/' found
+                if (debug && Serial) Serial.printf("ParameterManager#load_parse_line_parameter_input(%s, %s)\tno '~' found, skipping\n", key.c_str(), value.c_str());
+                return false;   // no '~' found
             }
 
             String input_name = k.substring(0, separator_index); // get the input name part

@@ -188,10 +188,10 @@ class VirtualParameterInput : public AnalogParameterInputBase<float> {
 
             const String string__prefix_and_name = String(prefix) + String(this->name);
             
-            lines->add(string__prefix_and_name + String("/period")  + string__equals + String(this->locked_period));
-            lines->add(string__prefix_and_name + String("/phase")   + string__equals + String(this->locked_phase));
-            lines->add(string__prefix_and_name + String("/divisor") + string__equals + String(this->free_sine_divisor));
-            lines->add(string__prefix_and_name + String("/sh_ticks")+ string__equals + String(this->sh_ticks));
+            lines->add(string__prefix_and_name + String("~period")  + string__equals + String(this->locked_period));
+            lines->add(string__prefix_and_name + String("~phase")   + string__equals + String(this->locked_phase));
+            lines->add(string__prefix_and_name + String("~divisor") + string__equals + String(this->free_sine_divisor));
+            lines->add(string__prefix_and_name + String("~sh_ticks")+ string__equals + String(this->sh_ticks));
 
             return lines;
         }

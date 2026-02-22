@@ -256,7 +256,7 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
                 this->channel = value.toInt();
 
                 return true;
-            } /*else if (key_fragment.endsWith("/cc")) {
+            } /*else if (key_fragment.endsWith("~cc")) {
                 if (debug) Serial.printf("NOTICE: Matched key '%s' with '%s' - setting parameter cc_number from '%s' - returning\n", key_fragment.c_str(), this->label, value.c_str());
                 this->cc_number = value.toInt();
 
@@ -269,8 +269,8 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
         virtual void save_pattern_add_lines(LinkedList<String> *lines) override {
             if (this->configurable) {
                 lines->add(
-                    String("parameter/") + String(this->label) + 
-                    String("/channel=") + String(this->channel)
+                    String("parameter~") + String(this->label) + 
+                    String("~channel=") + String(this->channel)
                 );
             }
             FloatParameter::save_pattern_add_lines(lines);

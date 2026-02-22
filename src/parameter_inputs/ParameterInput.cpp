@@ -1,8 +1,8 @@
 #include "parameter_inputs/ParameterInput.h"
 #include "parameter_inputs/VirtualParameterInput.h"
 
-const char *BaseParameterInput::prefix = "parameter_input/";
-const char *BaseParameterInput::input_type_suffix = "/input_type";
+const char *BaseParameterInput::prefix = "parameter_input~";  // have to initialise these in the cpp file apparently
+const char *BaseParameterInput::input_type_suffix = "~input_type";
 
 lfo_option_t virtual_parameter_options[lfo_option_id::NUM] = {
     { "FreeLFO", LFO_FREE },

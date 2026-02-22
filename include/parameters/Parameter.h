@@ -957,9 +957,9 @@ class DataParameterBase : public FloatParameter {
             return constrain(value, this->minimumNormalValue, this->maximumNormalValue);
         }
 
-        const String prefix__parameter = String("parameter/");
-        const String prefix__range_minimum = String("/range_minimum");
-        const String prefix__range_maximum = String("/range_maximum");
+        const String prefix__parameter = String("parameter~");
+        const String prefix__range_minimum = String("~range_minimum");
+        const String prefix__range_maximum = String("~range_maximum");
 
         virtual void save_pattern_add_lines(LinkedList<String> *lines) override {
             FloatParameter::save_pattern_add_lines(lines);
@@ -970,7 +970,7 @@ class DataParameterBase : public FloatParameter {
             lines->add(prefix__parameter + label_string + prefix__range_maximum + String('=') + String(this->getRangeMaximumLimit()));
         }
 
-        // take a key fragment (the part after "parameter/label/") and load the value
+        // take a key fragment (the part after "parameter~label~") and load the value
         virtual bool load_key_fragment(const String key_fragment, const String value) override {
             if (key_fragment.equals("range_minimum")) {
                 this->setRangeMinimumLimit(value.toFloat());

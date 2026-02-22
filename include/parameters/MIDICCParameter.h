@@ -74,9 +74,9 @@ class MIDICCParameter : public DataParameter<TargetClass,DataType> {
 
         virtual void save_pattern_add_lines(LinkedList<String> *lines) override {
             if (this->configurable) {
-                String prefix = String("parameter/") + String(this->label);
-                lines->add(prefix + String("/channel=") + String(this->channel));
-                lines->add(prefix + String("/cc=") + String(this->cc_number));
+                String prefix = String("parameter~") + String(this->label);
+                lines->add(prefix + String("~channel=") + String(this->channel));
+                lines->add(prefix + String("~cc=") + String(this->cc_number));
             }
             FloatParameter::save_pattern_add_lines(lines);
         }
