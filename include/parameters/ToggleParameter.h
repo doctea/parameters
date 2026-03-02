@@ -26,7 +26,7 @@ class ToggleParameter : public DataParameter<TargetClass,DataType> {
         this->setter_func_on = setter_func_on;
         this->setter_func_off = setter_func_off;
 
-        this->debug = true;
+        //this->debug = true;
     }
 
     ToggleParameter(
