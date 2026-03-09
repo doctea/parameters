@@ -101,7 +101,7 @@ class Weirdolope : public EnvelopeBase {
         0.99800f,     // long ambient pad   
     };
 
-    static const int RELEASE_MULTIPLIER = 3;    // multiplier for release values, because otherwise they're a bit sillylong
+    static const float RELEASE_MULTIPLIER = 6;    // multiplier for release values, because otherwise they're a bit sillylong
 
     int EnvA = 0;
     int EnvB = 1;
@@ -230,6 +230,7 @@ class Weirdolope : public EnvelopeBase {
         } else if (stage==SUSTAIN) {
             float damp = lerp( SustainRateTable[EnvA], SustainRateTable[EnvB], EnvAlpha );
             //envelopeLevel *= pow(damp,(float)stage_elapsed);
+            // ??
             for (int i = 0 ; i < stage_elapsed ; i++) {
                 envelopeLevel *= damp;
             }
@@ -273,18 +274,18 @@ class Weirdolope : public EnvelopeBase {
         this->set_invert((int8_t)random(0,10) < 2);
     }
     virtual void update_state(float velocity, bool state, uint32_t now = ticks) override {
-        if (!state) {
-            if (stage==ATTACK || stage==HOLD || stage==DECAY || stage==SUSTAIN) { //!=OFF && stage!=RELEASE) {
+        if (state) {
+            last_state.stage = stage = ATTACK;
+            last_state.lvl_start = last_state.lvl_now;
+            triggered_at = stage_triggered_at = now;
+            last_sent_at = 0;
+        } else if (state == false && this->stage != OFF) {
+            if (this->last_state.stage==ATTACK || this->last_state.stage==HOLD || this->last_state.stage==DECAY || this->last_state.stage==SUSTAIN) { //!=OFF && stage!=RELEASE) {
                 last_state.stage = stage = RELEASE;
                 last_state.lvl_start = last_state.lvl_now;
                 triggered_at = stage_triggered_at = now;
                 last_sent_at = 0;
             }
-        } else {
-            last_state.stage = stage = ATTACK;
-            last_state.lvl_start = last_state.lvl_now;
-            triggered_at = stage_triggered_at = now;
-            last_sent_at = 0;
         }
     }
 

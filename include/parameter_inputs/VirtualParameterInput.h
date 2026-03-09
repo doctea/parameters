@@ -39,6 +39,7 @@ class VirtualParameterInput : public AnalogParameterInputBase<float> {
         float locked_phase = 0.0f;
 
         // track sample & hold state
+        // todo: move this into parent class, and make it available to VoltageParameterInput etc? could be useful for eg sample&hold on CV inputs
         uint32_t sh_ticks = 0;
         float last_sample = 0;
         uint32_t last_sample_tick = 0;
