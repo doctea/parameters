@@ -18,7 +18,7 @@ Based on code extracted from my [envor2](https://github.com/doctea/envor2) and [
 - ParameterMenuItem is a way to interact directly with that Parameter value.
   - asks the Parameter how to render the value, how to increment/decrement, etc..
   - select from available ParameterInputs, and set Amount % modulation
-  - ParameterInputViewItem is a graphical display of input
+  - ParameterInputDisplay is a graphical display of input
 
 ## Options
 
