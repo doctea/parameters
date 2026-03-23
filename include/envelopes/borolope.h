@@ -101,7 +101,7 @@ class Weirdolope : public EnvelopeBase {
         0.99800f,     // long ambient pad   
     };
 
-    static const float RELEASE_MULTIPLIER = 6;    // multiplier for release values, because otherwise they're a bit sillylong
+    const float RELEASE_MULTIPLIER = 6;    // multiplier for release values, because otherwise they're a bit sillylong
 
     int EnvA = 0;
     int EnvB = 1;

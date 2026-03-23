@@ -495,8 +495,31 @@ class ParameterManager {
             return -1;
         }
 
+        // believe this is only currently used by Microlidian
+        bool load_parse_line_parameter(String line) {
+            if (line.startsWith("parameter~")) {
+                String key = line.substring(0, line.indexOf('='));
+                String value = line.substring(line.indexOf('=') + 1);
+
+                String stripped_key = key;
+                stripped_key.substring(strlen("parameter~"));
+                String parameter_name = stripped_key.substring(0, stripped_key.indexOf('~'));
+
+                FloatParameter *parameter = this->getParameterForName(parameter_name.c_str());
+                if (parameter==nullptr) {
+                    if (/*debug &&*/ Serial) Serial.printf("ParameterManager#load_parse_line_parameter(%s)\tWARNING: no parameter found with name '%s'!\n", line.c_str(), parameter_name.c_str());
+                    return false;
+                }
+                
+                if (debug && Serial) Serial.printf("ParameterManager#load_parse_line_parameter(%s)\tline starts with prefix, passing to load_parse_line_parameter_input..\n", line.c_str());
+                return parameter->load_parse_key_value(key, value);
+            }
+            return false;
+        }
+
         bool load_parse_line_parameter_input(const String key, const String value) {
-            String k = String(key).replace(ParameterInput::prefix, "");   // remove prefix
+            String k = key;  // clone the key so we don't modify the original when we remove the prefix
+            k.replace(ParameterInput::prefix, "");   // remove prefix
 
             int separator_index = k.indexOf('~');
             if (separator_index==-1) {
@@ -537,13 +560,18 @@ class ParameterManager {
             String key = line.substring(0, separator_index);
             String value = line.substring(separator_index + 1);
 
+            return this->load_parse_key_value(key, value);
+         }
+
+        bool load_parse_key_value(String key, String value) {
             // first, do all the ParameterInputs (save their input/output type, ie bipolar/unipolar, etc)
             if (key.startsWith(ParameterInput::prefix)) {
                 if (debug && Serial) {
                     Serial.printf(
-                        "ParameterManager#load_parse_line(%s)\tabout to call load_parse_line_parameter_input(%s,%s)..\n", 
-                        line.c_str(), 
+                        "ParameterManager#load_parse_key_value(%s, %s)\tabout to call load_parse_line_parameter_input(%s,%s)..\n", 
                         key.c_str(), 
+                        value.c_str(),
+                        key.c_str(),
                         value.c_str()
                     );
                     Serial.flush();
@@ -616,11 +644,16 @@ class ParameterManager {
         */
 
         // add all the lines from all parameters (or passed-in list_to_save) to the passed-in lines array
-        // don't think this is used?
-        /*LinkedList<String> *add_all_save_lines(LinkedList<String> *lines, LinkedList<FloatParameter*> *list_to_save = nullptr) {
+        // don't think this is used? AHH is used by Microlidian!
+        LinkedList<String> *add_all_save_lines(LinkedList<String> *lines, LinkedList<FloatParameter*> *list_to_save = nullptr) {
             // use list of all parameters if no other list passed
             if (list_to_save==nullptr) 
                 list_to_save = this->available_parameters;
+
+            if (list_to_save==nullptr) {
+                Serial.println("WARNING: add_all_save_lines() called with null list_to_save, and available_parameters is also null!"); Serial_flush();
+                return lines;
+            }
 
             // do the available_parameter_inputs first // TODO: maybe we don't want to always save the ParameterInput settings here, if for example we're saving a passed-in list of Parameters?
             const uint_fast16_t size = available_inputs->size();
@@ -629,15 +662,17 @@ class ParameterManager {
                 available_inputs->get(i)->save_pattern_add_lines(lines);
             }
 
-            // then to the parameters
+            // // then to the parameters    
+            // TODO: work out why this crashes if we do almost anything in the loop except printf(".") 
             const uint_fast16_t actual_size = list_to_save->size();
+            Serial.printf("add_all_save_lines() has %i parameters to add lines from list_to_save@%p..\n", actual_size, list_to_save); Serial_flush();
             for (uint_fast16_t i = 0 ; i < actual_size ; i++) {
-                //Serial.printf("save_pattern_add_lines() on parameter %i/%i, \tfreeram is %u\n", i+1, size, freeRam());
+                //if (Serial) Serial.printf("@%p\n", list_to_save->get(i)); Serial_flush();
                 list_to_save->get(i)->save_pattern_add_lines(lines);
             }
 
             return lines;
-        }*/
+        }
 
         LinkedList<String> *save_pattern_parameter_inputs_add_lines(LinkedList<String> *lines) {
             // do the available_parameter_inputs first
