@@ -383,7 +383,7 @@ class SaveableParameterWrapper : public SaveableParameterBase {
 */
 
 #ifndef Debug_printf
-    #define Debug_printf(...)   {}
+    #include "debug.h"
 #endif
 
 // todo: really, this should be part of the 'file_manager' branch stuff...?

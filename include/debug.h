@@ -1,4 +1,4 @@
-
+#pragma once
 //#ifndef F
     //#define F(X) X
 //#endif
