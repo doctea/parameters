@@ -56,29 +56,24 @@ class MIDICCParameter : public DataParameter<TargetClass,DataType> {
             }
         }
 
-
-        virtual bool load_key_fragment(String key_fragment, String value) override {
+        virtual void setup_saveable_settings() override {
+            DataParameter<TargetClass,DataType>::setup_saveable_settings();
             if (this->configurable) {
-                if (key_fragment.endsWith("channel")) {
-                    if (this->debug) Serial.printf("NOTICE: Matched key '%s' with '%s' - setting parameter channel from '%s' - returning\n", key_fragment.c_str(), this->label, value.c_str());
-                    this->channel = value.toInt();
-                    return true;
-                } else if (key_fragment.endsWith("cc")) {
-                    if (this->debug) Serial.printf("NOTICE: Matched key '%s' with '%s' - setting parameter cc_number from '%s' - returning\n", key_fragment.c_str(), this->label, value.c_str());
-                    this->cc_number = value.toInt();
-                    return true;
-                }
+                this->register_setting(new LSaveableSetting<byte>(
+                    "channel",
+                    "MIDICC",
+                    nullptr,
+                    [=](byte value) { this->channel = value; },
+                    [=]() -> byte { return this->channel; }
+                ));
+                this->register_setting(new LSaveableSetting<byte>(
+                    "cc", 
+                    "MIDICC",
+                    nullptr,
+                    [=](byte value) { this->cc_number = value; },
+                    [=]() -> byte { return this->cc_number; }
+                ));
             }
-            return DataParameter<TargetClass,DataType>::load_key_fragment(key_fragment, value);
-        }
-
-        virtual void save_pattern_add_lines(LinkedList<String> *lines) override {
-            if (this->configurable) {
-                String prefix = String("parameter~") + String(this->label);
-                lines->add(prefix + String("~channel=") + String(this->channel));
-                lines->add(prefix + String("~cc=") + String(this->cc_number));
-            }
-            FloatParameter::save_pattern_add_lines(lines);
         }
 
         #ifdef ENABLE_SCREEN

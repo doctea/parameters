@@ -20,7 +20,7 @@
     class Menu;
 #endif
 #ifdef ENABLE_PARAMETERS
-    class FloatParameter;
+    #include "parameters/Parameter.h"
 #endif
 #ifdef ENABLE_STORAGE
     #include "saveload_settings.h"
@@ -220,6 +220,15 @@ class EnvelopeBase : public ISaveableSettingHost {
                 [=](bool v) { this->set_invert(v); },
                 [=]() -> bool { return this->is_invert(); }
             ));
+
+            // register parameters for this envelope
+            LinkedList<FloatParameter*> *parameters = this->get_parameters();
+            if (parameters!=nullptr) {
+                for (int i = 0 ; i < parameters->size() ; i++) {
+                    FloatParameter *param = parameters->get(i);
+                    register_child(param);
+                }
+            }
         }
     #endif
 };

@@ -95,138 +95,67 @@ const char *FloatParameter::get_input_name_for_slot(int8_t slot) {
     Debug_printf(F("WARNING: get_input_name_for_slot(%i) got an empty slot!"), slot);
     return "None";
 }
+const char *FloatParameter::get_input_group_and_name_for_slot(int8_t slot) {
+    if (!is_valid_slot(slot)) return "[invalid]";
+    if (this->connections[slot].parameter_input!=nullptr)
+        return this->connections[slot].parameter_input->get_group_and_name();
+    Debug_printf(F("WARNING: get_input_group_and_name_for_slot(%i) got an empty slot!"), slot);
+    return "None";
+}
 
 float FloatParameter::get_amount_for_slot(int8_t slot) {
     if (!is_valid_slot(slot)) return 0.0f;
     return this->connections[slot].amount;
 }
 
-// get the lines required to save the state of this parameter mapping to a file
-void FloatParameter::save_pattern_add_lines(LinkedList<String> *lines) {
-    // save parameter base values (save normalised value; let's hope that this is precise enough to restore from!)
-    String line = String("parameter~") + String(this->label) + "~value=" + String(this->getCurrentNormalValue());
-    lines->add(line);
-    //Serial.printf("PARAMETERS\t%s:\save_pattern_add_lines saving line:\t%s\n", this->label, line.c_str());
+void FloatParameter::setup_saveable_settings() {
+    BaseParameter::setup_saveable_settings();
 
-    if (this->is_modulatable()) {
-        #define MAX_SAVELINE 255
-        char line[MAX_SAVELINE];
-        // todo: move handling of this into the Parameter class, or into a third class that can handle saving to different formats..?
-        //          ^^ this could be the SaveableParameter class, used as a wrapper.  would require SaveableParameter to be able to add multiple lines to the save file
-        // todo: make these mappings part of an extra type of thing (like a "preset clip"?), rather than associated with sequence?
-        // todo: move these to be saved with the project instead?
-        for (uint_fast8_t slot = 0 ; slot < MAX_SLOT_CONNECTIONS ; slot++) { // TODO: MAX_CONNECTION_SLOTS...?
-            if (this->connections[slot].parameter_input==nullptr) continue;      // skip if no parameter_input configured in this slot
-            if (this->connections[slot].amount==0.00) continue;                     // skip if no amount configured for this slot
+    for (uint_fast8_t slot = 0 ; slot < MAX_SLOT_CONNECTIONS ; slot++) {
+        const uint_fast8_t captured_slot = slot;   // capture the current value of slot for use in the lambda
+        //register_child(this->connections[slot].parameter_input); // @@TODO: we might want to turn the connections into full-blown saveable hosts?
+        char setting_name[30];
+        snprintf(setting_name, 30, "Slot %i Input", slot);
+        register_setting(new LSaveableSetting<const char*>(
+            setting_name,
+            "ModulationSlot",
+            nullptr,
+            [=](const char* v) { 
+                this->set_slot_input(
+                    captured_slot, 
+                    parameter_manager->getInputForGroupAndName(v)
+                ); 
+            },
+            [=]() -> const char* { 
+                return this->get_input_group_and_name_for_slot(captured_slot); 
+            }
+        ));
 
-            const char *input_name = this->get_input_name_for_slot(slot);
+        snprintf(setting_name, 30, "Slot %i Amount", slot);
+        register_setting(new LSaveableSetting<float>(
+            setting_name,
+            "ModulationSlot",
+            nullptr,
+            [=](float v) { this->connections[captured_slot].amount = v; },
+            [=]() -> float { return this->connections[captured_slot].amount; }
+        ));
 
-            // sequence save line looks like: `parameter_Filter Cutoff_0=A|1.000`
-            //                                 ^^head ^^_^^param name^_slot=ParameterInputName|Amount
-            snprintf(line, MAX_SAVELINE, "parameter~%s~slot~%i=%s|%3.3f|%s", 
-                this->label, 
-                slot, 
-                input_name,
-                //'A'+slot, //TODO: implement proper saving of mapping! /*parameter->get_connection_slot_name(slot), */
-                //parameter->connections[slot].parameter_input->name,
-                this->connections[slot].amount,
-                this->connections[slot].polar_mode==UNIPOLAR ? "unipolar" : "bipolar"
-            );
-            if (debug) Serial.printf("PARAMETERS\t%s#save_pattern_add_lines saving line:\t%s\n", this->label, line);
-            lines->add(String(line));
-        }
+        snprintf(setting_name, 30, "Slot %i Mode", slot);
+        register_setting(new LSaveableSetting<const char*>(
+            setting_name,
+            "ModulationSlot",
+            nullptr,
+            [=](const char* v) { 
+                if (strcmp(v, "unipolar")==0)      this->connections[captured_slot].polar_mode = UNIPOLAR;
+                else if (strcmp(v, "bipolar")==0)  this->connections[captured_slot].polar_mode = BIPOLAR;
+            },
+            [=]() -> const char* { 
+                if (this->connections[captured_slot].polar_mode == UNIPOLAR) return "unipolar";
+                else if (this->connections[captured_slot].polar_mode == BIPOLAR) return "bipolar";
+                return "";
+            }
+        ));
     }
-}
-
-bool FloatParameter::load_key_fragment(const String key_fragment, const String value) {
-
-    char subseparator = '|';    // separator for slot input values
-
-    // check if it's a base value setting
-    if (key_fragment.endsWith("value")) {
-        if (this->debug) Serial.printf("NOTICE: Matched key_fragment '%s' with '%s' - setting parameter value from '%s' - returning\n", key_fragment.c_str(), this->label, value.c_str());
-        this->updateValueFromNormal(value.toFloat());
-
-        return true;
-    } else if (key_fragment.startsWith("slot~")) {
-        // it's a slot setting
-
-        uint_fast8_t slot_number = key_fragment.substring(key_fragment.indexOf('~')+1).toInt();
-
-        if (Serial && this->debug) 
-            Serial.printf("NOTICE: Matched key_fragment '%s'..\n", key_fragment.c_str());
-
-        // throw away if the slot number is invalid
-        if (!is_valid_slot(slot_number)) {
-            //if (Serial) Serial.printf("ERROR: in %s,\t got invalid slot number from '%s=%s'\n", this->label, incoming_key.c_str(), value.c_str());
-            return false;
-        }
-
-        // throw away if the value appears misformed
-        const uint_fast8_t separator_2_position = value.indexOf(subseparator);
-        if (separator_2_position<0) {
-            //if (Serial) Serial.printf("WARNING: in %s,\t didn't find separator_2 to split in key '%s', garbled line with value '%s'?", this->label, incoming_key.c_str(), value.c_str());
-            return false;
-        }
-
-        float amount;
-        int mode = -1; //UNIPOLAR;
-        const String input_name = value.substring(0, separator_2_position);
-
-        // get the amount of modulation
-        const uint_fast8_t separator_3_position = value.lastIndexOf(subseparator);
-        if (separator_3_position==separator_2_position) {
-            // old version for compatibility -- no polarity mode in the input!
-            // just get the amount
-            amount = value.substring(separator_2_position+1).toFloat();
-        } else {
-            // new version -- polarity mode in the input!
-            amount = value.substring(separator_2_position+1, separator_3_position).toFloat();
-            mode = value.substring(separator_3_position+1).equals("unipolar") ? UNIPOLAR : BIPOLAR;
-        }
-
-        if (Serial) Serial.printf("NOTICE: in %s,\t Got split string '%s', slot_number %i, modulation amount %3.3f and mode %s\n", this->label, input_name.c_str(), slot_number, amount, mode == -1 ? "unset" :  (mode==UNIPOLAR ? "unipolar" : "bipolar"));
-
-        this->set_slot_input (slot_number, input_name.c_str());
-        this->set_slot_amount(slot_number, amount);
-        if (mode>=0)
-            this->set_slot_polarity(slot_number, mode);
-
-        return true;
-    }
-
-    return false;
-}
-
-// parse a key+value pair to restore the state 
-bool FloatParameter::load_parse_key_value(const String incoming_key, String value) {
-    if (debug) Serial.printf("PARAMETERS\tFloatParameter#load_parse_key_value passed '%s' => '%s'...\n", incoming_key.c_str(), value.c_str());
-
-    const char *prefix = "parameter~";
-    const char separator = '~', subseparator = '|';
-
-    String key = String(incoming_key);
-
-    // first check that the key is a parameter at all
-    if (!key.startsWith(prefix)) {
-        return false;
-    }
-
-    // get the parameter name
-    key.replace(prefix, "");
-    String parameter_name = key.substring(0, key.indexOf(separator));
-
-    // double-check that the parameter name matches this parameter
-    if (!parameter_name.equals(this->label)) {
-        return false;
-    }
-
-    // strip off initial ~ and parameter name from key
-    key.replace(String(parameter_name) + String("~"), "");
-
-    if (debug) Serial.printf("PARAMETERS\tFloatParameter#load_parse_key_value: stripped key is now '%s' (incoming_key was %s)\n", key.c_str(), incoming_key.c_str());
-
-    return this->load_key_fragment(key, value);
 }
 
 #include "parameters/CVOutputParameter.h"

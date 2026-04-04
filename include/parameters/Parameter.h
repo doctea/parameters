@@ -38,6 +38,10 @@
 
 #include "calibration.h"
 
+#ifdef ENABLE_STORAGE
+    #include "saveload_settings.h"
+#endif
+
 //extern char NEXT_PARAMETER_NAME;
 
 //#include "ParameterInput.h"
@@ -69,7 +73,7 @@ struct ParameterToInputConnection {
 const size_t MAX_PARAMETER_NAME_LENGTH = 20;
 
 // @@TODO: convert this to using the new ISaveableSetting interface
-class BaseParameter { 
+class BaseParameter : public ISaveableSettingHost { 
     public:
         bool debug = false;
 
@@ -80,6 +84,7 @@ class BaseParameter {
 
         BaseParameter(const char *label) {
             strncpy(this->label, label, MAX_PARAMETER_NAME_LENGTH);
+            this->set_path_segment(this->label);
         };
         virtual void updateValueFromNormal(float value/*, float range = 1.0*/) {};
         virtual void modulateValue(float value) {};
@@ -308,6 +313,7 @@ class FloatParameter : public BaseParameter {
     }
 
     virtual const char *get_input_name_for_slot(int8_t slot);
+    virtual const char *get_input_group_and_name_for_slot(int8_t slot);
     float get_amount_for_slot(int8_t slot);
 
     BaseParameterInput *get_slot_input(int slot) {
@@ -431,15 +437,6 @@ class FloatParameter : public BaseParameter {
 
     };
 
-    virtual void save_pattern_add_lines(LinkedList<String> *lines); 
-    virtual bool load_parse_key_value(String key, String value);
-    
-    // process a fragment of a key (after we've matched the parameter name and getting the
-    // trailing "/...." portion from it) and set the relevant value; return true if processed
-    // allows for subclasses of Parameter to extend the key parsing
-    virtual bool load_key_fragment(String key_fragment, String value);
-
-
     //DataType lastGetterValue;
     virtual void update_mixer() {
         float modulation_value = this->get_modulation_value();
@@ -455,6 +452,11 @@ class FloatParameter : public BaseParameter {
             //lastGetterValue = current_value;
         //}
     }
+
+    #ifdef ENABLE_STORAGE
+        virtual void setup_saveable_settings() override;
+    #endif
+
 
     #ifdef ENABLE_SCREEN
         FLASHMEM virtual MenuItem *makeControl();
@@ -951,7 +953,6 @@ class DataParameterBase : public FloatParameter {
 
         virtual void setTargetValueFromData(DataType value, bool force = false) = 0;
 
-
         virtual float constrainNormal(float value) {
             // TODO: check if polar/bipolar?
             /*if (this->debug) Serial.printf("in %s,\tconstraining %f to %f:%f => %f \n", 
@@ -965,31 +966,26 @@ class DataParameterBase : public FloatParameter {
             return constrain(value, this->minimumNormalValue, this->maximumNormalValue);
         }
 
-        const String prefix__parameter = String("parameter~");
-        const String prefix__range_minimum = String("~range_minimum");
-        const String prefix__range_maximum = String("~range_maximum");
+        virtual void setup_saveable_settings() override {
+            FloatParameter::setup_saveable_settings();
 
-        virtual void save_pattern_add_lines(LinkedList<String> *lines) override {
-            FloatParameter::save_pattern_add_lines(lines);
+            this->register_setting(new LSaveableSetting<DataType>(
+                "range_minimum", 
+                "Range",
+                &this->minimumDataRange,
+                [=](DataType v) { this->setRangeMinimumLimit(v); },
+                [=]() -> DataType { return this->getRangeMinimumLimit(); }
+            ));
 
-            const String label_string = String(this->label);
-
-            lines->add(prefix__parameter + label_string + prefix__range_minimum + String('=') + String(this->getRangeMinimumLimit()));
-            lines->add(prefix__parameter + label_string + prefix__range_maximum + String('=') + String(this->getRangeMaximumLimit()));
+            this->register_setting(new LSaveableSetting<DataType>(
+                "range_maximum", 
+                "Range",
+                &this->maximumDataRange,
+                [=](DataType v) { this->setRangeMaximumLimit(v); },
+                [=]() -> DataType { return this->getRangeMaximumLimit(); }
+            ));
         }
 
-        // take a key fragment (the part after "parameter~label~") and load the value
-        virtual bool load_key_fragment(const String key_fragment, const String value) override {
-            if (key_fragment.equals("range_minimum")) {
-                this->setRangeMinimumLimit(value.toFloat());
-                return true;
-            } else if (key_fragment.equals("range_maximum")) {
-                this->setRangeMaximumLimit(value.toFloat());
-                return true;
-            }
-
-            return FloatParameter::load_key_fragment(key_fragment, value);
-        }
 };
 
 

@@ -128,6 +128,7 @@ class BaseParameterInput : public ISaveableSettingHost {
       virtual void setup_saveable_settings() override {
         ISaveableSettingHost::setup_saveable_settings();
 
+        // @@TODO: probably want to use unpolar/bipolar strings (similar to how we do in Parameter)
         register_setting(
           new LSaveableSetting<VALUE_TYPE>(
             "Input Type",
