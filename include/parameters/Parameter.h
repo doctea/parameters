@@ -68,6 +68,7 @@ struct ParameterToInputConnection {
 
 const size_t MAX_PARAMETER_NAME_LENGTH = 20;
 
+// @@TODO: convert this to using the new ISaveableSetting interface
 class BaseParameter { 
     public:
         bool debug = false;

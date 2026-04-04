@@ -137,6 +137,15 @@ class ParameterManager {
             return nullptr;
         }
 
+        // expects "Group:Name"
+        FASTRUN BaseParameterInput *getInputForGroupAndName(const char *group_and_name) {
+            const uint_fast8_t size = available_inputs->size();
+            for (uint_fast8_t i = 0 ; i < size ; i++) {
+                if (available_inputs->get(i)->matches_group_and_label(group_and_name))
+                    return available_inputs->get(i);
+            }
+            return nullptr;
+        }
         FASTRUN BaseParameterInput *getInputForName(const char *input_name) {
             // todo: could perhaps mildly optimise this so that search starts at the last found entry, for very mild speedup when loading from save files?
             const uint_fast8_t size = available_inputs->size();

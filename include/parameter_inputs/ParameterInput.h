@@ -43,6 +43,7 @@ class BaseParameterInput {
 
     const char *group_name = "General";
     char name[MAX_INPUT_NAME+1] = "Unnamed";
+    char group_and_name[MAX_INPUT_NAME*2+2] = "General:Unnamed";
 
     bool inverted = false;
 
@@ -55,6 +56,15 @@ class BaseParameterInput {
       //this->name = ++NEXT_PARAMETER_NAME;
     }
     virtual ~BaseParameterInput() = default;
+
+    const char *get_name() {
+      return this->name;
+    }
+
+    const char *get_group_and_name() {
+      snprintf(this->group_and_name, MAX_INPUT_NAME*2+2, "%s:%s", this->group_name, this->name);
+      return this->group_and_name;
+    }
 
     // whether to show unipolar/bipolar options for this type - override in subclasses
     virtual bool supports_bipolar_input() {
@@ -106,6 +116,9 @@ class BaseParameterInput {
 
     virtual bool matches_label(const char *label) {
       return (strcmp(label, this->name)==0);
+    }
+    virtual bool matches_group_and_label(const char *group_and_label) {
+      return (strcmp(group_and_label, this->get_group_and_name())==0);
     }
 
     static const char *prefix; // = "parameter_input~";  // have to initialise these in the cpp file apparently

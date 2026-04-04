@@ -66,3 +66,29 @@ Build flags:
 - Inputs from non-voltage sources, eg network, ~~MIDI~~, ~~LFOs~~
 - Better handling of how calibration is saved + loaded, ie more rigorously defined slots
 - ~~Allow to de-select (ie set to None) from a ParameterInputSelectorControl~~
+
+
+----
+
+## Development notes - saveloadlib implementation
+
+- Root
+  - System settings
+    - MIDI settings
+    - Calibration settings
+  - Clock settings
+    - BPM?
+    - Clock source?
+    - Time signature?
+  - Sequencers
+    - EuclidianSequencer
+      - EuclidianPatterns
+      - Own settings
+    - OtherSequencer
+      - TuringMachine pattern(s)
+      - Own settings
+  - OutputProcessor
+    - Quantisation/scale/key settings
+    - OutputNodes
+  - ParameterInputs (managed by ParameterManager)
+

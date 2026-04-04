@@ -22,6 +22,9 @@
 #ifdef ENABLE_PARAMETERS
     class FloatParameter;
 #endif
+#ifdef ENABLE_STORAGE
+    #include "saveload_settings.h"
+#endif
 
 enum stage_t : int8_t {
     OFF = 0,
@@ -33,7 +36,7 @@ enum stage_t : int8_t {
 };
 stage_t operator++ (stage_t& d);
 
-class EnvelopeBase { 
+class EnvelopeBase : public ISaveableSettingHost { 
     private:
     bool loop_mode = false;
     bool invert = false;
@@ -190,6 +193,27 @@ class EnvelopeBase {
             return nullptr;
         }
     #endif
+
+    #ifdef ENABLE_STORAGE
+        virtual void setup_saveable_settings() override {
+            ISaveableSettingHost::setup_saveable_settings();
+
+            register_setting(new LSaveableSetting<bool>(
+                "Loop mode",
+                "BaseEnvelope",
+                &this->loop_mode,
+                [=](bool v) { this->set_loop(v); },
+                [=]() -> bool { return this->is_loop(); }
+            ));
+            register_setting(new LSaveableSetting<bool>(
+                "Invert",
+                "BaseEnvelope",
+                &this->invert,
+                [=](bool v) { this->set_invert(v); },
+                [=]() -> bool { return this->is_invert(); }
+            ));
+        }
+    #endif
 };
 
 class RegularEnvelope : public EnvelopeBase {
@@ -258,7 +282,7 @@ class RegularEnvelope : public EnvelopeBase {
     }
 
     virtual envelope_state_t calculate_envelope_level(stage_t stage, uint16_t stage_elapsed, float level_start, float velocity = 1.0f, bool use_caching = true) override {
-        float ratio = (float)PPQN / (float)cc_value_sync_modifier;
+        float ratio = (float)PPQN / (float)get_cc_value_sync_modifier();
         unsigned long elapsed = (float)stage_elapsed * ratio;
 
         float lvl;
@@ -329,11 +353,12 @@ class RegularEnvelope : public EnvelopeBase {
             int sync = (stage == DECAY || stage == HOLD) 
                             ? this->lfo_sync_ratio_hold_and_decay
                             : (stage == SUSTAIN || stage == RELEASE)
-                            ? this->lfo_sync_ratio_sustain_and_release 
+                            ? this->lfo_sync_ratio_sustain_and_release
                             : -1;
             if (sync >= 0) {            
                 sync *= 4;
                 float mod_amp = lvl / 4.0f;
+                // i believe this is where the lfo syncs actually take effect 
                 float mod_result = mod_amp * isin((float)elapsed * PPQN * ((float)sync / 127.0f));
                 lvl = constrain(lvl + mod_result, 0.0f, 1.0f);
                 return_state.lvl_now = lvl;
@@ -420,4 +445,116 @@ class RegularEnvelope : public EnvelopeBase {
         FLASHMEM
         virtual void make_menu_items(Menu *menu, int index) override;
     #endif
+
+    #ifdef ENABLE_STORAGE
+        virtual void setup_saveable_settings() override {
+            EnvelopeBase::setup_saveable_settings();
+
+            register_setting(
+                new LSaveableSetting<float>(
+                    "Attack",
+                    "Envelope",
+                    &this->attack_value,
+                    [=](float value) -> void {
+                        this->set_attack(value);
+                    },
+                    [=](void) -> float {
+                        return this->get_attack();
+                    }
+                )
+            );
+            register_setting(
+                new LSaveableSetting<float>(
+                    "Hold",
+                    "Envelope",
+                    &this->hold_value,
+                    [=](float value) -> void {
+                        this->set_hold(value);
+                    },
+                    [=](void) -> float {
+                        return this->get_hold();    
+                    }
+                )
+            );
+            register_setting(
+                new LSaveableSetting<float>(
+                    "Decay",
+                    "Envelope",
+                    &this->decay_value,
+                    [=](float value) -> void {
+                        this->set_decay(value);
+                    },
+                    [=](void) -> float {
+                        return this->get_decay();
+                    }
+                )
+            );
+            register_setting(
+                new LSaveableSetting<float>(
+                    "Sustain",
+                    "Envelope",
+                    &this->sustain_value,
+                    [=](float value) -> void {
+                        this->set_sustain(value);
+                    },
+                    [=](void) -> float {
+                        return this->get_sustain();
+                    }
+                )
+            );
+            register_setting(
+                new LSaveableSetting<float>(
+                    "Release",
+                    "Envelope",
+                    &this->release_value,
+                    [=](float value) -> void {
+                        this->set_release(value);
+                    },
+                    [=](void) -> float {
+                        return this->get_release();
+                    }
+                )
+            );
+            register_setting(
+                new LSaveableSetting<int8_t>(
+                    "LFO Sync Hold/Decay",
+                    "Envelope",
+                    &this->lfo_sync_ratio_hold_and_decay,
+                    [=](int8_t value) -> void {
+                        this->set_mod_hd(value);
+                    },
+                    [=](void) -> int8_t {
+                        return this->get_mod_hd();
+                    }
+                )
+            );
+            register_setting(
+                new LSaveableSetting<int8_t>(
+                    "LFO Sync Sustain/Release",
+                    "Envelope",
+                    &this->lfo_sync_ratio_sustain_and_release,
+                    [=](int8_t value) -> void {
+                        this->set_mod_sr(value);
+                    },
+                    [=](void) -> int8_t {
+                        return this->get_mod_sr();
+                    }
+                )
+            );
+            register_setting(
+                new LSaveableSetting<int8_t>(
+                    "CC Value Sync Modifier",
+                    "Envelope",
+                    &this->cc_value_sync_modifier,
+                    [=](int8_t value) -> void {
+                        this->set_cc_value_sync_modifier(value);
+                    },
+                    [=](void) -> int8_t {
+                        return this->get_cc_value_sync_modifier();
+                    }
+                )
+            );
+        }
+    #endif
+
 };

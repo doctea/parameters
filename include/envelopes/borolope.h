@@ -298,4 +298,21 @@ class Weirdolope : public EnvelopeBase {
         virtual void make_menu_items(Menu *menu, int index) override;
     #endif
 
+    #ifdef ENABLE_STORAGE
+        virtual void setup_saveable_settings() override {
+            EnvelopeBase::setup_saveable_settings();
+
+            // @@TODO: need to register the Mix Parameter modulation here, when it has been converted to new the ISaveableSetting system, and any other parameters that we want to be able to save for this envelope
+            register_setting(
+                new LSaveableSetting<float>(
+                    "Mix",
+                    "Borolope",
+                    &this->paramValueA,
+                    [=](float v) { this->setMix(v); },
+                    [=]() -> float { return this->getMix(); }
+                )
+            );
+        }
+    #endif
+
 };
