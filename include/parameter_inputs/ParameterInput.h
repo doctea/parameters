@@ -17,7 +17,10 @@
   #include "submenuitem_bar.h"
   class ParameterInputDisplay;  // so that we can re-use the parameterinputdisplay for combined overview...
 #endif
-//#include "../parameters/Parameter.h"
+
+#ifdef ENABLE_STORAGE
+    #include "saveload_settings.h"
+#endif
 
 #define MAX_INPUT_NAME 10
 
@@ -26,7 +29,7 @@ class ParameterInputCallbackReceiver {
   virtual void receive_value_update(float value) = 0;
 };
 
-class BaseParameterInput {
+class BaseParameterInput : public ISaveableSettingHost {
   public:
 
     bool debug = false;
@@ -53,7 +56,7 @@ class BaseParameterInput {
     BaseParameterInput(char *name, const char *group_name = "General") {
       strncpy(this->name, name, MAX_INPUT_NAME);
       this->group_name = group_name;
-      //this->name = ++NEXT_PARAMETER_NAME;
+      this->set_path_segment(get_group_and_name());
     }
     virtual ~BaseParameterInput() = default;
 
@@ -121,42 +124,25 @@ class BaseParameterInput {
       return (strcmp(group_and_label, this->get_group_and_name())==0);
     }
 
-    static const char *prefix; // = "parameter_input~";  // have to initialise these in the cpp file apparently
-    static const char *input_type_suffix; // = "~input_type";
-    virtual LinkedList<String> *save_pattern_add_lines(LinkedList<String> *lines) {
-      // eg,
-      //  parameter_input_A_input_type=bipolar
-      
-      lines->add(String(prefix) + String(this->name) + String(input_type_suffix) 
-        + String('=') + String(this->input_type==BIPOLAR ? "bipolar" : "unipolar"));
-      
-      return lines;
-    }
+    #ifdef ENABLE_STORAGE
+      virtual void setup_saveable_settings() override {
+        ISaveableSettingHost::setup_saveable_settings();
 
-    virtual bool load_key_segment(String key_segment, String value) {
-      if (debug) Serial.printf("BaseParameterInput#load_key_segment(%s, %s)..\n", key_segment.c_str(), value.c_str());
-      if (key_segment.equals("input_type")) {
-        if (value.equals("bipolar")) {
-          this->input_type = BIPOLAR;
-        } else if (value.equals("unipolar")) {
-          this->input_type = UNIPOLAR;
-        }
-        if (debug) Serial.printf("  set input_type to %s\n", this->input_type==BIPOLAR ? "bipolar" : "unipolar");
-        return true;
+        register_setting(
+          new LSaveableSetting<VALUE_TYPE>(
+            "Input Type",
+            "ParameterInput",
+            &this->input_type,
+            [=](VALUE_TYPE value) -> void {
+              this->input_type = value;
+            },
+            [=](void) -> VALUE_TYPE {
+              return this->input_type;
+            }
+          )
+        );
       }
-      return false;
-    }
-
-    /*virtual bool load_parse_key_value(String key, String value) {
-      if(!key.startsWith(prefix)) return false;
-
-      String key_copy = String(key);
-      key_copy.replace(prefix,"");
-      key_copy.replace(this->name,"");
-      key_copy.replace('/',""); // remove any leading '/'
-
-      return this->load_key_segment(key_copy, value);
-    }*/
+    #endif
 
     #ifdef PARAMETER_INPUTS_USE_CALLBACKS
       LinkedList<ParameterInputCallbackReceiver*> *callback_receivers = new LinkedList<ParameterInputCallbackReceiver*> ();
@@ -182,7 +168,8 @@ class BaseParameterInput {
 
 class ParameterInput : public BaseParameterInput {
   public:
-    ParameterInput(char *name, const char* group_name = "General") : BaseParameterInput(name, group_name) {}
+    ParameterInput(char *name, const char* group_name = "General") 
+        : BaseParameterInput(name, group_name) {}
 
     virtual void read() {};
     virtual void loop() {

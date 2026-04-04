@@ -44,7 +44,8 @@ class VirtualParameterInput : public AnalogParameterInputBase<float> {
         float last_sample = 0;
         uint32_t last_sample_tick = 0;
 
-        VirtualParameterInput(char *name, const char *group_name, lfo_option_id lfo_mode = LFO_LOCKED) : AnalogParameterInputBase(name, group_name) {
+        VirtualParameterInput(char *name, const char *group_name, lfo_option_id lfo_mode = LFO_LOCKED) 
+                : AnalogParameterInputBase(name, group_name) {
             this->lfo_mode = lfo_mode;
         }
 
@@ -183,42 +184,72 @@ class VirtualParameterInput : public AnalogParameterInputBase<float> {
             }
         }
 
-        const String string__equals = String('=');
-        virtual LinkedList<String> *save_pattern_add_lines(LinkedList<String> *lines) override {
-            AnalogParameterInputBase::save_pattern_add_lines(lines);
+        #ifdef ENABLE_STORAGE
+            virtual void setup_saveable_settings() override {
+                AnalogParameterInputBase::setup_saveable_settings();
 
-            const String string__prefix_and_name = String(prefix) + String(this->name);
-            
-            lines->add(string__prefix_and_name + String("~period")  + string__equals + String(this->locked_period));
-            lines->add(string__prefix_and_name + String("~phase")   + string__equals + String(this->locked_phase));
-            lines->add(string__prefix_and_name + String("~divisor") + string__equals + String(this->free_sine_divisor));
-            lines->add(string__prefix_and_name + String("~sh_ticks")+ string__equals + String(this->sh_ticks));
+                // @@TODO: maybe figure out how/if we can set this up on the fly -- difficulty will be in updating the 
+                // UI controls dynamically when these settings change, but would be nice
+                // register_setting(
+                //     new LSaveableSetting<lfo_option_id>(
+                //         "LFO Mode",
+                //         "VirtualParameterInput",
+                //         &this->lfo_mode,
+                //         [=](lfo_option_id value) -> void {
+                //             this->lfo_mode = value;
+                //         },
+                //         [=](void) -> lfo_option_id {
+                //             return this->lfo_mode;
+                //         }
+                //     )
+                // );
 
-            return lines;
-        }
-
-        virtual bool load_key_segment(String key_segment, String value) override {
-            if (debug) Serial.printf(
-                "VirtualParameterInput#load_key_segment(%s, %s) called..\n", 
-                key_segment.c_str(), value.c_str()
-            );
-
-            if (key_segment.endsWith("period")) {
-                this->locked_period = value.toFloat();
-                return true;
-            } else if (key_segment.endsWith("phase")) {
-                this->locked_phase = value.toFloat();
-                return true;
-            } else if (key_segment.endsWith("divisor")) {
-                this->free_sine_divisor = value.toFloat();
-                return true;
-            } else if (key_segment.endsWith("sh_ticks")) {
-                this->sh_ticks = value.toInt();
-                return true;
-            } 
-
-            return AnalogParameterInputBase::load_key_segment(key_segment, value);
-        }
+                register_setting(new LSaveableSetting<float>(
+                        "Locked Period",
+                        "VirtualParameterInput",
+                        &this->locked_period,
+                        [=](float value) -> void {
+                            this->locked_period = value;
+                        },
+                        [=](void) -> float {
+                            return this->locked_period;
+                        }
+                    ));
+                register_setting(new LSaveableSetting<float>(
+                        "Locked Phase",
+                        "VirtualParameterInput",
+                        &this->locked_phase,
+                        [=](float value) -> void {
+                            this->locked_phase = value;
+                        },
+                        [=](void) -> float {
+                            return this->locked_phase;
+                        }
+                    ));
+                register_setting(new LSaveableSetting<float>(
+                        "Free Sine Divisor",
+                        "VirtualParameterInput",
+                        &this->free_sine_divisor,
+                        [=](float value) -> void {
+                            this->free_sine_divisor = value;
+                        },
+                        [=](void) -> float {
+                            return this->free_sine_divisor;
+                        }
+                    ));
+                register_setting(new LSaveableSetting<uint32_t>(
+                        "Sample&Hold Ticks",
+                        "VirtualParameterInput",
+                        &this->sh_ticks,
+                        [=](uint32_t value) -> void {
+                            this->sh_ticks = value;
+                        },
+                        [=](void) -> uint32_t {
+                            return this->sh_ticks;
+                        }
+                    ));
+            }
+        #endif
 
         #ifdef ENABLE_SCREEN
             FLASHMEM

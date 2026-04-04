@@ -13,7 +13,8 @@ class MIDIParameterInput : public ParameterInput {
 
         int8_t currentValue = 0;
 
-        MIDIParameterInput(char *name, const char *group_name, byte cc_number, byte channel = 0) : ParameterInput(name, group_name) {
+        MIDIParameterInput(char *name, const char *group_name, byte cc_number, byte channel = 0) 
+                : ParameterInput(name, group_name) {
             this->cc_number = cc_number;
             //this->value = value;
             this->channel = channel;
@@ -69,6 +70,40 @@ class MIDIParameterInput : public ParameterInput {
             snprintf(fmt, 20, "[%-3i%%]", (int)(this->get_normal_value_unipolar()*100.0));
             return fmt;
         }
+
+        #ifdef ENABLE_STORAGE
+            virtual void setup_saveable_settings() override {
+                // inherit parent's settings
+                ParameterInput::setup_saveable_settings();
+
+                register_setting(
+                    new LSaveableSetting<byte>(
+                        "CC Number",
+                        "MIDIParameterInput",
+                        &this->cc_number,
+                        [=](byte value) -> void {
+                            this->cc_number = value;
+                        },
+                        [=](void) -> byte {
+                            return this->cc_number;
+                        }
+                    )
+                );
+                register_setting(
+                    new LSaveableSetting<byte>(
+                        "Channel",
+                        "MIDIParameterInput",
+                        &this->channel,
+                        [=](byte value) -> void {
+                            this->channel = value;
+                        },
+                        [=](void) -> byte {
+                            return this->channel;
+                        }
+                    )
+                );
+            }
+        #endif
 
 };
 

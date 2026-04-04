@@ -40,9 +40,13 @@
   #include "menuitems_action.h"
 #endif
 
+#ifdef ENABLE_STORAGE
+    #include "saveload_settings.h"
+#endif
+
 int freeRam();
 
-class ParameterManager {
+class ParameterManager : public ISaveableSettingHost {
     public:
         bool debug = false;
 
@@ -86,6 +90,8 @@ class ParameterManager {
         ParameterManager (unsigned long memory_size) {
             this->memory_size = memory_size;
             this->available_inputs_hash = new Hashtable<String, BaseParameterInput*>();
+
+            this->set_path_segment("ParameterManager");
         }
         ~ParameterManager () {}
 
@@ -504,94 +510,94 @@ class ParameterManager {
             return -1;
         }
 
-        // believe this is only currently used by Microlidian
-        bool load_parse_line_parameter(String line) {
-            if (line.startsWith("parameter~")) {
-                String key = line.substring(0, line.indexOf('='));
-                String value = line.substring(line.indexOf('=') + 1);
+        // // believe this is only currently used by Microlidian
+        // bool load_parse_line_parameter(String line) {
+        //     if (line.startsWith("parameter~")) {
+        //         String key = line.substring(0, line.indexOf('='));
+        //         String value = line.substring(line.indexOf('=') + 1);
 
-                String stripped_key = key;
-                stripped_key.substring(strlen("parameter~"));
-                String parameter_name = stripped_key.substring(0, stripped_key.indexOf('~'));
+        //         String stripped_key = key;
+        //         stripped_key.substring(strlen("parameter~"));
+        //         String parameter_name = stripped_key.substring(0, stripped_key.indexOf('~'));
 
-                FloatParameter *parameter = this->getParameterForName(parameter_name.c_str());
-                if (parameter==nullptr) {
-                    if (/*debug &&*/ Serial) Serial.printf("ParameterManager#load_parse_line_parameter(%s)\tWARNING: no parameter found with name '%s'!\n", line.c_str(), parameter_name.c_str());
-                    return false;
-                }
+        //         FloatParameter *parameter = this->getParameterForName(parameter_name.c_str());
+        //         if (parameter==nullptr) {
+        //             if (/*debug &&*/ Serial) Serial.printf("ParameterManager#load_parse_line_parameter(%s)\tWARNING: no parameter found with name '%s'!\n", line.c_str(), parameter_name.c_str());
+        //             return false;
+        //         }
                 
-                if (debug && Serial) Serial.printf("ParameterManager#load_parse_line_parameter(%s)\tline starts with prefix, passing to load_parse_line_parameter_input..\n", line.c_str());
-                return parameter->load_parse_key_value(key, value);
-            }
-            return false;
-        }
+        //         if (debug && Serial) Serial.printf("ParameterManager#load_parse_line_parameter(%s)\tline starts with prefix, passing to load_parse_line_parameter_input..\n", line.c_str());
+        //         return parameter->load_parse_key_value(key, value);
+        //     }
+        //     return false;
+        // }
 
-        bool load_parse_line_parameter_input(const String key, const String value) {
-            String k = key;  // clone the key so we don't modify the original when we remove the prefix
-            k.replace(ParameterInput::prefix, "");   // remove prefix
+        // bool load_parse_line_parameter_input(const String key, const String value) {
+        //     String k = key;  // clone the key so we don't modify the original when we remove the prefix
+        //     k.replace(ParameterInput::prefix, "");   // remove prefix
 
-            int separator_index = k.indexOf('~');
-            if (separator_index==-1) {
-                //if (debug && Serial) 
-                if (debug && Serial) Serial.printf("ParameterManager#load_parse_line_parameter_input(%s, %s)\tno '~' found, skipping\n", key.c_str(), value.c_str());
-                return false;   // no '~' found
-            }
+        //     int separator_index = k.indexOf('~');
+        //     if (separator_index==-1) {
+        //         //if (debug && Serial) 
+        //         if (debug && Serial) Serial.printf("ParameterManager#load_parse_line_parameter_input(%s, %s)\tno '~' found, skipping\n", key.c_str(), value.c_str());
+        //         return false;   // no '~' found
+        //     }
 
-            String input_name = k.substring(0, separator_index); // get the input name part
-            String element_name = k.substring(separator_index + 1); // get the sub-element part
+        //     String input_name = k.substring(0, separator_index); // get the input name part
+        //     String element_name = k.substring(separator_index + 1); // get the sub-element part
 
-            if (available_inputs_hash->containsKey(input_name)) {
-                BaseParameterInput *input = *available_inputs_hash->get(input_name);
-                if (debug && Serial) {
-                    Serial.printf(
-                        "ParameterManager#load_parse_line_parameter_input(%s, %s)"
-                        "\tfound ParameterInput named '%s' in hashmap, passing to load_key_segment_value(%s, %s)..\n", 
-                        key.c_str(), value.c_str(), input_name.c_str(), element_name.c_str(), value.c_str()
-                    );
-                    Serial.flush();
-                }
-                //return input->load_parse_key_value(key, value);
-                return input->load_key_segment(element_name, value);
-            } else {
-                if (debug && Serial) Serial.printf("ParameterManager#load_parse_line_parameter_input(%s, %s)\tWARNING: found no ParameterInput '%s' in hashmap!\n", key.c_str(), value.c_str(), input_name.c_str());
-            }
-            return false;               
-        }
+        //     if (available_inputs_hash->containsKey(input_name)) {
+        //         BaseParameterInput *input = *available_inputs_hash->get(input_name);
+        //         if (debug && Serial) {
+        //             Serial.printf(
+        //                 "ParameterManager#load_parse_line_parameter_input(%s, %s)"
+        //                 "\tfound ParameterInput named '%s' in hashmap, passing to load_key_segment_value(%s, %s)..\n", 
+        //                 key.c_str(), value.c_str(), input_name.c_str(), element_name.c_str(), value.c_str()
+        //             );
+        //             Serial.flush();
+        //         }
+        //         //return input->load_parse_key_value(key, value);
+        //         return input->load_key_segment(element_name, value);
+        //     } else {
+        //         if (debug && Serial) Serial.printf("ParameterManager#load_parse_line_parameter_input(%s, %s)\tWARNING: found no ParameterInput '%s' in hashmap!\n", key.c_str(), value.c_str(), input_name.c_str());
+        //     }
+        //     return false;               
+        // }
 
-        bool load_parse_line(String line) {
+        // bool load_parse_line(String line) {
 
-            int separator_index = line.indexOf('=');
-            if (separator_index==-1) {
-                if (debug && Serial) Serial.printf("ParameterManager#load_parse_line(%s)\tno '=' found, skipping\n", line.c_str());
-                return false;   // no '=' found
-            }
+        //     int separator_index = line.indexOf('=');
+        //     if (separator_index==-1) {
+        //         if (debug && Serial) Serial.printf("ParameterManager#load_parse_line(%s)\tno '=' found, skipping\n", line.c_str());
+        //         return false;   // no '=' found
+        //     }
 
-            String key = line.substring(0, separator_index);
-            String value = line.substring(separator_index + 1);
+        //     String key = line.substring(0, separator_index);
+        //     String value = line.substring(separator_index + 1);
 
-            return this->load_parse_key_value(key, value);
-         }
+        //     return this->load_parse_key_value(key, value);
+        //  }
 
-        bool load_parse_key_value(String key, String value) {
-            // first, do all the ParameterInputs (save their input/output type, ie bipolar/unipolar, etc)
-            if (key.startsWith(ParameterInput::prefix)) {
-                if (debug && Serial) {
-                    Serial.printf(
-                        "ParameterManager#load_parse_key_value(%s, %s)\tabout to call load_parse_line_parameter_input(%s,%s)..\n", 
-                        key.c_str(), 
-                        value.c_str(),
-                        key.c_str(),
-                        value.c_str()
-                    );
-                    Serial.flush();
-                }
+        // bool load_parse_key_value(String key, String value) {
+        //     // first, do all the ParameterInputs (save their input/output type, ie bipolar/unipolar, etc)
+        //     if (key.startsWith(ParameterInput::prefix)) {
+        //         if (debug && Serial) {
+        //             Serial.printf(
+        //                 "ParameterManager#load_parse_key_value(%s, %s)\tabout to call load_parse_line_parameter_input(%s,%s)..\n", 
+        //                 key.c_str(), 
+        //                 value.c_str(),
+        //                 key.c_str(),
+        //                 value.c_str()
+        //             );
+        //             Serial.flush();
+        //         }
 
-                if (this->load_parse_line_parameter_input(key, value))
-                    return true;
-            }
+        //         if (this->load_parse_line_parameter_input(key, value))
+        //             return true;
+        //     }
 
-            return false;
-        }
+        //     return false;
+        // }
 
         /*
         // attempt optimised search + update for passed in key+value, on all parameters or on passed-in list_to_search
@@ -654,44 +660,59 @@ class ParameterManager {
 
         // add all the lines from all parameters (or passed-in list_to_save) to the passed-in lines array
         // don't think this is used? AHH is used by Microlidian!
-        LinkedList<String> *add_all_save_lines(LinkedList<String> *lines, LinkedList<FloatParameter*> *list_to_save = nullptr) {
-            // use list of all parameters if no other list passed
-            if (list_to_save==nullptr) 
-                list_to_save = this->available_parameters;
+        // LinkedList<String> *add_all_save_lines(LinkedList<String> *lines, LinkedList<FloatParameter*> *list_to_save = nullptr) {
+        //     // use list of all parameters if no other list passed
+        //     if (list_to_save==nullptr) 
+        //         list_to_save = this->available_parameters;
 
-            if (list_to_save==nullptr) {
-                Serial.println("WARNING: add_all_save_lines() called with null list_to_save, and available_parameters is also null!"); Serial_flush();
-                return lines;
-            }
+        //     if (list_to_save==nullptr) {
+        //         Serial.println("WARNING: add_all_save_lines() called with null list_to_save, and available_parameters is also null!"); Serial_flush();
+        //         return lines;
+        //     }
 
-            // do the available_parameter_inputs first // TODO: maybe we don't want to always save the ParameterInput settings here, if for example we're saving a passed-in list of Parameters?
-            const uint_fast16_t size = available_inputs->size();
-            for (uint_fast16_t i = 0 ; i < size ; i++) {
-                //Serial.printf("save_pattern_add_lines() on input %i/%i, \tfreeram is %u\n", i+1, size, freeRam());
-                available_inputs->get(i)->save_pattern_add_lines(lines);
-            }
+        //     // do the available_parameter_inputs first // TODO: maybe we don't want to always save the ParameterInput settings here, if for example we're saving a passed-in list of Parameters?
+        //     const uint_fast16_t size = available_inputs->size();
+        //     for (uint_fast16_t i = 0 ; i < size ; i++) {
+        //         //Serial.printf("save_pattern_add_lines() on input %i/%i, \tfreeram is %u\n", i+1, size, freeRam());
+        //         available_inputs->get(i)->save_pattern_add_lines(lines);
+        //     }
 
-            // // then to the parameters    
-            // TODO: work out why this crashes if we do almost anything in the loop except printf(".") 
-            const uint_fast16_t actual_size = list_to_save->size();
-            Serial.printf("add_all_save_lines() has %i parameters to add lines from list_to_save@%p..\n", actual_size, list_to_save); Serial_flush();
-            for (uint_fast16_t i = 0 ; i < actual_size ; i++) {
-                //if (Serial) Serial.printf("@%p\n", list_to_save->get(i)); Serial_flush();
-                list_to_save->get(i)->save_pattern_add_lines(lines);
-            }
+        //     // // then to the parameters    
+        //     // TODO: work out why this crashes if we do almost anything in the loop except printf(".") 
+        //     const uint_fast16_t actual_size = list_to_save->size();
+        //     Serial.printf("add_all_save_lines() has %i parameters to add lines from list_to_save@%p..\n", actual_size, list_to_save); Serial_flush();
+        //     for (uint_fast16_t i = 0 ; i < actual_size ; i++) {
+        //         //if (Serial) Serial.printf("@%p\n", list_to_save->get(i)); Serial_flush();
+        //         list_to_save->get(i)->save_pattern_add_lines(lines);
+        //     }
 
-            return lines;
-        }
+        //     return lines;
+        // }
 
-        LinkedList<String> *save_pattern_parameter_inputs_add_lines(LinkedList<String> *lines) {
-            // do the available_parameter_inputs first
+        // LinkedList<String> *save_pattern_parameter_inputs_add_lines(LinkedList<String> *lines) {
+        //     // do the available_parameter_inputs first
+        //     const uint_fast8_t size = available_inputs->size();
+        //     for (uint_fast8_t i = 0 ; i < size ; i++) {
+        //         //Serial.printf("save_pattern_add_lines() on input %i/%i, \tfreeram is %u\n", i+1, size, freeRam());
+        //         available_inputs->get(i)->save_pattern_add_lines(lines);
+        //     }
+
+        //     return lines;
+        // }
+
+        void setup_saveable_settings() override {
+            // add all parameter inputs to the saveable settings, 
+            // so that they get saved and loaded.
+
             const uint_fast8_t size = available_inputs->size();
             for (uint_fast8_t i = 0 ; i < size ; i++) {
-                //Serial.printf("save_pattern_add_lines() on input %i/%i, \tfreeram is %u\n", i+1, size, freeRam());
-                available_inputs->get(i)->save_pattern_add_lines(lines);
+                this->register_child(available_inputs->get(i));
             }
 
-            return lines;
+            // do we also want to save parameters here?
+            // probably not all of them, as the objects that host them probably want to 
+            // know about them more. 
+            // @@TODO: maybe we do want to maintain a list of 'homeless' parameters that we can load/save here, tho?
         }
 
         //virtual bool load_voltage_calibration();

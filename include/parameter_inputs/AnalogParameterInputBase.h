@@ -23,7 +23,8 @@ class AnalogParameterInputBase : public ParameterInput {
     DataType sensitivity = 0.005;
       
     AnalogParameterInputBase() {};
-    AnalogParameterInputBase(char *name, const char *group_name = "General", DataType in_sensitivity = 0.005, VALUE_TYPE input_type = BIPOLAR, bool inverted = false) : ParameterInput(name, group_name) {
+    AnalogParameterInputBase(char *name, const char *group_name = "General", DataType in_sensitivity = 0.005, VALUE_TYPE input_type = BIPOLAR, bool inverted = false) 
+        : ParameterInput(name, group_name) {
       //this->name = name;
       this->sensitivity = in_sensitivity;
       this->input_type = input_type;
@@ -123,27 +124,24 @@ class AnalogParameterInputBase : public ParameterInput {
       }
     }
 
-    const String string__equals = String('=');
-    virtual LinkedList<String> *save_pattern_add_lines(LinkedList<String> *lines) override {
-        ParameterInput::save_pattern_add_lines(lines);
+    #ifdef ENABLE_STORAGE
+      virtual void setup_saveable_settings() override {
+        BaseParameterInput::setup_saveable_settings();
 
-        const String string__prefix_and_name = String(prefix) + String(this->name);       
-        lines->add(string__prefix_and_name + String("~inverted")  + string__equals + String(this->inverted ? "true" : "false"));
-
-        return lines;
-    }
-
-    virtual bool load_key_segment(String key_segment, String value) override {
-      if (debug) Serial.printf("AnalogParameterInputBase::load_key_segment(%s, %s)\n", key_segment.c_str(), value.c_str());
-      if (key_segment.equals("inverted")) {
-        if (value.equals("true")) {
-          this->inverted = true;
-        } else if (value.equals("false")) {
-          this->inverted = false;
-        }
-        return true;
+        register_setting(
+          new LSaveableSetting<bool>(
+            "Inverted",
+            "AnalogParameterInputBase",
+            &this->inverted,
+            [=](bool value) -> void {
+              this->inverted = value;
+            },
+            [=](void) -> bool {
+              return this->inverted;
+            }
+          )
+        );
       }
-      return BaseParameterInput::load_key_segment(key_segment, value);
-    }
+    #endif
 };
 
