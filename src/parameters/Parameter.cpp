@@ -108,54 +108,72 @@ float FloatParameter::get_amount_for_slot(int8_t slot) {
     return this->connections[slot].amount;
 }
 
+// Compact single-object save/load for all modulation slots on a FloatParameter.
+// Format: modslots=inputname0,amount0,mode0;inputname1,amount1,mode1;...
+// Empty input name means unconnected. One allocation instead of 3*MAX_SLOT_CONNECTIONS.
+class ModulationSlotsSaveableSetting : public SaveableSettingBase {
+    FloatParameter* target;
+public:
+    ModulationSlotsSaveableSetting(FloatParameter* t) : target(t) {
+        set_label("modslots");
+        set_category("ModulationSlot");
+    }
+    const char* get_line() override {
+        char* p = linebuf;
+        char* end = linebuf + sizeof(linebuf);
+        p += snprintf(p, end - p, "modslots=");
+        for (uint_fast8_t s = 0; s < MAX_SLOT_CONNECTIONS && p < end; ++s) {
+            const char* name = target->get_input_group_and_name_for_slot(s);
+            float amount = target->get_amount_for_slot(s);
+            const char* mode = (target->connections[s].polar_mode == BIPOLAR) ? "bipolar" : "unipolar";
+            p += snprintf(p, end - p, "%s%s,%.6g,%s",
+                s == 0 ? "" : ";",
+                name ? name : "",
+                (double)amount,
+                mode);
+        }
+        return linebuf;
+    }
+    bool parse_key_value(const char* key, const char* value) override {
+        if (strcmp(key, "modslots") != 0) return false;
+        // parse semicolon-separated tuples
+        char buf[128];
+        strncpy(buf, value, sizeof(buf) - 1);
+        buf[sizeof(buf)-1] = '\0';
+        char* cursor = buf;
+        for (uint_fast8_t s = 0; s < MAX_SLOT_CONNECTIONS; ++s) {
+            char* semi = strchr(cursor, ';');
+            if (semi) *semi = '\0';
+            // parse "name,amount,mode"
+            char* comma1 = strchr(cursor, ',');
+            if (!comma1) break;
+            *comma1 = '\0';
+            char* comma2 = strchr(comma1 + 1, ',');
+            float amount = 0.0f;
+            bool bipolar = false;
+            if (comma2) {
+                *comma2 = '\0';
+                amount = atof(comma1 + 1);
+                bipolar = (strcmp(comma2 + 1, "bipolar") == 0);
+            }
+            // set input
+            if (cursor[0] != '\0') {
+                BaseParameterInput* inp = parameter_manager->getInputForGroupAndName(cursor);
+                target->set_slot_input(s, inp);
+            }
+            target->connections[s].amount = amount;
+            target->connections[s].polar_mode = bipolar ? BIPOLAR : UNIPOLAR;
+            if (!semi) break;
+            cursor = semi + 1;
+        }
+        return true;
+    }
+};
+
 void FloatParameter::setup_saveable_settings() {
     BaseParameter::setup_saveable_settings();
 
-    for (uint_fast8_t slot = 0 ; slot < MAX_SLOT_CONNECTIONS ; slot++) {
-        const uint_fast8_t captured_slot = slot;   // capture the current value of slot for use in the lambda
-        //register_child(this->connections[slot].parameter_input); // @@TODO: we might want to turn the connections into full-blown saveable hosts?
-        char setting_name[30];
-        snprintf(setting_name, 30, "Slot %i Input", slot);
-        register_setting(new LSaveableSetting<const char*>(
-            setting_name,
-            "ModulationSlot",
-            nullptr,
-            [=](const char* v) { 
-                this->set_slot_input(
-                    captured_slot, 
-                    parameter_manager->getInputForGroupAndName(v)
-                ); 
-            },
-            [=]() -> const char* { 
-                return this->get_input_group_and_name_for_slot(captured_slot); 
-            }
-        ));
-
-        snprintf(setting_name, 30, "Slot %i Amount", slot);
-        register_setting(new LSaveableSetting<float>(
-            setting_name,
-            "ModulationSlot",
-            nullptr,
-            [=](float v) { this->connections[captured_slot].amount = v; },
-            [=]() -> float { return this->connections[captured_slot].amount; }
-        ));
-
-        snprintf(setting_name, 30, "Slot %i Mode", slot);
-        register_setting(new LSaveableSetting<const char*>(
-            setting_name,
-            "ModulationSlot",
-            nullptr,
-            [=](const char* v) { 
-                if (strcmp(v, "unipolar")==0)      this->connections[captured_slot].polar_mode = UNIPOLAR;
-                else if (strcmp(v, "bipolar")==0)  this->connections[captured_slot].polar_mode = BIPOLAR;
-            },
-            [=]() -> const char* { 
-                if (this->connections[captured_slot].polar_mode == UNIPOLAR) return "unipolar";
-                else if (this->connections[captured_slot].polar_mode == BIPOLAR) return "bipolar";
-                return "";
-            }
-        ));
-    }
+    register_setting(new ModulationSlotsSaveableSetting(this));
 }
 
 #include "parameters/CVOutputParameter.h"

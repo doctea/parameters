@@ -29,7 +29,7 @@ class ParameterInputCallbackReceiver {
   virtual void receive_value_update(float value) = 0;
 };
 
-class BaseParameterInput : public ISaveableSettingHost {
+class BaseParameterInput : public SHStorage<0, 10> {  // no children; settings for input config
   public:
 
     bool debug = false;

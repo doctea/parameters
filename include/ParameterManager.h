@@ -46,7 +46,7 @@
 
 int freeRam();
 
-class ParameterManager : public ISaveableSettingHost {
+class ParameterManager : public SHStorage<32, 4> {  // many input children; few own settings
     public:
         bool debug = false;
 
@@ -181,6 +181,10 @@ class ParameterManager : public ISaveableSettingHost {
             }
             return -1;
             //return this->getInputIndexForName(param->name);
+        }
+        FASTRUN BaseParameterInput *getInputForIndex(int index) {
+            if (index < 0 || index >= this->available_inputs->size()) return nullptr;
+            return this->available_inputs->get(index);
         }
         /*FASTRUN int getPitchInputIndex(BaseParameterInput *param) {
             if (param==nullptr) return -1;

@@ -73,7 +73,7 @@ struct ParameterToInputConnection {
 const size_t MAX_PARAMETER_NAME_LENGTH = 20;
 
 // @@TODO: convert this to using the new ISaveableSetting interface
-class BaseParameter : public ISaveableSettingHost { 
+class BaseParameter : public SHStorage<0, 8> { // no children; ~2-4 own settings (range, modslots if enabled)
     public:
         bool debug = false;
 
@@ -968,6 +968,15 @@ class DataParameterBase : public FloatParameter {
 
         virtual void setup_saveable_settings() override {
             FloatParameter::setup_saveable_settings();
+
+            // store the current value..
+            this->register_setting(new LSaveableSetting<DataType>(
+                "current_value", 
+                "Current Value",
+                &this->currentDataValue,
+                [=](DataType v) { this->updateValueFromData(v); },
+                [=]() -> DataType { return this->getCurrentDataValue(); }
+            ));
 
             this->register_setting(new LSaveableSetting<DataType>(
                 "range_minimum", 

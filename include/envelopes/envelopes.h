@@ -36,7 +36,7 @@ enum stage_t : int8_t {
 };
 stage_t operator++ (stage_t& d);
 
-class EnvelopeBase : public ISaveableSettingHost { 
+class EnvelopeBase : public SHStorage<8, 6> {  // up to 8 parameter children; loop/invert + a few own settings
     private:
     bool loop_mode = false;
     bool invert = false;
