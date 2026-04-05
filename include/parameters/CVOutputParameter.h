@@ -250,30 +250,14 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
             }
         }
 
-        virtual bool load_key_fragment(String key_fragment, String value) override {
-            if (this->configurable && key_fragment.endsWith("channel")) {
-                if (this->debug) Serial_printf("NOTICE: Matched key '%s' with '%s' - setting parameter channel from '%s' - returning\n", key_fragment.c_str(), this->label, value.c_str());
-                this->channel = value.toInt();
-
-                return true;
-            } /*else if (key_fragment.endsWith("~cc")) {
-                if (debug) Serial.printf("NOTICE: Matched key '%s' with '%s' - setting parameter cc_number from '%s' - returning\n", key_fragment.c_str(), this->label, value.c_str());
-                this->cc_number = value.toInt();
-
-                return true;
-            }*/ 
-
-            return FloatParameter::load_key_fragment(key_fragment, value);
-        }
-
-        virtual void save_pattern_add_lines(LinkedList<String> *lines) override {
+        virtual void setup_saveable_settings() override {
+            DataParameter<TargetClass,DataType>::setup_saveable_settings();
             if (this->configurable) {
-                lines->add(
-                    String("parameter~") + String(this->label) + 
-                    String("~channel=") + String(this->channel)
-                );
+                this->register_setting(new LSaveableSetting<byte>(
+                    "channel", "Output",
+                    &this->channel
+                ));
             }
-            FloatParameter::save_pattern_add_lines(lines);
         }
 
         //FLASHMEM virtual LinkedList<MenuItem *> *makeControls() override;
