@@ -65,14 +65,14 @@ class MIDICCParameter : public DataParameter<TargetClass,DataType> {
                     nullptr,
                     [=](byte value) { this->channel = value; },
                     [=]() -> byte { return this->channel; }
-                ));
+                ), false, SL_SCOPE_SCENE);
                 this->register_setting(new LSaveableSetting<byte>(
                     "cc", 
                     "MIDICC",
                     nullptr,
                     [=](byte value) { this->cc_number = value; },
                     [=]() -> byte { return this->cc_number; }
-                ));
+                ), false, SL_SCOPE_SCENE);
             }
         }
 

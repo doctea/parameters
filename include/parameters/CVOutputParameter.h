@@ -64,7 +64,7 @@ void parameter_manager_calibrate(ICalibratable* v);
 template<class TargetClass=DAC8574, class DataType=float>
 class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, virtual public ICalibratable, virtual public IMIDINoteAndCCTarget {
     public:
-        byte channel = 0;
+        byte dac_channel = 0;
         //DataType floor, ceiling;
 
         bool inverted = false;
@@ -86,9 +86,9 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
         bool gate_is_on = false;    // track whether gate is currently on or off
         bool gate_output_enabled = true;
 
-        CVOutputParameter(const char* label, TargetClass *target, byte channel, VALUE_TYPE polarity_mode = VALUE_TYPE::UNIPOLAR, bool inverted = false, float floor = 0.0f, float ceiling = 10.0f, bool configurable = false)
+        CVOutputParameter(const char* label, TargetClass *target, byte dac_channel, VALUE_TYPE polarity_mode = VALUE_TYPE::UNIPOLAR, bool inverted = false, float floor = 0.0f, float ceiling = 10.0f, bool configurable = false)
             : DataParameter<TargetClass,DataType>(label, target) {
-                this->channel = channel;
+                this->dac_channel = dac_channel;
                 this->minimumDataLimit = this->minimumDataRange = floor; //MIDI_MIN_CC;
                 this->maximumDataLimit = this->maximumDataRange = ceiling; //MIDI_MAX_CC;
                 this->configurable = configurable;
@@ -141,9 +141,9 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
 
         void calibrate() override {
             Serial_println("Finding lowest value..\n");
-            this->calibrated_lowest_value = calibrate_find_dac_value_for(this->target, this->channel, this->calibration_input, 0.0, this->inverted);
+            this->calibrated_lowest_value = calibrate_find_dac_value_for(this->target, this->dac_channel, this->calibration_input, 0.0, this->inverted);
             Serial_println("Finding highest value..\n");
-            this->calibrated_highest_value = calibrate_find_dac_value_for(this->target, this->channel, this->calibration_input, 10.0, this->inverted);
+            this->calibrated_highest_value = calibrate_find_dac_value_for(this->target, this->dac_channel, this->calibration_input, 10.0, this->inverted);
         }
         
         virtual DataType map(DataType x, DataType in_min, DataType in_max, DataType out_min, DataType out_max) {
@@ -207,7 +207,7 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
 
         virtual void setTargetValueFromData(DataType value, bool force = false) override {
             if (this->target!=nullptr) {
-                if (this->debug) Serial_printf("CVParameter#setTargetValueFromData(%3.3f, %i)\n", value, this->channel);
+                if (this->debug) Serial_printf("CVParameter#setTargetValueFromData(%3.3f, %i)\n", value, this->dac_channel);
 
                 uint16_t calibrated_dac_value = get_dac_value_for_voltage(value);
 
@@ -231,8 +231,8 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
         // called after all parameter modulation processing has been done so that reading and writing don't get entangled and cause problems
         virtual void process_pending() override {
             if (is_pending_value) {
-                if (this->debug) Serial_printf("%u\t: %s#setTargetValueFromData(%u) on channel %u!\n", micros(), this->label, pending_value, channel);
-                this->target->write(channel, pending_value);
+                if (this->debug) Serial_printf("%u\t: %s#setTargetValueFromData(%u) on channel %u!\n", micros(), this->label, pending_value, dac_channel);
+                this->target->write(dac_channel, pending_value);
                 /* // for testing all channels
                 this->target->write(1, pending_value);
                 this->target->write(2, pending_value);
@@ -244,21 +244,22 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
                 if (this->debug) {
                     // note that this actually reads back from the device to confirm the write was successful, so it's a bit slow
                     Serial_printf("%u\t: %s#completed write!\n", micros(), this->label);
-                    Serial_printf("%u\t: %s#reading back %u (wrote %u)\n", micros(), this->label, this->target->read(channel), pending_value);
+                    Serial_printf("%u\t: %s#reading back %u (wrote %u)\n", micros(), this->label, this->target->read(dac_channel), pending_value);
                 }
                 is_pending_value = false;
             }
         }
 
-        virtual void setup_saveable_settings() override {
-            DataParameter<TargetClass,DataType>::setup_saveable_settings();
-            if (this->configurable) {
-                this->register_setting(new LSaveableSetting<byte>(
-                    "channel", "Output",
-                    &this->channel
-                ));
-            }
-        }
+        // don't think this is actually needed -- why would we want to load/save the dac channel dynamically?
+        // virtual void setup_saveable_settings() override {
+        //     DataParameter<TargetClass,DataType>::setup_saveable_settings();
+        //     if (this->configurable) {
+        //         this->register_setting(new LSaveableSetting<byte>(
+        //             "dac_channel", "Output",
+        //             &this->dac_channel
+        //         ));
+        //     }
+        // }
 
         //FLASHMEM virtual LinkedList<MenuItem *> *makeControls() override;
         #ifdef ENABLE_SCREEN

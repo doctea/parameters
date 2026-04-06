@@ -135,7 +135,7 @@ class ParameterInputDisplay : public MenuItem
                 const int_fast16_t y = graph_height - (value * graph_height);
                 if (screen_x != 0) {
                     //int last_y = GRAPH_HEIGHT - (this->logged[tick_for_screen_X] * GRAPH_HEIGHT);
-                    uint16_t colour = tick_for_screen_X < ticks % TICKS_PER_PHRASE ? parameter_input->colour : halfbright_colour;
+                    uint16_t colour = ((uint32_t)tick_for_screen_X) < ticks % TICKS_PER_PHRASE ? parameter_input->colour : halfbright_colour;
                     tft->drawLine(screen_x-1, base_row + last_y, screen_x, base_row + y, colour);
                 }
                 last_y = y;

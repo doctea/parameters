@@ -182,7 +182,7 @@ class ParameterManager : public SHStorage<32, 4> {  // many input children; few 
             return -1;
             //return this->getInputIndexForName(param->name);
         }
-        FASTRUN BaseParameterInput *getInputForIndex(int index) {
+        FASTRUN BaseParameterInput *getInputForIndex(uint32_t index) {
             if (index < 0 || index >= this->available_inputs->size()) return nullptr;
             return this->available_inputs->get(index);
         }

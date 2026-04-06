@@ -224,7 +224,7 @@ class EnvelopeBase : public SHStorage<8, 6> {  // up to 8 parameter children; lo
             // register parameters for this envelope
             LinkedList<FloatParameter*> *parameters = this->get_parameters();
             if (parameters!=nullptr) {
-                for (int i = 0 ; i < parameters->size() ; i++) {
+                for (size_t i = 0 ; i < parameters->size() ; i++) {
                     FloatParameter *param = parameters->get(i);
                     register_child(param);
                 }

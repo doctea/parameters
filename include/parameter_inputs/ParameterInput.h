@@ -133,13 +133,7 @@ class BaseParameterInput : public SHStorage<0, 10> {  // no children; settings f
           new LSaveableSetting<VALUE_TYPE>(
             "Input Type",
             "ParameterInput",
-            &this->input_type,
-            [=](VALUE_TYPE value) -> void {
-              this->input_type = value;
-            },
-            [=](void) -> VALUE_TYPE {
-              return this->input_type;
-            }
+            &this->input_type
           )
         );
       }

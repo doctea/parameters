@@ -173,7 +173,7 @@ public:
 void FloatParameter::setup_saveable_settings() {
     BaseParameter::setup_saveable_settings();
 
-    register_setting(new ModulationSlotsSaveableSetting(this));
+    register_setting(new ModulationSlotsSaveableSetting(this), false, SL_SCOPE_SCENE);
 }
 
 #include "parameters/CVOutputParameter.h"
