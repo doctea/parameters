@@ -139,7 +139,7 @@ class AnalogParameterInputBase : public ParameterInput {
             [=](void) -> bool {
               return this->inverted;
             }
-          )
+          ), SL_SCOPE_SCENE | SL_SCOPE_PROJECT
         );
       }
     #endif

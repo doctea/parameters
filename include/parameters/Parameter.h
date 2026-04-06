@@ -976,7 +976,7 @@ class DataParameterBase : public FloatParameter {
                 &this->currentDataValue,
                 [=](DataType v) { this->updateValueFromData(v); },
                 [=]() -> DataType { return this->getCurrentDataValue(); }
-            ), false, SL_SCOPE_SCENE);
+            ), SL_SCOPE_SCENE, false);
 
             this->register_setting(new LSaveableSetting<DataType>(
                 "range_minimum", 
@@ -984,7 +984,7 @@ class DataParameterBase : public FloatParameter {
                 &this->minimumDataRange,
                 [=](DataType v) { this->setRangeMinimumLimit(v); },
                 [=]() -> DataType { return this->getRangeMinimumLimit(); }
-            ), false, SL_SCOPE_SCENE);
+            ), SL_SCOPE_SCENE, false);
 
             this->register_setting(new LSaveableSetting<DataType>(
                 "range_maximum", 
@@ -992,7 +992,7 @@ class DataParameterBase : public FloatParameter {
                 &this->maximumDataRange,
                 [=](DataType v) { this->setRangeMaximumLimit(v); },
                 [=]() -> DataType { return this->getRangeMaximumLimit(); }
-            ), false, SL_SCOPE_SCENE);
+            ), SL_SCOPE_SCENE, false);
         }
 
 };

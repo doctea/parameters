@@ -134,7 +134,7 @@ class BaseParameterInput : public SHStorage<0, 10> {  // no children; settings f
             "Input Type",
             "ParameterInput",
             &this->input_type
-          )
+          ), SL_SCOPE_SCENE | SL_SCOPE_PROJECT
         );
       }
     #endif

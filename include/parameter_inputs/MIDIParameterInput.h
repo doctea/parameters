@@ -77,30 +77,30 @@ class MIDIParameterInput : public ParameterInput {
                 ParameterInput::setup_saveable_settings();
 
                 register_setting(
-                    new LSaveableSetting<byte>(
+                    new LSaveableSetting<int8_t>(
                         "CC Number",
                         "MIDIParameterInput",
                         &this->cc_number,
-                        [=](byte value) -> void {
+                        [=](int8_t value) -> void {
                             this->cc_number = value;
                         },
-                        [=](void) -> byte {
+                        [=](void) -> int8_t {
                             return this->cc_number;
                         }
-                    )
+                    ), SL_SCOPE_SCENE | SL_SCOPE_PROJECT
                 );
                 register_setting(
-                    new LSaveableSetting<byte>(
+                    new LSaveableSetting<int8_t>(
                         "Channel",
                         "MIDIParameterInput",
                         &this->channel,
-                        [=](byte value) -> void {
+                        [=](int8_t value) -> void {
                             this->channel = value;
                         },
-                        [=](void) -> byte {
+                        [=](void) -> int8_t {
                             return this->channel;
                         }
-                    )
+                    ), SL_SCOPE_SCENE | SL_SCOPE_PROJECT
                 );
             }
         #endif

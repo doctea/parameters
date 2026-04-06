@@ -310,7 +310,8 @@ class Weirdolope : public EnvelopeBase {
                     &this->paramValueA,
                     [=](float v) { this->setMix(v); },
                     [=]() -> float { return this->getMix(); }
-                )
+                ),
+                SL_SCOPE_SCENE  // allow mix to be saved at scene level, since it's more of a performance setting than a preference setting
             );
         }
     #endif

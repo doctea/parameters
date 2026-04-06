@@ -207,19 +207,21 @@ class EnvelopeBase : public SHStorage<8, 6> {  // up to 8 parameter children; lo
             ISaveableSettingHost::setup_saveable_settings();
 
             register_setting(new LSaveableSetting<bool>(
-                "Loop mode",
-                "BaseEnvelope",
-                &this->loop_mode,
-                [=](bool v) { this->set_loop(v); },
-                [=]() -> bool { return this->is_loop(); }
-            ));
+                    "Loop mode",
+                    "BaseEnvelope",
+                    &this->loop_mode,
+                    [=](bool v) { this->set_loop(v); },
+                    [=]() -> bool { return this->is_loop(); }
+                ), SL_SCOPE_SCENE
+            );
             register_setting(new LSaveableSetting<bool>(
                 "Invert",
                 "BaseEnvelope",
                 &this->invert,
                 [=](bool v) { this->set_invert(v); },
                 [=]() -> bool { return this->is_invert(); }
-            ));
+                ), SL_SCOPE_SCENE
+            );
 
             // register parameters for this envelope
             LinkedList<FloatParameter*> *parameters = this->get_parameters();
@@ -478,7 +480,7 @@ class RegularEnvelope : public EnvelopeBase {
                     [=](void) -> float {
                         return this->get_attack();
                     }
-                )
+                ), SL_SCOPE_SCENE
             );
             register_setting(
                 new LSaveableSetting<float>(
@@ -491,7 +493,7 @@ class RegularEnvelope : public EnvelopeBase {
                     [=](void) -> float {
                         return this->get_hold();    
                     }
-                )
+                ), SL_SCOPE_SCENE
             );
             register_setting(
                 new LSaveableSetting<float>(
@@ -504,7 +506,7 @@ class RegularEnvelope : public EnvelopeBase {
                     [=](void) -> float {
                         return this->get_decay();
                     }
-                )
+                ), SL_SCOPE_SCENE
             );
             register_setting(
                 new LSaveableSetting<float>(
@@ -517,7 +519,7 @@ class RegularEnvelope : public EnvelopeBase {
                     [=](void) -> float {
                         return this->get_sustain();
                     }
-                )
+                ), SL_SCOPE_SCENE
             );
             register_setting(
                 new LSaveableSetting<float>(
@@ -530,7 +532,7 @@ class RegularEnvelope : public EnvelopeBase {
                     [=](void) -> float {
                         return this->get_release();
                     }
-                )
+                ), SL_SCOPE_SCENE
             );
             register_setting(
                 new LSaveableSetting<int8_t>(
@@ -543,7 +545,7 @@ class RegularEnvelope : public EnvelopeBase {
                     [=](void) -> int8_t {
                         return this->get_mod_hd();
                     }
-                )
+                ), SL_SCOPE_SCENE
             );
             register_setting(
                 new LSaveableSetting<int8_t>(
@@ -556,7 +558,7 @@ class RegularEnvelope : public EnvelopeBase {
                     [=](void) -> int8_t {
                         return this->get_mod_sr();
                     }
-                )
+                ), SL_SCOPE_SCENE
             );
             register_setting(
                 new LSaveableSetting<int8_t>(
@@ -569,7 +571,7 @@ class RegularEnvelope : public EnvelopeBase {
                     [=](void) -> int8_t {
                         return this->get_cc_value_sync_modifier();
                     }
-                )
+                ), SL_SCOPE_SCENE
             );
         }
     #endif

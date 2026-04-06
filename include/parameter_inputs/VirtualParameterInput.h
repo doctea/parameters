@@ -214,7 +214,7 @@ class VirtualParameterInput : public AnalogParameterInputBase<float> {
                         [=](void) -> float {
                             return this->locked_period;
                         }
-                    ));
+                    ), SL_SCOPE_SCENE | SL_SCOPE_PROJECT);
                 register_setting(new LSaveableSetting<float>(
                         "Locked Phase",
                         "VirtualParameterInput",
@@ -225,7 +225,7 @@ class VirtualParameterInput : public AnalogParameterInputBase<float> {
                         [=](void) -> float {
                             return this->locked_phase;
                         }
-                    ));
+                    ), SL_SCOPE_SCENE | SL_SCOPE_PROJECT);
                 register_setting(new LSaveableSetting<float>(
                         "Free Sine Divisor",
                         "VirtualParameterInput",
@@ -236,7 +236,7 @@ class VirtualParameterInput : public AnalogParameterInputBase<float> {
                         [=](void) -> float {
                             return this->free_sine_divisor;
                         }
-                    ));
+                    ), SL_SCOPE_SCENE | SL_SCOPE_PROJECT);
                 register_setting(new LSaveableSetting<uint32_t>(
                         "Sample&Hold Ticks",
                         "VirtualParameterInput",
@@ -247,7 +247,7 @@ class VirtualParameterInput : public AnalogParameterInputBase<float> {
                         [=](void) -> uint32_t {
                             return this->sh_ticks;
                         }
-                    ));
+                    ), SL_SCOPE_SCENE | SL_SCOPE_PROJECT);
             }
         #endif
 
