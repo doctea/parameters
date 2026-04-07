@@ -108,73 +108,75 @@ float FloatParameter::get_amount_for_slot(int8_t slot) {
     return this->connections[slot].amount;
 }
 
-// Compact single-object save/load for all modulation slots on a FloatParameter.
-// Format: modslots=inputname0,amount0,mode0;inputname1,amount1,mode1;...
-// Empty input name means unconnected. One allocation instead of 3*MAX_SLOT_CONNECTIONS.
-class ModulationSlotsSaveableSetting : public SaveableSettingBase {
-    FloatParameter* target;
-public:
-    ModulationSlotsSaveableSetting(FloatParameter* t) : target(t) {
-        set_label("modslots");
-        set_category("ModulationSlot");
-    }
-    const char* get_line() override {
-        char* p = linebuf;
-        char* end = linebuf + sizeof(linebuf);
-        p += snprintf(p, end - p, "modslots=");
-        for (uint_fast8_t s = 0; s < MAX_SLOT_CONNECTIONS && p < end; ++s) {
-            const char* name = target->get_input_group_and_name_for_slot(s);
-            float amount = target->get_amount_for_slot(s);
-            const char* mode = (target->connections[s].polar_mode == BIPOLAR) ? "bipolar" : "unipolar";
-            p += snprintf(p, end - p, "%s%s,%.6g,%s",
-                s == 0 ? "" : ";",
-                name ? name : "",
-                (double)amount,
-                mode);
+#ifdef ENABLE_STORAGE
+    // Compact single-object save/load for all modulation slots on a FloatParameter.
+    // Format: modslots=inputname0,amount0,mode0;inputname1,amount1,mode1;...
+    // Empty input name means unconnected. One allocation instead of 3*MAX_SLOT_CONNECTIONS.
+    class ModulationSlotsSaveableSetting : public SaveableSettingBase {
+        FloatParameter* target;
+    public:
+        ModulationSlotsSaveableSetting(FloatParameter* t) : target(t) {
+            set_label("modslots");
+            set_category("ModulationSlot");
         }
-        return linebuf;
-    }
-    bool parse_key_value(const char* key, const char* value) override {
-        if (strcmp(key, "modslots") != 0) return false;
-        // parse semicolon-separated tuples
-        char buf[128];
-        strncpy(buf, value, sizeof(buf) - 1);
-        buf[sizeof(buf)-1] = '\0';
-        char* cursor = buf;
-        for (uint_fast8_t s = 0; s < MAX_SLOT_CONNECTIONS; ++s) {
-            char* semi = strchr(cursor, ';');
-            if (semi) *semi = '\0';
-            // parse "name,amount,mode"
-            char* comma1 = strchr(cursor, ',');
-            if (!comma1) break;
-            *comma1 = '\0';
-            char* comma2 = strchr(comma1 + 1, ',');
-            float amount = 0.0f;
-            bool bipolar = false;
-            if (comma2) {
-                *comma2 = '\0';
-                amount = atof(comma1 + 1);
-                bipolar = (strcmp(comma2 + 1, "bipolar") == 0);
+        const char* get_line() override {
+            char* p = linebuf;
+            char* end = linebuf + sizeof(linebuf);
+            p += snprintf(p, end - p, "modslots=");
+            for (uint_fast8_t s = 0; s < MAX_SLOT_CONNECTIONS && p < end; ++s) {
+                const char* name = target->get_input_group_and_name_for_slot(s);
+                float amount = target->get_amount_for_slot(s);
+                const char* mode = (target->connections[s].polar_mode == BIPOLAR) ? "bipolar" : "unipolar";
+                p += snprintf(p, end - p, "%s%s,%.6g,%s",
+                    s == 0 ? "" : ";",
+                    name ? name : "",
+                    (double)amount,
+                    mode);
             }
-            // set input
-            if (cursor[0] != '\0') {
-                BaseParameterInput* inp = parameter_manager->getInputForGroupAndName(cursor);
-                target->set_slot_input(s, inp);
-            }
-            target->connections[s].amount = amount;
-            target->connections[s].polar_mode = bipolar ? BIPOLAR : UNIPOLAR;
-            if (!semi) break;
-            cursor = semi + 1;
+            return linebuf;
         }
-        return true;
+        bool parse_key_value(const char* key, const char* value) override {
+            if (strcmp(key, "modslots") != 0) return false;
+            // parse semicolon-separated tuples
+            char buf[128];
+            strncpy(buf, value, sizeof(buf) - 1);
+            buf[sizeof(buf)-1] = '\0';
+            char* cursor = buf;
+            for (uint_fast8_t s = 0; s < MAX_SLOT_CONNECTIONS; ++s) {
+                char* semi = strchr(cursor, ';');
+                if (semi) *semi = '\0';
+                // parse "name,amount,mode"
+                char* comma1 = strchr(cursor, ',');
+                if (!comma1) break;
+                *comma1 = '\0';
+                char* comma2 = strchr(comma1 + 1, ',');
+                float amount = 0.0f;
+                bool bipolar = false;
+                if (comma2) {
+                    *comma2 = '\0';
+                    amount = atof(comma1 + 1);
+                    bipolar = (strcmp(comma2 + 1, "bipolar") == 0);
+                }
+                // set input
+                if (cursor[0] != '\0') {
+                    BaseParameterInput* inp = parameter_manager->getInputForGroupAndName(cursor);
+                    target->set_slot_input(s, inp);
+                }
+                target->connections[s].amount = amount;
+                target->connections[s].polar_mode = bipolar ? BIPOLAR : UNIPOLAR;
+                if (!semi) break;
+                cursor = semi + 1;
+            }
+            return true;
+        }
+    };
+
+    void FloatParameter::setup_saveable_settings() {
+        BaseParameter::setup_saveable_settings();
+
+        register_setting(new ModulationSlotsSaveableSetting(this), SL_SCOPE_SCENE, false);
     }
-};
-
-void FloatParameter::setup_saveable_settings() {
-    BaseParameter::setup_saveable_settings();
-
-    register_setting(new ModulationSlotsSaveableSetting(this), SL_SCOPE_SCENE, false);
-}
+#endif
 
 #include "parameters/CVOutputParameter.h"
 #ifdef ENABLE_SCREEN

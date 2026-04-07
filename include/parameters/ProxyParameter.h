@@ -47,14 +47,15 @@ class ProxyParameter : public DataParameterBase<DataType> {
        //*this->target = *this->source = v;        
     }
 
-    virtual void setup_saveable_settings() override {
-        DataParameterBase<DataType>::setup_saveable_settings();
+    #ifdef ENABLE_STORAGE
+        virtual void setup_saveable_settings() override {
+            DataParameterBase<DataType>::setup_saveable_settings();
 
-        // we need to prevent storage of the current value, since it's just a proxy for something else that
-        // might also be storing it, so it would be confusing and potentially cause issues when recalling
-        this->remove_setting_by_label("current_value");
-
-    }
+            // we need to prevent storage of the current value, since it's just a proxy for something else that
+            // might also be storing it, so it would be confusing and potentially cause issues when recalling
+            this->remove_setting_by_label("current_value");
+        }
+    #endif
 
         
 };

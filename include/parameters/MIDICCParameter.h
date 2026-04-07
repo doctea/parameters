@@ -56,25 +56,27 @@ class MIDICCParameter : public DataParameter<TargetClass,DataType> {
             }
         }
 
-        virtual void setup_saveable_settings() override {
-            DataParameter<TargetClass,DataType>::setup_saveable_settings();
-            if (this->configurable) {
-                this->register_setting(new LSaveableSetting<byte>(
-                    "channel",
-                    "MIDICC",
-                    nullptr,
-                    [=](byte value) { this->channel = value; },
-                    [=]() -> byte { return this->channel; }
-                ), SL_SCOPE_SCENE | SL_SCOPE_PROJECT, false);
-                this->register_setting(new LSaveableSetting<byte>(
-                    "cc", 
-                    "MIDICC",
-                    nullptr,
-                    [=](byte value) { this->cc_number = value; },
-                    [=]() -> byte { return this->cc_number; }
-                ), SL_SCOPE_SCENE | SL_SCOPE_PROJECT, false);
+        #ifdef ENABLE_STORAGE
+            virtual void setup_saveable_settings() override {
+                DataParameter<TargetClass,DataType>::setup_saveable_settings();
+                if (this->configurable) {
+                    this->register_setting(new LSaveableSetting<byte>(
+                        "channel",
+                        "MIDICC",
+                        nullptr,
+                        [=](byte value) { this->channel = value; },
+                        [=]() -> byte { return this->channel; }
+                    ), SL_SCOPE_SCENE | SL_SCOPE_PROJECT, false);
+                    this->register_setting(new LSaveableSetting<byte>(
+                        "cc", 
+                        "MIDICC",
+                        nullptr,
+                        [=](byte value) { this->cc_number = value; },
+                        [=]() -> byte { return this->cc_number; }
+                    ), SL_SCOPE_SCENE | SL_SCOPE_PROJECT, false);
+                }
             }
-        }
+        #endif
 
         #ifdef ENABLE_SCREEN
         FLASHMEM

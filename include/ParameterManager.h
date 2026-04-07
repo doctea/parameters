@@ -46,7 +46,11 @@
 
 int freeRam();
 
-class ParameterManager : public SHStorage<32, 4> {  // many input children; few own settings
+class ParameterManager 
+    #ifdef ENABLE_STORAGE
+        : public SHStorage<32, 4>  // many input children; few own settings
+    #endif
+    {
     public:
         bool debug = false;
 
@@ -91,7 +95,9 @@ class ParameterManager : public SHStorage<32, 4> {  // many input children; few 
             this->memory_size = memory_size;
             this->available_inputs_hash = new Hashtable<String, BaseParameterInput*>();
 
-            this->set_path_segment("ParameterManager");
+            #ifdef ENABLE_STORAGE
+                this->set_path_segment("ParameterManager");
+            #endif
         }
         ~ParameterManager () {}
 
@@ -704,20 +710,22 @@ class ParameterManager : public SHStorage<32, 4> {  // many input children; few 
         //     return lines;
         // }
 
-        void setup_saveable_settings() override {
-            // add all parameter inputs to the saveable settings, 
-            // so that they get saved and loaded.
+        #ifdef ENABLE_STORAGE
+            void setup_saveable_settings() override {
+                // add all parameter inputs to the saveable settings, 
+                // so that they get saved and loaded.
 
-            const uint_fast8_t size = available_inputs->size();
-            for (uint_fast8_t i = 0 ; i < size ; i++) {
-                this->register_child(available_inputs->get(i));
+                const uint_fast8_t size = available_inputs->size();
+                for (uint_fast8_t i = 0 ; i < size ; i++) {
+                    this->register_child(available_inputs->get(i));
+                }
+
+                // do we also want to save parameters here?
+                // probably not all of them, as the objects that host them probably want to 
+                // know about them more. 
+                // @@TODO: maybe we do want to maintain a list of 'homeless' parameters that we can load/save here, tho?
             }
-
-            // do we also want to save parameters here?
-            // probably not all of them, as the objects that host them probably want to 
-            // know about them more. 
-            // @@TODO: maybe we do want to maintain a list of 'homeless' parameters that we can load/save here, tho?
-        }
+        #endif
 
         //virtual bool load_voltage_calibration();
         //virtual bool save_voltage_calibration();

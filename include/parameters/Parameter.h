@@ -73,7 +73,11 @@ struct ParameterToInputConnection {
 const size_t MAX_PARAMETER_NAME_LENGTH = 20;
 
 // @@TODO: convert this to using the new ISaveableSetting interface
-class BaseParameter : public SHStorage<0, 8> { // no children; ~2-4 own settings (range, modslots if enabled)
+class BaseParameter 
+    #ifdef ENABLE_STORAGE
+        : public SHStorage<0, 8> // no children; ~2-4 own settings (range, modslots if enabled)
+    #endif
+    {
     public:
         bool debug = false;
 
@@ -84,7 +88,9 @@ class BaseParameter : public SHStorage<0, 8> { // no children; ~2-4 own settings
 
         BaseParameter(const char *label) {
             strncpy(this->label, label, MAX_PARAMETER_NAME_LENGTH);
-            this->set_path_segment(this->label);
+            #ifdef ENABLE_STORAGE
+                this->set_path_segment(this->label);
+            #endif
         };
         virtual void updateValueFromNormal(float value/*, float range = 1.0*/) {};
         virtual void modulateValue(float value) {};
@@ -966,34 +972,36 @@ class DataParameterBase : public FloatParameter {
             return constrain(value, this->minimumNormalValue, this->maximumNormalValue);
         }
 
-        virtual void setup_saveable_settings() override {
-            FloatParameter::setup_saveable_settings();
+        #ifdef ENABLE_STORAGE
+            virtual void setup_saveable_settings() override {
+                FloatParameter::setup_saveable_settings();
 
-            // store the current value..
-            this->register_setting(new LSaveableSetting<DataType>(
-                "current_value", 
-                "Current Value",
-                &this->currentDataValue,
-                [=](DataType v) { this->updateValueFromData(v); },
-                [=]() -> DataType { return this->getCurrentDataValue(); }
-            ), SL_SCOPE_SCENE, false);
+                // store the current value..
+                this->register_setting(new LSaveableSetting<DataType>(
+                    "current_value", 
+                    "Current Value",
+                    &this->currentDataValue,
+                    [=](DataType v) { this->updateValueFromData(v); },
+                    [=]() -> DataType { return this->getCurrentDataValue(); }
+                ), SL_SCOPE_SCENE, false);
 
-            this->register_setting(new LSaveableSetting<DataType>(
-                "range_minimum", 
-                "Range",
-                &this->minimumDataRange,
-                [=](DataType v) { this->setRangeMinimumLimit(v); },
-                [=]() -> DataType { return this->getRangeMinimumLimit(); }
-            ), SL_SCOPE_SCENE, false);
+                this->register_setting(new LSaveableSetting<DataType>(
+                    "range_minimum", 
+                    "Range",
+                    &this->minimumDataRange,
+                    [=](DataType v) { this->setRangeMinimumLimit(v); },
+                    [=]() -> DataType { return this->getRangeMinimumLimit(); }
+                ), SL_SCOPE_SCENE, false);
 
-            this->register_setting(new LSaveableSetting<DataType>(
-                "range_maximum", 
-                "Range",
-                &this->maximumDataRange,
-                [=](DataType v) { this->setRangeMaximumLimit(v); },
-                [=]() -> DataType { return this->getRangeMaximumLimit(); }
-            ), SL_SCOPE_SCENE, false);
-        }
+                this->register_setting(new LSaveableSetting<DataType>(
+                    "range_maximum", 
+                    "Range",
+                    &this->maximumDataRange,
+                    [=](DataType v) { this->setRangeMaximumLimit(v); },
+                    [=]() -> DataType { return this->getRangeMaximumLimit(); }
+                ), SL_SCOPE_SCENE, false);
+            }
+        #endif
 
 };
 

@@ -36,7 +36,11 @@ enum stage_t : int8_t {
 };
 stage_t operator++ (stage_t& d);
 
-class EnvelopeBase : public SHStorage<8, 6> {  // up to 8 parameter children; loop/invert + a few own settings
+class EnvelopeBase 
+    #ifdef ENABLE_STORAGE
+        : virtual public SHStorage<8, 6>  // up to 8 parameter children; loop/invert + a few own settings
+    #endif
+    {  
     private:
     bool loop_mode = false;
     bool invert = false;

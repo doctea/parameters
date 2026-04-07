@@ -29,7 +29,11 @@ class ParameterInputCallbackReceiver {
   virtual void receive_value_update(float value) = 0;
 };
 
-class BaseParameterInput : public SHStorage<0, 10> {  // no children; settings for input config
+class BaseParameterInput 
+  #ifdef ENABLE_STORAGE
+    : virtual public SHStorage<0, 10>  // no children; settings for input config
+  #endif
+  {
   public:
 
     bool debug = false;
@@ -56,7 +60,9 @@ class BaseParameterInput : public SHStorage<0, 10> {  // no children; settings f
     BaseParameterInput(char *name, const char *group_name = "General") {
       strncpy(this->name, name, MAX_INPUT_NAME);
       this->group_name = group_name;
-      this->set_path_segment(get_group_and_name());
+      #ifdef ENABLE_STORAGE
+        this->set_path_segment(get_group_and_name());
+      #endif
     }
     virtual ~BaseParameterInput() = default;
 
