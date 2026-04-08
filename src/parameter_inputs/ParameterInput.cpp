@@ -1,10 +1,20 @@
 #include "parameter_inputs/ParameterInput.h"
 #include "parameter_inputs/VirtualParameterInput.h"
+#include "parameter_inputs/BarLockParameterInputs.h"
 
 lfo_option_t virtual_parameter_options[lfo_option_id::NUM] = {
     { "FreeLFO", LFO_FREE },
     { "LockLFO", LFO_LOCKED },
     { "Rand",    RAND }
+};
+
+barlock_option_t barlock_options[BARLOCK_NUM_MODES] = {
+    { "BR-Log",    BARLOCK_RISE_LOG       },
+    { "BF-Exp",    BARLOCK_FALL_EXP       },
+    { "LBR",       BARLOCK_LAST_BEAT_RISE },
+    { "LBF",       BARLOCK_LAST_BEAT_FALL },
+    { "PR-Lin",    BARLOCK_PHRASE_RISE    },
+    { "PF-Smooth", BARLOCK_PHRASE_FALL    },
 };
 
 #ifdef ENABLE_SCREEN
@@ -119,6 +129,33 @@ lfo_option_t virtual_parameter_options[lfo_option_id::NUM] = {
             }
             submenu->add(period_control);        
         //}
+
+        return submenu;
+    }
+
+    FLASHMEM
+    SubMenuItemBar *BarLockParameterInput::makeControls(int16_t memory_size, const char *label_prefix) {
+        SubMenuItemBar *submenu = BaseParameterInput::makeControls(memory_size, label_prefix);
+
+        // Phrase-spanning modes expose the phrase length control
+        if (mode == BARLOCK_PHRASE_RISE || mode == BARLOCK_PHRASE_FALL) {
+            static LinkedList<LambdaSelectorControl<uint8_t>::option> *phrase_bar_options = nullptr;
+            LambdaSelectorControl<uint8_t> *bars_control = new LambdaSelectorControl<uint8_t>(
+                "Phrase Bars",
+                [=](uint8_t v) -> void { this->phrase_bars = v; },
+                [=](void)     -> uint8_t { return this->phrase_bars; }
+            );
+            if (phrase_bar_options == nullptr) {
+                bars_control->add_available_value(1, "1 bar");
+                bars_control->add_available_value(2, "2 bars");
+                bars_control->add_available_value(4, "4 bars");
+                bars_control->add_available_value(8, "8 bars");
+                phrase_bar_options = bars_control->get_available_values();
+            } else {
+                bars_control->set_available_values(phrase_bar_options);
+            }
+            submenu->add(bars_control);
+        }
 
         return submenu;
     }

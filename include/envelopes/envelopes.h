@@ -56,7 +56,9 @@ class EnvelopeBase
         this->label = label;
         this->setter = setter;
 
-        this->set_path_segment(label);
+        #ifdef ENABLE_STORAGE
+            this->set_path_segment(label);
+        #endif
 
         // todo: maybe we want to have some way to hotswap/configure different envelope types
         // while sharing some parameters
