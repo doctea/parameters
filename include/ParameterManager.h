@@ -48,7 +48,7 @@ int freeRam();
 
 class ParameterManager 
     #ifdef ENABLE_STORAGE
-        : public SHStorage<32, 4>  // many input children; few own settings
+        : public SHDynamic<32, 4>  // many input children; few own settings
     #endif
     {
     public:

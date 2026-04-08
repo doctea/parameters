@@ -56,13 +56,10 @@ class EnvelopeBase
         this->label = label;
         this->setter = setter;
 
-        //this->set_path_segment(label);    // @@TODO: maybe we do want to reinstate this?
-            // 
-            //don't actually need this -- indeed we might want to be able to share settings between multiple envelope types
-            // end up with e.g.
-            // 22:45:48:266 -> MIDIOutputProcessor~Ride Cymbal~~Loop mode=0
-            // 22:45:48:266 -> MIDIOutputProcessor~Ride Cymbal~~Invert=0
-            // 22:45:48:267 -> MIDIOutputProcessor~Ride Cymbal~~Mix=0.5
+        this->set_path_segment(label);
+
+        // todo: maybe we want to have some way to hotswap/configure different envelope types
+        // while sharing some parameters
     }
     virtual ~EnvelopeBase() {}
 

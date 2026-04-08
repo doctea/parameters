@@ -31,7 +31,7 @@ class ParameterInputCallbackReceiver {
 
 class BaseParameterInput 
   #ifdef ENABLE_STORAGE
-    : virtual public SHStorage<0, 10>  // no children; settings for input config
+    : virtual public SHDynamic<0, 10>  // no children; settings for input config
   #endif
   {
   public:
