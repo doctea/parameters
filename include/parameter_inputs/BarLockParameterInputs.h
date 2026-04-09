@@ -57,7 +57,7 @@ class BarLockParameterInput : public AnalogParameterInputBase<float> {
                 case BARLOCK_RISE_LOG: {
                     // log1p(t*(e-1)) maps [0,1]→[0,1] via natural log:
                     // fast rise at bar start, decelerates toward bar end
-                    const float bar_pos = (float)(ticks % (uint32_t)TICKS_PER_BAR) / (float)TICKS_PER_BAR;
+                    const float bar_pos = (float)((ticks+1) % (uint32_t)TICKS_PER_BAR) / (float)TICKS_PER_BAR;
                     result = logf(1.0f + bar_pos * (float)(M_E - 1.0));
                     break;
                 }
@@ -66,7 +66,7 @@ class BarLockParameterInput : public AnalogParameterInputBase<float> {
                     // (expf(k*(1-t)) - 1) / (expf(k) - 1)  with k=4
                     static const float k     = 4.0f;
                     static const float denom = expf(4.0f) - 1.0f;
-                    const float bar_pos = (float)(ticks % (uint32_t)TICKS_PER_BAR) / (float)TICKS_PER_BAR;
+                    const float bar_pos = (float)((ticks+1) % (uint32_t)TICKS_PER_BAR) / (float)TICKS_PER_BAR;
                     result = (expf(k * (1.0f - bar_pos)) - 1.0f) / denom;
                     break;
                 }
@@ -75,7 +75,7 @@ class BarLockParameterInput : public AnalogParameterInputBase<float> {
                     if (BPM_CURRENT_BEAT_OF_BAR < (uint32_t)(BEATS_PER_BAR - 1)) {
                         result = 0.0f;
                     } else {
-                        result = (float)(ticks % (uint32_t)TICKS_PER_BEAT) / (float)TICKS_PER_BEAT;
+                        result = (float)((ticks+1) % (uint32_t)TICKS_PER_BEAT) / (float)TICKS_PER_BEAT;
                     }
                     break;
                 }
@@ -84,20 +84,20 @@ class BarLockParameterInput : public AnalogParameterInputBase<float> {
                     if (BPM_CURRENT_BEAT_OF_BAR < (uint32_t)(BEATS_PER_BAR - 1)) {
                         result = 0.0f;
                     } else {
-                        result = 1.0f - (float)(ticks % (uint32_t)TICKS_PER_BEAT) / (float)TICKS_PER_BEAT;
+                        result = 1.0f - (float)((ticks+1) % (uint32_t)TICKS_PER_BEAT) / (float)TICKS_PER_BEAT;
                     }
                     break;
                 }
                 case BARLOCK_PHRASE_RISE: {
                     // linear ramp 0→1 over phrase_bars bars (integer division for speed)
                     const uint32_t phrase_ticks = (uint32_t)TICKS_PER_BAR * phrase_bars;
-                    result = (float)(ticks % phrase_ticks) / (float)phrase_ticks;
+                    result = (float)((ticks+1) % phrase_ticks) / (float)phrase_ticks;
                     break;
                 }
                 case BARLOCK_PHRASE_FALL: {
                     // smoothstep S-curve fall 1→0 over phrase_bars bars
                     const uint32_t phrase_ticks = (uint32_t)TICKS_PER_BAR * phrase_bars;
-                    const float t = (float)(ticks % phrase_ticks) / (float)phrase_ticks;
+                    const float t = (float)((ticks+1) % phrase_ticks) / (float)phrase_ticks;
                     const float s = t * t * (3.0f - 2.0f * t); // smoothstep [0→1]
                     result = 1.0f - s;
                     break;
