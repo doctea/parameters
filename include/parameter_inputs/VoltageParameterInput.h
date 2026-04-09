@@ -2,7 +2,6 @@
 
 #include "ParameterInput.h"
 #include "AnalogParameterInputBase.h"
-#include "PitchedParameterInputBase.h"
 
 #include "../voltage_sources/VoltageSource.h"
 
