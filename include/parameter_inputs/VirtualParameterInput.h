@@ -49,40 +49,18 @@ class VirtualParameterInput : public AnalogParameterInputBase<float> {
             this->lfo_mode = lfo_mode;
         }
 
-        virtual bool hasExtra() override {
-            return this->supports_pitch();
-        }
-        virtual const char *getExtra() override {
-            /*if (this->voltage_source==nullptr) {
-                return "[null voltage_source]";
-            }*/
-            if (this->supports_pitch()) {
-                static char extra_output[40];
-                snprintf(
-                    extra_output, 
-                    40,
-                    "MIDI pitch for %3.3f is %s\n", 
-                    this->get_source_value() * 10.0,
-                    get_note_name(get_voltage_pitch()).c_str()
-                );
-                return extra_output;
-            }
-            return virtual_parameter_options[lfo_mode].name;
-            //return "";
-        }
-
-        virtual bool supports_pitch() override {
-            return false;
-            //return this->voltage_source->supports_pitch();
-        }
-        virtual uint8_t get_voltage_pitch() {
-            //return get_midi_pitch_for_voltage(this->voltage_source->get_voltage_pitch());
-            //if (this->voltage_source==nullptr) 
-            //  Debug_printf(F("%c#get_voltage_pitch() has no voltage_source?!"), this->name); Serial_flush();
-            //return this->voltage_source->get_voltage_pitch();
-            //return this->current_voltage_pitch;
-            return 64;
-        }
+        // virtual bool supports_pitch() override {
+        //     return false;
+        //     //return this->voltage_source->supports_pitch();
+        // }
+        // virtual int8_t get_voltage_pitch() override {
+        //     //return get_midi_pitch_for_voltage(this->voltage_source->get_voltage_pitch());
+        //     //if (this->voltage_source==nullptr) 
+        //     //  Debug_printf(F("%c#get_voltage_pitch() has no voltage_source?!"), this->name); Serial_flush();
+        //     //return this->voltage_source->get_voltage_pitch();
+        //     //return this->current_voltage_pitch;
+        //     return 64;
+        // }
 
         float calculate_lfo(float normal) {
             return input_type==BIPOLAR ? 

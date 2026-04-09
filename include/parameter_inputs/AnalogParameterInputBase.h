@@ -25,7 +25,6 @@ class AnalogParameterInputBase : public ParameterInput {
     AnalogParameterInputBase() {};
     AnalogParameterInputBase(char *name, const char *group_name = "General", DataType in_sensitivity = 0.005, VALUE_TYPE input_type = BIPOLAR, bool inverted = false) 
         : ParameterInput(name, group_name) {
-      //this->name = name;
       this->sensitivity = in_sensitivity;
       this->input_type = input_type;
       this->inverted = inverted;

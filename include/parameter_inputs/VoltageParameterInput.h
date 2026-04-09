@@ -2,6 +2,7 @@
 
 #include "ParameterInput.h"
 #include "AnalogParameterInputBase.h"
+#include "PitchedParameterInputBase.h"
 
 #include "../voltage_sources/VoltageSource.h"
 
@@ -9,7 +10,8 @@
 
 #include "ads.h"
 
-class VoltageParameterInput : public AnalogParameterInputBase<float> {
+class VoltageParameterInput 
+        : public AnalogParameterInputBase<float> {
     public:
         VoltageSourceBase *voltage_source = nullptr;
 
@@ -18,9 +20,6 @@ class VoltageParameterInput : public AnalogParameterInputBase<float> {
             this->voltage_source = voltage_source;
         }
 
-        virtual bool hasExtra() override {
-            return this->supports_pitch();
-        }
         virtual const char *getExtra() override {
             if (this->voltage_source==nullptr) {
                 return "[null voltage_source]";
@@ -43,11 +42,11 @@ class VoltageParameterInput : public AnalogParameterInputBase<float> {
         virtual bool supports_pitch() override {
             return this->voltage_source->supports_pitch();
         }
-        virtual uint8_t get_voltage_pitch() {
+        virtual int8_t get_voltage_pitch() override {
             return get_midi_pitch_for_voltage(get_voltage(), 0);
         }
 
-        virtual float get_voltage() {
+        virtual float get_voltage() override {
             if (this->voltage_source==nullptr) {
                 Debug_printf("%c#get_voltage_pitch() has no voltage_source?!", this->name); Serial_flush();
                 return 0.0;

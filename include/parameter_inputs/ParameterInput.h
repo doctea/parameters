@@ -83,6 +83,14 @@ class BaseParameterInput
     virtual bool supports_pitch() {
       return false;
     }
+    // get the midi note corresponding to the current voltage, if supported; returns NOTE_OFF if not
+    virtual int8_t get_voltage_pitch() {
+        return -1;
+    }
+    // get the (real or virtual) voltage value for this input, if supported; returns 0.0 if not
+    virtual float get_voltage() {
+        return 0.0;
+    }
 
     virtual const char* getFormattedValue() {
         return "[none]";
@@ -104,7 +112,7 @@ class BaseParameterInput
     }
     // whether there is any extra info string to display in ParameterInputView controls
     virtual bool hasExtra() {
-      return false;
+      return this->supports_pitch();
     }
 
     virtual void setInverted(bool invert = true) {

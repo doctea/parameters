@@ -48,15 +48,15 @@ class ParameterInputCombinedDisplay : public MenuItem {
                     this->colours(false, displays->get(i)->default_fg);
                     if (displays->get(i)->parameter_input->supports_pitch()) {
                         //tft->printf("%s ", (char*)displays->get(i)->parameter_input->getInputValue());
-                        VoltageParameterInput *casted_input = (VoltageParameterInput*)displays->get(i)->parameter_input;
-                        float voltage_value = casted_input->get_voltage();
+                        BaseParameterInput *input = displays->get(i)->parameter_input;
+                        float voltage_value = input->get_voltage();
                         //Serial.printf("voltage_value=%3.3f\n", voltage_value);
                         char info[MENU_C_MAX];
                         snprintf(info,
                             MENU_C_MAX, 
                             "% 3.3f %3s ",
                             voltage_value,
-                            (char*)get_note_name_c(casted_input->get_voltage_pitch())
+                            (char*)get_note_name_c(input->get_voltage_pitch())
                         );
                         tft->printf(info);
                     } else {
