@@ -32,6 +32,8 @@
 #include <LinkedList.h>
 #include "Hashtable.h"
 
+#include <profiling.h>
+
 #ifdef ENABLE_SCREEN
   #include "submenuitem_bar.h"
   #include "mymenu_items/ParameterInputViewMenuItems.h"
@@ -207,6 +209,8 @@ class ParameterManager
         // read the values, but don't pass them on outside
         //FASTRUN 
         void update_voltage_sources() {
+            PROFILE_SLOT(p_vs_channel_update, "VS channel update()");
+            PROFILE_SLOT(p_vs_discard_update, "VS discard_update()");
             //if (this->debug) Serial.printf(F("ParameterManager#update_voltage_sources()"));
             // round robin reading so they get a chance to settle in between adc reads?
             const uint_fast8_t size = voltage_sources->size();
@@ -216,7 +220,9 @@ class ParameterManager
             //if (this->debug) Serial.printf(F("ParameterManager#update_voltage_sources() about to read from %i\n"), last_read);
             if (this->debug) voltage_sources->get(last_read)->debug = true;
 
+            PROFILE_START(p_vs_channel_update);
             voltage_sources->get(last_read)->update();
+            PROFILE_STOP(p_vs_channel_update);
 
             //if (this->debug) Serial.printf(F("ParameterManager#update_voltage_sources() just did read from %i\n"), last_read);
             //#ifdef ENABLE_PRINTF
@@ -230,7 +236,10 @@ class ParameterManager
             if (last_read>=size)
                 last_read = 0;
 
-            voltage_sources->get(last_read)->discard_update();   // pre-read the next one so it has a chance to settle?
+            // discard_update() ("settling pre-read") removed — costs ~350µs and gives negligible accuracy benefit
+            //PROFILE_START(p_vs_discard_update);
+            //voltage_sources->get(last_read)->discard_update();
+            //PROFILE_STOP(p_vs_discard_update);
 
             /*  // simple reading of all of them    
             for (unsigned int i = 0 ; i < voltage_sources->size() ; i++) {
@@ -240,6 +249,9 @@ class ParameterManager
 
         // update the ParameterInputs with the latest values from the VoltageSources
         FASTRUN void update_inputs() {
+            PROFILE_SLOT(p_pm_update_inputs, "PM update_inputs [tot]");
+            PROFILE_SLOT(p_pm_input_loop,   "PM input loop() [iter]");
+            PROFILE_START(p_pm_update_inputs);
             // process any waiting calibration
             // TODO: see if we can move this back here again
             //this->process_calibration();
@@ -247,26 +259,36 @@ class ParameterManager
             const uint_fast8_t available_inputs_size = available_inputs->size();
             for (uint_fast8_t i = 0 ; i < available_inputs_size ; i++) {
                 //Serial.printf("ParameterManager#update_inputs updating input [%i/%i].. ", i+1, available_inputs_size); Serial_flush();
+                PROFILE_START(p_pm_input_loop);
                 available_inputs->get(i)->loop();
+                PROFILE_STOP(p_pm_input_loop);
                 //Serial.println("looped()!"); Serial_flush();
             }
+            PROFILE_STOP(p_pm_update_inputs);
         }
 
         unsigned long profile_update_mixers = 0;
         // update every parameter's values based on the mixed ParameterInputs
         FASTRUN void update_mixers() {
+            PROFILE_SLOT(p_pm_update_mixers,  "PM update_mixers [tot]");
+            PROFILE_SLOT(p_pm_mixer_update,   "PM update_mixer [iter]");
+            PROFILE_START(p_pm_update_mixers);
             // this is going to be pretty intensive; may need to adjust the way this works...
             //unsigned long update_mixers_started = micros();
             //ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
                 const uint_fast16_t available_parameters_size = this->available_parameters->size();
                 if (debug && Serial) Serial.printf("update_mixers has %i parameters to process\n", available_parameters_size);
                 for (uint_fast16_t i = 0 ; i < available_parameters_size ; i++) {
-                    if (this->available_parameters->get(i)!=nullptr)
+                    if (this->available_parameters->get(i)!=nullptr) {
+                        PROFILE_START(p_pm_mixer_update);
                         this->available_parameters->get(i)->update_mixer();
+                        PROFILE_STOP(p_pm_mixer_update);
+                    }
                 }
             //}
             //unsigned long update_mixers_finished = micros();
             //this->profile_update_mixers = update_mixers_finished - update_mixers_started;
+            PROFILE_STOP(p_pm_update_mixers);
         }
 
         // update X mixers at a time

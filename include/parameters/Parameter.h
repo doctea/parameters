@@ -673,20 +673,25 @@ class DataParameterBase : public FloatParameter {
             if (this->debug) Serial.println("<- DataParameterBase#updateValueFromData() - called sendCurrentTargetValue()");
         }
 
-        DataType lastGetterValue;
+        DataType lastGetterValue = (DataType)0;
         virtual void update_mixer() {
             this->modulateNormalValue = this->get_modulation_value();
             DataType current_value = this->getCurrentDataValue();
+
+            // Early-exit: skip the expensive send path if nothing has changed and not slewing
+            if (!slewing && current_value == lastGetterValue
+                && this->modulateNormalValue == lastModulatedNormalValue)
+                return;
+
             if (debug) {
                 Serial.printf("---->\nupdate_mixer() in %s\tgot current_value=", this->label);
                 Serial.println(current_value);
             }
-            //if (modulateNormalValue!=lastModulatedNormalValue) {
-            
-                this->sendCurrentTargetValue();
-                lastModulatedNormalValue = modulateNormalValue;
-                lastGetterValue = current_value;
-            //}
+
+            this->sendCurrentTargetValue();
+            lastModulatedNormalValue = modulateNormalValue;
+            lastGetterValue = current_value;
+
             if (debug) {
                 Serial.printf("update_mixer() in %s\tgot lastOutputNormalValue=", this->label);
                 Serial.println(lastOutputNormalValue);
