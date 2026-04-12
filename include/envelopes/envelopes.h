@@ -38,7 +38,7 @@ stage_t operator++ (stage_t& d);
 
 class EnvelopeBase 
     #ifdef ENABLE_STORAGE
-        : virtual public SHStorage<8, 6>  // up to 8 parameter children; loop/invert + a few own settings
+        : virtual public SHDynamic<4, 6>  // up to 8 parameter children; loop/invert + a few own settings
     #endif
     {  
     private:
