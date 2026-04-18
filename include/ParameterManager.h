@@ -431,9 +431,6 @@ class ParameterManager
                             VoltageSourceBase *voltage_source = this->voltage_sources->get(i);
                             submenuitem->add(voltage_source->makeCalibrationControls(i));
                             //Serial.println("addAllVoltageSourceCalibrationMenuItems did makeCalibrationControls!");
-                            #if defined(ENABLE_CALIBRATION_STORAGE)
-                                submenuitem->add(voltage_source->makeCalibrationLoadSaveControls(i));
-                            #endif
 
                             //submenuitem->add(new MenuItem("Test"));
 
@@ -452,9 +449,6 @@ class ParameterManager
                                 VoltageSourceBase *voltage_source = this->voltage_sources->get(i);
                                 menu->add(voltage_source->makeCalibrationControls(i));
                                 //Serial.println("addAllVoltageSourceCalibrationMenuItems did makeCalibrationControls!");
-                                #if defined(ENABLE_CALIBRATION_STORAGE)
-                                    menu->add(voltage_source->makeCalibrationLoadSaveControls(i));
-                                #endif
 
                                 //submenuitem->add(new MenuItem("Test"));
 
@@ -741,6 +735,15 @@ class ParameterManager
                 for (uint_fast8_t i = 0 ; i < size ; i++) {
                     this->register_child(available_inputs->get(i));
                 }
+
+                #ifdef ENABLE_CV_INPUT
+                    // add calibratable voltage sources to the tree
+                    const uint_fast8_t vs_size = (uint_fast8_t)voltage_sources->size();
+                    for (uint_fast8_t i = 0 ; i < vs_size ; i++) {
+                        ISaveableSettingHost* host = voltage_sources->get(i)->as_saveable_host();
+                        if (host) this->register_child(host);
+                    }
+                #endif
 
                 // do we also want to save parameters here?
                 // probably not all of them, as the objects that host them probably want to 

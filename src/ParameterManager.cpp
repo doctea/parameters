@@ -68,11 +68,6 @@ FLASHMEM ADCDeviceBase *ParameterManager::addADCDevice(ADCDeviceBase *device) {
 FLASHMEM VoltageSourceBase *ParameterManager::addVoltageSource(VoltageSourceBase *voltage_source) {
     Debug_printf("ParameterManager#addVoltageSource(%p)\n", voltage_source);
     Serial.printf("ParameterManager#addVoltageSource(%p)\n", voltage_source);
-    #if defined(LOAD_CALIBRATION_ON_BOOT) && defined(ENABLE_CALIBRATION_STORAGE)
-        //Debug_printf(F("Loading calibration for %i!\n"), voltage_source->slot);
-        Debug_printf("Loading calibration for VoltageSource with global_slot=%i!\n", voltage_source->global_slot);
-        voltage_source->load_calibration();
-    #endif
 
     if (voltage_source==nullptr) {
         Serial.println("WARNING: ParameterManager#addVoltageSource() was passed a nullptr!!!");

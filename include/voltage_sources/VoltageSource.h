@@ -10,6 +10,10 @@
 
 #include "icalibration.h"
 
+#ifdef ENABLE_STORAGE
+    #include "saveloadlib.h"
+#endif
+
 // base class for a voltage source, eg a wrapper around an ADC library
 class VoltageSourceBase {
     bool has_pitch_capability = false;
@@ -74,15 +78,8 @@ class VoltageSourceBase {
             Serial.printf("VoltageSourceBase calibration data for slot %i: no calibration data\n", global_slot);
         }
 
-        #if defined(ENABLE_CALIBRATION_STORAGE)
-            virtual void load_calibration() {
-                Serial.printf("VoltageSourceBase: empty load_calibration for unknown input!\n");
-                // todo: make VoltageSource know its name so that it knows where to load from
-            }
-            virtual void save_calibration() {
-                Serial.printf("VoltageSourceBase: empty load_calibration for unknown input!\n");
-                // todo: make VoltageSource know its name so that it knows where to save to
-            }
+        #ifdef ENABLE_STORAGE
+            virtual ISaveableSettingHost* as_saveable_host() { return nullptr; }
         #endif
 
         #ifdef ENABLE_SCREEN
@@ -91,9 +88,6 @@ class VoltageSourceBase {
                 Serial.println(F("makeCalibrationControls() in VoltageSourceBase returning nullptr"));
                 return nullptr;
             }
-            #if defined(ENABLE_CALIBRATION_STORAGE)
-                FLASHMEM virtual MenuItem *makeCalibrationLoadSaveControls(int i);
-            #endif
         #endif
 
 };

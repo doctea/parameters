@@ -5,6 +5,9 @@
 #include "debug.h"
 
 #include "VoltageSource.h"
+#ifdef ENABLE_STORAGE
+    #include "saveload_settings.h"
+#endif
 #if __has_include("ADS1X15.h")
     #include "ADS1X15.h"
 
@@ -14,24 +17,43 @@
     class Menu;
 #endif
 
-class ADSVoltageSourceBase : public VoltageSourceBase {
+class ADSVoltageSourceBase : public VoltageSourceBase
+    #ifdef ENABLE_STORAGE
+        , public SHStorage<0, 2>
+    #endif
+{
     public:
         float correction_value_1 = 0.976937;
         float correction_value_2 = 0.0123321;
 
         ADSVoltageSourceBase(int global_slot, float maximum_input_voltage = 5.0, bool supports_pitch = false) 
-            : VoltageSourceBase(global_slot, maximum_input_voltage, supports_pitch) {}
+            : VoltageSourceBase(global_slot, maximum_input_voltage, supports_pitch) {
+            #ifdef ENABLE_STORAGE
+                this->set_path_segment_fmt("volt_src_%i", global_slot);
+            #endif
+        }
         ADSVoltageSourceBase(int global_slot, bool supports_pitch = false) 
-            : VoltageSourceBase(global_slot, supports_pitch) {}
+            : VoltageSourceBase(global_slot, supports_pitch) {
+            #ifdef ENABLE_STORAGE
+                this->set_path_segment_fmt("volt_src_%i", global_slot);
+            #endif
+        }
 
         #if defined(ENABLE_SCREEN)
             FLASHMEM virtual MenuItem *makeCalibrationControls(int i) override;
             //virtual MenuItem *makeCalibrationLoadSaveControls(int i) override;
         #endif
 
-        #if defined(ENABLE_CALIBRATION_STORAGE)
-            virtual void load_calibration() override;
-            virtual void save_calibration() override;
+        #ifdef ENABLE_STORAGE
+            void setup_saveable_settings() override {
+                register_setting(new LSaveableSetting<float>(
+                    "correction_value_1", "Calibration", &this->correction_value_1
+                ), SL_SCOPE_SYSTEM);
+                register_setting(new LSaveableSetting<float>(
+                    "correction_value_2", "Calibration", &this->correction_value_2
+                ), SL_SCOPE_SYSTEM);
+            }
+            ISaveableSettingHost* as_saveable_host() override { return this; }
         #endif
 
         virtual bool needs_calibration() override {
