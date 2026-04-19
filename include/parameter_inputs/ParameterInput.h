@@ -22,7 +22,7 @@
     #include "saveload_settings.h"
 #endif
 
-#define MAX_INPUT_NAME 10
+#define MAX_INPUT_NAME 16
 
 class ParameterInputCallbackReceiver {
   public:
@@ -59,6 +59,7 @@ class BaseParameterInput
     uint16_t colour = 0xFFFF;
     BaseParameterInput(char *name, const char *group_name = "General") {
       strncpy(this->name, name, MAX_INPUT_NAME);
+      this->name[MAX_INPUT_NAME] = '\0';
       this->group_name = group_name;
       #ifdef ENABLE_STORAGE
         this->set_path_segment(get_group_and_name());
