@@ -3,7 +3,11 @@
 #include "Parameter.h"
 
 template<class DataType>
-class ProxyParameter : public DataParameterBase<DataType> {
+class ProxyParameter : public DataParameterBase<DataType> 
+    #ifdef ENABLE_STORAGE
+        , virtual public SHDynamic<0, 4> // no children; ~2-4 own settings (range, modslots if enabled)
+    #endif
+{
     public:
 
     DataType *source, *target;

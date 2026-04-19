@@ -75,7 +75,7 @@ const size_t MAX_PARAMETER_NAME_LENGTH = 20;
 // @@TODO: convert this to using the new ISaveableSetting interface
 class BaseParameter 
     #ifdef ENABLE_STORAGE
-        : public SHDynamic<0, 8> // no children; ~2-4 own settings (range, modslots if enabled)
+        : virtual public SHDynamic<0, 4> // no children; ~2-4 own settings (range, modslots if enabled)
     #endif
     {
     public:
