@@ -133,10 +133,13 @@ class EnvelopeBase
     virtual envelope_state_t calculate_envelope_level(stage_t stage, uint16_t stage_elapsed, float level_start, float velocity = 1.0f, bool use_caching = true) = 0;
 
     struct graph_t {
-        float value = 0.0f;
+        uint8_t value = 0;      // 0-255 maps to 0.0-1.0; saves 6 bytes/entry vs float+padding
         stage_t stage = stage_t::OFF;
     };
-    static const int GRAPH_SIZE = 240;
+#ifndef ENVELOPE_GRAPH_SIZE
+    #define ENVELOPE_GRAPH_SIZE 240   // default matches a 240-pixel-wide screen; reduce to save RAM
+#endif
+    static const int GRAPH_SIZE = ENVELOPE_GRAPH_SIZE;
     graph_t graph[GRAPH_SIZE];
 
     virtual void recalculate_graph_if_necessary() {
@@ -160,7 +163,7 @@ class EnvelopeBase
             } else {
                 stage_elapsed++;
             }
-            graph[i].value = is_invert() ? 1.0f - result.lvl_now : result.lvl_now;
+            graph[i].value = (uint8_t)(constrain(is_invert() ? 1.0f - result.lvl_now : result.lvl_now, 0.0f, 1.0f) * 255.0f + 0.5f);
             graph[i].stage = result.stage;
             graph_state.stage = result.stage;
             if (result.stage == SUSTAIN && stage_elapsed >= PPQN) {
