@@ -29,12 +29,10 @@
     #define PARAMETER_INPUT_MEMORY_LOG_MAX 255u
 #endif
 
-// Configurable per-project: number of history slots in the buffer.
-// TICKS_PER_PHRASE gives one slot per tick (best quality).
-// tft->width() gives one slot per pixel (minimum RAM, some quality loss).
-#ifndef PARAMETER_INPUT_MEMORY_SIZE
-    #define PARAMETER_INPUT_MEMORY_SIZE TICKS_PER_PHRASE
-#endif
+// Buffer size is always the screen width — one slot per pixel.
+// This is stable across time signature changes (TICKS_PER_PHRASE is runtime on ENABLE_TIME_SIGNATURE
+// targets, so allocating by tick count would cause out-of-bounds writes after a time sig change).
+// The write path scales tick-in-phrase → pixel; the display path reads logged[screen_x] directly.
 
 
 class ParameterInputDisplay : public MenuItem
@@ -55,16 +53,21 @@ class ParameterInputDisplay : public MenuItem
 
         ParameterInputDisplay(char *label, BaseParameterInput *input, int graph_height = PARAMETER_INPUT_GRAPH_HEIGHT) : MenuItem(label) {
             this->parameter_input = input;
-            // Buffer is tick-resolution: one entry per tick in the phrase.
-            // This preserves sharp peaks and fast transitions.
-            // RAM cost is half that of float: TICKS_PER_PHRASE * 2 bytes per display.
-            this->memory_size = PARAMETER_INPUT_MEMORY_SIZE;
+            // Buffer is screen-width sized: one slot per pixel column.
+            // This is fixed at construction and never changes, avoiding OOB writes when
+            // the time signature (and thus TICKS_PER_PHRASE) changes at runtime.
             this->selectable = !input->supports_bipolar_input();
             if (parameter_input!=nullptr) 
-                this->set_default_colours(parameter_input->colour);
-
+            this->set_default_colours(parameter_input->colour);
+            
             this->graph_height = graph_height;
-
+        }
+        
+        virtual void on_add() override {
+            MenuItem::on_add();
+            
+            // TODO: more robust SCREEN_ROTATION handling, since might mean different things on different displays/libraries
+            this->memory_size = SCREEN_ROTATION%2==0 ? TFT_WIDTH : TFT_HEIGHT;
             logged = (memory_log*)CALLOC_FUNC(this->memory_size, sizeof(memory_log));
         }
 
@@ -86,9 +89,12 @@ class ParameterInputDisplay : public MenuItem
             this->parameter_input = parameter_input;
         }
 
-        // Map a tick value to a buffer index (one entry per tick in the phrase)
-        unsigned long ticks_to_memory_step(uint32_t ticks) {
-            return ticks % TICKS_PER_PHRASE;
+        // Map a tick value to a pixel-column buffer index.
+        // Scales tick-within-phrase to [0, memory_size), so one full phrase = one screen width,
+        // regardless of the current time signature.
+        unsigned long ticks_to_memory_step(uint32_t tick) {
+            uint32_t tick_in_phrase = tick % TICKS_PER_PHRASE;
+            return ((uint32_t)tick_in_phrase * memory_size) / TICKS_PER_PHRASE;
         }
 
         /*unsigned long last_position_updated;
@@ -161,17 +167,16 @@ class ParameterInputDisplay : public MenuItem
             int_fast16_t zero_position_y = parameter_input->input_type==BIPOLAR ? graph_height/2 : graph_height;
             tft->drawLine(0, base_row + zero_position_y, screen_width, base_row + zero_position_y, halfbright_colour);
 
-            // current tick position within the phrase, for past/future colour split
-            const uint32_t current_tick_in_phrase = ticks % TICKS_PER_PHRASE;
+            // current pixel position within the phrase, for past/future colour split
+            const uint32_t current_pixel = ((uint32_t)(ticks % TICKS_PER_PHRASE) * screen_width) / TICKS_PER_PHRASE;
 
             int_fast16_t last_y = 0;
             for (uint16_t screen_x = 0 ; screen_x < screen_width ; screen_x++) {
-                // Map screen pixel to buffer tick: scale screen_x across TICKS_PER_PHRASE
-                const uint32_t tick_for_x = ((uint32_t)screen_x * TICKS_PER_PHRASE) / screen_width;
-                const float value = decode_memory_log(logged[tick_for_x]);
+                // Buffer is screen-width: one slot per pixel, no scaling needed
+                const float value = decode_memory_log(logged[screen_x]);
                 const int_fast16_t y = graph_height - (int_fast16_t)(value * graph_height);
                 if (screen_x != 0) {
-                    uint16_t colour = tick_for_x < current_tick_in_phrase ? parameter_input->colour : halfbright_colour;
+                    uint16_t colour = screen_x < current_pixel ? parameter_input->colour : halfbright_colour;
                     tft->drawLine(screen_x-1, base_row + last_y, screen_x, base_row + y, colour);
                 }
                 last_y = y;

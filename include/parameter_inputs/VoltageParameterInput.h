@@ -28,7 +28,7 @@ class VoltageParameterInput
                 snprintf(
                     extra_output, 
                     40,
-                    "MIDI pitch for %3.3f is %s\n", 
+                    "MIDI pitch for %3.3f is %s", 
                     this->voltage_source->get_voltage(), 
                     //get_note_name(get_voltage_pitch()).c_str()
                     get_note_name(get_voltage_pitch()).c_str()
