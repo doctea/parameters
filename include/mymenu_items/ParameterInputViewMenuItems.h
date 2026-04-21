@@ -19,7 +19,24 @@
     #define PARAMETER_INPUT_GRAPH_HEIGHT 50
 #endif
 
-//template<unsigned long memory_size>
+// Configurable per-project: storage type for graph/history buffer.
+// uint8_t  = 255 levels,  1 byte/tick — sufficient for a 50px graph, minimum RAM
+// uint16_t = 65535 levels, 2 bytes/tick — better fidelity, use on RAM-rich targets
+#ifndef PARAMETER_INPUT_MEMORY_LOG_TYPE
+    #define PARAMETER_INPUT_MEMORY_LOG_TYPE uint8_t
+#endif
+#ifndef PARAMETER_INPUT_MEMORY_LOG_MAX
+    #define PARAMETER_INPUT_MEMORY_LOG_MAX 255u
+#endif
+
+// Configurable per-project: number of history slots in the buffer.
+// TICKS_PER_PHRASE gives one slot per tick (best quality).
+// tft->width() gives one slot per pixel (minimum RAM, some quality loss).
+#ifndef PARAMETER_INPUT_MEMORY_SIZE
+    #define PARAMETER_INPUT_MEMORY_SIZE TICKS_PER_PHRASE
+#endif
+
+
 class ParameterInputDisplay : public MenuItem
 #ifdef PARAMETER_INPUTS_USE_CALLBACKS
     , public ParameterInputCallbackReceiver 
@@ -28,33 +45,50 @@ class ParameterInputDisplay : public MenuItem
     public:
         BaseParameterInput *parameter_input = nullptr;
 
-        // todo: remember an int type instead of a float, for faster drawing and reduced memory use
-        typedef float memory_log;
+        // Fixed-point history buffer. Type and size are configurable — see defines above.
+        typedef PARAMETER_INPUT_MEMORY_LOG_TYPE memory_log;
+        static constexpr uint32_t memory_log_max = PARAMETER_INPUT_MEMORY_LOG_MAX;
         unsigned long memory_size;
         memory_log *logged = nullptr;
 
         int graph_height = PARAMETER_INPUT_GRAPH_HEIGHT;
 
-        ParameterInputDisplay(char *label, unsigned long memory_size, BaseParameterInput *input, int graph_height = PARAMETER_INPUT_GRAPH_HEIGHT) : MenuItem(label) {
+        ParameterInputDisplay(char *label, BaseParameterInput *input, int graph_height = PARAMETER_INPUT_GRAPH_HEIGHT) : MenuItem(label) {
             this->parameter_input = input;
-            this->memory_size = memory_size;
+            // Buffer is tick-resolution: one entry per tick in the phrase.
+            // This preserves sharp peaks and fast transitions.
+            // RAM cost is half that of float: TICKS_PER_PHRASE * 2 bytes per display.
+            this->memory_size = PARAMETER_INPUT_MEMORY_SIZE;
             this->selectable = !input->supports_bipolar_input();
             if (parameter_input!=nullptr) 
                 this->set_default_colours(parameter_input->colour);
 
             this->graph_height = graph_height;
 
-            //logged = (memory_log*)malloc(memory_size * sizeof(float));
-            //memset(logged, 0, memory_size*sizeof(float));
-            logged = (memory_log*)CALLOC_FUNC(memory_size, sizeof(float));
+            logged = (memory_log*)CALLOC_FUNC(this->memory_size, sizeof(memory_log));
+        }
+
+        // Encode float [0,1] to uint16_t
+        inline memory_log encode_memory_log(float value) const {
+            if (value <= 0.0f)
+                return 0;
+            if (value >= 1.0f)
+                return (memory_log)memory_log_max;
+            return (memory_log)(value * (float)memory_log_max + 0.5f);
+        }
+
+        // Decode uint16_t to float [0,1]
+        inline float decode_memory_log(memory_log value) const {
+            return (float)value / (float)memory_log_max;
         }
 
         virtual void configure(BaseParameterInput *parameter_input) {
             this->parameter_input = parameter_input;
         }
 
+        // Map a tick value to a buffer index (one entry per tick in the phrase)
         unsigned long ticks_to_memory_step(uint32_t ticks) {
-            return ( ticks % memory_size );
+            return ticks % TICKS_PER_PHRASE;
         }
 
         /*unsigned long last_position_updated;
@@ -87,28 +121,27 @@ class ParameterInputDisplay : public MenuItem
             }
         #endif
 
-        uint_fast16_t last_position_updated;
+        // UINT16_MAX is the sentinel meaning "not yet updated"
+        uint_fast16_t last_position_updated = UINT16_MAX;
+        memory_log last_logged_value = 0;
         virtual void receive_value_update(float value) {
             uint_fast16_t position = ticks_to_memory_step(ticks);
 
-            if (position==last_position_updated)
+            if (position == last_position_updated)
                 return;
 
-            // convert value according to the input/output settings
-            /*if (this->parameter_input->output_type==BIPOLAR) {
-                // center is 0, range -1 to +1, so re-center display
-                (logged)[position] = (0.5) + (value / 2);
-            } else if (this->parameter_input->output_type==UNIPOLAR) {*/
-                // center is 0.5, range 0 to 1.. dont modif 
-                (logged)[position] = value;
-            //}
+            memory_log encoded = encode_memory_log(value);
 
-            // do a simple backfill of values we missed
-            if (last_position_updated < position && (last_position_updated) - position > 1) {
-                for (uint_fast16_t i = last_position_updated+1 ; i < position ; i++)
-                    (logged)[i] = (logged)[position];
+            // Backfill any skipped positions with the LAST value (not the new value).
+            // This correctly represents what happened during the skipped ticks.
+            if (last_position_updated != UINT16_MAX && last_position_updated < position && (position - last_position_updated) > 1) {
+                for (uint_fast16_t i = last_position_updated + 1 ; i < position ; i++)
+                    logged[i] = last_logged_value;
             }
 
+            // Write new value at current position
+            logged[position] = encoded;
+            last_logged_value = encoded;
             last_position_updated = position;
         }
 
@@ -122,20 +155,23 @@ class ParameterInputDisplay : public MenuItem
                 this->halfbright_colour = tft->halfbright_565(this->default_fg);
 
             const int_fast16_t base_row = pos.y;
-            static float ticks_per_pixel = (float)memory_size / (float)tft->width();
+            const uint16_t screen_width = tft->width();
 
             // draw a halfbright line at the "zero" position
             int_fast16_t zero_position_y = parameter_input->input_type==BIPOLAR ? graph_height/2 : graph_height;
-            tft->drawLine(0, base_row + zero_position_y, tft->width(), base_row + zero_position_y, halfbright_colour);
+            tft->drawLine(0, base_row + zero_position_y, screen_width, base_row + zero_position_y, halfbright_colour);
+
+            // current tick position within the phrase, for past/future colour split
+            const uint32_t current_tick_in_phrase = ticks % TICKS_PER_PHRASE;
 
             int_fast16_t last_y = 0;
-            for (int screen_x = 0 ; screen_x < tft->width() ; screen_x++) {
-                const int_fast16_t tick_for_screen_X = ticks_to_memory_step((int)((float)screen_x * ticks_per_pixel)); // the tick corresponding to this screen position
-                const float value = (logged)[tick_for_screen_X];
-                const int_fast16_t y = graph_height - (value * graph_height);
+            for (uint16_t screen_x = 0 ; screen_x < screen_width ; screen_x++) {
+                // Map screen pixel to buffer tick: scale screen_x across TICKS_PER_PHRASE
+                const uint32_t tick_for_x = ((uint32_t)screen_x * TICKS_PER_PHRASE) / screen_width;
+                const float value = decode_memory_log(logged[tick_for_x]);
+                const int_fast16_t y = graph_height - (int_fast16_t)(value * graph_height);
                 if (screen_x != 0) {
-                    //int last_y = GRAPH_HEIGHT - (this->logged[tick_for_screen_X] * GRAPH_HEIGHT);
-                    uint16_t colour = ((uint32_t)tick_for_screen_X) < ticks % TICKS_PER_PHRASE ? parameter_input->colour : halfbright_colour;
+                    uint16_t colour = tick_for_x < current_tick_in_phrase ? parameter_input->colour : halfbright_colour;
                     tft->drawLine(screen_x-1, base_row + last_y, screen_x, base_row + y, colour);
                 }
                 last_y = y;

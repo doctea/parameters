@@ -56,8 +56,6 @@ class ParameterManager
     public:
         bool debug = false;
 
-        unsigned long memory_size;
-
         LinkedList<ADCDeviceBase*>      *devices = new LinkedList<ADCDeviceBase*>();  // actual i2c ADC devices, potentially with multiple channels
         LinkedList<VoltageSourceBase*>  *voltage_sources = new LinkedList<VoltageSourceBase*>();  // voltage-measuring channels
         LinkedList<BaseParameterInput*> *available_inputs = new LinkedList<BaseParameterInput*>();  // ParameterInputs, ie wrappers around input mechanism, assignable to a Parameter
@@ -93,8 +91,7 @@ class ParameterManager
         };
         #endif
 
-        ParameterManager (unsigned long memory_size) {
-            this->memory_size = memory_size;
+        ParameterManager () {
             this->available_inputs_hash = new Hashtable<String, BaseParameterInput*>();
 
             #ifdef ENABLE_STORAGE

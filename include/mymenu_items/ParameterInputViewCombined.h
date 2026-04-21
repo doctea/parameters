@@ -14,7 +14,6 @@
 
 #include "midi_helpers.h"
 
-//template<unsigned long memory_size>
 class ParameterInputCombinedDisplay : public MenuItem {
     public:
         //ParameterInputDisplay *displays[3] = { nullptr, nullptr, nullptr };

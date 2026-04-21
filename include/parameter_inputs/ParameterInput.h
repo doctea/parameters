@@ -171,7 +171,7 @@ class BaseParameterInput
 
     #ifdef ENABLE_SCREEN
       FLASHMEM
-      virtual SubMenuItemBar *makeControls(int16_t memory_size, const char *label_prefix = "");
+      virtual SubMenuItemBar *makeControls(const char *label_prefix = "");
     #endif
 
 };

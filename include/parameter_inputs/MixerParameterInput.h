@@ -49,8 +49,8 @@ class VirtualMixerParameterInput : public AnalogParameterInputBase<float> {
         }
 
         #ifdef ENABLE_SCREEN
-            virtual SubMenuItemBar *makeControls(int16_t memory_size, const char *label_prefix = "") override { 
-                SubMenuItemBar *a = AnalogParameterInputBase::makeControls(TICKS_PER_PHRASE);
+            virtual SubMenuItemBar *makeControls(const char *label_prefix = "") override { 
+                SubMenuItemBar *a = AnalogParameterInputBase::makeControls();
                 LinkedList<MenuItem*> *p_controls = underlying_parameter->makeControls();
                 menu->add(p_controls);
                 return a;

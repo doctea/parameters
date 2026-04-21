@@ -25,7 +25,7 @@ barlock_option_t barlock_options[BARLOCK_NUM_MODES] = {
     #include "mymenu_items/ParameterInputTypeSelector.h"
 
     FLASHMEM
-    SubMenuItemBar *BaseParameterInput::makeControls(int16_t memory_size, const char *label_prefix) {
+    SubMenuItemBar *BaseParameterInput::makeControls(const char *label_prefix) {
         // TODO: a new ParameterInputControl that allows to set expected input ranges
         char label[MENU_C_MAX];
         snprintf(label, MENU_C_MAX, "%s%s", label_prefix, this->name);
@@ -34,7 +34,7 @@ barlock_option_t barlock_options[BARLOCK_NUM_MODES] = {
         menu->add(new SeparatorMenuItem(label, this->colour));
 
         //Debug_printf(F("\tdoing menu->add for ParameterInputDisplay with label '%s'\n"), label);
-        ParameterInputDisplay *parameter_input_display = new ParameterInputDisplay(label, memory_size, this);
+        ParameterInputDisplay *parameter_input_display = new ParameterInputDisplay(label, this);
         #ifdef PARAMETER_INPUTS_USE_CALLBACKS
             param_input->add_parameter_input_callback_receiver(parameter_input_display);
         #endif
@@ -71,8 +71,8 @@ barlock_option_t barlock_options[BARLOCK_NUM_MODES] = {
     LinkedList<LambdaSelectorControl<uint32_t>::option> *sh_period_options = nullptr;
 
     FLASHMEM
-    SubMenuItemBar *VirtualParameterInput::makeControls(int16_t memory_size, const char *label_prefix) {
-        SubMenuItemBar *submenu = BaseParameterInput::makeControls(memory_size, label_prefix);
+    SubMenuItemBar *VirtualParameterInput::makeControls(const char *label_prefix) {
+        SubMenuItemBar *submenu = BaseParameterInput::makeControls(label_prefix);
 
         if (lfo_mode==LFO_FREE) {
             submenu->add(new DirectNumberControl<float>("Speed", &this->free_sine_divisor, this->free_sine_divisor, 0.01f, 1000.0f));
@@ -134,8 +134,8 @@ barlock_option_t barlock_options[BARLOCK_NUM_MODES] = {
     }
 
     FLASHMEM
-    SubMenuItemBar *BarLockParameterInput::makeControls(int16_t memory_size, const char *label_prefix) {
-        SubMenuItemBar *submenu = BaseParameterInput::makeControls(memory_size, label_prefix);
+    SubMenuItemBar *BarLockParameterInput::makeControls(const char *label_prefix) {
+        SubMenuItemBar *submenu = BaseParameterInput::makeControls(label_prefix);
 
         // Phrase-spanning modes expose the phrase length control
         if (mode == BARLOCK_PHRASE_RISE || mode == BARLOCK_PHRASE_FALL) {

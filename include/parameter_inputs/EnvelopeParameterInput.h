@@ -36,33 +36,6 @@ class EnvelopeParameterInput : public virtual AnalogParameterInputBase<float> {
         virtual const char *getInputInfo() {
             return "Envelope";
         }
-
-        /*virtual LinkedList<String> *save_pattern_add_lines(LinkedList<String> *lines) override {
-            AnalogParameterInputBase::save_pattern_add_lines(lines);
-
-            lines->add(String(this->name) + String(".envelope=") + String(this->envelope->name));
-
-            return lines;
-        }
-
-        virtual bool load_parse_key_value(String key, String value) override {
-            if(!key.startsWith(this->name)) return false;
-
-            key.replace(this->name,"");
-
-            if (key.equals(".envelope")) {
-                this->envelope = nullptr;
-                return true;
-            }
-
-            return false;
-        }*/
-
-        /*#ifdef ENABLE_SCREEN
-        virtual SubMenuItemBar *makeControls(int16_t memory_size, const char *label_prefix = "") override {
-            return nullptr;
-        }
-        #endif*/
 };
 
 #endif
