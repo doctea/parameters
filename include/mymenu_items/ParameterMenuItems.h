@@ -50,9 +50,15 @@ class ParameterValueMenuItem : public DirectNumberControl<float> {
         }
 
         virtual bool action_opened() override {
-            //Serial.printf("ParameterValueMenuItem#action_opened in %s ", this->label);
-            //Serial.printf("get_current_value() is %f\n", this->parameter->getCurrentValue());
-            //this->internal_value = this->get_current_value() / 100.0; //->parameter->getCurrentValue() * this->maximumDataValue; //->getCurrentValue() * this->maximumDataValue;
+            // Serial.printf("ParameterValueMenuItem#action_opened in %s ", this->label);
+            // Serial.printf("internal_value is %3.3f but get_current_value() is %3.3f\n", this->internal_value, (*this->parameter)->currentNormalValue);
+
+            // update control's internal value from the parameter's current value when we open the menu, 
+            // so that it shows the current value and not the last value used by this control 
+            // (which may be different if the control was last pointing at a different parameter)
+            // previously did battle with this but gave up trying to solve -- i think maybe because of an
+            // issue with CV Output parameters?
+            this->internal_value = (*parameter)->getCurrentNormalValue();
             return true;
         }
 
