@@ -69,13 +69,14 @@ class ParameterInputCombinedDisplay : public MenuItem {
             pos.y = tft->getCursorY();
             pos.x = 0;
 
-            uint_fast16_t graph_height = (this->graph_height - pos.y) / displays->size();
+            const uint_fast16_t graph_height = (this->graph_height - pos.y) / displays->size();
+            const uint_fast16_t screen_width = tft->width();
 
             for (uint_fast8_t i = 0 ; i < displays->size() ; i++) {
                 if (displays->get(i)!=nullptr) {
-                    pos.y = displays->get(i)->draw_graph(pos, graph_height);
+                    pos.y = displays->get(i)->draw_graph(pos, screen_width, graph_height);
                 }
-                tft->drawLine(0, pos.y, tft->width(), pos.y, GREY);
+                tft->drawLine(0, pos.y, screen_width, pos.y, GREY);
             }
 
             return pos.y;

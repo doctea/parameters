@@ -292,6 +292,21 @@ class ParameterInputSelectorControl : public SelectorControl<int_least16_t> {
         overlay.box_padding = 4;
         overlay.min_box_h = 28;
 
+        overlay.has_extra = true;
+        overlay.extra_height = 32;
+        overlay.draw_extra = [this](DisplayTranslator *tft, int x, int y, int max_width, int max_height) {
+            // ambitious: draw a little representation of the CV input signal if this ParameterInput supports it
+            BaseParameterInput *input = this->get_parameter_for_index(this->selected_value_index);
+            if (input!=nullptr) {
+                ParameterInputDisplay *display = input->parameter_input_display;
+                if (display!=nullptr) {
+                    const int display_w = max_width;
+                    const int display_h = max_height;
+                    display->draw_graph(x, y, display_w, display_h);
+                }
+            }
+        };
+
         return menu_draw_selector_takeover_overlay(tft, pos, overlay);
     }
 

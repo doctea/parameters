@@ -153,15 +153,19 @@ class ParameterInputDisplay : public MenuItem
 
         int16_t halfbright_colour = 0;
 
-        virtual int draw_graph(Coord pos, int graph_height) {
+        virtual int draw_graph(Coord pos, int graph_width, int graph_height) {
+            return draw_graph(pos.x, pos.y, graph_width, graph_height);
+        }
+        
+        virtual int draw_graph(int pos_x, int pos_y, int graph_width, int graph_height) {
             // switch back to colour-on-black for actual display
             colours(false, parameter_input->colour, BLACK);
 
             if (this->halfbright_colour==0)
                 this->halfbright_colour = tft->halfbright_565(this->default_fg);
 
-            const int_fast16_t base_row = pos.y;
-            const uint16_t screen_width = tft->width();
+            const int_fast16_t base_row = pos_y;
+            const uint16_t screen_width = graph_width;
 
             // draw a halfbright line at the "zero" position
             int_fast16_t zero_position_y = parameter_input->input_type==BIPOLAR ? graph_height/2 : graph_height;
@@ -171,7 +175,7 @@ class ParameterInputDisplay : public MenuItem
             const uint32_t current_pixel = ((uint32_t)(ticks % TICKS_PER_PHRASE) * screen_width) / TICKS_PER_PHRASE;
 
             int_fast16_t last_y = 0;
-            for (uint16_t screen_x = 0 ; screen_x < screen_width ; screen_x++) {
+            for (uint16_t screen_x = pos_x ; screen_x < pos_x + screen_width ; screen_x++) {
                 // Buffer is screen-width: one slot per pixel, no scaling needed
                 const float value = decode_memory_log(logged[screen_x]);
                 const int_fast16_t y = graph_height - (int_fast16_t)(value * graph_height);
@@ -182,11 +186,11 @@ class ParameterInputDisplay : public MenuItem
                 last_y = y;
             }
 
-            pos.y = pos.y + graph_height + 5;
+            pos_y = pos_y + graph_height + 5;
 
-            tft->setCursor(pos.x, pos.y);    // set cursor to below the graph's output
+            tft->setCursor(pos_x, pos_y);    // set cursor to below the graph's output
 
-            return pos.y;
+            return pos_y;
         }
 
         virtual int display(Coord pos, bool selected, bool opened) override {
@@ -215,7 +219,7 @@ class ParameterInputDisplay : public MenuItem
             #endif
             pos.y = tft->getCursorY();
 
-            pos.y = draw_graph(pos, graph_height);
+            pos.y = draw_graph(pos, tft->width(), graph_height);
 
             //this->do_extra(this->parameter_input);
             if (this->parameter_input!=nullptr && this->parameter_input->hasExtra())
