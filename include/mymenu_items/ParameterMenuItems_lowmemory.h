@@ -135,7 +135,7 @@ class ParameterMenuItemSelector : public SelectorControl<int_least16_t> { //publ
         const int total_chars = tft->width() / char_w;
         const bool show_marker = selected || opened;
         const int lead_chars = show_marker ? 1 : 0;   // room for the leading '>' marker
-        int max_label_chars = total_chars - lead_chars - 1;
+        int max_label_chars = total_chars - lead_chars; // - 1;
         if (max_label_chars < 1)
             max_label_chars = 1;
 

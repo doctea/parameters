@@ -783,34 +783,36 @@ class DataParameterBase : public FloatParameter {
 
             value += this->get_current_step((int)value);
             if (this->debug) Serial.printf("\tgot %i.\n", value);
-            int new_value = this->constrainDataToRange(value);
+            long min_value = (long)this->get_effective_minimum_data_value();
+            long max_value = (long)this->get_effective_maximum_data_value();
+            long new_value = constrain((long)value, min_value, max_value);
             if (this->debug) Serial.printf("\tbecame %i (after constrain to %i:%i)..\n", new_value, this->minimumDataLimit, this->maximumDataLimit);
-            return new_value;
+            return (DataType)new_value;
         }
         // returns a decremented DataType version of input value (int) - down to the current Range minimum
         virtual DataType decrementDataValue(unsigned int value) {
-            value -= this->get_current_step((int)value);
-            // handle unsigned values that might wrap back around to max
-            if ((DataType)value < this->get_effective_minimum_data_value() || (DataType)value >= this->get_effective_maximum_data_value())
-                return this->get_effective_minimum_data_value();
-            return this->constrainDataToRange(value);
+            long new_value = (long)value - (long)this->get_current_step((int)value);
+            long min_value = (long)this->get_effective_minimum_data_value();
+            long max_value = (long)this->get_effective_maximum_data_value();
+            return (DataType)constrain(new_value, min_value, max_value);
         }
         // returns an incremented DataType version of input value (int) - up to the current Range maximum
         virtual DataType incrementDataValue(int value) {
             //if (this->debug) Serial.printf("Parameter#incrementDataValue(%i)..\n", value); Serial.printf("\ttaking value %i and doing ++ on it..", value);
             value += this->get_current_step(value);
             //if (this->debug) Serial.printf("\tgot %i.\n");
-            int new_value = this->constrainDataToRange(value);
+            long min_value = (long)this->get_effective_minimum_data_value();
+            long max_value = (long)this->get_effective_maximum_data_value();
+            long new_value = constrain((long)value, min_value, max_value);
             //if (this->debug) Serial.printf("\tbecame %i (after constrain to %i:%i)..\n", new_value, this->minimumDataLimit, this->maximumDataLimit);
-            return new_value;
+            return (DataType)new_value;
         }
         // returns a decremented DataType version of input value (int) - down to the current Range minimum
         virtual DataType decrementDataValue(int value) {
-            value -= this->get_current_step(value);
-            // handle unsigned values that might wrap back around to max
-            if ((DataType)value < this->get_effective_minimum_data_value() || (DataType)value >= this->get_effective_maximum_data_value())
-                return this->get_effective_minimum_data_value();
-            return this->constrainDataToRange(value);
+            long new_value = (long)value - (long)this->get_current_step(value);
+            long min_value = (long)this->get_effective_minimum_data_value();
+            long max_value = (long)this->get_effective_maximum_data_value();
+            return (DataType)constrain(new_value, min_value, max_value);
         }
         // returns an incremented DataType version of input value (float) - up to the current Range maximum
         virtual DataType incrementDataValue(float value) {
