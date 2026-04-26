@@ -118,15 +118,14 @@ class BarLockParameterInput : public AnalogParameterInputBase<float> {
             if (this->is_significant_change(currentValue, this->lastValue)) {
                 this->lastValue = this->currentValue;
                 this->currentValue = currentValue;
-
-                #ifdef PARAMETER_INPUTS_USE_CALLBACKS
-                    float normal = this->get_normal_value_unipolar(currentValue);
-                    this->on_value_read(normal);
-                    if (this->callback != nullptr) {
-                        (*this->callback)(normal);
-                    }
-                #endif
             }
+            #ifdef PARAMETER_INPUTS_USE_CALLBACKS
+                float normal = this->get_normal_value(currentValue, UNIPOLAR);
+                this->on_value_read(normal);
+                if (this->callback != nullptr) {
+                    (*this->callback)(normal);
+                }
+            #endif
         }
 
         #ifdef ENABLE_STORAGE

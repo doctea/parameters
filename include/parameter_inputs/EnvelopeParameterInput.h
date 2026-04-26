@@ -27,6 +27,21 @@ class EnvelopeParameterInput : public virtual AnalogParameterInputBase<float> {
         virtual void read() override {
             if (this->envelope==nullptr) return;
             this->currentValue = this->envelope->get_envelope_level();
+
+            #ifdef PARAMETER_INPUTS_USE_CALLBACKS
+                float normal = this->get_normal_value(currentValue, UNIPOLAR);
+                this->on_value_read(normal);
+                if (this->callback != nullptr) {
+                    if (this->debug) {
+                        Debug_print(this->name);
+                        Debug_print(": calling callback(");
+                        Debug_print(normal);
+                        Debug_println(")");
+                        Serial_flush();
+                    }      
+                    (*this->callback)(normal);
+                }
+            #endif
         }
 
         virtual void loop() override {

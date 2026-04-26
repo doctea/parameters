@@ -108,19 +108,19 @@ class AnalogParameterInputBase : public ParameterInput {
       if (is_significant_change(currentValue, this->lastValue)) {
         this->lastValue = this->currentValue;
         this->currentValue = currentValue;
-
-        #ifdef PARAMETER_INPUTS_USE_CALLBACKS
-          float normal = get_normal_value_unipolar(currentValue);
-          this->on_value_read(currentValue);
-          if (callback != NULL) {
-            Debug_print(this->name);
-            Debug_print(F(": calling callback("));
-            Debug_print(normal);
-            Debug_println(')');
-            callback(normal);
-          }
-        #endif
       }
+
+      #ifdef PARAMETER_INPUTS_USE_CALLBACKS
+        float normal = get_normal_value(currentValue, UNIPOLAR);
+        this->on_value_read(currentValue);
+        if (callback != NULL) {
+          Debug_print(this->name);
+          Debug_print(F(": calling callback("));
+          Debug_print(normal);
+          Debug_println(')');
+          callback(normal);
+        }
+      #endif
     }
 
     #ifdef ENABLE_STORAGE

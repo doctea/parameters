@@ -36,7 +36,7 @@ barlock_option_t barlock_options[BARLOCK_NUM_MODES] = {
         //Debug_printf(F("\tdoing menu->add for ParameterInputDisplay with label '%s'\n"), label);
         ParameterInputDisplay *parameter_input_display = new ParameterInputDisplay(label, this);
         #ifdef PARAMETER_INPUTS_USE_CALLBACKS
-            param_input->add_parameter_input_callback_receiver(parameter_input_display);
+            this->add_parameter_input_callback_receiver(parameter_input_display);
         #endif
         this->parameter_input_display = parameter_input_display;
         menu->add(parameter_input_display);

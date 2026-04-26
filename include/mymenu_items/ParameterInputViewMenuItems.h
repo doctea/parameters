@@ -29,11 +29,17 @@
     #define PARAMETER_INPUT_MEMORY_LOG_MAX 255u
 #endif
 
-// Buffer size is always the screen width — one slot per pixel.
-// This is stable across time signature changes (TICKS_PER_PHRASE is runtime on ENABLE_TIME_SIGNATURE
-// targets, so allocating by tick count would cause out-of-bounds writes after a time sig change).
-// The write path scales tick-in-phrase → pixel; the display path reads logged[screen_x] directly.
+// Buffer sample count for the history log.
+// Default (undefined): set at runtime to the screen width — one slot per pixel.
+// Set to a larger power-of-2 value (e.g. 1024) on RAM-rich targets for higher graph resolution.
+// The write path scales tick-in-phrase → [0, memory_size); the draw path scales back to screen pixels.
+#ifndef PARAMETER_INPUT_MEMORY_LOG_SIZE
+    // resolved at runtime in on_add() — see below
+#endif
 
+#include "bpm.h"
+
+//#define PARAMETER_INPUT_MEMORY_LOG_SIZE (TIME_SIG_MAX_STEPS_PER_BAR * TICKS_PER_BAR)
 
 class ParameterInputDisplay : public MenuItem
 #ifdef PARAMETER_INPUTS_USE_CALLBACKS
@@ -66,8 +72,12 @@ class ParameterInputDisplay : public MenuItem
         virtual void on_add() override {
             MenuItem::on_add();
             
-            // TODO: more robust SCREEN_ROTATION handling, since might mean different things on different displays/libraries
-            this->memory_size = SCREEN_ROTATION%2==0 ? TFT_WIDTH : TFT_HEIGHT;
+            #ifdef PARAMETER_INPUT_MEMORY_LOG_SIZE
+                this->memory_size = PARAMETER_INPUT_MEMORY_LOG_SIZE;
+            #else
+                // TODO: more robust SCREEN_ROTATION handling, since might mean different things on different displays/libraries
+                this->memory_size = SCREEN_ROTATION%2==0 ? TFT_WIDTH : TFT_HEIGHT;
+            #endif
             logged = (memory_log*)CALLOC_FUNC(this->memory_size, sizeof(memory_log));
         }
 
@@ -169,18 +179,30 @@ class ParameterInputDisplay : public MenuItem
 
             // draw a halfbright line at the "zero" position
             int_fast16_t zero_position_y = parameter_input->input_type==BIPOLAR ? graph_height/2 : graph_height;
-            tft->drawLine(0, base_row + zero_position_y, screen_width, base_row + zero_position_y, halfbright_colour);
+            tft->drawLine(pos_x, base_row + zero_position_y, pos_x + graph_width, base_row + zero_position_y, halfbright_colour);
 
             // current pixel position within the phrase, for past/future colour split
-            const uint32_t current_pixel = ((uint32_t)(ticks % TICKS_PER_PHRASE) * screen_width) / TICKS_PER_PHRASE;
+            // const uint32_t current_pixel = ((uint32_t)(ticks % TICKS_PER_PHRASE) * screen_width) / TICKS_PER_PHRASE;
+
+            const float translation_multiplier = (float)memory_size / screen_width;
+            const uint32_t current_buffer_index = ticks_to_memory_step(ticks);
 
             int_fast16_t last_y = 0;
             for (uint16_t screen_x = pos_x ; screen_x < pos_x + screen_width ; screen_x++) {
-                // Buffer is screen-width: one slot per pixel, no scaling needed
-                const float value = decode_memory_log(logged[screen_x]);
+                uint32_t buffer_index;
+                if (memory_size == screen_width) {
+                    // Buffer is screen-width: one slot per pixel, no scaling needed
+                    buffer_index = screen_x;                   
+                } else {
+                    // Buffer is not screen-width: need to scale pixel column to buffer index
+                    buffer_index = (uint32_t)((screen_x - pos_x) * translation_multiplier);
+                }
+                const float value = decode_memory_log(logged[buffer_index]);
+
                 const int_fast16_t y = graph_height - (int_fast16_t)(value * graph_height);
                 if (screen_x != 0) {
-                    uint16_t colour = screen_x < current_pixel ? parameter_input->colour : halfbright_colour;
+                    //uint16_t colour = screen_x < current_pixel ? parameter_input->colour : halfbright_colour;
+                    uint16_t colour = buffer_index < current_buffer_index ? parameter_input->colour : halfbright_colour;
                     tft->drawLine(screen_x-1, base_row + last_y, screen_x, base_row + y, colour);
                 }
                 last_y = y;

@@ -161,8 +161,8 @@ class BaseParameterInput
       }
       float last_value;
       virtual void on_value_read(float currentValue) {
-        if (currentValue==last_value)
-          return;
+        // if (currentValue==last_value)
+        //   return;
         for (int i = 0 ; i < callback_receivers->size() ; i++) {
           callback_receivers->get(i)->receive_value_update(currentValue);
         }

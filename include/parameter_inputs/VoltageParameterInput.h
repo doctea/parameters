@@ -98,43 +98,44 @@ class VoltageParameterInput
                     Debug_println(normal); Serial_flush();
                 }
                 #endif*/
-
-                #ifdef PARAMETER_INPUTS_USE_CALLBACKS
-                    float normal = this->get_normal_value_unipolar(currentValue);
-                    this->on_value_read(normal);
-                    if (this->callback != nullptr) {
-                        if (this->debug) {
-                            Debug_print(this->name);
-                            Debug_print(": calling callback(");
-                            Debug_print(normal);
-                            Debug_println(")");
-                            Serial_flush();
-                        }      
-                        (*this->callback)(normal);
-                    }
-                #endif
-
-                /*if (this->target_parameter!=nullptr) {
-                    if (this->debug) {
-                        Serial.println("Calling on target_parameter.."); Serial_flush();
-                        Serial.print(this->name); Serial_flush();
-                        Serial.print(F(": calling target from normal setParamValue(")); Serial_flush();
-                        Serial.print(normal); Serial_flush();
-                        Serial.print(F(")")); Serial_flush();
-                        Serial.print(" from currentValue "); Serial_flush();
-                        Serial.print(currentValue); Serial_flush();
-                        if (this->inverted) { Serial.print(F(" - inverted")); Serial_flush(); }
-                        Serial.println(); Serial_flush();
-
-                        #ifdef ENABLE_PRINTF
-                            Serial.printf("VoltageParameterInput %c calling setParamValue with maximum_input_voltage ", this->name);
-                            Serial.println(this->voltage_source->maximum_input_voltage);
-                        #endif
-                    }
-                    //this->target_parameter->setParamValue(normal, this->voltage_source->maximum_input_voltage);
-                    this->target_parameter->updateValueFromNormal(normal); //
-                }*/
-                //Serial.println("Finishing read()"); Serial_flush();
             }
+
+            #ifdef PARAMETER_INPUTS_USE_CALLBACKS
+                float normal = this->get_normal_value(currentValue, UNIPOLAR);
+                this->on_value_read(normal);
+                if (this->callback != nullptr) {
+                    if (this->debug) {
+                        Debug_print(this->name);
+                        Debug_print(": calling callback(");
+                        Debug_print(normal);
+                        Debug_println(")");
+                        Serial_flush();
+                    }      
+                    (*this->callback)(normal);
+                }
+            #endif
+
+            /*if (this->target_parameter!=nullptr) {
+                if (this->debug) {
+                    Serial.println("Calling on target_parameter.."); Serial_flush();
+                    Serial.print(this->name); Serial_flush();
+                    Serial.print(F(": calling target from normal setParamValue(")); Serial_flush();
+                    Serial.print(normal); Serial_flush();
+                    Serial.print(F(")")); Serial_flush();
+                    Serial.print(" from currentValue "); Serial_flush();
+                    Serial.print(currentValue); Serial_flush();
+                    if (this->inverted) { Serial.print(F(" - inverted")); Serial_flush(); }
+                    Serial.println(); Serial_flush();
+
+                    #ifdef ENABLE_PRINTF
+                        Serial.printf("VoltageParameterInput %c calling setParamValue with maximum_input_voltage ", this->name);
+                        Serial.println(this->voltage_source->maximum_input_voltage);
+                    #endif
+                }
+                //this->target_parameter->setParamValue(normal, this->voltage_source->maximum_input_voltage);
+                this->target_parameter->updateValueFromNormal(normal); //
+            }*/
+            //Serial.println("Finishing read()"); Serial_flush();
+        
         }
 };

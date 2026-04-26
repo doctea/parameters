@@ -1,5 +1,9 @@
 #pragma once
 
+#ifndef TIME_BETWEEN_CV_INPUT_UPDATES
+    #define TIME_BETWEEN_CV_INPUT_UPDATES 5
+#endif
+
 #if defined(USE_UCLOCK) 
     #if defined(CORE_TEENSY)
         #include <util/atomic.h>
@@ -61,7 +65,7 @@ class ParameterManager
         LinkedList<BaseParameterInput*> *available_inputs = new LinkedList<BaseParameterInput*>();  // ParameterInputs, ie wrappers around input mechanism, assignable to a Parameter
         LinkedList<FloatParameter*>     *available_parameters = new LinkedList<FloatParameter*>();        // Parameters, ie wrappers around destination object
 
-        Hashtable<String, BaseParameterInput*> *available_inputs_hash = nullptr; //= new Hashtable<String, BaseParameterInput*>();
+        // Hashtable<String, BaseParameterInput*> *available_inputs_hash = nullptr; //= new Hashtable<String, BaseParameterInput*>();
 
         FloatParameter *param_none = nullptr;        // 'blank' parameter used as default mapping
 
@@ -92,7 +96,7 @@ class ParameterManager
         #endif
 
         ParameterManager () {
-            this->available_inputs_hash = new Hashtable<String, BaseParameterInput*>();
+            // this->available_inputs_hash = new Hashtable<String, BaseParameterInput*>();
 
             #ifdef ENABLE_STORAGE
                 this->set_path_segment("ParameterManager");
@@ -756,12 +760,12 @@ class ParameterManager
 
         volatile unsigned long time_of_last_param_update = 0;
 
-        FASTRUN bool ready_for_next_update(unsigned int time_between_cv_input_updates = 5) {
+        FASTRUN bool ready_for_next_update(unsigned int time_between_cv_input_updates = TIME_BETWEEN_CV_INPUT_UPDATES) {
             return millis() - time_of_last_param_update > time_between_cv_input_updates;
         }
 
         // update inputs WITHOUT also updating mixers
-        FASTRUN void throttled_update_cv_inputs(int time_between_cv_input_updates = 5) {
+        FASTRUN void throttled_update_cv_inputs(int time_between_cv_input_updates = TIME_BETWEEN_CV_INPUT_UPDATES) {
             #ifdef USE_ATOMIC
             ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
             #endif
@@ -782,9 +786,9 @@ class ParameterManager
         }
 
         // handle slicing stages of update and throttling updates - also update mixers
-        FASTRUN void throttled_update_cv_input__all(int time_between_cv_input_updates = 5, bool slice_stages = false, bool slice_mixers = false) {
+        FASTRUN void throttled_update_cv_input__all(int time_between_cv_input_updates = TIME_BETWEEN_CV_INPUT_UPDATES, bool slice_stages = false, bool slice_mixers = false) {
             {
-                if (ready_for_next_update()) {
+                if (ready_for_next_update(time_between_cv_input_updates)) {
                     if (slice_stages) {
                         static int_fast8_t current_mode = 0;
                         if (debug) { Serial.println(F("about to do parameter_manager->update_voltage_sources()..")); Serial_flush(); }

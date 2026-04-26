@@ -124,7 +124,7 @@ class VirtualParameterInput : public AnalogParameterInputBase<float> {
                 #endif
 
                 #ifdef PARAMETER_INPUTS_USE_CALLBACKS
-                    float normal = this->get_normal_value_unipolar(currentValue);
+                    float normal = this->get_normal_value(currentValue, UNIPOLAR);
                     this->on_value_read(normal);
                     if (this->callback != nullptr) {
                         if (this->debug) {
