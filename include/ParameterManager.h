@@ -59,6 +59,9 @@ class ParameterManager
     public:
         bool debug = false;
 
+        bool (*save_system_settings_callback)() = nullptr;
+        bool (*load_system_settings_callback)() = nullptr;
+
         LinkedList<ADCDeviceBase*>      *devices = new LinkedList<ADCDeviceBase*>();  // actual i2c ADC devices, potentially with multiple channels
         LinkedList<VoltageSourceBase*>  *voltage_sources = new LinkedList<VoltageSourceBase*>();  // voltage-measuring channels
         LinkedList<BaseParameterInput*> *available_inputs = new LinkedList<BaseParameterInput*>();  // ParameterInputs, ie wrappers around input mechanism, assignable to a Parameter
@@ -317,6 +320,23 @@ class ParameterManager
         }
 
         #ifdef ENABLE_SCREEN
+            void addSystemSettingsActionItems(Menu *menu) {
+                menu->add(new LambdaActionConfirmItem("SaveSys", [=]() -> void {
+                    if (this->save_system_settings_callback != nullptr) {
+                        this->save_system_settings_callback();
+                    } else if (Serial) {
+                        Serial.println(F("Save System Settings callback not configured"));
+                    }
+                }));
+                menu->add(new LambdaActionConfirmItem("LoadSys", [=]() -> void {
+                    if (this->load_system_settings_callback != nullptr) {
+                        this->load_system_settings_callback();
+                    } else if (Serial) {
+                        Serial.println(F("Load System Settings callback not configured"));
+                    }
+                }));
+            }
+
             //#include "menuitems_quickpage.h"
             
             FLASHMEM void addAllParameterInputMenuItems(Menu *menu, bool page_per_input = false);
@@ -467,6 +487,7 @@ class ParameterManager
                                     }
                                 }
                             }));
+                            this->addSystemSettingsActionItems(menu);
                         }
                     }
                 }
@@ -492,9 +513,6 @@ class ParameterManager
                                 Serial.println("Adding calibration controls..."); Serial_flush();
                                 menu->add(calibration_controls);
                                 Serial.println("Added calibration controls!"); Serial_flush();
-                                #if defined(ENABLE_CALIBRATION_STORAGE)
-                                    menu->add(parameter->makeCalibrationLoadSaveControls());
-                                #endif
                             } else {
                                 Serial.printf("Nothing to add for parameter %i\n", i);
                             }
@@ -524,6 +542,9 @@ class ParameterManager
                             }
                             Serial.println("Outputting input calibration data done!");
                         }));
+                        if (page_created) {
+                            this->addSystemSettingsActionItems(menu);
+                        }
                     }
                 #endif
         #endif

@@ -251,15 +251,49 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
         }
 
         // don't think this is actually needed -- why would we want to load/save the dac channel dynamically?
-        // virtual void setup_saveable_settings() override {
-        //     DataParameter<TargetClass,DataType>::setup_saveable_settings();
-        //     if (this->configurable) {
-        //         this->register_setting(new LSaveableSetting<byte>(
-        //             "dac_channel", "Output",
-        //             &this->dac_channel
-        //         ));
-        //     }
-        // }
+        #ifdef ENABLE_STORAGE
+        virtual void setup_saveable_settings() override {
+            DataParameter<TargetClass,DataType>::setup_saveable_settings();
+
+            this->register_setting(new LSaveableSetting<uint16_t>(
+                "calibrated_lowest_value",
+                "Calibration",
+                nullptr,
+                [=](uint16_t value) -> void {
+                    this->calibrated_lowest_value = value;
+                    this->setTargetValueFromData(this->getCurrentDataValue(), true);
+                },
+                [=]() -> uint16_t {
+                    return this->calibrated_lowest_value;
+                }
+            ), SL_SCOPE_SYSTEM, false);
+
+            this->register_setting(new LSaveableSetting<uint16_t>(
+                "calibrated_highest_value",
+                "Calibration",
+                nullptr,
+                [=](uint16_t value) -> void {
+                    this->calibrated_highest_value = value;
+                    this->setTargetValueFromData(this->getCurrentDataValue(), true);
+                },
+                [=]() -> uint16_t {
+                    return this->calibrated_highest_value;
+                }
+            ), SL_SCOPE_SYSTEM, false);
+
+            this->register_setting(new LSaveableSetting<const char*>(
+                "calibration_input",
+                "Calibration",
+                nullptr,
+                [=](const char* value) -> void {
+                    this->set_calibration_parameter_input(value);
+                },
+                [=]() -> const char* {
+                    return this->calibration_input != nullptr ? this->calibration_input->name : "";
+                }
+            ), SL_SCOPE_SYSTEM, false);
+        }
+        #endif
 
         //FLASHMEM virtual LinkedList<MenuItem *> *makeControls() override;
         #ifdef ENABLE_SCREEN
@@ -464,90 +498,62 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
             Serial.printf("calibrated_highest_value=%u\n", this->calibrated_highest_value);
         }
 
-        virtual void save_calibration() override {
-            // todo: make VoltageSource know its name so that it knows where to save to
-            Debug_printf("CVOutputParameter: save_calibration for slot %i!\n", global_slot);
-            //int slot = parameter_manager.find_slot_for_voltage(this);
-
-            //parameter_manager->save_voltage_calibration(slot);
-
-            Debug_printf("\tfor slot %s, saving calibration values %u : %u\n", this->label, this->calibrated_lowest_value, this->calibrated_highest_value);
-        
-            char filename[255] = "";
-            snprintf(filename, 255, FILEPATH_CVOUTPUT_CALIBRATION_FORMAT, this->label); //, preset_number);
-            Debug_printf("\tsave_calibration() opening %s\n", filename);
-
-            if (STORAGE.exists(filename)) {
-                Debug_println("\tfile exists - removing!");
-                STORAGE.remove(filename);
-            }
-
-            File myFile = STORAGE.open(filename, FILE_WRITE_MODE /*FILE_WRITE_BEGIN*/);
-            if (myFile) {
-                //myFile.printf("correction_value_1=%6.6f\n", this->correction_value_1);
-                //myFile.printf("correction_value_2=%6.6f\n", this->correction_value_2);
-                myFile.printf("calibrated_lowest_value=%u\n", this->calibrated_lowest_value);
-                myFile.printf("calibrated_highest_value=%u\n", this->calibrated_highest_value);
-                myFile.close();
-                Debug_printf("\tsaved!\n");
-                //message_log("Saved calibration!");
-            } else {
-                Debug_printf("\tError saving calibration!\n");
-                //message_log("Error saving calibration!");
-            }
-            //myFile.close();
-            Debug_printf("\tEnd of save_calibration.\n");
-        }
-        virtual void load_calibration() override {
-            // todo: make VoltageSource know its name so that it knows where to load from
-            //Debug_printf("CVOutputParameter: load_calibration for slot!\n", slot);
-            Serial_printf("CVOutputParameter: load_calibration for slot %s!\n", this->label);
-            //int slot = parameter_manager.find_slot_for_voltage(this);
-
-            //parameter_manager->load_voltage_calibration(slot); //, this);
+        // TEMPORARY LEGACY FALLBACK
+        // Remove this once migration from calibration_cvoutput_*.txt is no longer needed.
+        bool load_legacy_calibration_file() {
             File myFile;
 
             #ifdef ENABLE_SD
                 if (!STORAGE.mediaPresent()) {
                     Serial_println("No SD card found!");
-                    return;
+                    return false;
                 }
             #endif
 
             char filename[255] = "";
-            snprintf(filename, 255, FILEPATH_CVOUTPUT_CALIBRATION_FORMAT, this->label); //, preset_number);
-            Debug_printf("\tload_calibration() opening '%s' for global slot %s\n", filename, this->label);
+            snprintf(filename, 255, FILEPATH_CVOUTPUT_CALIBRATION_FORMAT, this->label);
+            Debug_printf("\tLEGACY FALLBACK: opening '%s' for global slot %s\n", filename, this->label);
             myFile.setTimeout(0);
             myFile = STORAGE.open(filename, FILE_READ_MODE);
 
             if (!myFile) {
-                //Debug_printf("\tError: Couldn't open '%s' for reading for slot %i!\n", filename, slot);
-                Serial_printf("\tError: Couldn't open '%s' for reading for global slot %s!\n", filename, this->label);
-                return; // false;
+                Serial_printf("\tLEGACY FALLBACK: couldn't open '%s' for %s\n", filename, this->label);
+                return false;
             }
+
             String line;
             while (myFile.available()) {
                 line = myFile.readStringUntil('\n');
                 String key = line.substring(0, line.indexOf("="));
-                String value = line.substring(line.indexOf("=")+1);
-                Debug_printf("\tfor %s, found value '%s' => %6.6f\n", key.c_str(), value.c_str(), value.toFloat());
-                /*if (key.equals("correction_value_1")) {
-                    this->correction_value_1 = value.toFloat();
-                } else if (key.equals("correction_value_2")) {
-                    this->correction_value_2 = value.toFloat();
-                }*/
+                String value = line.substring(line.indexOf("=") + 1);
                 if (key.equals("calibrated_lowest_value")) {
                     this->calibrated_lowest_value = value.toInt();
                 } else if (key.equals("calibrated_highest_value")) {
-                    this->calibrated_highest_value = value.toInt();            
+                    this->calibrated_highest_value = value.toInt();
                 }
             }
             myFile.close();
 
-            // now re-send value, which should now be based on the newly loaded calibration data
             this->setTargetValueFromData(this->getCurrentDataValue(), true);
+            Debug_printf("LEGACY FALLBACK: for %s, got calibration values %u : %u\n", this->label, this->calibrated_lowest_value, this->calibrated_highest_value);
+            return true;
+        }
 
-            Debug_printf("for slot %i, got calibration values %u : %u\n", this->label, this->calibrated_lowest_value, this->calibrated_highest_value);
+        virtual void save_calibration() override {
+            if (parameter_manager != nullptr && parameter_manager->save_system_settings_callback != nullptr) {
+                parameter_manager->save_system_settings_callback();
+            } else if (Serial) {
+                Serial.println("CVOutputParameter::save_calibration: system settings callback not configured");
+            }
+        }
+        virtual void load_calibration() override {
+            if (parameter_manager != nullptr && parameter_manager->load_system_settings_callback != nullptr) {
+                if (!parameter_manager->load_system_settings_callback()) {
+                    load_legacy_calibration_file();
+                }
+            } else if (Serial) {
+                Serial.println("CVOutputParameter::load_calibration: system settings callback not configured");
+            }
         }
 };
 
