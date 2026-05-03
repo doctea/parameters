@@ -15,7 +15,7 @@ stage_t operator++ (stage_t& d) {
     FLASHMEM
     void EnvelopeBase::make_menu_items(Menu *menu, int index) {
         char label[40];
-        snprintf(label, 40, "Envelope %i: %s", index, this->label);
+        snprintf(label, 40, "%s Env", this->label);
         menu->add_page(label, C_WHITE, false);
 
         menu->add(new EnvelopeDisplay("Graph", this));

@@ -172,7 +172,6 @@ void ParameterManager::process_calibration() {
         CustomQuickPagesMenuItem *quickjump = new CustomQuickPagesMenuItem("QuickJump to Overviews");
         menu->add(quickjump);
         page_t *started_page = menu->get_selected_page();   // for remembering what page the quickjump menu itself is
-
         menu->remember_opened_page(menu->get_page_index_for_name(menu->get_selected_page()->title));
 
         ParameterInputCombinedDisplay *combined_display = nullptr;
