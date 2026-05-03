@@ -19,7 +19,7 @@
 
 class ADSVoltageSourceBase : public VoltageSourceBase
     #ifdef ENABLE_STORAGE
-        , public SHStorage<0, 2>
+        , virtual public SHDynamic<0, 2>
     #endif
 {
     public:
@@ -46,10 +46,10 @@ class ADSVoltageSourceBase : public VoltageSourceBase
 
         #ifdef ENABLE_STORAGE
             void setup_saveable_settings() override {
-                register_setting(new LSaveableSetting<float>(
+                register_setting(new VarSetting<float>(
                     "correction_value_1", "Calibration", &this->correction_value_1
                 ), SL_SCOPE_SYSTEM);
-                register_setting(new LSaveableSetting<float>(
+                register_setting(new VarSetting<float>(
                     "correction_value_2", "Calibration", &this->correction_value_2
                 ), SL_SCOPE_SYSTEM);
             }

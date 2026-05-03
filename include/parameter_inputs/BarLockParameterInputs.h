@@ -132,12 +132,10 @@ class BarLockParameterInput : public AnalogParameterInputBase<float> {
             virtual void setup_saveable_settings() override {
                 AnalogParameterInputBase::setup_saveable_settings();
 
-                register_setting(new LSaveableSetting<uint8_t>(
+                register_setting(new VarSetting<uint8_t>(
                     "Phrase Bars",
                     "BarLockParameterInput",
-                    &this->phrase_bars,
-                    [=](uint8_t value) -> void { this->phrase_bars = value; },
-                    [=](void) -> uint8_t       { return this->phrase_bars; }
+                    &this->phrase_bars
                 ), SL_SCOPE_SCENE | SL_SCOPE_PROJECT);
             }
         #endif

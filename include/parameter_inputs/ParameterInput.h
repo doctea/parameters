@@ -145,7 +145,7 @@ class BaseParameterInput
 
         // @@TODO: probably want to use unpolar/bipolar strings (similar to how we do in Parameter)
         register_setting(
-          new LSaveableSetting<VALUE_TYPE>(
+          new VarSetting<VALUE_TYPE>(
             "Input Type",
             "ParameterInput",
             &this->input_type

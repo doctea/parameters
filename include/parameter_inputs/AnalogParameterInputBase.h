@@ -131,13 +131,7 @@ class AnalogParameterInputBase : public ParameterInput {
           new LSaveableSetting<bool>(
             "Inverted",
             "AnalogParameterInputBase",
-            &this->inverted,
-            [=](bool value) -> void {
-              this->inverted = value;
-            },
-            [=](void) -> bool {
-              return this->inverted;
-            }
+            &this->inverted
           ), SL_SCOPE_SCENE | SL_SCOPE_PROJECT
         );
       }

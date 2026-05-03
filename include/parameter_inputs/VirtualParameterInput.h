@@ -182,49 +182,25 @@ class VirtualParameterInput : public AnalogParameterInputBase<float> {
                 //     )
                 // );
 
-                register_setting(new LSaveableSetting<float>(
+                register_setting(new VarSetting<float>(
                         "Locked Period",
                         "VirtualParameterInput",
-                        &this->locked_period,
-                        [=](float value) -> void {
-                            this->locked_period = value;
-                        },
-                        [=](void) -> float {
-                            return this->locked_period;
-                        }
+                        &this->locked_period
                     ), SL_SCOPE_SCENE | SL_SCOPE_PROJECT);
-                register_setting(new LSaveableSetting<float>(
+                register_setting(new VarSetting<float>(
                         "Locked Phase",
                         "VirtualParameterInput",
-                        &this->locked_phase,
-                        [=](float value) -> void {
-                            this->locked_phase = value;
-                        },
-                        [=](void) -> float {
-                            return this->locked_phase;
-                        }
+                        &this->locked_phase
                     ), SL_SCOPE_SCENE | SL_SCOPE_PROJECT);
-                register_setting(new LSaveableSetting<float>(
+                register_setting(new VarSetting<float>(
                         "Free Sine Divisor",
                         "VirtualParameterInput",
-                        &this->free_sine_divisor,
-                        [=](float value) -> void {
-                            this->free_sine_divisor = value;
-                        },
-                        [=](void) -> float {
-                            return this->free_sine_divisor;
-                        }
+                        &this->free_sine_divisor
                     ), SL_SCOPE_SCENE | SL_SCOPE_PROJECT);
-                register_setting(new LSaveableSetting<uint32_t>(
+                register_setting(new VarSetting<uint32_t>(
                         "Sample&Hold Ticks",
                         "VirtualParameterInput",
-                        &this->sh_ticks,
-                        [=](uint32_t value) -> void {
-                            this->sh_ticks = value;
-                        },
-                        [=](void) -> uint32_t {
-                            return this->sh_ticks;
-                        }
+                        &this->sh_ticks
                     ), SL_SCOPE_SCENE | SL_SCOPE_PROJECT);
             }
         #endif
