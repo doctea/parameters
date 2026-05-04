@@ -646,10 +646,24 @@ class DataParameterBase : public FloatParameter {
             this->currentDataValue = this->normalToData(value); //->minimumDataLimit + (value * this->maximumNormalValue);
             this->initialNormalValue = value;
             this->initialDataValue = this->currentDataValue;
+
+            // Keep UI/output tracking coherent at startup for non-0..1 ranges.
+            this->lastNormalValue = this->currentNormalValue;
+            this->lastModulatedNormalValue = this->currentNormalValue;
+            this->lastOutputNormalValue = this->currentNormalValue;
+            this->lastRealOutputNormalValue = this->currentNormalValue;
+            this->last_sent_value = this->currentDataValue;
         }
         virtual void setInitialValueFromData(DataType value) {
             this->currentNormalValue = this->initialNormalValue = this->dataToNormal(value); 
             this->currentDataValue = this->initialDataValue = value;
+
+            // Keep UI/output tracking coherent at startup for non-0..1 ranges.
+            this->lastNormalValue = this->currentNormalValue;
+            this->lastModulatedNormalValue = this->currentNormalValue;
+            this->lastOutputNormalValue = this->currentNormalValue;
+            this->lastRealOutputNormalValue = this->currentNormalValue;
+            this->last_sent_value = this->currentDataValue;
         }
 
         // update internal param and call setter on target
