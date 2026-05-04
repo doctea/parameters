@@ -27,6 +27,20 @@ Build flags:
 - -DPARAMETER_INPUTS_USE_CALLBACKS to use callbacks for parameter input value changes in ParameterInputDisplay, instead of polling from menu
 - -DDISABLE_PARAMETER_INPUT_SELECTORS to disable parameter input selectors on the 'heavyweight' parameter controls
 
+## Modulation Slot Modes
+
+Per-slot modulation mode is configured with compact labels (defined centrally in [include/ParameterTypes.h](include/ParameterTypes.h)):
+
+- U+ : unipolar raw mode
+- U+- : centered mode from a unipolar source
+- B+- : native bipolar mode
+
+Implementation detail:
+
+- Mode labels are centralized in `MOD_SLOT_LABEL_*` macros for quick UI tweaks.
+- Slot mode values are serialized as `uni_raw`, `uni_centered`, `bi_native`.
+- Legacy save values are still accepted: `unipolar`, `bipolar`.
+
 # Current status
 
 ## Currently working

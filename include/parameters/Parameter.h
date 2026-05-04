@@ -66,6 +66,7 @@ struct ParameterToInputConnection {
         MenuItem *amount_control = nullptr;
         SelectorControl<int> *input_control = nullptr;
     #endif*/
+    // Legacy field name retained for compatibility; this now stores MODULATION_SLOT_MODE.
     byte polar_mode = MOD_SLOT_UNI_RAW;
     //bool volt_per_octave = false;
 };
@@ -346,6 +347,14 @@ class FloatParameter : public BaseParameter {
     }
     virtual void set_slot_polarity(int8_t slot, int polar_mode) {
         this->connections[slot].polar_mode = polar_mode;
+    }
+    virtual void set_slot_mode(int8_t slot, int mode) {
+        this->set_slot_polarity(slot, mode);
+    }
+    virtual int get_slot_mode(int8_t slot) {
+        if (!is_valid_slot(slot))
+            return MOD_SLOT_UNI_RAW;
+        return this->connections[slot].polar_mode;
     }
 
     // .. these untested 

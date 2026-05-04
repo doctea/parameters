@@ -220,6 +220,14 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
         virtual void refresh_pitch_output(bool force = true) {
             if (is_valid_note(this->current_pitch_note)) {
                 DataType voltage_for_pitch = get_voltage_for_pitch(this->current_pitch_note);
+                #if CV_PITCH_BEND_TRACE
+                    Serial_printf("CVPITCH %s refresh note=%d bend_omni=%0.3f bend_chan=%0.3f -> %0.4fV\n",
+                        this->label,
+                        this->current_pitch_note,
+                        this->omni_pitch_bend_semitones,
+                        this->channel_pitch_bend_semitones,
+                        (float)voltage_for_pitch);
+                #endif
                 if (this->getCurrentDataValue() != voltage_for_pitch) {
                     this->updateValueFromData(voltage_for_pitch);
                 } else if (force) {
@@ -243,6 +251,14 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
             DataType shifted_voltage = this->constrainDataToRange(
                 this->getCurrentDataValue() + ((DataType)delta_semitones / 12.0f)
             );
+            #if CV_PITCH_BEND_TRACE
+                Serial_printf("CVPITCH %s delta prev=%0.3f now=%0.3f d=%0.3f -> %0.4fV\n",
+                    this->label,
+                    previous_total_bend,
+                    current_total_bend,
+                    delta_semitones,
+                    (float)shifted_voltage);
+            #endif
             if (this->getCurrentDataValue() != shifted_voltage) {
                 this->updateValueFromData(shifted_voltage);
             } else if (force) {
@@ -257,6 +273,9 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
                 return;
 
             this->channel_pitch_bend_semitones = semitones;
+            #if CV_PITCH_BEND_TRACE
+                Serial_printf("CVPITCH %s set channel bend=%0.3f\n", this->label, semitones);
+            #endif
             if (is_valid_note(this->current_pitch_note)) {
                 this->refresh_pitch_output(true);
             } else {
@@ -270,6 +289,9 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
                 return;
 
             this->omni_pitch_bend_semitones = semitones;
+            #if CV_PITCH_BEND_TRACE
+                Serial_printf("CVPITCH %s set omni bend=%0.3f\n", this->label, semitones);
+            #endif
             if (is_valid_note(this->current_pitch_note)) {
                 this->refresh_pitch_output(true);
             } else {

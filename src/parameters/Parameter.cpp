@@ -161,10 +161,15 @@ float FloatParameter::get_amount_for_slot(int8_t slot) {
                     *comma2 = '\0';
                     amount = atof(comma1 + 1);
                     const char* mode_str = comma2 + 1;
+                    // Backward compatibility:
+                    // - legacy: "bipolar" / "unipolar"
+                    // - current: "bi_native" / "uni_raw" / "uni_centered"
                     if (strcmp(mode_str, "bi_native") == 0 || strcmp(mode_str, "bipolar") == 0) {
                         mode = MOD_SLOT_BI_NATIVE;
                     } else if (strcmp(mode_str, "uni_centered") == 0) {
                         mode = MOD_SLOT_UNI_CENTERED;
+                    } else if (strcmp(mode_str, "uni_raw") == 0 || strcmp(mode_str, "unipolar") == 0) {
+                        mode = MOD_SLOT_UNI_RAW;
                     } else {
                         mode = MOD_SLOT_UNI_RAW;
                     }
