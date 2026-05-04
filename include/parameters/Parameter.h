@@ -66,7 +66,7 @@ struct ParameterToInputConnection {
         MenuItem *amount_control = nullptr;
         SelectorControl<int> *input_control = nullptr;
     #endif*/
-    byte polar_mode = UNIPOLAR;
+    byte polar_mode = MOD_SLOT_UNI_RAW;
     //bool volt_per_octave = false;
 };
 

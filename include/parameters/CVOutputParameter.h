@@ -80,6 +80,10 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
 
         VoltageParameterInput *calibration_input = nullptr;
 
+        int8_t current_pitch_note = NOTE_OFF;
+        float omni_pitch_bend_semitones = 0.0f;
+        float channel_pitch_bend_semitones = 0.0f;
+
         // for sending gate signals when notes are triggered
         IGateTarget *gate_manager = nullptr;
         int8_t gate_bank = -1, gate_number = 0;
@@ -200,6 +204,78 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
 
             return dac_value;
         }
+
+        virtual float get_pitch_bend_semitones() const {
+            return this->omni_pitch_bend_semitones + this->channel_pitch_bend_semitones;
+        }
+
+        virtual float get_channel_pitch_bend_semitones() const {
+            return this->channel_pitch_bend_semitones;
+        }
+
+        virtual float get_omni_pitch_bend_semitones() const {
+            return this->omni_pitch_bend_semitones;
+        }
+
+        virtual void refresh_pitch_output(bool force = true) {
+            if (is_valid_note(this->current_pitch_note)) {
+                DataType voltage_for_pitch = get_voltage_for_pitch(this->current_pitch_note);
+                if (this->getCurrentDataValue() != voltage_for_pitch) {
+                    this->updateValueFromData(voltage_for_pitch);
+                } else if (force) {
+                    // Force a resend through the normal path so slot modulation remains additive.
+                    this->setTargetValueFromNormal(this->getCurrentNormalValue(), true);
+                }
+                this->process_pending();
+            }
+        }
+
+        virtual void set_pitch_bend_semitones(float semitones, bool force = false) {
+            this->set_channel_pitch_bend_semitones(semitones, force);
+        }
+
+        virtual void apply_pitch_bend_delta_to_current_output(float previous_total_bend, bool force = false) {
+            float current_total_bend = this->get_pitch_bend_semitones();
+            float delta_semitones = current_total_bend - previous_total_bend;
+            if (!force && delta_semitones == 0.0f)
+                return;
+
+            DataType shifted_voltage = this->constrainDataToRange(
+                this->getCurrentDataValue() + ((DataType)delta_semitones / 12.0f)
+            );
+            if (this->getCurrentDataValue() != shifted_voltage) {
+                this->updateValueFromData(shifted_voltage);
+            } else if (force) {
+                this->setTargetValueFromNormal(this->getCurrentNormalValue(), true);
+            }
+            this->process_pending();
+        }
+
+        virtual void set_channel_pitch_bend_semitones(float semitones, bool force = false) {
+            float previous_total_bend = this->get_pitch_bend_semitones();
+            if (!force && this->channel_pitch_bend_semitones == semitones)
+                return;
+
+            this->channel_pitch_bend_semitones = semitones;
+            if (is_valid_note(this->current_pitch_note)) {
+                this->refresh_pitch_output(true);
+            } else {
+                this->apply_pitch_bend_delta_to_current_output(previous_total_bend, force);
+            }
+        }
+
+        virtual void set_omni_pitch_bend_semitones(float semitones, bool force = false) {
+            float previous_total_bend = this->get_pitch_bend_semitones();
+            if (!force && this->omni_pitch_bend_semitones == semitones)
+                return;
+
+            this->omni_pitch_bend_semitones = semitones;
+            if (is_valid_note(this->current_pitch_note)) {
+                this->refresh_pitch_output(true);
+            } else {
+                this->apply_pitch_bend_delta_to_current_output(previous_total_bend, force);
+            }
+        }                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
 
         bool is_pending_value = false;
         uint16_t pending_value = 0; 
@@ -440,13 +516,15 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
         virtual float get_voltage_for_pitch(int8_t pitch, int16_t detune_cents = 0) {
             if(!is_valid_note(pitch))
                 return 0.0;
-            return constrain((float)pitch / 12.0, this->minimumDataRange, this->maximumDataRange);
+            float detune_semitones = ((float)detune_cents / 100.0f) + this->get_pitch_bend_semitones();
+            return constrain(((float)pitch + detune_semitones) / 12.0f, this->minimumDataRange, this->maximumDataRange);
         }
 
         virtual void sendNoteOn(uint8_t pitch, uint8_t velocity, uint8_t channel) {
             if (!is_valid_note(pitch))
                 return;
 
+            this->current_pitch_note = pitch;
             float voltage_for_pitch = get_voltage_for_pitch(pitch);
             if (this->debug && Serial) {
                 Serial.printf("%s#sendNoteOn(pitch=%3i,....)\t", this->label, pitch);
@@ -461,6 +539,8 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
             }
         }
         virtual void sendNoteOff(uint8_t pitch, uint8_t velocity, uint8_t channel) {
+            if (this->current_pitch_note == pitch)
+                this->current_pitch_note = NOTE_OFF;
             // todo: should probably have an option to drop the output voltage to 0 when no notes are left?
             if ((get_gate_output_enabled() || gate_is_on) && gate_bank>=0 && gate_manager!=nullptr) {
                 gate_is_on = false;

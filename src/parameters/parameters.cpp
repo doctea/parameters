@@ -223,9 +223,23 @@ FLASHMEM LinkedList<MenuItem *> *FloatParameter::makeControls() {
             
         for (uint_fast8_t i = 0 ; i < MAX_SLOT_CONNECTIONS ; i++) {
             if (is_modulation_slot_active(i)) {
-                float nml = this->connections[i].polar_mode==UNIPOLAR ? 
-                                this->connections[i].parameter_input->get_normal_value_unipolar() : 
-                                this->connections[i].parameter_input->get_normal_value_bipolar();
+                float nml = 0.0f;
+                switch (this->connections[i].polar_mode) {
+                    case MOD_SLOT_BI_NATIVE:
+                        nml = this->connections[i].parameter_input->get_normal_value_bipolar();
+                        nml *= 0.5f;
+                        break;
+                    case MOD_SLOT_UNI_CENTERED:
+                        nml = this->connections[i].parameter_input->get_normal_value_unipolar();
+                        // Center around zero and scale so amount=1.0 equals full parameter span.
+                        nml = (-1.0f + (nml * 2.0f)) * 0.5f;
+                        break;
+                    case MOD_SLOT_UNI_RAW:
+                    default:
+                        nml = this->connections[i].parameter_input->get_normal_value_unipolar();
+                        nml *= 0.5f;
+                        break;
+                }
                 modulation += (
                     nml * this->connections[i].amount
                 );

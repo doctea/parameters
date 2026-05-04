@@ -126,7 +126,12 @@ float FloatParameter::get_amount_for_slot(int8_t slot) {
             for (uint_fast8_t s = 0; s < MAX_SLOT_CONNECTIONS && p < end; ++s) {
                 const char* name = target->get_input_group_and_name_for_slot(s);
                 float amount = target->get_amount_for_slot(s);
-                const char* mode = (target->connections[s].polar_mode == BIPOLAR) ? "bipolar" : "unipolar";
+                const char* mode = "uni_raw";
+                if (target->connections[s].polar_mode == MOD_SLOT_BI_NATIVE) {
+                    mode = "bi_native";
+                } else if (target->connections[s].polar_mode == MOD_SLOT_UNI_CENTERED) {
+                    mode = "uni_centered";
+                }
                 p += snprintf(p, end - p, "%s%s,%.6g,%s",
                     s == 0 ? "" : ";",
                     name ? name : "",
@@ -151,11 +156,18 @@ float FloatParameter::get_amount_for_slot(int8_t slot) {
                 *comma1 = '\0';
                 char* comma2 = strchr(comma1 + 1, ',');
                 float amount = 0.0f;
-                bool bipolar = false;
+                uint8_t mode = MOD_SLOT_UNI_RAW;
                 if (comma2) {
                     *comma2 = '\0';
                     amount = atof(comma1 + 1);
-                    bipolar = (strcmp(comma2 + 1, "bipolar") == 0);
+                    const char* mode_str = comma2 + 1;
+                    if (strcmp(mode_str, "bi_native") == 0 || strcmp(mode_str, "bipolar") == 0) {
+                        mode = MOD_SLOT_BI_NATIVE;
+                    } else if (strcmp(mode_str, "uni_centered") == 0) {
+                        mode = MOD_SLOT_UNI_CENTERED;
+                    } else {
+                        mode = MOD_SLOT_UNI_RAW;
+                    }
                 }
                 // set input
                 if (cursor[0] != '\0') {
@@ -163,7 +175,7 @@ float FloatParameter::get_amount_for_slot(int8_t slot) {
                     target->set_slot_input(s, inp);
                 }
                 target->connections[s].amount = amount;
-                target->connections[s].polar_mode = bipolar ? BIPOLAR : UNIPOLAR;
+                target->connections[s].polar_mode = mode;
                 if (!semi) break;
                 cursor = semi + 1;
             }

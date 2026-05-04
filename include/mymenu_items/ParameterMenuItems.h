@@ -289,10 +289,12 @@ class ParameterConnectionPolarityTypeSelectorControl : public SelectorControl<in
     }
 
     virtual const char* get_label_for_value(int_least8_t index) override {
-        if (index==BIPOLAR)
-            return "Bi";
-        if (index==UNIPOLAR)
-            return "Uni";
+        if (index==MOD_SLOT_BI_NATIVE)
+            return MOD_SLOT_LABEL_BI_NATIVE;
+        if (index==MOD_SLOT_UNI_RAW)
+            return MOD_SLOT_LABEL_UNI_RAW;
+        if (index==MOD_SLOT_UNI_CENTERED)
+            return MOD_SLOT_LABEL_UNI_CENTERED;
         //if (index==CLOCK_NONE)
         //    return "None";
         return "??";
@@ -307,7 +309,7 @@ class ParameterConnectionPolarityTypeSelectorControl : public SelectorControl<in
         //return clock_mode; //selected_value_index;
         if (this->parameter != nullptr)
             return (*this->parameter)->connections[slot_number].polar_mode;
-        return VALUE_TYPE::UNIPOLAR;
+        return MOD_SLOT_UNI_RAW;
     }
 
     virtual int renderValue(bool selected, bool opened, uint16_t width) override {
@@ -325,7 +327,7 @@ class ParameterConnectionPolarityTypeSelectorControl : public SelectorControl<in
         pos.y = header(label, pos, selected, opened, textSize);
         //tft->setTextSize(2);
 
-        num_values = 2; //NUM_CLOCK_SOURCES;
+        num_values = 3; //NUM_CLOCK_SOURCES;
 
         tft->setCursor(pos.x, pos.y);
         //tft->setTextColor((*this->parameter)->connections[slot_number].parameter_input->colour, BLACK);
@@ -358,14 +360,14 @@ class ParameterConnectionPolarityTypeSelectorControl : public SelectorControl<in
 
     virtual bool action_opened() override {
         //if (this->debug) Serial.printf(F("ObjectToggleControl#action_opened on %s\n"), this->label);
-        bool value = !this->getter();
-
+        const int_least8_t current = this->getter();
+        const int_least8_t value = (int_least8_t)((current + 1) % 3);
         this->setter(value);
         return false;   // don't 'open'
     }
 
     virtual bool button_select() override {
-        this->selected_value_index = !this->selected_value_index;
+        this->selected_value_index = (this->selected_value_index + 1) % 3;
         this->setter(selected_value_index);
 
         char msg[MENU_MESSAGE_MAX];
