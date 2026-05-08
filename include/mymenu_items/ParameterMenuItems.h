@@ -205,6 +205,7 @@ class ParameterMapPercentageControl : public DirectNumberControl<float> {
                             ? (*parameter)->connections[slot_number].parameter_input->colour
                             : C_WHITE;
 
+        if (opened) this->default_fg = GREEN;
         if (!(*parameter)->is_modulation_slot_active(slot_number))
             this->default_fg = tft->halfbright_565(this->default_fg);
             
