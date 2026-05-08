@@ -1,3 +1,4 @@
+#pragma once
 
 #include "parameters/Parameter.h"
 #include "menuitems.h"

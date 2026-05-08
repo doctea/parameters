@@ -197,9 +197,10 @@ class ParameterMenuItemSelector : public SelectorControl<int_least16_t> { //publ
 struct lowmemory_controls_t {
     // re-usable controls
     ParameterMenuItem *parameter_amount_controls;
-    SubMenuItemBar *input_selectors_bar;
-    SubMenuItemBar *polarity_submenu;
-    SubMenuItemBar *range_submenu;
+    ParameterModSlotRow *slot_rows[MAX_SLOT_CONNECTIONS];
+    // SubMenuItemBar *input_selectors_bar;
+    // SubMenuItemBar *5;
+    // SubMenuItemBar *range_submenu;
     // pointer to the current control being edited
     FloatParameter *parameter;
 };

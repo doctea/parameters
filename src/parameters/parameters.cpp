@@ -30,64 +30,6 @@ FLASHMEM MenuItem *FloatParameter::makeControl() {
     return menuitem;
 }
 
-FLASHMEM MenuItem *FloatParameter::makeInputSelectorControls(ParameterMenuItem *fullmenuitem) {
-    // controls to choose which ParameterInputs to use for each slot
-    // then set up a generic submenuitembar to hold the input selectors
-    SubMenuItemBar *input_selectors_bar = new SubMenuItemBar("Inputs");
-    input_selectors_bar->show_header = false;
-    input_selectors_bar->show_sub_headers = false;
-
-    // some spacers so that the input controls align with the corresponding amount controls
-    MenuItem *spacer1 = new MenuItem("Inputs");
-    spacer1->selectable = false;           
-    input_selectors_bar->add(spacer1);
-
-    // make the three source selector controls
-    ParameterInputSelectorControl<FloatParameter> *source_selector_1 = new ParameterInputSelectorControl<FloatParameter>(
-        "Input 1", 
-        this,
-        &FloatParameter::set_slot_0_input,
-        &FloatParameter::get_slot_0_input,
-        parameter_manager->available_inputs,
-        parameter_manager->getInputForName(this->get_input_name_for_slot(0)),
-        fullmenuitem->items->get(1)     // second item of ParameterMenuItem is first slot
-    );
-    source_selector_1->go_back_on_select = true;
-
-    ParameterInputSelectorControl<FloatParameter> *source_selector_2 = new ParameterInputSelectorControl<FloatParameter>(
-        "Input 2", 
-        this,
-        &FloatParameter::set_slot_1_input,
-        &FloatParameter::get_slot_1_input,
-        parameter_manager->available_inputs,
-        parameter_manager->getInputForName(this->get_input_name_for_slot(1)),
-        fullmenuitem->items->get(2)     // third item of ParameterMenuItem is second slot
-    );
-    source_selector_2->go_back_on_select = true;
-
-    ParameterInputSelectorControl<FloatParameter> *source_selector_3 = new ParameterInputSelectorControl<FloatParameter>(
-        "Input 3", 
-        this,
-        &FloatParameter::set_slot_2_input,
-        &FloatParameter::get_slot_2_input,
-        parameter_manager->available_inputs,
-        parameter_manager->getInputForName(this->get_input_name_for_slot(2)),
-        fullmenuitem->items->get(3)     // fourth item of ParameterMenuItem is third slot
-    );
-    source_selector_3->go_back_on_select = true;
-
-    input_selectors_bar->add(source_selector_1);
-    input_selectors_bar->add(source_selector_2);
-    input_selectors_bar->add(source_selector_3);
-
-    // empty column at end of bar
-    MenuItem *spacer2 = new MenuItem("");
-    spacer2->selectable = false;
-    input_selectors_bar->add(spacer2);
-
-    return input_selectors_bar;
-}
-
 /*FLASHMEM LinkedList<MenuItem *> *FloatParameter::makeControls() {
     // dummy version for debugging/testing
     LinkedList<MenuItem *> *controls = new LinkedList<MenuItem *>();
@@ -111,65 +53,16 @@ FLASHMEM LinkedList<MenuItem *> *FloatParameter::makeControls() {
         return controls;
     }
 
-    // first, set up the submenu to hold the controls for the amounts
-    // this is handled by its own compound control type, 'ParameterMenuItem'
-    ParameterMenuItem *fullmenuitem = new ParameterMenuItem("Amounts"/*this->label*/, &this->self, false);
+    // Value|Min|Max|Output top row
+    ParameterMenuItem *fullmenuitem = new ParameterMenuItem(this->label, &this->self, false);
     controls->add(fullmenuitem);
 
-    #ifndef DISABLE_PARAMETER_INPUT_SELECTORS
-        controls->add(this->makeInputSelectorControls(fullmenuitem));
-    #endif
-    
-    #ifndef DISABLE_PARAMETER_POLARITY_SELECTORS
-        // add controls to select whether to use bipolar or unipolar values from the ParameterInput
-        SubMenuItemBar *polarity_selectors_bar = new SubMenuItemBar("Polarity");
-        polarity_selectors_bar->show_header = false;
-        polarity_selectors_bar->show_sub_headers = false;
-
-        MenuItem *polarity_spacer_1 = new MenuItem("Polarity",false);
-        polarity_selectors_bar->add(polarity_spacer_1);
-
-        // make the three polarity selector controls
-        ParameterConnectionPolarityTypeSelectorControl *polarity_selector_1 = new ParameterConnectionPolarityTypeSelectorControl(
-            "Input 1 Polarity",
-            &this->self,
-            0
-        );
-        ParameterConnectionPolarityTypeSelectorControl *polarity_selector_2 = new ParameterConnectionPolarityTypeSelectorControl(
-            "Input 2 Polarity",
-            &this->self,
-            1
-        );
-        ParameterConnectionPolarityTypeSelectorControl *polarity_selector_3 = new ParameterConnectionPolarityTypeSelectorControl(
-            "Input 3 Polarity",
-            &this->self,
-            2
-        );
-        polarity_selectors_bar->add(polarity_selector_1);
-        polarity_selectors_bar->add(polarity_selector_2);
-        polarity_selectors_bar->add(polarity_selector_3);
-
-        MenuItem *polarity_spacer_2 = new MenuItem("");
-        polarity_spacer_2->selectable = false;           
-        polarity_selectors_bar->add(polarity_spacer_2);
-
-        controls->add(polarity_selectors_bar);
-    #endif
-
-    SubMenuItemBar *range_selectors_bar = new SubMenuItemBar("Range");
-    range_selectors_bar->show_header = false;
-
-    MenuItem *label = new MenuItem("Range");
-    label->selectable = false;
-    range_selectors_bar->add(label);
-
-    ParameterRangeMenuItem *minimum_value_control = new ParameterRangeMenuItem("Minimum", &this->self, MINIMUM);
-    range_selectors_bar->add(minimum_value_control);
-
-    ParameterRangeMenuItem *maximum_value_control = new ParameterRangeMenuItem("Maximum", &this->self, MAXIMUM);
-    range_selectors_bar->add(maximum_value_control);
-
-    controls->add(range_selectors_bar);
+    // One row per modulation slot — added as separate top-level items for direct navigation
+    for (uint_fast8_t i = 0; i < MAX_SLOT_CONNECTIONS; i++) {
+        char slot_label[8];
+        snprintf(slot_label, sizeof(slot_label), "Slt%i", i + 1);
+        controls->add(new ParameterModSlotRow(slot_label, &this->self, i));
+    }
 
     //ToggleControl<bool> *debug = new ToggleControl<bool>("Debug", &this->debug, nullptr);
     //controls->add(debug);
@@ -227,17 +120,14 @@ FLASHMEM LinkedList<MenuItem *> *FloatParameter::makeControls() {
                 switch (this->connections[i].polar_mode) {
                     case MOD_SLOT_BI_NATIVE:
                         nml = this->connections[i].parameter_input->get_normal_value_bipolar();
-                        nml *= 0.5f;
                         break;
                     case MOD_SLOT_UNI_CENTERED:
                         nml = this->connections[i].parameter_input->get_normal_value_unipolar();
-                        // Center around zero and scale so amount=1.0 equals full parameter span.
-                        nml = (-1.0f + (nml * 2.0f)) * 0.5f;
+                        nml = -1.0f + (nml * 2.0f);
                         break;
                     case MOD_SLOT_UNI_RAW:
                     default:
                         nml = this->connections[i].parameter_input->get_normal_value_unipolar();
-                        nml *= 0.5f;
                         break;
                 }
                 modulation += (

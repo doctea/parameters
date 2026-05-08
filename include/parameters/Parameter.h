@@ -476,7 +476,6 @@ class FloatParameter : public BaseParameter {
     #ifdef ENABLE_SCREEN
         FLASHMEM virtual MenuItem *makeControl();
         FLASHMEM virtual LinkedList<MenuItem *> *makeControls();
-        FLASHMEM virtual MenuItem *makeInputSelectorControls(ParameterMenuItem *parent_control);
         //FLASHMEM 
         virtual LinkedList<MenuItem *> *addCustomTypeControls(LinkedList<MenuItem *> *controls) { return controls; };
 

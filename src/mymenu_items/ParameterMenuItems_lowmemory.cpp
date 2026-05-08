@@ -9,85 +9,94 @@ lowmemory_controls_t lowmemory_controls;
 
 
 void create_low_memory_parameter_controls_actual() {
-    ////// amount controls, to set percentage amounts 
-    //ParameterMenuItem *parameter_amount_controls;
+    // Value|Min|Max|Output top row
     if (lowmemory_controls.parameter_amount_controls==nullptr)
         lowmemory_controls.parameter_amount_controls = new ParameterMenuItem("Amounts", &lowmemory_controls.parameter, false);
     menu->add(lowmemory_controls.parameter_amount_controls);
 
-    // controls to choose which ParameterInputs to use for each slot
-    // then set up a generic submenuitembar to hold the input selectors
-    if (lowmemory_controls.input_selectors_bar==nullptr) {
-        lowmemory_controls.input_selectors_bar = new SubMenuItemBar("Inputs", false, false);
-
-        // some spacers so that the input controls align with the corresponding amount controls
-        MenuItem *spacer1 = new MenuItem("Inputs", false);
-        lowmemory_controls.input_selectors_bar->add(spacer1);
-
-        // make the three source selector controls
-        ParameterInputSelectorControl<FloatParameter> *source_selector_1 = new ParameterInputSelectorControl<FloatParameter>(
-            "Input 1", 
-            &lowmemory_controls.parameter,
-            &FloatParameter::set_slot_0_input,
-            &FloatParameter::get_slot_0_input,
-            parameter_manager->available_inputs
-        );
-        source_selector_1->go_back_on_select = true;
-
-        ParameterInputSelectorControl<FloatParameter> *source_selector_2 = new ParameterInputSelectorControl<FloatParameter>(
-            "Input 2", 
-            &lowmemory_controls.parameter,
-            &FloatParameter::set_slot_1_input,
-            &FloatParameter::get_slot_1_input,
-            parameter_manager->available_inputs
-        );
-        source_selector_2->go_back_on_select = true;
-
-        ParameterInputSelectorControl<FloatParameter> *source_selector_3 = new ParameterInputSelectorControl<FloatParameter>(
-            "Input 3", 
-            &lowmemory_controls.parameter,
-            &FloatParameter::set_slot_2_input,
-            &FloatParameter::get_slot_2_input,
-            parameter_manager->available_inputs
-        );
-        source_selector_3->go_back_on_select = true;
-
-        lowmemory_controls.input_selectors_bar->add(source_selector_1);
-        lowmemory_controls.input_selectors_bar->add(source_selector_2);
-        lowmemory_controls.input_selectors_bar->add(source_selector_3);
-
-        // empty column at end of bar
-        MenuItem *spacer2 = new MenuItem("", false);
-        lowmemory_controls.input_selectors_bar->add(spacer2);
+    // One row per modulation slot — separate top-level items for direct navigation
+    for (uint_fast8_t i = 0; i < MAX_SLOT_CONNECTIONS; i++) {
+        if (lowmemory_controls.slot_rows[i]==nullptr) {
+            char slot_label[8];
+            snprintf(slot_label, sizeof(slot_label), "Slt%i", i + 1);
+            lowmemory_controls.slot_rows[i] = new ParameterModSlotRow(slot_label, &lowmemory_controls.parameter, i);
+        }
+        menu->add(lowmemory_controls.slot_rows[i]);
     }
-    menu->add(lowmemory_controls.input_selectors_bar);
 
-    ////// polarity controls
-    if (lowmemory_controls.polarity_submenu==nullptr) {
-        lowmemory_controls.polarity_submenu = new SubMenuItemBar("Polarities", false);
-        lowmemory_controls.polarity_submenu->show_header = false;
-        lowmemory_controls.polarity_submenu->add(new MenuItem("Polarity", false));
-        lowmemory_controls.polarity_submenu->add(new ParameterConnectionPolarityTypeSelectorControl("Slot 1", &lowmemory_controls.parameter, 0));
-        lowmemory_controls.polarity_submenu->add(new ParameterConnectionPolarityTypeSelectorControl("Slot 2", &lowmemory_controls.parameter, 1));
-        lowmemory_controls.polarity_submenu->add(new ParameterConnectionPolarityTypeSelectorControl("Slot 3", &lowmemory_controls.parameter, 2));
-        lowmemory_controls.polarity_submenu->add(new MenuItem("")); // so that we use 5 columns, in order to align with the other rows of elements // todo: make this indicate something eg graph values?
-    }
-    menu->add(lowmemory_controls.polarity_submenu);
+    // // controls to choose which ParameterInputs to use for each slot
+    // // then set up a generic submenuitembar to hold the input selectors
+    // if (lowmemory_controls.input_selectors_bar==nullptr) {
+    //     lowmemory_controls.input_selectors_bar = new SubMenuItemBar("Inputs", false, false);
+
+    //     // some spacers so that the input controls align with the corresponding amount controls
+    //     MenuItem *spacer1 = new MenuItem("Inputs", false);
+    //     lowmemory_controls.input_selectors_bar->add(spacer1);
+
+    //     // make the three source selector controls
+    //     ParameterInputSelectorControl<FloatParameter> *source_selector_1 = new ParameterInputSelectorControl<FloatParameter>(
+    //         "Input 1", 
+    //         &lowmemory_controls.parameter,
+    //         &FloatParameter::set_slot_0_input,
+    //         &FloatParameter::get_slot_0_input,
+    //         parameter_manager->available_inputs
+    //     );
+    //     source_selector_1->go_back_on_select = true;
+
+    //     ParameterInputSelectorControl<FloatParameter> *source_selector_2 = new ParameterInputSelectorControl<FloatParameter>(
+    //         "Input 2", 
+    //         &lowmemory_controls.parameter,
+    //         &FloatParameter::set_slot_1_input,
+    //         &FloatParameter::get_slot_1_input,
+    //         parameter_manager->available_inputs
+    //     );
+    //     source_selector_2->go_back_on_select = true;
+
+    //     ParameterInputSelectorControl<FloatParameter> *source_selector_3 = new ParameterInputSelectorControl<FloatParameter>(
+    //         "Input 3", 
+    //         &lowmemory_controls.parameter,
+    //         &FloatParameter::set_slot_2_input,
+    //         &FloatParameter::get_slot_2_input,
+    //         parameter_manager->available_inputs
+    //     );
+    //     source_selector_3->go_back_on_select = true;
+
+    //     lowmemory_controls.input_selectors_bar->add(source_selector_1);
+    //     lowmemory_controls.input_selectors_bar->add(source_selector_2);
+    //     lowmemory_controls.input_selectors_bar->add(source_selector_3);
+
+    //     // empty column at end of bar
+    //     MenuItem *spacer2 = new MenuItem("", false);
+    //     lowmemory_controls.input_selectors_bar->add(spacer2);
+    // }
+    // menu->add(lowmemory_controls.input_selectors_bar);
+
+    // ////// polarity controls
+    // if (lowmemory_controls.polarity_submenu==nullptr) {
+    //     lowmemory_controls.polarity_submenu = new SubMenuItemBar("Polarities", false);
+    //     lowmemory_controls.polarity_submenu->show_header = false;
+    //     lowmemory_controls.polarity_submenu->add(new MenuItem("Polarity", false));
+    //     lowmemory_controls.polarity_submenu->add(new ParameterConnectionPolarityTypeSelectorControl("Slot 1", &lowmemory_controls.parameter, 0));
+    //     lowmemory_controls.polarity_submenu->add(new ParameterConnectionPolarityTypeSelectorControl("Slot 2", &lowmemory_controls.parameter, 1));
+    //     lowmemory_controls.polarity_submenu->add(new ParameterConnectionPolarityTypeSelectorControl("Slot 3", &lowmemory_controls.parameter, 2));
+    //     lowmemory_controls.polarity_submenu->add(new MenuItem("")); // so that we use 5 columns, in order to align with the other rows of elements // todo: make this indicate something eg graph values?
+    // }
+    // menu->add(lowmemory_controls.polarity_submenu);
 
     // range limit controls
-    if (lowmemory_controls.range_submenu==nullptr) {
-        lowmemory_controls.range_submenu = new SubMenuItemBar("Range", true, false);
+    // if (lowmemory_controls.range_submenu==nullptr) {
+    //     lowmemory_controls.range_submenu = new SubMenuItemBar("Range", true, false);
 
-        MenuItem *label = new MenuItem("Range", false);
-        lowmemory_controls.range_submenu->add(label);
+    //     MenuItem *label = new MenuItem("Range", false);
+    //     lowmemory_controls.range_submenu->add(label);
 
-        ParameterRangeMenuItem *minimum_value_control = new ParameterRangeMenuItem("Minimum", &lowmemory_controls.parameter, MINIMUM);
-        lowmemory_controls.range_submenu->add(minimum_value_control);
+    //     ParameterRangeMenuItem *minimum_value_control = new ParameterRangeMenuItem("Minimum", &lowmemory_controls.parameter, MINIMUM);
+    //     lowmemory_controls.range_submenu->add(minimum_value_control);
 
-        ParameterRangeMenuItem *maximum_value_control = new ParameterRangeMenuItem("Maximum", &lowmemory_controls.parameter, MAXIMUM);
-        lowmemory_controls.range_submenu->add(maximum_value_control);
-    }
-    menu->add(lowmemory_controls.range_submenu);
+    //     ParameterRangeMenuItem *maximum_value_control = new ParameterRangeMenuItem("Maximum", &lowmemory_controls.parameter, MAXIMUM);
+    //     lowmemory_controls.range_submenu->add(maximum_value_control);
+    // }
+    // menu->add(lowmemory_controls.range_submenu);
 
 }
 

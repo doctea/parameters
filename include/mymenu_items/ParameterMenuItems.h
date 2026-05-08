@@ -162,6 +162,8 @@ class ParameterValueMenuItem : public DirectNumberControl<float> {
 
 #include "submenuitem_bar.h"
 #include "parameter_inputs/ParameterInput.h"
+#include "ParameterInputMenuItems.h"
+#include "ParameterMenuItems_Range.h"
 
 class ParameterMapPercentageControl : public DirectNumberControl<float> {
     public:
@@ -222,54 +224,7 @@ class ParameterMapPercentageControl : public DirectNumberControl<float> {
 };
 
 
-// compound menu item that shows a direct value-setter widget, 3x modulation amount widgets, and the last post-modulation output value
-class ParameterMenuItem : public SubMenuItemBar {
-    public:
-
-    //FloatParameter *parameter = nullptr;
-    FloatParameter **proxy_parameter = nullptr; //&parameter;
-
-    ParameterMenuItem(const char *label, FloatParameter **proxy_parameter, bool show_header = true) 
-       : SubMenuItemBar(label, true, show_header)
-    {       
-        this->proxy_parameter = proxy_parameter;
-
-        // add the direct Value changer
-        this->add(new ParameterValueMenuItem((char*)"Value", this->proxy_parameter));
-
-        // add the modulation Amount % changers
-        for (uint_fast8_t i = 0 ; i < MAX_SLOT_CONNECTIONS ; i++) {
-            // todo: make the modulation source part configurable too
-            // todo: make the label part dynamically generated on-the-fly by the DirectNumberControl
-            char labelnew[8];
-            if (proxy_parameter!=nullptr && *proxy_parameter!=nullptr) {
-                char *input_name =  (*proxy_parameter)->connections[i].parameter_input!=nullptr ? 
-                                    (*proxy_parameter)->connections[i].parameter_input->name : 
-                                    (char*)"None";
-                Debug_printf(F("\tfor %s, setting to parameter_input@%p '%s'\n"), label, (*proxy_parameter)->connections[i].parameter_input, input_name);
-                //Serial_flush();
-                snprintf(labelnew, 8, "%s", input_name); //"Amt "*/
-            } else {
-                snprintf(labelnew, 8, "Amt%i", i);
-            }
-            ParameterMapPercentageControl *input_amount_control = new ParameterMapPercentageControl(
-                labelnew,
-                this->proxy_parameter,
-                i
-            );
-            this->add(input_amount_control);
-        }
-
-        // add another small widget to display the last output value (after modulation etc)
-        ParameterValueMenuItem *output = new ParameterValueMenuItem((char*)"Output", this->proxy_parameter);
-        output->setReadOnly();
-        output->selectable = false;
-        output->set_show_output_mode();
-
-        this->add(output); 
-    }
-
-};
+// ParameterMenuItem is defined below, after ParameterConnectionPolarityTypeSelectorControl and ParameterModSlotRow
 
 
 
@@ -378,4 +333,106 @@ class ParameterConnectionPolarityTypeSelectorControl : public SelectorControl<in
         return go_back_on_select;
     }
 
+};
+
+
+// One row for a single modulation slot: [source selector | amount % | mode selector]
+class ParameterModSlotRow : public SubMenuItemBarCustomProportions {
+    FloatParameter **parameter;
+    int slot_number;
+public:
+    ParameterModSlotRow(const char *label, FloatParameter **parameter, int slot_number)
+        : SubMenuItemBarCustomProportions(label, 3, false, false),
+          parameter(parameter), slot_number(slot_number)
+    {
+        // Column proportions: source=50%, amount=33%, mode=17%
+        this->set_column_proportion(0, 0.50f);
+        this->set_column_proportion(1, 0.33f);
+        this->set_column_proportion(2, 0.17f);
+
+        BaseParameterInput *initial_input = nullptr;
+        if (parameter != nullptr && *parameter != nullptr)
+            initial_input = (*parameter)->connections[slot_number].parameter_input;
+
+        // Source selector — slot-specific setter/getter function pointers
+        void(FloatParameter::*setter)(BaseParameterInput*) = nullptr;
+        BaseParameterInput*(FloatParameter::*getter)() = nullptr;
+        switch (slot_number) {
+            case 0: setter = &FloatParameter::set_slot_0_input; getter = &FloatParameter::get_slot_0_input; break;
+            case 1: setter = &FloatParameter::set_slot_1_input; getter = &FloatParameter::get_slot_1_input; break;
+            default: setter = &FloatParameter::set_slot_2_input; getter = &FloatParameter::get_slot_2_input; break;
+        }
+        ParameterInputSelectorControl<FloatParameter> *source = new ParameterInputSelectorControl<FloatParameter>(
+            "Src",
+            parameter,
+            setter, getter,
+            parameter_manager->available_inputs,
+            initial_input
+        );
+        source->go_back_on_select = true;
+        this->add(source);
+
+        // Amount control
+        char amt_label[8];
+        snprintf(amt_label, sizeof(amt_label), "Amt%i", slot_number + 1);
+        ParameterMapPercentageControl *amount = new ParameterMapPercentageControl(amt_label, parameter, slot_number);
+        this->add(amount);
+
+        // Mode selector
+        ParameterConnectionPolarityTypeSelectorControl *mode = new ParameterConnectionPolarityTypeSelectorControl(
+            "Mode", parameter, slot_number
+        );
+        this->add(mode); 
+    }
+
+    virtual int small_display(int index, int x, int y, int width_in_pixels, bool is_selected, bool is_opened, bool outer_selected) override {
+        int end_y = SubMenuItemBarCustomProportions::small_display(index, x, y, width_in_pixels, is_selected, is_opened, outer_selected);
+        // if (is_opened) {
+        //     MenuItem *ctrl = this->items->get(index);
+        //     if (!this->show_sub_headers && ctrl != nullptr && !ctrl->wants_fullscreen_overlay_when_opened_in_bar()) {
+        //         tft->drawFastHLine(x, y-2, width_in_pixels, GREEN);
+        //         tft->drawFastHLine(x, y-1, width_in_pixels, GREEN);
+        //     }
+        // }
+        return end_y;
+    }
+};
+
+
+// Redesigned compound menu item: Value | Minimum | Maximum | Output in one row
+// Slot rows are added separately by makeControls() so they are top-level navigable items
+class ParameterMenuItem : public SubMenuItemBarCustomProportions {
+    public:
+
+    FloatParameter **proxy_parameter = nullptr;
+
+    ParameterMenuItem(const char *label, FloatParameter **proxy_parameter, bool show_header = true)
+        : SubMenuItemBarCustomProportions(label, 4, true, show_header)
+    {
+        this->proxy_parameter = proxy_parameter;
+
+        this->set_column_proportion(0, 0.25f);  // Value
+        this->set_column_proportion(1, 0.25f);  // Minimum
+        this->set_column_proportion(2, 0.25f);  // Maximum
+        this->set_column_proportion(3, 0.25f);  // Output
+
+        this->add(new ParameterValueMenuItem((char*)"Value", this->proxy_parameter));
+        this->add(new ParameterRangeMenuItem("Min", this->proxy_parameter, MINIMUM));
+        this->add(new ParameterRangeMenuItem("Max", this->proxy_parameter, MAXIMUM));
+        ParameterValueMenuItem *output = new ParameterValueMenuItem((char*)"Output", this->proxy_parameter);
+        output->setReadOnly();
+        output->selectable = false;
+        output->set_show_output_mode();
+        this->add(output);
+    }
+
+    virtual int small_display(int index, int x, int y, int width_in_pixels, bool is_selected, bool is_opened, bool outer_selected) override {
+        int end_y = SubMenuItemBarCustomProportions::small_display(index, x, y, width_in_pixels, is_selected, is_opened, outer_selected);
+        if (is_opened) {
+            MenuItem *ctrl = this->items->get(index);
+            if (ctrl != nullptr && !ctrl->wants_fullscreen_overlay_when_opened_in_bar())
+                tft->drawFastHLine(x, y, width_in_pixels, GREEN);
+        }
+        return end_y;
+    }
 };
