@@ -123,9 +123,8 @@ class ParameterManager
         //FLASHMEM  // making this FLASHMEM seems to cause crashes?!
         void auto_init_devices() {
             //char parameter_input_name = 'A';
-            for (uint_least8_t i = 0 ; i < devices->size() ; i++) {
-                ADCDeviceBase *device = this->devices->get(i);
-                Debug_printf("ParameterManager#auto_init_devices calling init() on device %i of %i\n", i+1, devices->size());
+            for (auto* device : *devices) {
+                Debug_printf("ParameterManager#auto_init_devices calling init() on a device\n");
                 device->init();
 
                 VoltageSourceBase *vs = device->make_voltage_source();
@@ -145,10 +144,9 @@ class ParameterManager
 
         FASTRUN FloatParameter *getParameterForName(const char *parameter_name) {
             // todo: turn into hashtable
-            const uint_fast8_t size = available_parameters->size();
-            for (uint_fast8_t i = 0 ; i < size ; i++) {
-                if (strcmp(available_parameters->get(i)->label, parameter_name)==0)
-                    return available_parameters->get(i);
+            for (auto* param : *available_parameters) {
+                if (strcmp(param->label, parameter_name)==0)
+                    return param;
             }
             Serial.printf("WARNING: getParameterForName couldn't find parameter with name '%s'\n", parameter_name);
             return nullptr;
@@ -156,19 +154,17 @@ class ParameterManager
 
         // expects "Group:Name"
         FASTRUN BaseParameterInput *getInputForGroupAndName(const char *group_and_name) {
-            const uint_fast8_t size = available_inputs->size();
-            for (uint_fast8_t i = 0 ; i < size ; i++) {
-                if (available_inputs->get(i)->matches_group_and_label(group_and_name))
-                    return available_inputs->get(i);
+            for (auto* input : *available_inputs) {
+                if (input->matches_group_and_label(group_and_name))
+                    return input;
             }
             return nullptr;
         }
         FASTRUN BaseParameterInput *getInputForName(const char *input_name) {
             // todo: could perhaps mildly optimise this so that search starts at the last found entry, for very mild speedup when loading from save files?
-            const uint_fast8_t size = available_inputs->size();
-            for(uint_fast8_t i = 0 ; i < size ; i++) {
-                if (available_inputs->get(i)->matches_label(input_name))
-                    return available_inputs->get(i);
+            for (auto* input : *available_inputs) {
+                if (input->matches_label(input_name))
+                    return input;
             }
             return nullptr;
             /*int index = this->getInputIndexForName(input_name);
@@ -176,19 +172,21 @@ class ParameterManager
             return nullptr;*/
         }
         FASTRUN int getInputIndexForName(const char *input_name) {
-            const uint_fast8_t size = available_inputs->size();
-            for(uint_fast8_t i = 0 ; i < size ; i++) {
-                if (available_inputs->get(i)->matches_label(input_name))
-                    return i;
+            int idx = 0;
+            for (auto* input : *available_inputs) {
+                if (input->matches_label(input_name))
+                    return idx;
+                ++idx;
             }
             return -1;
         }
         FASTRUN int getInputIndex(BaseParameterInput *param) {
             if (param==nullptr) return -1;
-            const uint_fast8_t size = available_inputs->size();
-            for (uint_fast8_t i = 0 ; i < size ; i++) {
-                if (param==this->available_inputs->get(i))
-                    return i;
+            int idx = 0;
+            for (auto* input : *available_inputs) {
+                if (param==input)
+                    return idx;
+                ++idx;
             }
             return -1;
             //return this->getInputIndexForName(param->name);
@@ -259,11 +257,10 @@ class ParameterManager
             // TODO: see if we can move this back here again
             //this->process_calibration();
 
-            const uint_fast8_t available_inputs_size = available_inputs->size();
-            for (uint_fast8_t i = 0 ; i < available_inputs_size ; i++) {
-                //Serial.printf("ParameterManager#update_inputs updating input [%i/%i].. ", i+1, available_inputs_size); Serial_flush();
+            for (auto* input : *available_inputs) {
+                //Serial.printf("ParameterManager#update_inputs updating input..."); Serial_flush();
                 PROFILE_START(p_pm_input_loop);
-                available_inputs->get(i)->loop();
+                input->loop();
                 PROFILE_STOP(p_pm_input_loop);
                 //Serial.println("looped()!"); Serial_flush();
             }
@@ -279,12 +276,11 @@ class ParameterManager
             // this is going to be pretty intensive; may need to adjust the way this works...
             //unsigned long update_mixers_started = micros();
             //ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-                const uint_fast16_t available_parameters_size = this->available_parameters->size();
-                if (debug && Serial) Serial.printf("update_mixers has %i parameters to process\n", available_parameters_size);
-                for (uint_fast16_t i = 0 ; i < available_parameters_size ; i++) {
-                    if (this->available_parameters->get(i)!=nullptr) {
+                if (debug && Serial) Serial.printf("update_mixers has %i parameters to process\n", this->available_parameters->size());
+                for (auto* param : *this->available_parameters) {
+                    if (param!=nullptr) {
                         PROFILE_START(p_pm_mixer_update);
-                        this->available_parameters->get(i)->update_mixer();
+                        param->update_mixer();
                         PROFILE_STOP(p_pm_mixer_update);
                     }
                 }
@@ -295,6 +291,9 @@ class ParameterManager
         }
 
         // update X mixers at a time
+        // NOTE: left as index-based loop — 'pos' is a static window offset that may be non-zero,
+        // requiring an iterator-advance skip which obscures intent. Since concurrent access is not
+        // a concern here (single-core hot path), this is safe as-is.
         FASTRUN void update_mixers_sliced(int_fast8_t proportion = 3) {
             static uint_fast16_t pos = 0;
             const uint_fast16_t SLICE_SIZE = this->available_parameters->size() / proportion;
@@ -308,11 +307,11 @@ class ParameterManager
         FLASHMEM // causes a section type conflict with 'void setup_cv_input()'
         void setDefaultParameterConnections() {
             //Debug_printf(F("ParameterManager#setDefaultParameterConnections() has %i parameters to map to %i inputs..\n"), this->available_parameters->size(), this->available_inputs->size());
-            for (uint_fast8_t i = 0 ; i < this->available_parameters->size() ; i++) {
+            for (auto* param : *this->available_parameters) {
                 // todo: make this configurable dynamically / load defaults from save file
-                available_parameters->get(i)->set_slot_0_input(available_inputs->get(0));
-                available_parameters->get(i)->set_slot_1_input(available_inputs->get(1));
-                available_parameters->get(i)->set_slot_2_input(available_inputs->get(2));
+                param->set_slot_0_input(available_inputs->get(0));
+                param->set_slot_1_input(available_inputs->get(1));
+                param->set_slot_2_input(available_inputs->get(2));
                 /*for (unsigned int i = 0 ; i < MAX_SLOT_CONNECTIONS ; i++) {
                     available_parameters->get(i)->connections[i].parameter_input = available_inputs->get(i);
                 }*/
@@ -344,21 +343,11 @@ class ParameterManager
 
             // add all the available parameters to the main menu
             FLASHMEM void addAllParameterMenuItems(Menu *menu) {
-                for (unsigned int i = 0 ; i < this->available_parameters->size() ; i++) {
-                    //LinkedList<MenuItem*> *ctrls = this->makeMenuItemsForParameter(this->available_parameters->get(i));
+                for (auto* param : *this->available_parameters) {
+                    //LinkedList<MenuItem*> *ctrls = this->makeMenuItemsForParameter(param);
                     //menu->add(ctrls);
-                    menu->add(this->makeMenuItemsForParameter(this->available_parameters->get(i)));
-                    //Serial.printf("%2i: After adding parameter menu items for (%s),\tfree RAM is \t%u\n", i, this->available_parameters->get(i)->label, rp2040.getFreeHeap());
-                    //ctrls->clear();
-                    //delete ctrls;
-                    //continue;
-                    //delete ctrls; 
-                    //Serial.printf("about to ctrls->clear()\n"); Serial.flush();
-                    //ctrls->clear();                    
+                    menu->add(this->makeMenuItemsForParameter(param));
                 }
-                //Serial.println("addAllParameterMenuItems finished"); Serial.flush();
-                //ctrls->clear();
-                //delete ctrls;
             }
 
             FLASHMEM SubMenuItem *addParameterSubMenuItems(Menu *menu, const char *submenu_label, LinkedList<FloatParameter*> *parameters, int16_t default_fg_colour = C_WHITE) {
@@ -370,10 +359,10 @@ class ParameterManager
                 }
 
                 // then add all the non-modulatable ones as separate rows
-                for (unsigned int i = 0 ; i < parameters->size() ; i++) {
-                    if (!parameters->get(i)->is_modulatable()) {
-                        Debug_printf("addParameterSubMenuItems() adding non-modulatable item %i aka '%s'\n", i, parameters->get(i)->label);
-                        MenuItem *item = this->makeMenuItemForParameter(parameters->get(i));
+                for (auto* param : *parameters) {
+                    if (!param->is_modulatable()) {
+                        Debug_printf("addParameterSubMenuItems() adding non-modulatable item '%s'\n", param->label);
+                        MenuItem *item = this->makeMenuItemForParameter(param);
                         item->set_default_colours(default_fg_colour);
                         menu->add(new SeparatorMenuItem(item->label, default_fg_colour));
                         menu->add(item);
@@ -389,14 +378,11 @@ class ParameterManager
                 snprintf(label, MAX_LABEL_LENGTH, "Parameters for %s", submenu_label);
                 //LinkedList<DataParameter*> *parameters = behaviour_craftsynth->get_parameters();
                 SubMenuItem *submenu = new SubMenuItem(label);
-                for (unsigned int i = 0 ; i < parameters->size() ; i++) {
-                    //char tmp[MENU_C_MAX];
-                    //sprintf(tmp, "test item %i", i);
-                    //submenu->add(new MenuItem(tmp));
-                    if (parameters->get(i)->is_modulatable()) {
-                        Debug_printf("getModulatableParameterSubMenuItems(menu, '%s') processing parameter %i\n", label, i);
-                        submenu->add(new SeparatorMenuItem(parameters->get(i)->label));
-                        submenu->add(this->makeMenuItemsForParameter(parameters->get(i)));
+                for (auto* param : *parameters) {
+                    if (param->is_modulatable()) {
+                        Debug_printf("getModulatableParameterSubMenuItems(menu, '%s') processing parameter\n", label);
+                        submenu->add(new SeparatorMenuItem(param->label));
+                        submenu->add(this->makeMenuItemsForParameter(param));
                     }
                 }
                 return submenu;
@@ -438,53 +424,36 @@ class ParameterManager
             //#if defined(ENABLE_SD) && !defined(DISABLE_CALIBRATION_STORAGE)
                 //FLASHMEM causes a section type conflict with 'void setup_cv_input()'
                 void addAllVoltageSourceCalibrationMenuItems(Menu *menu, bool make_own_page = false) {
-                    //Serial.printf(F("------------\nParameterManager#addAllVoltageSourceCalibrationMenuItems() has %i VoltageSources to add items for?\n"), this->voltage_sources->size());
-                    const unsigned int size = this->voltage_sources->size();
-
                     if (!make_own_page) {
                         SubMenuItem *submenuitem = new SubMenuItem("Voltage Source Calibration");
                         //submenuitem->debug = true;
 
-                        for (unsigned int i = 0 ; i < size ; i++) {
-                            //Serial.printf(F("\tParameterManager#addAllVoltageSourceCalibrationMenuItems() for voltage_source %i/%i\n"), i+1, size); Serial_flush();
-                            
-                            VoltageSourceBase *voltage_source = this->voltage_sources->get(i);
-                            submenuitem->add(voltage_source->makeCalibrationControls(i));
-                            //Serial.println("addAllVoltageSourceCalibrationMenuItems did makeCalibrationControls!");
-
-                            //submenuitem->add(new MenuItem("Test"));
-
-                            //Serial.println(F("\t\taddAllVoltageSourceCalibrationMenuItems done!")); Serial_flush();
-                            //Serial.printf(F("\tfinished with voltage_source %i\n"), i);
+                        unsigned int idx = 0;
+                        for (auto* voltage_source : *this->voltage_sources) {
+                            submenuitem->add(voltage_source->makeCalibrationControls(idx));
+                            ++idx;
                         }
-                        //Serial.printf(F("ParameterManager#addAllVoltageSourceCalibrationMenuItems() done!\n------------\n")); Serial_flush();
 
                         menu->add(submenuitem);
                     } else {
-                        if(size>0){
+                        if(this->voltage_sources->size()>0){
                             menu->add_page("Input Calibration");
-                            for (unsigned int i = 0 ; i < size ; i++) {
-                                //Serial.printf(F("\tParameterManager#addAllVoltageSourceCalibrationMenuItems() for voltage_source %i/%i\n"), i+1, size); Serial_flush();
-                                
-                                VoltageSourceBase *voltage_source = this->voltage_sources->get(i);
-                                menu->add(voltage_source->makeCalibrationControls(i));
-                                //Serial.println("addAllVoltageSourceCalibrationMenuItems did makeCalibrationControls!");
-
-                                //submenuitem->add(new MenuItem("Test"));
-
-                                //Serial.println(F("\t\taddAllVoltageSourceCalibrationMenuItems done!")); Serial_flush();
-                                //Serial.printf(F("\tfinished with voltage_source %i\n"), i);
+                            unsigned int idx = 0;
+                            for (auto* voltage_source : *this->voltage_sources) {
+                                menu->add(voltage_source->makeCalibrationControls(idx));
+                                ++idx;
                             }
 
                             // add a control that outputs the input calibration data to the serial port
                             menu->add(new LambdaActionItem("Output Calibration Data", [=]() -> void {
                                 Serial.println("Outputting calibration data...");
-                                for (unsigned int i = 0 ; i < size ; i++) {
-                                    VoltageSourceBase *voltage_source = this->voltage_sources->get(i);
-                                    if (voltage_source->needs_calibration()) {
-                                        Serial.printf("Voltage Source %i: %i\n", i, voltage_source->global_slot);
-                                        voltage_source->output_calibration_data();
+                                unsigned int i = 0;
+                                for (auto* vs : *this->voltage_sources) {
+                                    if (vs->needs_calibration()) {
+                                        Serial.printf("Voltage Source %i: %i\n", i, vs->global_slot);
+                                        vs->output_calibration_data();
                                     }
+                                    ++i;
                                 }
                             }));
                             this->addSystemSettingsActionItems(menu);
@@ -495,13 +464,11 @@ class ParameterManager
                 #ifdef ENABLE_CV_OUTPUT
                     void addAllCVOutputCalibrationMenuItems(Menu *menu) {
                         bool page_created = false;
-                        Serial.printf("------------\nParameterManager#addAllCVOutputCalibrationMenuItems() has %i parameters to potentially add  calibrations for\n", this->available_parameters->size());
-                        const unsigned int size = this->available_parameters->size();
-                        for (unsigned int i = 0 ; i < size ; i++) {
-                            Serial.printf("\tParameterManager#addAllCVOutputCalibrationMenuItems() for parameter %i/%i\n", i+1, size); Serial_flush();
-                            Serial.printf("Parameter name is '%s'\n", this->available_parameters->get(i)->label);
+                        Serial.printf("------------\nParameterManager#addAllCVOutputCalibrationMenuItems()\n");
+                        unsigned int idx = 0;
+                        for (auto* parameter : *this->available_parameters) {
+                            Serial.printf("\tParameterManager#addAllCVOutputCalibrationMenuItems() for parameter '%s'\n", parameter->label); Serial_flush();
                             
-                            FloatParameter *parameter = this->available_parameters->get(i);
                             LinkedList<MenuItem *> *calibration_controls = parameter->makeCalibrationControls();
                             if (calibration_controls!=nullptr) {
                                 Serial.println("Got some controls..."); Serial_flush();
@@ -514,31 +481,34 @@ class ParameterManager
                                 menu->add(calibration_controls);
                                 Serial.println("Added calibration controls!"); Serial_flush();
                             } else {
-                                Serial.printf("Nothing to add for parameter %i\n", i);
+                                Serial.printf("Nothing to add for parameter %i\n", idx);
                             }
 
                             Serial.println("\t\taddAllCVOutputCalibrationMenuItems done!"); Serial_flush();
-                            Serial.printf("\tfinished with parameter %i\n", i);
+                            Serial.printf("\tfinished with parameter %i\n", idx);
 
                             Serial.printf("free ram is %u\n", freeRam());
                             #ifdef ARDUINO_TEENSY41
                                 Serial.printf("free ext ram is %u\n", freeExtRam());
                             #endif
+                            ++idx;
                         }
                         
                         // add a control that outputs the calibration data to the serial port
                         menu->add(new LambdaActionItem("Output Calibration Data", [=]() -> void {
                             Serial.println("Outputting input calibration data...");
-                            for (unsigned int i = 0 ; i < size ; i++) {
-                                FloatParameter *parameter = this->available_parameters->get(i);
-                                if (parameter==nullptr) {
+                            unsigned int i = 0;
+                            for (auto* p : *this->available_parameters) {
+                                if (p==nullptr) {
                                     Serial.printf("WARNING: parameter %i is null!\n", i);
+                                    ++i;
                                     continue;
                                 }
-                                if (parameter->needs_calibration()) {
-                                    Serial.printf("Parameter %i: %s\n", i, parameter->label); Serial_flush();
-                                    parameter->output_calibration_data();
+                                if (p->needs_calibration()) {
+                                    Serial.printf("Parameter %i: %s\n", i, p->label); Serial_flush();
+                                    p->output_calibration_data();
                                 }
+                                ++i;
                             }
                             Serial.println("Outputting input calibration data done!");
                         }));
@@ -550,9 +520,11 @@ class ParameterManager
         #endif
 
         FASTRUN int find_slot_for_voltage(VoltageSourceBase *source) {
-            for (unsigned int i = 0 ; i < voltage_sources->size() ; i++) {
-                if (voltage_sources->get(i) == source)
-                    return i;
+            int idx = 0;
+            for (auto* vs : *voltage_sources) {
+                if (vs == source)
+                    return idx;
+                ++idx;
             }
             return -1;
         }
@@ -661,9 +633,9 @@ class ParameterManager
 
                 const uint_fast8_t available_inputs_count = available_inputs->size();
                 // todo: replace this loop with a hashmap based on available_inputs, for speed
-                for (uint_fast8_t i = 0 ; i < available_inputs_count ; i++) {
-                    if (available_inputs->get(i)->load_parse_key_value(key, value)) {
-                        if (debug && Serial) Serial.printf("ParameterManager#fast_load_parse_key_value(%s, %s)\tfound a match in parameter_input: %s!\n", key.c_str(), value.c_str(), available_inputs->get(i)->name);
+                for (auto* input : *available_inputs) {
+                    if (input->load_parse_key_value(key, value)) {
+                        if (debug && Serial) Serial.printf("ParameterManager#fast_load_parse_key_value(%s, %s)\tfound a match in parameter_input: %s!\n", key.c_str(), value.c_str(), input->name);
                         return true;
                     }
                 }
@@ -752,16 +724,14 @@ class ParameterManager
                 // add all parameter inputs to the saveable settings, 
                 // so that they get saved and loaded.
 
-                const uint_fast8_t size = available_inputs->size();
-                for (uint_fast8_t i = 0 ; i < size ; i++) {
-                    this->register_child(available_inputs->get(i));
+                for (auto* input : *available_inputs) {
+                    this->register_child(input);
                 }
 
                 #ifdef ENABLE_CV_INPUT
                     // add calibratable voltage sources to the tree
-                    const uint_fast8_t vs_size = (uint_fast8_t)voltage_sources->size();
-                    for (uint_fast8_t i = 0 ; i < vs_size ; i++) {
-                        ISaveableSettingHost* host = voltage_sources->get(i)->as_saveable_host();
+                    for (auto* vs : *voltage_sources) {
+                        ISaveableSettingHost* host = vs->as_saveable_host();
                         if (host) this->register_child(host);
                     }
                 #endif
@@ -799,9 +769,8 @@ class ParameterManager
         }
 
         FASTRUN void process_pending() {
-            uint_fast16_t size = available_parameters->size();
-            for (uint_fast16_t i = 0 ; i < size ; i++) {
-                available_parameters->get(i)->process_pending();
+            for (auto* param : *available_parameters) {
+                param->process_pending();
             }
         }
 
@@ -885,24 +854,23 @@ class ParameterManager
             line[columns] = '\0';
 
             if (mode & GRAPH_PARAMETER) {
-                for (uint_fast16_t i = 0 ; i < this->available_parameters->size() ; i++) {
-                    FloatParameter *p = this->available_parameters->get(i);
-                    if (strcmp(p->label,"None")==0)
-                        continue;
+                unsigned int i = 0;
+                for (auto* p : *this->available_parameters) {
+                    if (strcmp(p->label,"None")==0) { ++i; continue; }
                     float v = p->getLastModulatedNormalValue();
                     int pos = constrain((float)columns * v, 0, columns-1);
                     line[pos] = '0' +  (i % '9');
+                    ++i;
                 }
             }
             if (mode & GRAPH_INPUT) {
                 // TODO: re-enable this
-                for (uint_fast8_t i = 0 ; i < this->available_inputs->size() ; i++) {
-                    BaseParameterInput *p = this->available_inputs->get(i);
-                    //if (strcmp(p->label,"None")==0)
-                    //    continue;
+                unsigned int i = 0;
+                for (auto* p : *this->available_inputs) {
                     float v = p->get_normal_value_unipolar();
                     int pos = constrain((float)(columns * v), 0, columns-1);
                     line[pos] = 'A' + i;
+                    ++i;
                 }
             }
 
@@ -910,23 +878,22 @@ class ParameterManager
             
             // output a key to the parameters and inputs
             if (mode & VALUE_PARAMETER) {
-                for (uint_fast16_t i = 0 ; i < this->available_parameters->size() ; i++) {
-                    FloatParameter *p = this->available_parameters->get(i);
-                    if (strcmp(p->label,"None")==0)
-                        continue;
+                unsigned int i = 0;
+                for (auto* p : *this->available_parameters) {
+                    if (strcmp(p->label,"None")==0) { ++i; continue; }
                     Serial.printf("%c=%s=%1.3f\t", '0'+i, p->label, p->getLastModulatedNormalValue());                
+                    ++i;
                 }
             }
             if (mode & VALUE_INPUT) {
-                for (uint_fast8_t i = 0 ; i < this->available_inputs->size() ; i++) {
-                    BaseParameterInput *p = this->available_inputs->get(i);
-                    //if (strcmp(p->label,"None")==0)
-                    //    continue;
+                unsigned int i = 0;
+                for (auto* p : *this->available_inputs) {
                     float v = p->get_normal_value_unipolar();
                     
                     Serial.printf("\t%c=%s=%1.3f %c", 'A'+i, p->name, v, 
                         v<last_input_values[i] ? 'v' : v>last_input_values[i] ? '^' : ' ');
                     last_input_values[i] = v;
+                    ++i;
                 }
             }
             Serial.println();
@@ -947,8 +914,8 @@ class ParameterManager
         // called at end of setup() to load all calibrations
         // todo: this should probably also be where the VoltageSource calibrations are loaded too
         void load_all_calibrations() {
-            for (uint_fast8_t i = 0 ; i < available_parameters->size() ; i++) {
-                available_parameters->get(i)->load_calibration();
+            for (auto* param : *available_parameters) {
+                param->load_calibration();
             }
         }
 

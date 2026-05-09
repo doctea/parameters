@@ -41,13 +41,13 @@ class ParameterInputCombinedDisplay : public MenuItem {
             //Serial.println("MidiOutputSelectorControl display()!");
             pos.y = this->header(label, pos, selected, opened);
 
-            for (uint_fast8_t i = 0 ; i < displays->size() ; i++) {
-                if (displays->get(i)!=nullptr) {
+            for (auto* d : *displays) {
+                if (d!=nullptr) {
                     tft->setCursor(pos.x, pos.y);
-                    this->colours(false, displays->get(i)->default_fg);
-                    if (displays->get(i)->parameter_input->supports_pitch()) {
-                        //tft->printf("%s ", (char*)displays->get(i)->parameter_input->getInputValue());
-                        BaseParameterInput *input = displays->get(i)->parameter_input;
+                    this->colours(false, d->default_fg);
+                    if (d->parameter_input->supports_pitch()) {
+                        //tft->printf("%s ", (char*)d->parameter_input->getInputValue());
+                        BaseParameterInput *input = d->parameter_input;
                         float voltage_value = input->get_voltage();
                         //Serial.printf("voltage_value=%3.3f\n", voltage_value);
                         char info[MENU_C_MAX];
@@ -59,7 +59,7 @@ class ParameterInputCombinedDisplay : public MenuItem {
                         );
                         tft->printf(info);
                     } else {
-                        tft->printf("%3s ", (char*)displays->get(i)->parameter_input->getInputValue());
+                        tft->printf("%3s ", (char*)d->parameter_input->getInputValue());
                     }
                     tft->printf("| ");
                     pos.x = tft->getCursorX();
@@ -72,9 +72,9 @@ class ParameterInputCombinedDisplay : public MenuItem {
             const uint_fast16_t graph_height = (this->graph_height - pos.y) / displays->size();
             const uint_fast16_t screen_width = tft->width();
 
-            for (uint_fast8_t i = 0 ; i < displays->size() ; i++) {
-                if (displays->get(i)!=nullptr) {
-                    pos.y = displays->get(i)->draw_graph(pos, screen_width, graph_height);
+            for (auto* d : *displays) {
+                if (d!=nullptr) {
+                    pos.y = d->draw_graph(pos, screen_width, graph_height);
                 }
                 tft->drawLine(0, pos.y, screen_width, pos.y, GREY);
             }

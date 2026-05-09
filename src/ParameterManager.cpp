@@ -49,10 +49,9 @@ LinkedList<BaseParameterInput*> *ParameterManager::get_available_pitch_inputs() 
     static LinkedList<BaseParameterInput*> *available_pitch_inputs = new LinkedList<BaseParameterInput*>();
     static bool already_calculated = false;
     if (!already_calculated) {
-        const uint_fast8_t size = available_inputs->size();
-        for (uint_fast8_t i = 0 ; i < size ; i++) {
-            if (available_inputs->get(i)->supports_pitch())
-                available_pitch_inputs->add(available_inputs->get(i));
+        for (auto* input : *available_inputs) {
+            if (input->supports_pitch())
+                available_pitch_inputs->add(input);
         }
         already_calculated = true;
     }
@@ -107,10 +106,10 @@ FLASHMEM void ParameterManager::addParameters(LinkedList<FloatParameter*> *param
         return;
     Debug_println(F("ParameterManager#addParameters()..")); Serial_flush();
     Debug_printf(F("\t\tpassed @%p, has size %i\n"), parameters, parameters->size()); Serial_flush();
-    for (unsigned int i = 0 ; i < parameters->size() ; i++) {
-        Debug_printf(F("\t%i: adding from @%p '%s'\n"), i, parameters->get(i), parameters->get(i)->label); Serial_flush();
-        //this->available_parameters->add(parameters->get(i));
-        this->addParameter(parameters->get(i));
+    for (auto* p : *parameters) {
+        Debug_printf(F("\t adding parameter '%s'\n"), p->label); Serial_flush();
+        //this->available_parameters->add(p);
+        this->addParameter(p);
         Debug_printf(F("..added\n")); Serial_flush();
     }
     Debug_println(F("finished in addParameters"));
@@ -140,8 +139,7 @@ void ParameterManager::process_calibration() {
         // add the behaviours quickjump page to the 'main' menu quickjump list
         menu->remember_opened_page(menu->get_page_index_for_name(menu->get_selected_page()->title));
 
-        for (unsigned int i = 0 ; i < available_inputs->size() ; i++) {
-            BaseParameterInput *parameter_input = available_inputs->get(i);
+        for (auto* parameter_input : *available_inputs) {
             //Serial.printf("!!! Adding parameter menu items for %s\tfrom %s!\n", parameter_input->name, parameter_input->group_name);
             char label[MENU_C_MAX];
             if (last_group_name!=parameter_input->group_name || page_per_input) {                        
@@ -176,8 +174,7 @@ void ParameterManager::process_calibration() {
 
         ParameterInputCombinedDisplay *combined_display = nullptr;
 
-        for (unsigned int i = 0 ; i < available_inputs->size() ; i++) {
-            BaseParameterInput *parameter_input = available_inputs->get(i);
+        for (auto* parameter_input : *available_inputs) {
             //Serial.printf("!!! Adding parameter menu items for %s\tfrom %s!\n", parameter_input->name, parameter_input->group_name);
             char label[MENU_C_MAX];
             if (last_group_name!=parameter_input->group_name) {                        

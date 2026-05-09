@@ -158,10 +158,11 @@ class ParameterInputSelectorControl : public SelectorControl<int_least16_t> {
             return this->get_none_index();
         if (this->available_parameter_inputs==nullptr)
             return -1;
-        const uint_fast16_t size = this->available_parameter_inputs->size();
-        for (uint_fast16_t i = 0 ; i < size ; i++) {
-            if (available_parameter_inputs->get(i)->matches_label(name))
-                return i;
+        int idx = 0;
+        for (auto* input : *this->available_parameter_inputs) {
+            if (input->matches_label(name))
+                return idx;
+            ++idx;
         }
         return -1;
     }
