@@ -137,7 +137,10 @@ void ParameterManager::process_calibration() {
         page_t *started_page = menu->get_selected_page();   // for remembering what page the quickjump menu itself is
 
         // add the behaviours quickjump page to the 'main' menu quickjump list
-        menu->remember_opened_page(menu->get_page_index_for_name(menu->get_selected_page()->title));
+        menu->remember_opened_page(
+            menu->get_page_index_for_name(menu->get_selected_page()->title), 
+            true
+        );
 
         for (auto* parameter_input : *available_inputs) {
             //Serial.printf("!!! Adding parameter menu items for %s\tfrom %s!\n", parameter_input->name, parameter_input->group_name);
@@ -170,7 +173,10 @@ void ParameterManager::process_calibration() {
         CustomQuickPagesMenuItem *quickjump = new CustomQuickPagesMenuItem("QuickJump to Overviews");
         menu->add(quickjump);
         page_t *started_page = menu->get_selected_page();   // for remembering what page the quickjump menu itself is
-        menu->remember_opened_page(menu->get_page_index_for_name(menu->get_selected_page()->title));
+        menu->remember_opened_page(
+            menu->get_page_index_for_name(menu->get_selected_page()->title), 
+            true
+        );
 
         ParameterInputCombinedDisplay *combined_display = nullptr;
 
