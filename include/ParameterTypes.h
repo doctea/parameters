@@ -24,14 +24,14 @@ enum MODULATION_SLOT_MODE : uint8_t {
 // without touching menu/widget code.
 
 // Compact UI labels for slot modulation modes (easy to redefine project-wide).
-#ifndef MOD_SLOT_LABEL_BI_NATIVE
-  #define MOD_SLOT_LABEL_BI_NATIVE "B+-"
+#ifndef MOD_SLOT_BI_NATIVE_LABEL
+  #define MOD_SLOT_BI_NATIVE_LABEL "B+-"
 #endif
-#ifndef MOD_SLOT_LABEL_UNI_RAW
-  #define MOD_SLOT_LABEL_UNI_RAW "U+ "
+#ifndef MOD_SLOT_UNI_RAW_LABEL
+  #define MOD_SLOT_UNI_RAW_LABEL "U+ "
 #endif
-#ifndef MOD_SLOT_LABEL_UNI_CENTERED
-  #define MOD_SLOT_LABEL_UNI_CENTERED "U+-"
+#ifndef MOD_SLOT_UNI_CENTERED_LABEL
+  #define MOD_SLOT_UNI_CENTERED_LABEL "U+-"
 #endif
 
 // Set to 1 for lightweight runtime tracing of CV pitch-bend routing and applied values.

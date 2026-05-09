@@ -246,11 +246,11 @@ class ParameterConnectionPolarityTypeSelectorControl : public SelectorControl<in
 
     virtual const char* get_label_for_value(int_least8_t index) override {
         if (index==MOD_SLOT_BI_NATIVE)
-            return MOD_SLOT_LABEL_BI_NATIVE;
+            return MOD_SLOT_BI_NATIVE_LABEL;
         if (index==MOD_SLOT_UNI_RAW)
-            return MOD_SLOT_LABEL_UNI_RAW;
+            return MOD_SLOT_UNI_RAW_LABEL;
         if (index==MOD_SLOT_UNI_CENTERED)
-            return MOD_SLOT_LABEL_UNI_CENTERED;
+            return MOD_SLOT_UNI_CENTERED_LABEL;
         //if (index==CLOCK_NONE)
         //    return "None";
         return "??";

@@ -125,9 +125,14 @@ class BaseParameterInput
 
     virtual void loop() {}
 
+    // get a version of the current value normalized to 0-1 for unipolar inputs, with 0.5 at centre if 
+    // bipolar; for bipolar inputs in 'native' mode, this is the bipolar value mapped to 0-1, with 0.5
+    // at 0; for bipolar inputs in 'bipolar' mode, this is the bipolar value mapped to 0-1, with 0.5 
+    // at 0
     virtual float get_normal_value_unipolar() {
       return 0.0;
     }
+    // get a version of the current value normalized to -1 to 1 for bipolar inputs, with 0.0 at centre
     virtual float get_normal_value_bipolar() {
       return 0.0;
     }

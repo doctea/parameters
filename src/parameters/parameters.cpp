@@ -119,14 +119,23 @@ FLASHMEM LinkedList<MenuItem *> *FloatParameter::makeControls() {
                 float nml = 0.0f;
                 switch (this->connections[i].polar_mode) {
                     case MOD_SLOT_BI_NATIVE:
+                        // for bipolar inputs in 'native' mode, the modulation amount is scaled by the full bipolar value 
+                        // (-1 to 1) of the input, so that a full negative value can fully invert the parameter, 
+                        // and a full positive value can fully reinforce it, with a smooth transition in between
                         nml = this->connections[i].parameter_input->get_normal_value_bipolar();
                         break;
                     case MOD_SLOT_UNI_CENTERED:
+                        // for unipolar inputs in 'centered' mode, the modulation amount is scaled by a bipolar 
+                        // value derived from the unipolar input, where 0.5 (center) gives no modulation, 
+                        // 0 gives full negative modulation, and 1 gives full positive modulation
                         nml = this->connections[i].parameter_input->get_normal_value_unipolar();
                         nml = -1.0f + (nml * 2.0f);
                         break;
                     case MOD_SLOT_UNI_RAW:
                     default:
+                        // for unipolar inputs in 'raw' mode, the modulation amount is scaled by the raw unipolar
+                        // value of the input (0 to 1), so that a full positive value can fully reinforce the
+                        // parameter, but the input cannot invert it (as the negative range is not used)
                         nml = this->connections[i].parameter_input->get_normal_value_unipolar();
                         break;
                 }
