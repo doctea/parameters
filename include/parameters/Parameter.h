@@ -1068,8 +1068,8 @@ class DataParameter : public DataParameterBase<DataType> {
         DataParameter(const char *label, TargetClass *target, void(TargetClass::*setter_func)(DataType), DataType(TargetClass::*getter_func)(), DataType minimumDataValue, DataType maximumDataValue) 
             : DataParameter<TargetClass,DataType>(label, target, setter_func, getter_func) /* minimumDataLimit(minimumDataValue), maximumDataLimit(maximumDataValue), */
         {
-            this->minimumDataLimit = minimumDataValue;
-            this->maximumDataLimit = maximumDataValue;
+            this->minimumDataLimit = this->minimumDataRange = minimumDataValue;
+            this->maximumDataLimit = this->maximumDataRange = maximumDataValue;
         }
         DataParameter(const char *label, TargetClass *target, float initial_value_normal, void(TargetClass::*setter_func)(DataType)) 
             : DataParameter<TargetClass,DataType>(label, target, setter_func) {

@@ -49,6 +49,7 @@ class AnalogParameterInputBase : public ParameterInput {
     }
 
     virtual DataType get_normal_value(DataType value, int output_type) {
+      // DataType incoming_value = value;
       if (this->inverted) {
         value = 1.0f - ((float)value); 
       }

@@ -174,8 +174,8 @@ class ParameterMapPercentageControl : public DirectNumberControl<float> {
             label, 
             &((*parameter)->connections[slot_number].amount), 
             (*parameter)->connections[slot_number].amount,
-            -1.0f,
-            1.0f,
+            -2.0f,
+            2.0f,
             nullptr
         ), parameter(parameter), slot_number(slot_number)
         {

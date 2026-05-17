@@ -48,7 +48,8 @@ class MIDIParameterInput : public ParameterInput {
             return (float)this->currentValue/127.0;
         }
         virtual float get_normal_value_bipolar() override {
-            return (float)(2*(64-this->currentValue))/127.0;
+            float bipolar = ((float)this->currentValue - 64.0f) / 63.0f;
+            return constrain(bipolar, -1.0f, 1.0f);
         }
 
         virtual const char *getInputInfo() {

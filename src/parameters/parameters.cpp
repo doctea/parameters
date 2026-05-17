@@ -72,6 +72,7 @@ FLASHMEM LinkedList<MenuItem *> *FloatParameter::makeControls() {
 }
 #endif
 
+
 #define USE_REAL_FLOATS
 #ifndef USE_REAL_FLOATS
     // NOT WORKING PROPERLY !!!! get the modulation amount to use
@@ -119,29 +120,30 @@ FLASHMEM LinkedList<MenuItem *> *FloatParameter::makeControls() {
                 float nml = 0.0f;
                 switch (this->connections[i].polar_mode) {
                     case MOD_SLOT_BI_NATIVE:
-                        // for bipolar inputs in 'native' mode, the modulation amount is scaled by the full bipolar value 
-                        // (-1 to 1) of the input, so that a full negative value can fully invert the parameter, 
-                        // and a full positive value can fully reinforce it, with a smooth transition in between
-                        nml = this->connections[i].parameter_input->get_normal_value_bipolar();
+                        // aka B+-
+                        // Bipolar source (-1..1). Scaled by 0.5 so that amount=1.0 sweeps ±50% of the
+                        // full normal span — giving a clean 0..1 sweep when base=0.5 (no early saturation).
+                        // Use amount=2.0 to sweep the full span from a base at the edge of the range.
+                        nml = this->connections[i].parameter_input->get_normal_value_bipolar() * 0.5f;
                         break;
                     case MOD_SLOT_UNI_CENTERED:
-                        // for unipolar inputs in 'centered' mode, the modulation amount is scaled by a bipolar 
-                        // value derived from the unipolar input, where 0.5 (center) gives no modulation, 
-                        // 0 gives full negative modulation, and 1 gives full positive modulation
+                        // aka U+-
+                        // Unipolar source (0..1) re-centred to bipolar (-1..1), then scaled by 0.5.
+                        // Same semantics as B+-: amount=1.0 sweeps ±50% of the span from base.
                         nml = this->connections[i].parameter_input->get_normal_value_unipolar();
-                        nml = -1.0f + (nml * 2.0f);
+                        nml = (-1.0f + (nml * 2.0f)) * 0.5f;
                         break;
                     case MOD_SLOT_UNI_RAW:
                     default:
+                        // aka U+
                         // for unipolar inputs in 'raw' mode, the modulation amount is scaled by the raw unipolar
                         // value of the input (0 to 1), so that a full positive value can fully reinforce the
                         // parameter, but the input cannot invert it (as the negative range is not used)
                         nml = this->connections[i].parameter_input->get_normal_value_unipolar();
                         break;
                 }
-                modulation += (
-                    nml * this->connections[i].amount
-                );
+
+                modulation += nml * this->connections[i].amount;
                 number_of_modulations++;
             }
         }

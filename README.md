@@ -41,6 +41,37 @@ Implementation detail:
 - Slot mode values are serialized as `uni_raw`, `uni_centered`, `bi_native`.
 - Legacy save values are still accepted: `unipolar`, `bipolar`.
 
+## Modulation behavior matrix
+
+All slot outputs are calculated in normal space and then constrained to parameter bounds.
+
+Per-slot source normalization:
+
+- `U+` (`MOD_SLOT_UNI_RAW`): `nml = source_unipolar` in `[0..1]`
+- `U+-` (`MOD_SLOT_UNI_CENTERED`): `nml = -1 + 2*source_unipolar` in `[-1..1]`
+- `B+-` (`MOD_SLOT_BI_NATIVE`): `nml = source_bipolar` in `[-1..1]`
+
+Per-slot depth:
+
+- Raw slot modulation value is `nml * amount`
+- For `B+-` and `U+-`, adaptive headroom scaling is applied:
+  - positive movement scaled by `(max - base)`
+  - negative movement scaled by `(base - min)`
+- For `U+`, slot value remains one-sided (`0..+amount`) in normal space.
+
+Resulting behavior (single active slot):
+
+1. Base 50%, amount 50%, `B+-`/`U+-`: output sweeps `25%..75%`
+2. Base 50%, amount 100%, `B+-`/`U+-`: output sweeps `0%..100%`
+3. Base 50%, amount 100%, `U+`: output sweeps `50%..100%`
+
+Practical implications:
+
+- `U+` is one-sided positive modulation.
+- `U+-` and `B+-` are centered bipolar modulation.
+- Increasing source value should increase output for all three modes when amount is positive.
+- Negative amount inverts direction in all modes.
+
 # Current status
 
 ## Currently working
