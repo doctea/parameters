@@ -59,7 +59,22 @@ class ProxyParameter : public DataParameterBase<DataType>
             // might also be storing it, so it would be confusing and potentially cause issues when recalling
             this->remove_setting_by_label("current_value");
         }
-    #endif
-
-        
+    #endif       
 };
+
+#ifdef ENABLE_SCALES
+
+#include "midi_helpers.h"
+
+template<class DataType=int8_t>
+class ProxyNoteParameter : public ProxyParameter<DataType> {
+    public:
+    ProxyNoteParameter(const char *label, int8_t *source, int8_t *target, int8_t minimumDataValue = MIDI_MIN_NOTE, int8_t maximumDataValue = MIDI_MAX_NOTE) 
+        : ProxyParameter<DataType>(label, source, target, minimumDataValue, maximumDataValue) {}
+
+    virtual const char* parseFormattedDataType(int value) override {
+        return get_note_name_c(value);
+    }
+};
+
+#endif
