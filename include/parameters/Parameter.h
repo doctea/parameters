@@ -124,6 +124,10 @@ class BaseParameter
             virtual LinkedList<MenuItem*> *makeCalibrationControls() { return nullptr; }
             virtual MenuItem *makeCalibrationLoadSaveControls() { return nullptr; }
         #endif
+
+        // Returns this cast to CVOutputParameterBase* if applicable, else nullptr.
+        // Avoids dynamic_cast when RTTI is disabled.
+        virtual class CVOutputParameterBase* as_cv_output_base() { return nullptr; }
 };
 
 // floattype-backed Parameter class from which usable types descend

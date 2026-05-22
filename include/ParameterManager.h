@@ -43,6 +43,10 @@
   #include "colours.h"
   #include "menuitems_lambda.h"
   #include "menuitems_action.h"
+  #ifdef ENABLE_CV_INPUT
+    #include "voltage_sources/ADSVoltageSource.h"
+    #include "mymenu_items/CVInputCalibrationControls.h"
+  #endif
 #endif
 
 #ifdef ENABLE_STORAGE
@@ -517,6 +521,37 @@ class ParameterManager
                         }
                     }
                 #endif
+
+                #ifdef ENABLE_CV_OUTPUT
+                    // Add an oscillator tuning page to the menu.
+                    // Collects all CVOutputParameter instances from available_parameters
+                    // (identified by makeCalibrationControls() returning non-null) and
+                    // presents a single shared tuning page with a channel selector.
+                    void addOscillatorTuningMenuItems(Menu *menu);  // defined after class
+                #endif
+
+                #ifdef ENABLE_CV_INPUT
+                    // Add a CV input calibration wizard page for each ADSVoltageSource.
+                    void addAllCVInputCalibrationMenuItems(Menu *menu) {
+                        bool page_created = false;
+                        unsigned int idx = 0;
+                        for (auto* vs : *this->voltage_sources) {
+                            // Use virtual helper instead of dynamic_cast (RTTI may be disabled)
+                            ADSVoltageSourceBase *ads = vs->as_ads_source();
+                            if (ads != nullptr) {
+                                if (!page_created) {
+                                    menu->add_page("CV Input Cal");
+                                    page_created = true;
+                                }
+                                char label[32];
+                                snprintf(label, sizeof(label), "Input %u Cal", idx);
+                                auto *state = new CVInputCalibWizardState(ads);
+                                menu->add(makeCVInputCalibrationSubMenu(state, this->save_system_settings_callback, label));
+                            }
+                            ++idx;
+                        }
+                    }
+                #endif
         #endif
 
         FASTRUN int find_slot_for_voltage(VoltageSourceBase *source) {
@@ -924,3 +959,26 @@ class ParameterManager
 
 extern ParameterManager *parameter_manager;
 
+// OscillatorTuningControls is included here (after ParameterManager is declared) to avoid
+// the circular dependency: OscillatorTuningControls -> CVOutputParameter -> ParameterInputMenuItems
+// -> extern ParameterManager* (which must be declared before it can be used).
+#ifdef ENABLE_SCREEN
+  #ifdef ENABLE_CV_OUTPUT
+    #include "mymenu_items/OscillatorTuningControls.h"
+    inline void ParameterManager::addOscillatorTuningMenuItems(Menu *menu) {
+        LinkedList<CVOutputParameterBase *> *outputs = new LinkedList<CVOutputParameterBase *>();
+        for (auto* p : *this->available_parameters) {
+            CVOutputParameterBase *cvp = p->as_cv_output_base();
+            if (cvp != nullptr)
+                outputs->add(cvp);
+        }
+        if (outputs->size() > 0) {
+            menu->add_page("Osc Tuning");
+            auto *state = new CVOutputTuningState(outputs);
+            menu->add(makeOscillatorTuningSubMenu(state));
+        } else {
+            delete outputs;
+        }
+    }
+  #endif
+#endif

@@ -82,6 +82,10 @@ class VoltageSourceBase {
             virtual ISaveableSettingHost* as_saveable_host() { return nullptr; }
         #endif
 
+        // Returns this cast to ADSVoltageSourceBase* if this is an ADS-family source, else nullptr.
+        // Avoids dynamic_cast when RTTI is disabled.
+        virtual class ADSVoltageSourceBase* as_ads_source() { return nullptr; }
+
         #ifdef ENABLE_SCREEN
             //FLASHMEM 
             virtual MenuItem *makeCalibrationControls(int i) {

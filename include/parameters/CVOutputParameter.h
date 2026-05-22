@@ -25,6 +25,10 @@
     #include "mymenu_items/ParameterInputTypeSelector.h"
     #include "mymenu_items/ParameterInputMenuItems.h"
     #include "menuitems_lambda.h"
+    // Forward declarations for CVOutputFeedbackCalibControls (full definition included after class body)
+    template<class DACClass, class DataType> class CVOutputFeedbackCalibState;
+    template<class DACClass, class DataType>
+    SubMenuItem *makeFeedbackCalibrationControls(CVOutputFeedbackCalibState<DACClass, DataType>*);
 #endif
 
 // todo: figure out a way to include these from a file
@@ -32,6 +36,10 @@ class VoltageParameterInput;
 uint16_t calibrate_find_dac_value_for(DAC8574 *dac_output, int channel, VoltageParameterInput *src, float intended_voltage, bool inverted = false);
 uint16_t calibrate_find_dac_value_for(DAC8574 *dac_output, int channel, char *input_name, float intended_voltage, bool inverted = false);
 void parameter_manager_calibrate(ICalibratable* v);
+
+// Abstract base class for CV output parameters (lightweight, no heavy deps).
+// Defined in its own header to avoid circular includes via ParameterInputMenuItems.h.
+#include "parameters/CVOutputParameterBase.h"
 
 
 #if defined(ENABLE_CALIBRATION_STORAGE)
@@ -62,7 +70,7 @@ void parameter_manager_calibrate(ICalibratable* v);
 // for applying modulation to a value, before sending CC values out to the target device and triggering a gate if needed
 // eg, a synth's cutoff value
 template<class TargetClass=DAC8574, class DataType=float>
-class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, virtual public ICalibratable, virtual public IMIDINoteAndCCTarget {
+class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, virtual public ICalibratable, virtual public IMIDINoteAndCCTarget, public CVOutputParameterBase {
     public:
         byte dac_channel = 0;
         //DataType floor, ceiling;
@@ -517,6 +525,10 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
             controls->add(bar2);
             controls->add(bar3);
 
+            // Add feedback (ear/tuner-guided) calibration controls
+            auto *feedback_state = new CVOutputFeedbackCalibState<TargetClass, DataType>(this);
+            controls->add(makeFeedbackCalibrationControls(feedback_state));
+
             return controls;
         }
 
@@ -569,6 +581,41 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
                 gate_manager->send_gate_off(gate_bank, gate_number);
             }
         }
+
+        // No-RTTI cast helper: returns this as CVOutputParameterBase*
+        virtual CVOutputParameterBase* as_cv_output_base() override { return this; }
+
+        // --- CVOutputParameterBase implementation (used by oscillator tuning page) ---
+
+        virtual void tuning_send_note(uint8_t pitch) override {
+            if (is_valid_note(this->current_pitch_note))
+                sendNoteOff((uint8_t)this->current_pitch_note, 0, 1);
+            sendNoteOn(pitch, 64, 1);
+        }
+
+        virtual void tuning_note_off() override {
+            if (is_valid_note(this->current_pitch_note)) {
+                sendNoteOff((uint8_t)this->current_pitch_note, 0, 1);
+                this->current_pitch_note = NOTE_OFF;
+            }
+        }
+
+        virtual void tuning_zero_output() override {
+            this->updateValueFromData(this->minimumDataRange);
+            this->process_pending();
+        }
+
+        virtual void tuning_disconnect_modulation() override {
+            for (int i = 0; i < MAX_SLOT_CONNECTIONS; i++) {
+                this->disconnect_input(i);
+            }
+        }
+
+        virtual const char *get_cv_label() const override {
+            return this->label;
+        }
+
+        // -----------------------------------------------------------------------
 
         virtual void set_gate_outputter(IGateTarget *gate_manager, int8_t gate_bank, int8_t gate_number) {
             this->gate_manager = gate_manager;
@@ -658,5 +705,10 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
             }
         }
 };
+
+// Full definition of feedback calibration controls (forward-declared above)
+#ifdef ENABLE_SCREEN
+    #include "mymenu_items/CVOutputFeedbackCalibControls.h"
+#endif
 
 #endif
