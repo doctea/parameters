@@ -76,6 +76,7 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
         //DataType floor, ceiling;
 
         bool inverted = false;
+        bool calibration_mode = false;  // when true, process_pending() is a no-op (blocks modulation during feedback calibration)
         VALUE_TYPE polarity = VALUE_TYPE::UNIPOLAR;
 
         //DataType calibrated_min_output_voltage = 0.33;
@@ -336,6 +337,10 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
 
         // called after all parameter modulation processing has been done so that reading and writing don't get entangled and cause problems
         virtual void process_pending() override {
+            if (calibration_mode) {
+                is_pending_value = false;  // discard any modulation-driven write
+                return;
+            }
             if (is_pending_value) {
                 if (this->debug) Serial_printf("%u\t: %s#setTargetValueFromData(%u) on channel %u!\n", micros(), this->label, pending_value, dac_channel);
                 this->target->write(dac_channel, pending_value);

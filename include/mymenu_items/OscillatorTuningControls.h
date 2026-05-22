@@ -12,6 +12,8 @@
 #include "menuitems_lambda.h"
 #include "midi_helpers.h"
 
+#include "mymenu/menuitems_scale.h"
+
 // State object for the oscillator tuning page.
 // Holds a list of available CVOutputParameterBase* and manages
 // the selected output, pitch A/B, active pitch, and octave position.
@@ -119,28 +121,28 @@ inline SubMenuItem *makeOscillatorTuningSubMenu(CVOutputTuningState *state) {
     root->add(disc_bar);
 
     // --- Pitch A ---
-    auto *pitch_a_ctrl = new LambdaNumberControl<int8_t>(
+    auto *pitch_a_ctrl = new LambdaScaleNoteMenuItem<int8_t>(
         "Pitch A",
         [=](int8_t v) -> void { state->pitch_a = constrain(v, (int8_t)0, (int8_t)127); },
         [=]() -> int8_t { return state->pitch_a; },
         nullptr,
         (int8_t)0,
         (int8_t)127,
-        false,
-        false
+        true,
+        true
     );
     root->add(pitch_a_ctrl);
 
     // --- Pitch B ---
-    auto *pitch_b_ctrl = new LambdaNumberControl<int8_t>(
+    auto *pitch_b_ctrl = new LambdaScaleNoteMenuItem<int8_t>(
         "Pitch B",
         [=](int8_t v) -> void { state->pitch_b = constrain(v, (int8_t)0, (int8_t)127); },
         [=]() -> int8_t { return state->pitch_b; },
         nullptr,
         (int8_t)0,
         (int8_t)127,
-        false,
-        false
+        true,
+        true
     );
     root->add(pitch_b_ctrl);
 

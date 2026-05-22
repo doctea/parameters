@@ -10,13 +10,17 @@
 // State machine for user-guided (ears/tuner) CV output calibration.
 //
 // Workflow:
-//   1. Press "Cal 0V"  → enter BINARY_SEARCH for the low endpoint
-//   2. Listen to oscillator / watch voltmeter, press Too High / Too Low to narrow
-//   3. Press Accept → commit, enter FINE_TUNE for 0V endpoint
-//   4. Use Fine +/- for small adjustments
-//   5. Repeat with "Cal 10V" for the high endpoint
-//   6. Press Revert at any time to undo back to original values
-//   7. Press Save when happy
+//   1. Press cal_low_label (e.g. "Cal 0V") → starts binary search for the low endpoint.
+//      Output begins at DAC midpoint (~5V). Hardware inversion is handled automatically.
+//   2. Watch voltmeter / listen to oscillator.
+//      Press "Too High" / "Too Low" to halve the search range each time.
+//   3. Press "Accept" → commits calibrated_lowest_value, enters FINE_TUNE.
+//      Output immediately shows the calibrated endpoint voltage.
+//   4. Use "Fine +" / "Fine -" for single-step adjustments; each press re-outputs the endpoint.
+//   5. Repeat with cal_high_label (e.g. "Cal 10V") for the high endpoint.
+//   6. Press "Save" to persist. Press "Revert" at any time to restore original values.
+//
+//   Note: modulation and external MIDI to this output are blocked while calibration is active.
 
 template<class DACClass = DAC8574, class DataType = float>
 class CVOutputFeedbackCalibState {
@@ -37,8 +41,17 @@ public:
     uint16_t backup_lowest   = 0;
     uint16_t backup_highest  = 65535;
 
+    // button labels derived from the output's data range (e.g. "Cal 0V"/"Cal 10V" or "Cal -5V"/"Cal +5V")
+    char cal_low_label[12]  = "Cal Low";
+    char cal_high_label[12] = "Cal High";
+
     explicit CVOutputFeedbackCalibState(CVOutputParameter<DACClass, DataType> *out)
-        : output(out) {}
+        : output(out) {
+        if (out != nullptr) {
+            snprintf(cal_low_label,  sizeof(cal_low_label),  "Cal %.0fV", (double)out->minimumDataRange);
+            snprintf(cal_high_label, sizeof(cal_high_label), "Cal %.0fV", (double)out->maximumDataRange);
+        }
+    }
 
     void snapshot_backup() {
         if (!has_backup) {
@@ -50,7 +63,22 @@ public:
 
     void output_test_value() {
         if (output == nullptr || output->target == nullptr) return;
-        output->target->write(output->dac_channel, current_test_value);
+        // current_test_value lives in "uninverted DAC space".
+        // Apply hardware inversion here so the binary search brackets work correctly
+        // for both normal and inverted hardware: "Too High" always means "voltage too high".
+        const uint16_t raw = output->inverted
+            ? (uint16_t)((uint32_t)__UINT16_MAX__ - current_test_value)
+            : current_test_value;
+        output->target->write(output->dac_channel, raw);
+    }
+
+    // During FINE_TUNE: output the floor or ceiling voltage through the fully calibrated
+    // (+ inversion) path so the user sees the result of each nudge immediately.
+    void output_calibrated_endpoint() {
+        if (output == nullptr || output->target == nullptr) return;
+        const float    endpoint = calibrating_high ? output->maximumDataRange : output->minimumDataRange;
+        const uint16_t raw      = output->get_dac_value_for_voltage(endpoint);
+        output->target->write(output->dac_channel, raw);
     }
 
     // ---- start calibrating an endpoint ---------------------------------
@@ -58,6 +86,7 @@ public:
     void start_calibrate_low() {
         if (output == nullptr) return;
         snapshot_backup();
+        output->calibration_mode = true;  // block modulation/MIDI from overwriting test output
         calibrating_high   = false;
         lo_bracket         = 0;
         hi_bracket         = 65535;
@@ -69,6 +98,7 @@ public:
     void start_calibrate_high() {
         if (output == nullptr) return;
         snapshot_backup();
+        output->calibration_mode = true;  // block modulation/MIDI from overwriting test output
         calibrating_high   = true;
         lo_bracket         = 0;
         hi_bracket         = 65535;
@@ -100,6 +130,9 @@ public:
         else
             output->calibrated_lowest_value  = current_test_value;
         phase = FINE_TUNE;
+        // Immediately output the endpoint voltage so the user can verify the result
+        // and start fine-tuning with visual/audio feedback.
+        output_calibrated_endpoint();
     }
 
     // ---- fine-tune controls (FINE_TUNE phase) ---------------------------
@@ -111,9 +144,7 @@ public:
         } else {
             output->calibrated_lowest_value++;
         }
-        // re-output current data value through normal calibrated path
-        output->setTargetValueFromData(output->getCurrentDataValue(), true);
-        output->process_pending();
+        output_calibrated_endpoint();
     }
 
     void nudge_down() {
@@ -123,24 +154,31 @@ public:
         } else {
             if (output->calibrated_lowest_value > 0) output->calibrated_lowest_value--;
         }
-        output->setTargetValueFromData(output->getCurrentDataValue(), true);
-        output->process_pending();
+        output_calibrated_endpoint();
     }
 
     // ---- revert & save --------------------------------------------------
 
-    void revert() {
-        if (!has_backup || output == nullptr) return;
-        output->calibrated_lowest_value  = backup_lowest;
-        output->calibrated_highest_value = backup_highest;
+    // Restore normal operation: clear calibration lock, re-output current value, return to IDLE.
+    void finish() {
+        if (output == nullptr) return;
+        output->calibration_mode = false;
         output->setTargetValueFromData(output->getCurrentDataValue(), true);
         output->process_pending();
         phase = IDLE;
     }
 
+    void revert() {
+        if (!has_backup || output == nullptr) return;
+        output->calibrated_lowest_value  = backup_lowest;
+        output->calibrated_highest_value = backup_highest;
+        finish();
+    }
+
     void save() {
         if (output == nullptr) return;
         output->save_calibration();
+        finish();
     }
 
     // ---- query helpers --------------------------------------------------
@@ -149,6 +187,32 @@ public:
         if (output == nullptr) return 0;
         return calibrating_high ? output->calibrated_highest_value
                                 : output->calibrated_lowest_value;
+    }
+
+    // Returns a short instruction string for the current phase (shown live on screen).
+    const char *get_status() const {
+        static char buf[44];
+        switch (phase) {
+            case IDLE:
+                snprintf(buf, sizeof(buf), "Press %s or %s to start",
+                         cal_low_label, cal_high_label);
+                return buf;
+            case BINARY_SEARCH:
+                snprintf(buf, sizeof(buf), "%s search: High/Low, then Accept",
+                         calibrating_high ? cal_high_label : cal_low_label);
+                return buf;
+            case FINE_TUNE:
+                snprintf(buf, sizeof(buf), "%s fine-tune: +/- then %s",
+                         calibrating_high ? cal_high_label : cal_low_label,
+                         calibrating_high ? "Save" : cal_high_label);
+                return buf;
+        }
+        return "";
+    }
+
+    ~CVOutputFeedbackCalibState() {
+        // Safety net: clear calibration lock if the menu is destroyed without Save/Revert.
+        if (output != nullptr) output->calibration_mode = false;
     }
 };
 
@@ -161,6 +225,20 @@ inline SubMenuItem *makeFeedbackCalibrationControls(
     CVOutputFeedbackCalibState<DACClass, DataType> *state)
 {
     SubMenuItem *bar = new SubMenuItem("Feedback Calib", true, false);
+
+    // Live status line: phase-coloured instruction that updates every frame
+    bar->add(new CallbackMenuItem(
+        "Status",
+        [=]() -> const char* { return state->get_status(); },
+        [=]() -> uint16_t {
+            switch (state->phase) {
+                case CVOutputFeedbackCalibState<DACClass,DataType>::BINARY_SEARCH: return YELLOW;
+                case CVOutputFeedbackCalibState<DACClass,DataType>::FINE_TUNE:     return GREEN;
+                default: return C_WHITE;
+            }
+        },
+        false  // no separate header — the text IS the content
+    ));
 
     // Read-only: current test DAC value (during search) or committed value (after accept)
     auto *val_display = new LambdaNumberControl<uint16_t>(
@@ -183,10 +261,10 @@ inline SubMenuItem *makeFeedbackCalibrationControls(
 
     // Start calibration buttons
     SubMenuItemBar *start_bar = new SubMenuItemBar("Start", true, false);
-    start_bar->add(new LambdaActionConfirmItem("Cal 0V",
+    start_bar->add(new LambdaActionConfirmItem(state->cal_low_label,
         [=]() -> void { state->start_calibrate_low(); }
     ));
-    start_bar->add(new LambdaActionConfirmItem("Cal 10V",
+    start_bar->add(new LambdaActionConfirmItem(state->cal_high_label,
         [=]() -> void { state->start_calibrate_high(); }
     ));
     bar->add(start_bar);
