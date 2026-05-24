@@ -41,6 +41,9 @@ public:
     uint16_t backup_lowest   = 0;
     uint16_t backup_highest  = 65535;
 
+    // current voltage set by the range-check control ("Check V")
+    float    check_voltage   = 0.0f;
+
     // button labels derived from the output's data range (e.g. "Cal 0V"/"Cal 10V" or "Cal -5V"/"Cal +5V")
     char cal_low_label[12]  = "Cal Low";
     char cal_high_label[12] = "Cal High";
@@ -214,6 +217,19 @@ public:
         // Safety net: clear calibration lock if the menu is destroyed without Save/Revert.
         if (output != nullptr) output->calibration_mode = false;
     }
+
+    // ---- range-check / verification ----------------------------------------
+
+    // Output a specific voltage directly so the user can verify calibration
+    // across the full range. Only active in IDLE phase (not during binary search
+    // or fine-tune) to avoid interfering with an active calibration session.
+    void output_check_voltage(float v) {
+        if (output == nullptr || output->target == nullptr) return;
+        if (phase != IDLE) return;
+        check_voltage = v;
+        const uint16_t raw = output->get_dac_value_for_voltage(v);
+        output->target->write(output->dac_channel, raw);
+    }
 };
 
 
@@ -224,7 +240,7 @@ FLASHMEM
 inline SubMenuItem *makeFeedbackCalibrationControls(
     CVOutputFeedbackCalibState<DACClass, DataType> *state)
 {
-    SubMenuItem *bar = new SubMenuItem("Feedback Calib", true, false);
+    SubMenuItem *bar = new SubMenuItem("Simple", true, false);
 
     // Live status line: phase-coloured instruction that updates every frame
     bar->add(new CallbackMenuItem(
@@ -239,6 +255,40 @@ inline SubMenuItem *makeFeedbackCalibrationControls(
         },
         false  // no separate header — the text IS the content
     ));
+
+    // Monitor bar: Lock Output | Check V | Test Val — grouped to save screen space.
+    SubMenuItemBar *monitor_bar = new SubMenuItemBar("Monitor", true, false);
+
+    // Lock toggle: prevents modulation from overwriting the output so the user can
+    // step through check voltages without interference, even when not actively calibrating.
+    monitor_bar->add(new LambdaToggleControl(
+        "Lock Output",
+        [=](bool v) -> void {
+            if (state->output != nullptr) state->output->calibration_mode = v;
+        },
+        [=]() -> bool {
+            return state->output != nullptr && state->output->calibration_mode;
+        }
+    ));
+
+    // Check voltage: step through whole-volt values to verify calibration across the full range.
+    // Works only in IDLE phase; lock the output first so modulation doesn't overwrite it.
+    {
+        const float check_min = state->output != nullptr ? (float)state->output->minimumDataRange : 0.0f;
+        const float check_max = state->output != nullptr ? (float)state->output->maximumDataRange : 10.0f;
+        auto *check_ctrl = new LambdaNumberControl<float>(
+            "Check V",
+            [=](float v) -> void { state->output_check_voltage(v); },
+            [=]() -> float { return state->check_voltage; },
+            nullptr,
+            check_min,
+            check_max,
+            false,
+            false
+        );
+        check_ctrl->step = 1.0f;
+        monitor_bar->add(check_ctrl);
+    }
 
     // Read-only: current test DAC value (during search) or committed value (after accept)
     auto *val_display = new LambdaNumberControl<uint16_t>(
@@ -257,7 +307,9 @@ inline SubMenuItem *makeFeedbackCalibrationControls(
     );
     val_display->setReadOnly(true);
     val_display->selectable = false;
-    bar->add(val_display);
+    monitor_bar->add(val_display);
+
+    bar->add(monitor_bar);
 
     // Start calibration buttons
     SubMenuItemBar *start_bar = new SubMenuItemBar("Start", true, false);

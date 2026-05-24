@@ -458,9 +458,6 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
                 parameter_manager->get_available_pitch_inputs(),
                 this->calibration_input
             ));
-            bar2->add(new LambdaActionConfirmItem("Calibrate", [=](void) -> void { 
-                parameter_manager_calibrate(this);
-            }));
             LambdaNumberControl<float> *input = new LambdaNumberControl<float>(
                     "Input", 
                     [=] (float value) -> void {}, 
@@ -530,9 +527,16 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
             controls->add(bar2);
             controls->add(bar3);
 
-            // Add feedback (ear/tuner-guided) calibration controls
+            // Auto (ADC-feedback) and Simple (user-guided) calibration methods side-by-side
             auto *feedback_state = new CVOutputFeedbackCalibState<TargetClass, DataType>(this);
-            controls->add(makeFeedbackCalibrationControls(feedback_state));
+            SubMenuItem *simple_submenu = makeFeedbackCalibrationControls(feedback_state);
+
+            SubMenuItemBar *method_bar = new SubMenuItemBar("Calib Method", false, true);
+            method_bar->add(new LambdaActionConfirmItem("Auto", [=](void) -> void {
+                parameter_manager_calibrate(this);
+            }));
+            method_bar->add(simple_submenu);
+            controls->add(method_bar);
 
             return controls;
         }
@@ -618,6 +622,29 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
 
         virtual const char *get_cv_label() const override {
             return this->label;
+        }
+
+        virtual void tuning_output_voltage(float voltage) override {
+            if (this->target != nullptr) {
+                const uint16_t raw = this->get_dac_value_for_voltage(voltage);
+                this->target->write(this->dac_channel, raw);
+            }
+        }
+
+        virtual float get_minimum_voltage() const override {
+            return (float)this->minimumDataRange;
+        }
+
+        virtual float get_maximum_voltage() const override {
+            return (float)this->maximumDataRange;
+        }
+
+        virtual void set_output_locked(bool locked) override {
+            this->calibration_mode = locked;
+        }
+
+        virtual bool is_output_locked() const override {
+            return this->calibration_mode;
         }
 
         // -----------------------------------------------------------------------

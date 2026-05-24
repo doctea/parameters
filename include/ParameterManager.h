@@ -445,6 +445,15 @@ class ParameterManager
                             unsigned int idx = 0;
                             for (auto* voltage_source : *this->voltage_sources) {
                                 menu->add(voltage_source->makeCalibrationControls(idx));
+                                #ifdef ENABLE_CV_INPUT
+                                    ADSVoltageSourceBase *ads = voltage_source->as_ads_source();
+                                    if (ads != nullptr) {
+                                        char label[32];
+                                        snprintf(label, sizeof(label), "Source %u Calibrator", idx);
+                                        auto *state = new CVInputCalibWizardState(ads);
+                                        menu->add(makeCVInputCalibrationSubMenu(state, this->save_system_settings_callback, label));
+                                    }
+                                #endif
                                 ++idx;
                             }
 
@@ -533,15 +542,17 @@ class ParameterManager
                 #ifdef ENABLE_CV_INPUT
                     // Add a CV input calibration wizard page for each ADSVoltageSource.
                     void addAllCVInputCalibrationMenuItems(Menu *menu) {
-                        bool page_created = false;
+                        // Items are appended to the current page ("Input Calibration" created by
+                        // addAllVoltageSourceCalibrationMenuItems) rather than a separate page.
+                        bool any_added = false;
                         unsigned int idx = 0;
                         for (auto* vs : *this->voltage_sources) {
                             // Use virtual helper instead of dynamic_cast (RTTI may be disabled)
                             ADSVoltageSourceBase *ads = vs->as_ads_source();
                             if (ads != nullptr) {
-                                if (!page_created) {
-                                    menu->add_page("CV Input Cal");
-                                    page_created = true;
+                                if (!any_added) {
+                                    menu->add(new SeparatorMenuItem("CV Input Cal"));
+                                    any_added = true;
                                 }
                                 char label[32];
                                 snprintf(label, sizeof(label), "Input %u Cal", idx);
@@ -975,7 +986,7 @@ extern ParameterManager *parameter_manager;
         if (outputs->size() > 0) {
             menu->add_page("Osc Tuning");
             auto *state = new CVOutputTuningState(outputs);
-            menu->add(makeOscillatorTuningSubMenu(state));
+            addOscillatorTuningItemsToPage(menu, state);
         } else {
             delete outputs;
         }

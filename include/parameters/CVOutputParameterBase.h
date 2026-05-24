@@ -32,5 +32,15 @@ public:
     virtual void tuning_disconnect_modulation() = 0;
     // Return the human-readable label for this output.
     virtual const char *get_cv_label() const = 0;
+    // Output a specific voltage directly (for range-check / calibration verification).
+    virtual void tuning_output_voltage(float voltage) = 0;
+    // Return the minimum voltage this output can produce (e.g. 0.0 for unipolar, -5.0 for bipolar).
+    virtual float get_minimum_voltage() const = 0;
+    // Return the maximum voltage this output can produce (e.g. 10.0 for unipolar, +5.0 for bipolar).
+    virtual float get_maximum_voltage() const = 0;
+    // Lock this output against modulation writes (calibration_mode=true blocks process_pending).
+    virtual void set_output_locked(bool locked) = 0;
+    // Return true if this output is currently locked against modulation.
+    virtual bool is_output_locked() const = 0;
     virtual ~CVOutputParameterBase() = default;
 };

@@ -81,13 +81,38 @@ public:
         if (out == nullptr) return;
         out->tuning_disconnect_modulation();
     }
+
+    // ---- range verification ------------------------------------------------
+
+    float check_voltage = 0.0f;
+
+    // Output a specific voltage directly for calibration range verification.
+    void set_check_voltage(float v) {
+        auto *out = get_selected_output();
+        if (out == nullptr) return;
+        check_voltage = v;
+        out->tuning_output_voltage(v);
+    }
+
+    // Toggle the output lock on the currently-selected output.
+    void toggle_lock() {
+        auto *out = get_selected_output();
+        if (out == nullptr) return;
+        out->set_output_locked(!out->is_output_locked());
+    }
+
+    // Returns true if the currently-selected output is locked against modulation.
+    bool is_locked() {
+        auto *out = get_selected_output();
+        return out != nullptr && out->is_output_locked();
+    }
 };
 
 
-// Build a SubMenuItem for the oscillator tuning page.
+// Add oscillator tuning controls directly to a menu page.
+// (Replaces the old makeOscillatorTuningSubMenu that wrapped everything in a SubMenuItem.)
 FLASHMEM
-inline SubMenuItem *makeOscillatorTuningSubMenu(CVOutputTuningState *state) {
-    SubMenuItem *root = new SubMenuItem("Osc Tuning", true, false);
+inline void addOscillatorTuningItemsToPage(Menu *menu, CVOutputTuningState *state) {
 
     // --- Output selector ---
     auto *output_sel = new LambdaNumberControl<int8_t>(
@@ -104,8 +129,41 @@ inline SubMenuItem *makeOscillatorTuningSubMenu(CVOutputTuningState *state) {
         false,
         false
     );
-    // Override display to show the label of the selected output rather than just a number
-    root->add(output_sel);
+    menu->add(output_sel);
+
+    // --- Lock toggle: prevents modulation overwriting the output ---
+    menu->add(new LambdaToggleControl(
+        "Lock Output",
+        [=](bool v) -> void {
+            auto *out = state->get_selected_output();
+            if (out != nullptr) out->set_output_locked(v);
+        },
+        [=]() -> bool { return state->is_locked(); }
+    ));
+
+    // --- Check voltage: step through whole-volt values to verify calibration ---
+    {
+        float check_min = 0.0f, check_max = 10.0f;
+        if (state->available_outputs != nullptr && state->available_outputs->size() > 0) {
+            auto *first = state->available_outputs->get(0);
+            if (first != nullptr) {
+                check_min = first->get_minimum_voltage();
+                check_max = first->get_maximum_voltage();
+            }
+        }
+        auto *check_ctrl = new LambdaNumberControl<float>(
+            "Check V",
+            [=](float v) -> void { state->set_check_voltage(v); },
+            [=]() -> float { return state->check_voltage; },
+            nullptr,
+            check_min,
+            check_max,
+            false,
+            false
+        );
+        check_ctrl->step = 1.0f;
+        menu->add(check_ctrl);
+    }
 
     // --- Disconnect / zero / disconnect-mod buttons in a bar ---
     SubMenuItemBar *disc_bar = new SubMenuItemBar("Disconnect", true, false);
@@ -118,7 +176,7 @@ inline SubMenuItem *makeOscillatorTuningSubMenu(CVOutputTuningState *state) {
     disc_bar->add(new LambdaActionItem("Disc Mod",
         [=]() -> void { state->disconnect_modulation(); }
     ));
-    root->add(disc_bar);
+    menu->add(disc_bar);
 
     // --- Pitch A ---
     auto *pitch_a_ctrl = new LambdaScaleNoteMenuItem<int8_t>(
@@ -131,7 +189,7 @@ inline SubMenuItem *makeOscillatorTuningSubMenu(CVOutputTuningState *state) {
         true,
         true
     );
-    root->add(pitch_a_ctrl);
+    menu->add(pitch_a_ctrl);
 
     // --- Pitch B ---
     auto *pitch_b_ctrl = new LambdaScaleNoteMenuItem<int8_t>(
@@ -144,7 +202,7 @@ inline SubMenuItem *makeOscillatorTuningSubMenu(CVOutputTuningState *state) {
         true,
         true
     );
-    root->add(pitch_b_ctrl);
+    menu->add(pitch_b_ctrl);
 
     // --- Pitch action bar ---
     SubMenuItemBar *pitch_bar = new SubMenuItemBar("Pitch Actions", true, false);
@@ -157,7 +215,7 @@ inline SubMenuItem *makeOscillatorTuningSubMenu(CVOutputTuningState *state) {
     pitch_bar->add(new LambdaActionItem("Send B",
         [=]() -> void { state->active_is_b = true; state->send_note(state->pitch_b); }
     ));
-    root->add(pitch_bar);
+    menu->add(pitch_bar);
 
     // --- Octave cycling ---
     SubMenuItemBar *oct_bar = new SubMenuItemBar("Octaves", true, false);
@@ -178,9 +236,7 @@ inline SubMenuItem *makeOscillatorTuningSubMenu(CVOutputTuningState *state) {
     oct_display->setReadOnly(true);
     oct_display->selectable = false;
     oct_bar->add(oct_display);
-    root->add(oct_bar);
-
-    return root;
+    menu->add(oct_bar);
 }
 
 #endif // ENABLE_SCREEN
