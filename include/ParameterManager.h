@@ -45,7 +45,9 @@
   #include "menuitems_action.h"
   #ifdef ENABLE_CV_INPUT
     #include "voltage_sources/ADSVoltageSource.h"
-    #include "mymenu_items/CVInputCalibrationControls.h"
+    #ifndef DISABLE_CV_INPUT_CAL_WIZARD
+      #include "mymenu_items/CVInputCalibrationControls.h"
+    #endif
   #endif
 #endif
 
@@ -445,13 +447,13 @@ class ParameterManager
                             unsigned int idx = 0;
                             for (auto* voltage_source : *this->voltage_sources) {
                                 menu->add(voltage_source->makeCalibrationControls(idx));
-                                #ifdef ENABLE_CV_INPUT
+                                #if defined(ENABLE_CV_INPUT) && !defined(DISABLE_CV_INPUT_CAL_WIZARD)
                                     ADSVoltageSourceBase *ads = voltage_source->as_ads_source();
                                     if (ads != nullptr) {
                                         char label[32];
                                         snprintf(label, sizeof(label), "Source %u Calibrator", idx);
                                         auto *state = new CVInputCalibWizardState(ads);
-                                        menu->add(makeCVInputCalibrationSubMenu(state, this->save_system_settings_callback, label));
+                                        menu->add(makeCVInputCalibrationSubMenu(state, label));
                                     }
                                 #endif
                                 ++idx;
@@ -539,7 +541,7 @@ class ParameterManager
                     void addOscillatorTuningMenuItems(Menu *menu);  // defined after class
                 #endif
 
-                #ifdef ENABLE_CV_INPUT
+                #if defined(ENABLE_CV_INPUT) && !defined(DISABLE_CV_INPUT_CAL_WIZARD)
                     // Add a CV input calibration wizard page for each ADSVoltageSource.
                     void addAllCVInputCalibrationMenuItems(Menu *menu) {
                         // Items are appended to the current page ("Input Calibration" created by
@@ -557,12 +559,12 @@ class ParameterManager
                                 char label[32];
                                 snprintf(label, sizeof(label), "Input %u Cal", idx);
                                 auto *state = new CVInputCalibWizardState(ads);
-                                menu->add(makeCVInputCalibrationSubMenu(state, this->save_system_settings_callback, label));
+                                menu->add(makeCVInputCalibrationSubMenu(state, label));
                             }
                             ++idx;
                         }
                     }
-                #endif
+                #endif  // ENABLE_CV_INPUT && !DISABLE_CV_INPUT_CAL_WIZARD
         #endif
 
         FASTRUN int find_slot_for_voltage(VoltageSourceBase *source) {

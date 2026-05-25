@@ -208,3 +208,8 @@ void ParameterManager::process_calibration() {
 void parameter_manager_calibrate(ICalibratable* v) {
     parameter_manager->queue_calibration(v);
 }
+
+void parameter_manager_save_system_settings() {
+    if (parameter_manager != nullptr && parameter_manager->save_system_settings_callback != nullptr)
+        parameter_manager->save_system_settings_callback();
+}

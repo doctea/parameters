@@ -4,11 +4,12 @@
 
 #include "voltage_sources/ADSVoltageSource.h"
 #include "submenuitem.h"
-
-// Forward declaration — full definition is in ParameterManager.h
-// (Not used directly; save callback is passed as a function pointer instead)
 #include "submenuitem_bar.h"
 #include "menuitems_lambda.h"
+
+// Free function defined in ParameterManager.cpp — avoids a circular include of ParameterManager.h.
+// Mirrors the parameter_manager_calibrate() pattern.
+void parameter_manager_save_system_settings();
 
 // Maximum number of calibration steps supported by the wizard.
 // Covers e.g. -5V..+5V @ 0.5V step = 21 steps + 1 spare
@@ -40,6 +41,8 @@ public:
     float new_cv2 = 0.0f;
     bool  results_ready         = false;
     bool  error_too_few_points  = false;
+    bool  applied               = false;   // true after apply() is called successfully
+    bool  saved                 = false;   // true after save() is called
     float max_error_old = 0.0f;  // max |err| across calibration points using old cv1/cv2
     float max_error_new = 0.0f;  // max |err| across calibration points using new cv1/cv2
 
@@ -81,6 +84,8 @@ public:
         step = -1;
         results_ready        = false;
         error_too_few_points = false;
+        applied              = false;
+        saved                = false;
         for (int i = 0; i < CV_INPUT_CALIB_MAX_STEPS; i++) {
             samples[i]          = 0.0f;
             targets_at_record[i] = 0.0f;
@@ -92,6 +97,8 @@ public:
         step = 0;
         results_ready        = false;
         error_too_few_points = false;
+        applied              = false;
+        saved                = false;
         for (int i = 0; i < CV_INPUT_CALIB_MAX_STEPS; i++) {
             samples[i]          = 0.0f;
             targets_at_record[i] = 0.0f;
@@ -194,17 +201,21 @@ public:
         }
         voltage_source->correction_value_1 = new_cv1;
         voltage_source->correction_value_2 = new_cv2;
+        applied = true;
+        saved   = false;  // new values not yet persisted
     }
 
     void revert() {
         if (!has_backup || voltage_source == nullptr) return;
         voltage_source->correction_value_1 = backup_cv1;
         voltage_source->correction_value_2 = backup_cv2;
+        applied = false;
+        saved   = false;
     }
 
-    void save(bool (*save_callback)()) {
-        if (save_callback != nullptr)
-            save_callback();
+    void save() {
+        parameter_manager_save_system_settings();
+        saved = true;
     }
 
     // ---- display helpers -----------------------------------------------
@@ -216,7 +227,11 @@ public:
         }
         if (is_complete()) {
             if (error_too_few_points)  return "ERR: need >=2 pts";
-            if (results_ready)         return "Apply to use new cal";
+            if (results_ready) {
+                if (saved)     return "Cal saved";
+                if (applied)   return "Save to persist";
+                return "Apply to use new cal";
+            }
             return "Calculating...";
         }
         snprintf(buf, sizeof(buf), "Apply %.2fV (#%d/%d)",
@@ -324,10 +339,38 @@ public:
 FLASHMEM
 inline SubMenuItem *makeCVInputCalibrationSubMenu(
     CVInputCalibWizardState *state,
-    bool (*save_callback)(),
     const char *label = "CV Input Cal")
 {
     SubMenuItem *root = new SubMenuItem(label, true, false);
+
+    // ---- Source info (confirms which slot/channel is being calibrated) -
+    root->add(new CallbackMenuItem(
+        "Source",
+        [=]() -> const char* {
+            static char buf[40];
+            if (state->voltage_source == nullptr) return "Source: (none)";
+            snprintf(buf, sizeof(buf), "Slot %d  Ch %d  cv1:%.5f cv2:%.5f",
+                (int)state->voltage_source->global_slot,
+                (int)state->voltage_source->get_adc_channel(),
+                state->voltage_source->correction_value_1,
+                state->voltage_source->correction_value_2
+            );
+            return buf;
+        },
+        false
+    ));
+
+    // ---- Persistent instruction display (updates every frame) ----------
+    root->add(new CallbackMenuItem(
+        "Instr",
+        [=]() -> const char* { return state->get_instruction(); },
+        [=]() -> uint16_t {
+            if (state->is_complete())
+                return state->error_too_few_points ? RED : GREEN;
+            return state->is_running() ? YELLOW : C_WHITE;
+        },
+        false
+    ));
 
     // ---- Configuration row ---------------------------------------------
     SubMenuItemBar *cfg_bar = new SubMenuItemBar("Range Config", true, false);
@@ -358,55 +401,6 @@ inline SubMenuItem *makeCVInputCalibrationSubMenu(
     ));
     root->add(cfg_bar);
 
-    // ---- Source info (confirms which slot/channel is being calibrated) -
-    root->add(new CallbackMenuItem(
-        "Source",
-        [=]() -> const char* {
-            static char buf[40];
-            if (state->voltage_source == nullptr) return "Source: (none)";
-            snprintf(buf, sizeof(buf), "Slot %d  Ch %d  cv1:%.5f cv2:%.5f",
-                (int)state->voltage_source->global_slot,
-                (int)state->voltage_source->get_adc_channel(),
-                state->voltage_source->correction_value_1,
-                state->voltage_source->correction_value_2
-            );
-            return buf;
-        },
-        false
-    ));
-
-    // ---- Start / Abort controls ----------------------------------------
-    {
-        SubMenuItemBar *ctrl_bar = new SubMenuItemBar("Control", false, false);
-        {
-            auto *btn = new LambdaActionItem("Start", [=]() -> void {
-                state->begin();
-                menu_set_last_message(state->get_instruction(), GREEN);
-            }, true);
-            ctrl_bar->add(btn);
-        }
-        {
-            auto *btn = new LambdaActionConfirmItem("Abort", [=]() -> void {
-                state->abort();
-                menu_set_last_message("Aborted", BLUE);
-            }, true);
-            ctrl_bar->add(btn);
-        }
-        root->add(ctrl_bar);
-    }
-
-    // ---- Persistent instruction display (updates every frame) ----------
-    root->add(new CallbackMenuItem(
-        "Instr",
-        [=]() -> const char* { return state->get_instruction(); },
-        [=]() -> uint16_t {
-            if (state->is_complete())
-                return state->error_too_few_points ? RED : GREEN;
-            return state->is_running() ? YELLOW : C_WHITE;
-        },
-        false
-    ));
-
     // ---- Live voltage readouts (both update every frame via CallbackMenuItem) ----
     // "Old" = current calibration;  "New" = predicted with new cv1/cv2 once ready.
     root->add(new CallbackMenuItem(
@@ -434,10 +428,23 @@ inline SubMenuItem *makeCVInputCalibrationSubMenu(
     // ---- Step controls bar ---------------------------------------------
     SubMenuItemBar *step_bar = new SubMenuItemBar("Step", false, true);
     {
-        auto *btn = new LambdaActionItem("Record", [=]() -> void {
-            state->record_reading();
-            menu_set_last_message(state->get_instruction(), GREEN);
-        }, true);
+        // Dual-purpose: shows "Start" and starts calibration when idle;
+        // shows "Record" and records the current reading when running.
+        auto *btn = new LambdaActionItem(
+            "Record",
+            [=]() -> void {
+                if (!state->is_running()) {
+                    state->begin();
+                } else {
+                    state->record_reading();
+                }
+                menu_set_last_message(state->get_instruction(), GREEN);
+            },
+            [=]() -> bool { return state->is_running(); },
+            "Record",  // label when running
+            "Start",   // label when idle
+            true        // suppress default "Fired" message
+        );
         step_bar->add(btn);
     }
     {
@@ -450,8 +457,21 @@ inline SubMenuItem *makeCVInputCalibrationSubMenu(
     step_bar->add(new LambdaActionItem("Undo Last",
         [=]() -> void { state->undo_last(); }
     ));
-    step_bar->add(new LambdaActionConfirmItem("Undo All",
-        [=]() -> void { state->undo_all(); }
+    // Dual-purpose confirm: shows "Undo All" when running (resets to start),
+    // shows "Abort" when idle/complete (resets wizard entirely).
+    step_bar->add(new LambdaActionConfirmItem(
+        "Undo All",
+        [=]() -> void {
+            if (state->is_running()) {
+                state->undo_all();
+            } else {
+                state->abort();
+                menu_set_last_message("Aborted", BLUE);
+            }
+        },
+        [=]() -> bool { return state->is_running() && state->step > 0; },
+        "Undo All",  // label when running and at least one reading taken
+        "Abort"      // label when idle/complete OR waiting for first reading
     ));
     root->add(step_bar);
 
@@ -501,13 +521,22 @@ inline SubMenuItem *makeCVInputCalibrationSubMenu(
     // ---- Apply / Revert / Save -----------------------------------------
     SubMenuItemBar *persist_bar = new SubMenuItemBar("Calibration values", false, false);
     persist_bar->add(new LambdaActionConfirmItem("Apply",
-        [=]() -> void { state->apply(); }
+        [=]() -> void {
+            state->apply();
+            menu_set_last_message(state->get_instruction(), GREEN);
+        }
     ));
     persist_bar->add(new LambdaActionConfirmItem("Revert",
-        [=]() -> void { state->revert(); }
+        [=]() -> void {
+            state->revert();
+            menu_set_last_message("Reverted", YELLOW);
+        }
     ));
     persist_bar->add(new LambdaActionConfirmItem("Save",
-        [=]() -> void { state->save(save_callback); }
+        [=]() -> void {
+            state->save();
+            menu_set_last_message("Saved!", GREEN);
+        }
     ));
     persist_bar->add(new LambdaActionItem("Dump",
         [=]() -> void { state->dump_to_serial(); }
