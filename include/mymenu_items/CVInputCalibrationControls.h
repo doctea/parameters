@@ -30,7 +30,6 @@ public:
     int8_t step = -1;  // -1 = not started
 
     float   samples[CV_INPUT_CALIB_MAX_STEPS]         = {};
-    float   targets_at_record[CV_INPUT_CALIB_MAX_STEPS] = {};
     bool    is_skipped[CV_INPUT_CALIB_MAX_STEPS]       = {};
 
     // Number of fetch_calibration_sample() calls to average per recorded step.
@@ -87,9 +86,8 @@ public:
         applied              = false;
         saved                = false;
         for (int i = 0; i < CV_INPUT_CALIB_MAX_STEPS; i++) {
-            samples[i]          = 0.0f;
-            targets_at_record[i] = 0.0f;
-            is_skipped[i]       = false;
+            samples[i]    = 0.0f;
+            is_skipped[i] = false;
         }
     }
 
@@ -100,9 +98,8 @@ public:
         applied              = false;
         saved                = false;
         for (int i = 0; i < CV_INPUT_CALIB_MAX_STEPS; i++) {
-            samples[i]          = 0.0f;
-            targets_at_record[i] = 0.0f;
-            is_skipped[i]       = false;
+            samples[i]    = 0.0f;
+            is_skipped[i] = false;
         }
     }
 
@@ -113,17 +110,15 @@ public:
         const uint8_t n_samp = (samples_per_step > 0) ? samples_per_step : 1;
         for (uint8_t i = 0; i < n_samp; i++)
             accum += voltage_source->fetch_calibration_sample();
-        samples[step]          = accum / (float)n_samp;
-        targets_at_record[step] = current_target_voltage();
-        is_skipped[step]       = false;
+        samples[step]   = accum / (float)n_samp;
+        is_skipped[step] = false;
         step++;
         if (is_complete()) compute();
     }
 
     void skip_step() {
         if (!is_running()) return;
-        targets_at_record[step] = current_target_voltage();
-        is_skipped[step]        = true;
+        is_skipped[step] = true;
         step++;
         if (is_complete()) compute();
     }
@@ -131,9 +126,8 @@ public:
     void undo_last() {
         if (step <= 0) return;
         step--;
-        samples[step]           = 0.0f;
-        targets_at_record[step] = 0.0f;
-        is_skipped[step]        = false;
+        samples[step]    = 0.0f;
+        is_skipped[step] = false;
         results_ready        = false;
         error_too_few_points = false;
     }
@@ -153,7 +147,7 @@ public:
         int8_t ns = num_steps();
         for (int i = 0; i < ns; i++) {
             if (!is_skipped[i]) {
-                x[n] = targets_at_record[i];
+                x[n] = start_voltage + i * step_size;  // recomputed (no targets_at_record needed)
                 y[n] = samples[i];
                 n++;
             }
@@ -309,8 +303,9 @@ public:
         Serial.println("# Columns: step,target_V,raw_sample,skipped,pred_old_V,err_old_V,pred_new_V,err_new_V");
         Serial.println("step,target_V,raw_sample,skipped,pred_old_V,err_old_V,pred_new_V,err_new_V");
         for (int i = 0; i < steps_done; i++) {
+            const float target_v = start_voltage + i * step_size;
             if (is_skipped[i]) {
-                Serial.printf("%d,%.4f,,1,,,,\n", i, targets_at_record[i]);
+                Serial.printf("%d,%.4f,,1,,,,\n", i, target_v);
             } else {
                 float pred_old = 0.0f, pred_new = 0.0f;
                 if (voltage_source != nullptr) {
@@ -318,15 +313,15 @@ public:
                     if (results_ready)
                         pred_new = voltage_source->compute_voltage_from_raw_sample(samples[i], new_cv1, new_cv2);
                 }
-                const float err_old = pred_old - targets_at_record[i];
+                const float err_old = pred_old - target_v;
                 if (results_ready) {
-                    const float err_new = pred_new - targets_at_record[i];
+                    const float err_new = pred_new - target_v;
                     Serial.printf("%d,%.4f,%.6f,0,%.6f,%+.6f,%.6f,%+.6f\n",
-                        i, targets_at_record[i], samples[i],
+                        i, target_v, samples[i],
                         pred_old, err_old, pred_new, err_new);
                 } else {
                     Serial.printf("%d,%.4f,%.6f,0,%.6f,%+.6f,,\n",
-                        i, targets_at_record[i], samples[i], pred_old, err_old);
+                        i, target_v, samples[i], pred_old, err_old);
                 }
             }
         }
@@ -343,23 +338,6 @@ inline SubMenuItem *makeCVInputCalibrationSubMenu(
 {
     SubMenuItem *root = new SubMenuItem(label, true, false);
 
-    // ---- Source info (confirms which slot/channel is being calibrated) -
-    root->add(new CallbackMenuItem(
-        "Source",
-        [=]() -> const char* {
-            static char buf[40];
-            if (state->voltage_source == nullptr) return "Source: (none)";
-            snprintf(buf, sizeof(buf), "Slot %d  Ch %d  cv1:%.5f cv2:%.5f",
-                (int)state->voltage_source->global_slot,
-                (int)state->voltage_source->get_adc_channel(),
-                state->voltage_source->correction_value_1,
-                state->voltage_source->correction_value_2
-            );
-            return buf;
-        },
-        false
-    ));
-
     // ---- Persistent instruction display (updates every frame) ----------
     root->add(new CallbackMenuItem(
         "Instr",
@@ -372,54 +350,49 @@ inline SubMenuItem *makeCVInputCalibrationSubMenu(
         false
     ));
 
-    // ---- Configuration row ---------------------------------------------
-    SubMenuItemBar *cfg_bar = new SubMenuItemBar("Range Config", true, false);
+    // ---- Configuration row (opt-in: define ENABLE_CV_INPUT_CAL_CONFIG_UI) ----
+    #ifdef ENABLE_CV_INPUT_CAL_CONFIG_UI
+    {
+        SubMenuItemBar *cfg_bar = new SubMenuItemBar("Range Config", true, false);
+        cfg_bar->add(new LambdaNumberControl<float>(
+            "V Start",
+            [=](float v) -> void { if (!state->is_running()) state->start_voltage = v; },
+            [=]() -> float { return state->start_voltage; },
+            nullptr, -15.0f, 15.0f, true, false
+        ));
+        cfg_bar->add(new LambdaNumberControl<float>(
+            "V End",
+            [=](float v) -> void { if (!state->is_running()) state->end_voltage = v; },
+            [=]() -> float { return state->end_voltage; },
+            nullptr, -15.0f, 15.0f, true, false
+        ));
+        cfg_bar->add(new LambdaNumberControl<float>(
+            "V Step",
+            [=](float v) -> void { if (!state->is_running()) state->step_size = max(0.05f, v); },
+            [=]() -> float { return state->step_size; },
+            nullptr, 0.05f, 5.0f, true, false
+        ));
+        cfg_bar->add(new LambdaNumberControl<int8_t>(
+            "Samples",
+            [=](int8_t v) -> void { if (!state->is_running()) state->samples_per_step = (uint8_t)max(1, (int)v); },
+            [=]() -> int8_t { return (int8_t)state->samples_per_step; },
+            nullptr, 1, 32, true, false
+        ));
+        root->add(cfg_bar);
+    }
+    #endif  // ENABLE_CV_INPUT_CAL_CONFIG_UI
 
-    cfg_bar->add(new LambdaNumberControl<float>(
-        "V Start",
-        [=](float v) -> void { if (!state->is_running()) state->start_voltage = v; },
-        [=]() -> float { return state->start_voltage; },
-        nullptr, -15.0f, 15.0f, true, false
-    ));
-    cfg_bar->add(new LambdaNumberControl<float>(
-        "V End",
-        [=](float v) -> void { if (!state->is_running()) state->end_voltage = v; },
-        [=]() -> float { return state->end_voltage; },
-        nullptr, -15.0f, 15.0f, true, false
-    ));
-    cfg_bar->add(new LambdaNumberControl<float>(
-        "V Step",
-        [=](float v) -> void { if (!state->is_running()) state->step_size = max(0.05f, v); },
-        [=]() -> float { return state->step_size; },
-        nullptr, 0.05f, 5.0f, true, false
-    ));
-    cfg_bar->add(new LambdaNumberControl<int8_t>(
-        "Samples",
-        [=](int8_t v) -> void { if (!state->is_running()) state->samples_per_step = (uint8_t)max(1, (int)v); },
-        [=]() -> int8_t { return (int8_t)state->samples_per_step; },
-        nullptr, 1, 32, true, false
-    ));
-    root->add(cfg_bar);
-
-    // ---- Live voltage readouts (both update every frame via CallbackMenuItem) ----
-    // "Old" = current calibration;  "New" = predicted with new cv1/cv2 once ready.
+    // ---- Live voltage readout (single row: shows Old/Live and predicted New) ----
     root->add(new CallbackMenuItem(
-        "Old V",
+        "Voltage",
         [=]() -> const char* {
-            static char buf[24];
-            snprintf(buf, sizeof(buf), "%s: %+.4fV",
-                     state->results_ready ? "Old" : "Live",
-                     state->get_live_voltage());
-            return buf;
-        },
-        false
-    ));
-    root->add(new CallbackMenuItem(
-        "New V",
-        [=]() -> const char* {
-            static char buf[24];
-            if (!state->results_ready) return "New: (pending)";
-            snprintf(buf, sizeof(buf), "New: %+.4fV", state->get_predicted_voltage());
+            static char buf[36];
+            if (state->results_ready) {
+                snprintf(buf, sizeof(buf), "Old:%+.3fV New:%+.3fV",
+                         state->get_live_voltage(), state->get_predicted_voltage());
+            } else {
+                snprintf(buf, sizeof(buf), "Live: %+.4fV", state->get_live_voltage());
+            }
             return buf;
         },
         false
@@ -475,26 +448,13 @@ inline SubMenuItem *makeCVInputCalibrationSubMenu(
     ));
     root->add(step_bar);
 
-    // ---- Result preview ------------------------------------------------
-    // Use CallbackMenuItems added directly to root (not inside a SubMenuItemBar)
-    // to avoid the crash caused by a SubMenuItemBar whose children all have
-    // selectable=false (currently_selected walks out of bounds on open).
+    // ---- New calibration coefficients (combined row) -------------------
     root->add(new CallbackMenuItem(
-        "New cv1",
+        "New cal",
         [=]() -> const char* {
-            static char buf[24];
-            if (!state->results_ready) return "cv1: (pending)";
-            snprintf(buf, sizeof(buf), "cv1: %.5f", state->new_cv1);
-            return buf;
-        },
-        false
-    ));
-    root->add(new CallbackMenuItem(
-        "New cv2",
-        [=]() -> const char* {
-            static char buf[24];
-            if (!state->results_ready) return "cv2: (pending)";
-            snprintf(buf, sizeof(buf), "cv2: %.5f", state->new_cv2);
+            static char buf[36];
+            if (!state->results_ready) return "cv1/cv2: (pending)";
+            snprintf(buf, sizeof(buf), "cv1:%.5f cv2:%.5f", state->new_cv1, state->new_cv2);
             return buf;
         },
         false
