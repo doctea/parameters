@@ -67,8 +67,8 @@ barlock_option_t barlock_options[BARLOCK_NUM_MODES] = {
     }
 
     // for caching available_values list for period controls, saves a couple of hundred bytes
-    LinkedList<LambdaSelectorControl<float>::option> *period_options = nullptr;
-    LinkedList<LambdaSelectorControl<uint32_t>::option> *sh_period_options = nullptr;
+    OptionList<LambdaSelectorControl<float>::option> *period_options = nullptr;
+    OptionList<LambdaSelectorControl<uint32_t>::option> *sh_period_options = nullptr;
 
     FLASHMEM
     SubMenuItemBar *VirtualParameterInput::makeControls(const char *label_prefix) {
@@ -139,7 +139,7 @@ barlock_option_t barlock_options[BARLOCK_NUM_MODES] = {
 
         // Phrase-spanning modes expose the phrase length control
         if (mode == BARLOCK_PHRASE_RISE || mode == BARLOCK_PHRASE_FALL) {
-            static LinkedList<LambdaSelectorControl<uint8_t>::option> *phrase_bar_options = nullptr;
+            static OptionList<LambdaSelectorControl<uint8_t>::option> *phrase_bar_options = nullptr;
             LambdaSelectorControl<uint8_t> *bars_control = new LambdaSelectorControl<uint8_t>(
                 "Phrase Bars",
                 [=](uint8_t v) -> void { this->phrase_bars = v; },
