@@ -290,7 +290,7 @@ class Weirdolope : public EnvelopeBase {
     }
 
     #ifdef ENABLE_PARAMETERS
-        virtual LinkedList<FloatParameter*> *get_parameters() override;
+        virtual ParameterList *get_parameters() override;
     #endif
 
     #ifdef ENABLE_SCREEN

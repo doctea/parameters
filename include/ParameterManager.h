@@ -34,6 +34,7 @@
 //#include "mymenu_items/ParameterInputViewMenuItems.h"
 
 #include <LinkedList.h>
+#include "parameter_list.h"
 
 #include <profiling.h>
 
@@ -123,7 +124,7 @@ class ParameterManager
         BaseParameterInput *addInput(BaseParameterInput *input);
         FLASHMEM FloatParameter *addParameter(FloatParameter *parameter);
         //FLASHMEM FloatParameter *addParameter(ICalibratable *parameter);
-        FLASHMEM void addParameters(LinkedList<FloatParameter*> *parameters);
+        FLASHMEM void addParameters(ParameterList *parameters);
         
         // initialise devices and add all their voltage sources
         //FLASHMEM  // making this FLASHMEM seems to cause crashes?!
@@ -365,7 +366,7 @@ class ParameterManager
                 }
             }
 
-            FLASHMEM SubMenuItem *addParameterSubMenuItems(Menu *menu, const char *submenu_label, LinkedList<FloatParameter*> *parameters, int16_t default_fg_colour = C_WHITE) {
+            FLASHMEM SubMenuItem *addParameterSubMenuItems(Menu *menu, const char *submenu_label, ParameterList *parameters, int16_t default_fg_colour = C_WHITE) {
                 // first add all the modulatable items into a sub menu
                 SubMenuItem *sub = getModulatableParameterSubMenuItems(menu, submenu_label, parameters);
                 if (sub!=nullptr && sub->items->size()>0) {
@@ -388,7 +389,7 @@ class ParameterManager
             }
 
             // add only the modulatable items to a sub-menu
-            FLASHMEM SubMenuItem *getModulatableParameterSubMenuItems(Menu *menu, const char *submenu_label, LinkedList<FloatParameter*> *parameters) {
+            FLASHMEM SubMenuItem *getModulatableParameterSubMenuItems(Menu *menu, const char *submenu_label, ParameterList *parameters) {
                 char label[MAX_LABEL_LENGTH];
                 snprintf(label, MAX_LABEL_LENGTH, "Parameters for %s", submenu_label);
                 //LinkedList<DataParameter*> *parameters = behaviour_craftsynth->get_parameters();

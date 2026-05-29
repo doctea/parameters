@@ -104,7 +104,7 @@ void create_low_memory_parameter_controls_actual() {
 // todo: add support for the CustomTypeControls of the parameters too..
 //        ^ for this, perhaps we create and store the LinkedList<MenuItem*>* created by addCustomTypeControls
 //          and then we render them in the LowMemoryEmbedMenuItem.
-void create_low_memory_parameter_controls(const char *label, LinkedList<FloatParameter*> *parameters, int_fast16_t default_fg) {
+void create_low_memory_parameter_controls(const char *label, ParameterList *parameters, int_fast16_t default_fg) {
     ////// control to select which parameter the other controls will edit
     ParameterMenuItemSelector *parameter_selector = new ParameterMenuItemSelector(label, parameters);
     //if (lowmemory_controls.parameter_selector==nullptr)

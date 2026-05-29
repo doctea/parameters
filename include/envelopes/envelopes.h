@@ -21,6 +21,7 @@
 #endif
 #ifdef ENABLE_PARAMETERS
     #include "parameters/Parameter.h"
+    #include "parameter_list.h"
 #endif
 #ifdef ENABLE_STORAGE
     #include "saveload_settings.h"
@@ -202,8 +203,8 @@ class EnvelopeBase
     #endif
 
     #ifdef ENABLE_PARAMETERS
-        LinkedList<FloatParameter*> *parameters = nullptr;
-        virtual LinkedList<FloatParameter*> *get_parameters() {
+        ParameterList *parameters = nullptr;
+        virtual ParameterList *get_parameters() {
             return nullptr;
         }
     #endif
@@ -230,7 +231,7 @@ class EnvelopeBase
             );
 
             // register parameters for this envelope
-            LinkedList<FloatParameter*> *parameters = this->get_parameters();
+            ParameterList *parameters = this->get_parameters();
             if (parameters!=nullptr) {
                 for (auto* param : *parameters) {
                     register_child(param);
@@ -462,7 +463,7 @@ class RegularEnvelope : public EnvelopeBase {
     }
 
     #ifdef ENABLE_PARAMETERS
-        virtual LinkedList<FloatParameter*> *get_parameters() override;
+        virtual ParameterList *get_parameters() override;
     #endif
 
     #ifdef ENABLE_SCREEN

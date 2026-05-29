@@ -80,11 +80,11 @@ stage_t operator++ (stage_t& d) {
 #ifdef ENABLE_PARAMETERS
     #include "parameters/Parameter.h"
 
-    LinkedList<FloatParameter*> *RegularEnvelope::get_parameters() {
+    ParameterList *RegularEnvelope::get_parameters() {
         if (this->parameters!=nullptr)
             return this->parameters;
 
-        this->parameters = new LinkedList<FloatParameter*>();
+        this->parameters = new ParameterList();
         
         this->parameters->add(new LDataParameter<float>("Attack", [=](float v) -> void { this->set_attack(v); }, [=](void) -> float { return this->get_attack(); }, 0, 127));
         this->parameters->add(new LDataParameter<float>("Hold",   [=](float v) -> void { this->set_hold(v); },   [=](void) -> float { return this->get_hold();   }, 0, 127));
@@ -95,11 +95,11 @@ stage_t operator++ (stage_t& d) {
         return this->parameters;
     }
 
-    LinkedList<FloatParameter*> *Weirdolope::get_parameters() {
+    ParameterList *Weirdolope::get_parameters() {
         if (this->parameters!=nullptr)
             return this->parameters;
 
-        this->parameters = new LinkedList<FloatParameter*>();
+        this->parameters = new ParameterList();
         
         this->parameters->add(new LDataParameter<float>(
             "Mix",

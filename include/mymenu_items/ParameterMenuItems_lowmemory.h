@@ -8,13 +8,14 @@
 #include "colours.h"
 
 #include "../parameters/Parameter.h"
+#include "../parameter_list.h"
 #include "ParameterMenuItems.h"
 
 // class that allows user to select from a list of parameters, and edit that parameter.  
 // other controls can point their (FloatParameter**)parameter pointers here so that they pick up the currently-selected parameter's data
 class ParameterMenuItemSelector : public SelectorControl<int_least16_t> { //public ObjectSelectorControl<ParameterMenuItemSelector,ParameterMenuItem*> {
     public:
-    LinkedList<FloatParameter*> *parameters = nullptr;
+    ParameterList *parameters = nullptr;
     FloatParameter *parameter = nullptr;
 
     //int selected_item = -1;
@@ -24,7 +25,7 @@ class ParameterMenuItemSelector : public SelectorControl<int_least16_t> { //publ
     int cached_row_max_chars = -1;
     char cached_row_text[MENU_C_MAX] = "";
 
-    ParameterMenuItemSelector(const char *label, LinkedList<FloatParameter*> *parameters) : 
+    ParameterMenuItemSelector(const char *label, ParameterList *parameters) : 
         SelectorControl<int_least16_t>(label) {
         this->selected_value_index = -1;
         this->actual_value_index = -1;
@@ -210,10 +211,10 @@ extern lowmemory_controls_t lowmemory_controls;
 // so that when this control is rendered, the correct parameter is swapped in to be displayed/edited
 class LowMemorySwitcherMenuItem : public MenuItem {
     public:
-    LinkedList<FloatParameter*> *parameters = nullptr;
+    ParameterList *parameters = nullptr;
     ParameterMenuItemSelector *parameter_selector = nullptr;
 
-    LowMemorySwitcherMenuItem(char *label, LinkedList<FloatParameter*> *parameters, ParameterMenuItemSelector *parameter_selector, int_fast16_t default_fg) 
+    LowMemorySwitcherMenuItem(char *label, ParameterList *parameters, ParameterMenuItemSelector *parameter_selector, int_fast16_t default_fg) 
         : MenuItem(label) {
             this->parameters = parameters;
             this->parameter_selector = parameter_selector;
@@ -257,5 +258,5 @@ class LowMemoryEmbedMenuItem : public MenuItem {
 
 // create 'low-memory' controls for a list of parameters
 // re-uses the same actual controls, inserting a dummy LowMemorySwitcherMenuItem or LowMemroryEmbedMenuItem so that the correct item is pointed at
-void create_low_memory_parameter_controls(const char *label, LinkedList<FloatParameter*> *parameters, int_fast16_t default_fg = C_WHITE);
+void create_low_memory_parameter_controls(const char *label, ParameterList *parameters, int_fast16_t default_fg = C_WHITE);
 void create_low_memory_parameter_controls(const char *label, FloatParameter *parameters, int_fast16_t default_fg = C_WHITE);

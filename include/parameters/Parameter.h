@@ -186,9 +186,14 @@ class FloatParameter : public BaseParameter {
         this->slew_rate = map(slew_rate_normal, 0.0f, 1.0f, slowest_slew_rate, fastest_slew_rate) / 100.0f;
         if (debug && Serial) Serial.printf("%s#set_slew_rate_normal(%3.3f) - slew_rate is %3.3f\n", this->label, slew_rate_normal, this->slew_rate);
     }
+
+    // Returns the slew rate normalised value to actually use for slewing.
+    // CVOutputParameter overrides this to return effective_slew_rate_normal (post-modulation).
+    virtual float get_effective_slew_rate_normal() { return slew_rate_normal; }
     
     virtual float get_slewed_value(float normal) {
-        if (!slew_enabled || slew_rate_normal>=1.0f) {
+        float eff_slew = get_effective_slew_rate_normal();
+        if (!slew_enabled || eff_slew >= 1.0f) {
             last_slewed_value = normal;
             return normal;
         }
@@ -197,7 +202,8 @@ class FloatParameter : public BaseParameter {
 
         if (debug && Serial) Serial.printf("%s#get_slewed_value() - slewing enabled, slew_rate is %3.3f, slew_rate_normal is %3.3f\n", this->label, this->slew_rate, this->slew_rate_normal);
 
-        float slew_rate = this->slew_rate * (float)delta;
+        float eff_rate = (eff_slew * (fastest_slew_rate - slowest_slew_rate) + slowest_slew_rate) / 100.0f;
+        float slew_rate = eff_rate * (float)delta;
         float diff = normal - this->lastRealOutputNormalValue;
         
         if (debug) {

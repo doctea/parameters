@@ -160,12 +160,14 @@ class BaseParameterInput
     #endif
 
     #ifdef PARAMETER_INPUTS_USE_CALLBACKS
-      LinkedList<ParameterInputCallbackReceiver*> *callback_receivers = new LinkedList<ParameterInputCallbackReceiver*> ();
+      LinkedList<ParameterInputCallbackReceiver*> *callback_receivers = nullptr;
       virtual void add_parameter_input_callback_receiver(ParameterInputCallbackReceiver *receiver) {
+        if (!this->callback_receivers) this->callback_receivers = new LinkedList<ParameterInputCallbackReceiver*>();
         this->callback_receivers->add(receiver);
       }
       float last_value;
       virtual void on_value_read(float currentValue) {
+        if (!this->callback_receivers) return;
         // if (currentValue==last_value)
         //   return;
         for (auto* receiver : *this->callback_receivers) {
