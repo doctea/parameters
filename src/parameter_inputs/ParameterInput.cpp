@@ -5,7 +5,11 @@
 lfo_option_t virtual_parameter_options[lfo_option_id::NUM] = {
     { "FreeLFO", LFO_FREE },
     { "LockLFO", LFO_LOCKED },
-    { "Rand",    RAND }
+    { "Rand",    RAND },
+    { "Tri",     LFO_LOCKED_TRIANGLE },
+    { "Saw",     LFO_LOCKED_SAW },
+    { "RSaw",    LFO_LOCKED_RSAW },
+    { "Sqr",     LFO_LOCKED_SQUARE },
 };
 
 barlock_option_t barlock_options[BARLOCK_NUM_MODES] = {
@@ -72,6 +76,9 @@ barlock_option_t barlock_options[BARLOCK_NUM_MODES] = {
 
     FLASHMEM
     SubMenuItemBar *VirtualParameterInput::makeControls(const char *label_prefix) {
+        // Lightweight instances (pre-configured) skip display and controls to save RAM
+        if (lightweight) return nullptr;
+
         SubMenuItemBar *submenu = BaseParameterInput::makeControls(label_prefix);
 
         if (lfo_mode==LFO_FREE) {
@@ -91,6 +98,7 @@ barlock_option_t barlock_options[BARLOCK_NUM_MODES] = {
                 period_control->add_available_value(3.0f,  "3xBar");
                 period_control->add_available_value(4.0f,  "4xBar"); //Phrase");
                 period_control->add_available_value(8.0f,  "8xBar"); //2xPhrase");
+                period_control->add_available_value(16.0f,  "16xBar"); //2xPhrase");
                 period_options = period_control->get_available_values();
             } else {
                 period_control->set_available_values(period_options);
@@ -113,6 +121,7 @@ barlock_option_t barlock_options[BARLOCK_NUM_MODES] = {
                 [=] (uint32_t v) -> void { this->sh_ticks = v; },
                 [=] (void) -> uint32_t { return this->sh_ticks; }
             );
+            period_control->go_back_on_select = true;
             if (sh_period_options==nullptr) {
                 period_control->add_available_value(0,      "None");
                 period_control->add_available_value(PPQN/8, "32nd");

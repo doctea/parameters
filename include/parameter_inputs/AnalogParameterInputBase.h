@@ -41,17 +41,32 @@ class AnalogParameterInputBase : public ParameterInput {
       read();
     }
 
+    // Returns the "live" value for get_normal_value_*() conversions.
+    // Default: returns cached currentValue (updated asynchronously by read() in loop()).
+    // Subclasses with a cheap live computation (tick-cached LFO, BarLock, etc.) should
+    // override this to return get_source_value() so that S&H and direct reads always
+    // see the current value rather than a potentially stale snapshot.
+    virtual DataType get_live_value() {
+      return this->currentValue;
+    }
     virtual DataType get_normal_value_unipolar() override {
-      return this->get_normal_value(this->currentValue, UNIPOLAR);
+      return this->get_normal_value(get_live_value(), UNIPOLAR);
     }
     virtual DataType get_normal_value_bipolar() override {
-      return this->get_normal_value(this->currentValue, BIPOLAR);
+      return this->get_normal_value(get_live_value(), BIPOLAR);
     }
 
     virtual DataType get_normal_value(DataType value, int output_type) {
       // DataType incoming_value = value;
       if (this->inverted) {
-        value = 1.0f - ((float)value); 
+        // UNIPOLAR: flip 0↔1.  BIPOLAR: negate −1↔+1.
+        // Using 1.0−x for bipolar maps [−1,1]→[0,2] which the clamp below
+        // then collapses to [0,1], losing the entire negative half of the range.
+        if (this->input_type == BIPOLAR) {
+          value = -((float)value);
+        } else {
+          value = 1.0f - ((float)value);
+        }
       }
 
       if (this->input_type==UNIPOLAR) {

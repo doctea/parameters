@@ -18,6 +18,10 @@ enum lfo_option_id {
     LFO_FREE,
     LFO_LOCKED,
     RAND,
+    LFO_LOCKED_TRIANGLE,    // triangle wave — cheaper than sine, no sin() call
+    LFO_LOCKED_SAW,         // rising ramp 0→1
+    LFO_LOCKED_RSAW,        // falling ramp 1→0
+    LFO_LOCKED_SQUARE,      // square wave — hard gate/ducking
     NUM
 };
 
@@ -44,9 +48,27 @@ class VirtualParameterInput : public AnalogParameterInputBase<float> {
         float last_sample = 0;
         uint32_t last_sample_tick = 0;
 
-        VirtualParameterInput(char *name, const char *group_name, lfo_option_id lfo_mode = LFO_LOCKED) 
+        // Phase accumulator (NCO): advances per-tick so that changing locked_period
+        // or free_sine_divisor mid-run causes no phase jump — the step size changes
+        // from the next advance onward, preserving phase continuity.
+        float phase_acc = 0.0f;
+        uint32_t last_advanced_tick = 0;
+
+        // When true, makeControls() skips creating a ParameterInputDisplay and
+        // UI controls for this instance (~500 bytes saved).  The input is still
+        // fully functional as a modulation source.
+        bool lightweight = false;
+
+        VirtualParameterInput(char *name, const char *group_name,
+                              lfo_option_id lfo_mode = LFO_LOCKED,
+                              float locked_period = 4.0f, float locked_phase = 0.0f,
+                              uint32_t sh_ticks = 0, bool lightweight = false)
                 : AnalogParameterInputBase(name, group_name) {
-            this->lfo_mode = lfo_mode;
+            this->lfo_mode     = lfo_mode;
+            this->locked_period = locked_period;
+            this->locked_phase  = locked_phase;
+            this->sh_ticks      = sh_ticks;
+            this->lightweight   = lightweight;
         }
 
         // virtual bool supports_pitch() override {
@@ -69,27 +91,72 @@ class VirtualParameterInput : public AnalogParameterInputBase<float> {
         }
 
         float get_source_value() {
-            if (last_sample_tick!=ticks && (sh_ticks==0 || (sh_ticks>0 && (ticks % sh_ticks == 0 || ticks >= last_sample_tick+sh_ticks)))) {
+            // Advance phase accumulator to current tick (catch-up).
+            // All LFO modes share this accumulator; RAND does not use it.
+            // Because loop() runs far faster than tick rate, elapsed is almost always 1,
+            // but the catch-up handles cases where this is called less frequently.
+            if (lfo_mode != RAND) {
+                const float step = (lfo_mode == LFO_FREE)
+                    ? (1.0f / free_sine_divisor)
+                    : (1.0f / ((float)TICKS_PER_BAR * locked_period));
+                if (last_advanced_tick != ticks) {
+                    if (last_advanced_tick > ticks) {
+                        // Clock reset: resync accumulator to absolute position
+                        phase_acc = fmodf((float)ticks * step, 1.0f);
+                    } else {
+                        phase_acc = fmodf(phase_acc + (float)(ticks - last_advanced_tick) * step, 1.0f);
+                    }
+                    last_advanced_tick = ticks;
+                }
+            }
+
+            // Update sample output, gated by S&H if configured
+            if (last_sample_tick != ticks &&
+                    (sh_ticks == 0 || (ticks % sh_ticks == 0) || ticks >= last_sample_tick + sh_ticks)) {
                 last_sample_tick = ticks;
 
+                // locked_phase is an absolute offset applied at read time;
+                // changing it causes an intentional immediate phase shift.
+                const float frac = fmodf(phase_acc + locked_phase, 1.0f);
+
                 switch (lfo_mode) {
-                    case LFO_FREE: 
-                        last_sample = calculate_lfo(locked_phase + (float)ticks/free_sine_divisor);
+                    case LFO_FREE:
+                    case LFO_LOCKED:
+                        last_sample = calculate_lfo(frac);
                         break;
-                    case LFO_LOCKED: {
-                        float adjusted = ((float)TICKS_PER_BAR*locked_period);
-                        last_sample = calculate_lfo(locked_phase + ((float)(ticks % (int_fast16_t)(adjusted)))/(float)(adjusted));
+                    case RAND:
+                        last_sample = input_type == BIPOLAR
+                            ? (float)random(-1000, 1000) / 1000.0f
+                            : (float)random(0, 1000) / 1000.0f;
+                        break;
+                    case LFO_LOCKED_TRIANGLE: {
+                        const float v = 1.0f - 2.0f * fabsf(frac - 0.5f);  // 0 at edges, 1 at mid
+                        last_sample = (input_type == BIPOLAR) ? (v * 2.0f - 1.0f) : v;
                         break;
                     }
-                    case RAND: 
-                        last_sample = input_type==BIPOLAR ? 
-                            (float)random(-1000, 1000)/1000.0 : 
-                            (float)random(0, 1000)/1000.0;
-                        break;;
+                    case LFO_LOCKED_SAW:
+                        last_sample = (input_type == BIPOLAR) ? (frac * 2.0f - 1.0f) : frac;
+                        break;
+                    case LFO_LOCKED_RSAW: {
+                        const float v = 1.0f - frac;
+                        last_sample = (input_type == BIPOLAR) ? (v * 2.0f - 1.0f) : v;
+                        break;
+                    }
+                    case LFO_LOCKED_SQUARE: {
+                        const float v = (frac < 0.5f) ? 1.0f : 0.0f;
+                        last_sample = (input_type == BIPOLAR) ? (v * 2.0f - 1.0f) : v;
+                        break;
+                    }
                     default: return 0.0f;
                 }
             }
             return last_sample;
+        }
+
+        // Route get_normal_value_*() through get_source_value() (live, tick-cached)
+        // rather than the stale currentValue updated asynchronously by read() in loop().
+        virtual float get_live_value() override {
+            return get_source_value();
         }
 
         virtual void read() override {

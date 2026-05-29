@@ -112,18 +112,10 @@ class BarLockParameterInput : public AnalogParameterInputBase<float> {
             return result;
         }
 
-        // Override the AnalogParameterInputBase getters so that S&H (and anything else
-        // calling get_normal_value_*() directly) always receives the live tick-derived
-        // value rather than the potentially stale `currentValue` field.
-        // `currentValue` is only updated when `read()` detects a significant change,
-        // so at S&H phrase boundaries it can still hold the end-of-phrase value (1.0)
-        // instead of the fresh start-of-phrase value (~0).
-        // `get_source_value()` has its own per-tick float cache so calling it here is cheap.
-        virtual float get_normal_value_unipolar() override {
-            return this->get_normal_value(get_source_value(), UNIPOLAR);
-        }
-        virtual float get_normal_value_bipolar() override {
-            return this->get_normal_value(get_source_value(), BIPOLAR);
+        // Route get_normal_value_*() through get_source_value() (live, tick-cached)
+        // rather than the stale currentValue updated asynchronously by read() in loop().
+        virtual float get_live_value() override {
+            return get_source_value();
         }
 
         virtual void read() override {
