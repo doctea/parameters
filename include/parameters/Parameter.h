@@ -60,14 +60,14 @@ struct ParameterToInputConnection {
     //BaseParameter *parameter = nullptr;
     BaseParameterInput *parameter_input = nullptr;
     float amount = 0.0f;
-    /*#ifdef ENABLE_SCREEN
-        // done more directly? todo: add colour, and update the colour of the widget too
-        // link the parameter mapping back to the screen controls, so that we can update the screen when mapping changes
-        MenuItem *amount_control = nullptr;
-        SelectorControl<int> *input_control = nullptr;
-    #endif*/
     // Legacy field name retained for compatibility; this now stores MODULATION_SLOT_MODE.
     byte polar_mode = MOD_SLOT_UNI_RAW;
+
+    // Per-slot sample & hold: when sh_mode != SH_OFF, the modulation value is sampled
+    // once per clock division and held until the next sample boundary.
+    SHMode sh_mode = SH_OFF;         // saved/loaded
+    float sh_last_sample = 0.0f;     // runtime state only — NOT saved
+    uint32_t sh_last_tick = UINT32_MAX;  // runtime state only — NOT saved; UINT32_MAX = never sampled
     //bool volt_per_octave = false;
 };
 
@@ -128,6 +128,10 @@ class BaseParameter
         // Returns this cast to CVOutputParameterBase* if applicable, else nullptr.
         // Avoids dynamic_cast when RTTI is disabled.
         virtual class CVOutputParameterBase* as_cv_output_base() { return nullptr; }
+
+        // Called on every clock tick; default is a no-op.
+        // FloatParameter overrides this to capture S&H samples at tick boundaries.
+        virtual void tick_sh(uint32_t tick) {}
 };
 
 // floattype-backed Parameter class from which usable types descend
@@ -419,6 +423,10 @@ class FloatParameter : public BaseParameter {
 
     // calculate the modulation value based on the inputs * modulation amounts
     virtual float get_modulation_value();
+
+    // Called on every clock tick: captures S&H samples at the correct tick boundaries.
+    // Must be wired into the clock tick callback (via parameter_manager->tick_sh()).
+    virtual void tick_sh(uint32_t tick) override;
 
     // whether to allow modulations to be set to this object, ie whether it can be modulated in realtime
     bool modulatable = true;

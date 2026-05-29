@@ -296,6 +296,15 @@ class ParameterManager
             PROFILE_STOP(p_pm_update_mixers);
         }
 
+        // Called on every clock tick to capture S&H samples for all parameters at tick boundaries.
+        // Wire into the clock tick callback: parameter_manager->tick_sh() in do_tick().
+        // O(N×slots) but exits early for most slots (sh_mode==SH_OFF or not on boundary).
+        FASTRUN void tick_sh() {
+            for (auto* param : *this->available_parameters) {
+                if (param != nullptr) param->tick_sh(::ticks);
+            }
+        }
+
         // update X mixers at a time
         // NOTE: left as index-based loop — 'pos' is a static window offset that may be non-zero,
         // requiring an iterator-advance skip which obscures intent. Since concurrent access is not

@@ -132,11 +132,12 @@ float FloatParameter::get_amount_for_slot(int8_t slot) {
                 } else if (target->connections[s].polar_mode == MOD_SLOT_UNI_CENTERED) {
                     mode = "uni_centered";
                 }
-                p += snprintf(p, end - p, "%s%s,%.6g,%s",
+                p += snprintf(p, end - p, "%s%s,%.6g,%s,%s",
                     s == 0 ? "" : ";",
                     name ? name : "",
                     (double)amount,
-                    mode);
+                    mode,
+                    get_sh_mode_save_string(target->connections[s].sh_mode));
             }
             return linebuf;
         }
@@ -150,17 +151,24 @@ float FloatParameter::get_amount_for_slot(int8_t slot) {
             for (uint_fast8_t s = 0; s < MAX_SLOT_CONNECTIONS; ++s) {
                 char* semi = strchr(cursor, ';');
                 if (semi) *semi = '\0';
-                // parse "name,amount,mode"
+                // parse "name,amount,mode[,sh_mode]"
                 char* comma1 = strchr(cursor, ',');
                 if (!comma1) break;
                 *comma1 = '\0';
                 char* comma2 = strchr(comma1 + 1, ',');
                 float amount = 0.0f;
                 uint8_t mode = MOD_SLOT_UNI_RAW;
+                SHMode sh_mode = SH_OFF;
                 if (comma2) {
                     *comma2 = '\0';
                     amount = atof(comma1 + 1);
                     const char* mode_str = comma2 + 1;
+                    // Optional 4th token: sh_mode (backwards compat: missing = SH_OFF)
+                    char* comma3 = strchr(comma2 + 1, ',');
+                    if (comma3) {
+                        *comma3 = '\0';
+                        sh_mode = get_sh_mode_from_save_string(comma3 + 1);
+                    }
                     // Backward compatibility:
                     // - legacy: "bipolar" / "unipolar"
                     // - current: "bi_native" / "uni_raw" / "uni_centered"
@@ -181,6 +189,9 @@ float FloatParameter::get_amount_for_slot(int8_t slot) {
                 }
                 target->connections[s].amount = amount;
                 target->connections[s].polar_mode = mode;
+                target->connections[s].sh_mode = sh_mode;
+                target->connections[s].sh_last_sample = 0.0f;  // reset runtime state on load
+                target->connections[s].sh_last_tick = UINT32_MAX;  // UINT32_MAX = never sampled
                 if (!semi) break;
                 cursor = semi + 1;
             }

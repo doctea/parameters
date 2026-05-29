@@ -4,6 +4,7 @@
 
 #include "menu.h"
 #include "colours.h"
+#include "menuitems_popout.h"
 
 #include "../parameters/Parameter.h"
 
@@ -337,19 +338,106 @@ class ParameterConnectionPolarityTypeSelectorControl : public SelectorControl<in
 };
 
 
-// One row for a single modulation slot: [source selector | amount % | mode selector]
+// One-character per-slot S&H mode indicator that opens a popout overlay when selected.
+// Cycles through SHMode values with left/right/select; renders "~" (off) or "H" (active).
+class ParameterModSlotSHControl : public MenuItem {
+    FloatParameter **parameter;
+    byte slot_number;
+    char overlay_value_buf[8];
+
+    SHMode get_sh_mode() const {
+        if (parameter == nullptr || *parameter == nullptr) return SH_OFF;
+        return (*parameter)->connections[slot_number].sh_mode;
+    }
+    void set_sh_mode(SHMode m) {
+        if (parameter == nullptr || *parameter == nullptr) return;
+        (*parameter)->connections[slot_number].sh_mode = m;
+    }
+    uint16_t get_colour() const {
+        if (parameter != nullptr && *parameter != nullptr &&
+                (*parameter)->connections[slot_number].parameter_input != nullptr)
+            return (*parameter)->connections[slot_number].parameter_input->colour;
+        return C_WHITE;
+    }
+
+public:
+    ParameterModSlotSHControl(const char *label, FloatParameter **parameter, byte slot_number)
+        : MenuItem(label), parameter(parameter), slot_number(slot_number) {
+        this->go_back_on_select = true;
+        overlay_value_buf[0] = '\0';
+    }
+
+    virtual int renderValue(bool selected, bool opened, uint16_t width) override {
+        const SHMode m = get_sh_mode();
+        const bool active = (m != SH_OFF);
+        colours(selected, active ? get_colour() : (uint16_t)(C_WHITE >> 1), BLACK);
+        tft->print(active ? "H" : "~");
+        return tft->getCursorY();
+    }
+
+    virtual bool wants_fullscreen_overlay_when_opened_in_bar() override { return true; }
+
+    virtual int display(Coord pos, bool selected, bool opened) override {
+        if (!opened) {
+            renderValue(selected, false, 0);
+            return tft->getCursorY();
+        }
+        // Build and draw popout overlay
+        const SHMode m = get_sh_mode();
+        strncpy(overlay_value_buf, get_sh_mode_label(m), sizeof(overlay_value_buf) - 1);
+        overlay_value_buf[sizeof(overlay_value_buf) - 1] = '\0';
+
+        const char *src_name = nullptr;
+        if (parameter != nullptr && *parameter != nullptr &&
+                (*parameter)->connections[slot_number].parameter_input != nullptr)
+            src_name = (*parameter)->connections[slot_number].parameter_input->name;
+
+        SelectorTakeoverOverlaySpec overlay;
+        overlay.title      = "S&H";
+        overlay.subtitle   = src_name;
+        overlay.value      = overlay_value_buf;
+        overlay.left_hint  = "<";
+        overlay.right_hint = ">";
+        overlay.frame_colour = (m != SH_OFF) ? get_colour() : C_WHITE;
+        overlay.value_fg   = C_WHITE;
+
+        return menu_draw_selector_takeover_overlay(tft, pos, overlay);
+    }
+
+    // Open overlay
+    virtual bool action_opened() override {
+        return true;
+    }
+    virtual bool button_select() override {
+        // set_sh_mode((SHMode)((int(get_sh_mode()) + 1) % int(SH_MODE_COUNT)));
+        return go_back_on_select;
+    }
+    virtual bool knob_left() override {
+        const SHMode cur = get_sh_mode();
+        set_sh_mode(cur == SH_OFF ? (SHMode)(SH_MODE_COUNT - 1) : (SHMode)(int(cur) - 1));
+        return true;
+    }
+    virtual bool knob_right() override {
+        set_sh_mode((SHMode)((int(get_sh_mode()) + 1) % int(SH_MODE_COUNT)));
+        return true;
+    }
+};
+
+
+// One row for a single modulation slot: [source selector | amount % | mode selector | S&H]
 class ParameterModSlotRow : public SubMenuItemBarCustomProportions {
     FloatParameter **parameter;
     int slot_number;
 public:
     ParameterModSlotRow(const char *label, FloatParameter **parameter, int slot_number)
-        : SubMenuItemBarCustomProportions(label, 3, false, false),
+        : SubMenuItemBarCustomProportions(label, 4, false, false),
           parameter(parameter), slot_number(slot_number)
     {
-        // Column proportions: source=50%, amount=33%, mode=17%
-        this->set_column_proportion(0, 0.50f);
-        this->set_column_proportion(1, 0.33f);
-        this->set_column_proportion(2, 0.17f);
+        // Column proportions: source=46%, amount=30%, mode=16%, S&H=8%
+        this->set_column_proportion(0, 0.46f);
+        this->set_column_proportion(1, 0.30f);
+        this->set_column_proportion(2, 0.16f);
+        this->set_column_proportion(3, 0.08f);
 
         BaseParameterInput *initial_input = nullptr;
         if (parameter != nullptr && *parameter != nullptr)
@@ -383,7 +471,10 @@ public:
         ParameterConnectionPolarityTypeSelectorControl *mode = new ParameterConnectionPolarityTypeSelectorControl(
             "Mode", parameter, slot_number
         );
-        this->add(mode); 
+        this->add(mode);
+
+        // S&H mode (4th column, single-character indicator + popout overlay)
+        this->add(new ParameterModSlotSHControl("SH", parameter, slot_number));
     }
 
     virtual int small_display(int index, int x, int y, int width_in_pixels, bool is_selected, bool is_opened, bool outer_selected) override {

@@ -118,29 +118,42 @@ FLASHMEM LinkedList<MenuItem *> *FloatParameter::makeControls() {
         for (uint_fast8_t i = 0 ; i < MAX_SLOT_CONNECTIONS ; i++) {
             if (is_modulation_slot_active(i)) {
                 float nml = 0.0f;
-                switch (this->connections[i].polar_mode) {
-                    case MOD_SLOT_BI_NATIVE:
-                        // aka B+-
-                        // Bipolar source (-1..1). Scaled by 0.5 so that amount=1.0 sweeps ±50% of the
-                        // full normal span — giving a clean 0..1 sweep when base=0.5 (no early saturation).
-                        // Use amount=2.0 to sweep the full span from a base at the edge of the range.
-                        nml = this->connections[i].parameter_input->get_normal_value_bipolar() * 0.5f;
-                        break;
-                    case MOD_SLOT_UNI_CENTERED:
-                        // aka U+-
-                        // Unipolar source (0..1) re-centred to bipolar (-1..1), then scaled by 0.5.
-                        // Same semantics as B+-: amount=1.0 sweeps ±50% of the span from base.
-                        nml = this->connections[i].parameter_input->get_normal_value_unipolar();
-                        nml = (-1.0f + (nml * 2.0f)) * 0.5f;
-                        break;
-                    case MOD_SLOT_UNI_RAW:
-                    default:
-                        // aka U+
-                        // for unipolar inputs in 'raw' mode, the modulation amount is scaled by the raw unipolar
-                        // value of the input (0 to 1), so that a full positive value can fully reinforce the
-                        // parameter, but the input cannot invert it (as the negative range is not used)
-                        nml = this->connections[i].parameter_input->get_normal_value_unipolar();
-                        break;
+
+                // Per-slot sample & hold: tick_sh() captures samples at tick boundaries;
+                // get_modulation_value() is read-only — it just consumes the stored sample.
+                const SHMode sh = this->connections[i].sh_mode;
+                const bool sh_active = (sh != SH_OFF);
+
+                if (sh_active) {
+                    // Use the sample captured by tick_sh() at the last tick boundary.
+                    // If tick_sh() has not been wired into the clock tick, sh_last_sample
+                    // stays at 0.0f until the first tick_sh() call.
+                    nml = this->connections[i].sh_last_sample;
+                } else {
+                    switch (this->connections[i].polar_mode) {
+                        case MOD_SLOT_BI_NATIVE:
+                            // aka B+-
+                            // Bipolar source (-1..1). Scaled by 0.5 so that amount=1.0 sweeps ±50% of the
+                            // full normal span — giving a clean 0..1 sweep when base=0.5 (no early saturation).
+                            // Use amount=2.0 to sweep the full span from a base at the edge of the range.
+                            nml = this->connections[i].parameter_input->get_normal_value_bipolar() * 0.5f;
+                            break;
+                        case MOD_SLOT_UNI_CENTERED:
+                            // aka U+-
+                            // Unipolar source (0..1) re-centred to bipolar (-1..1), then scaled by 0.5.
+                            // Same semantics as B+-: amount=1.0 sweeps ±50% of the span from base.
+                            nml = this->connections[i].parameter_input->get_normal_value_unipolar();
+                            nml = (-1.0f + (nml * 2.0f)) * 0.5f;
+                            break;
+                        case MOD_SLOT_UNI_RAW:
+                        default:
+                            // aka U+
+                            // for unipolar inputs in 'raw' mode, the modulation amount is scaled by the raw unipolar
+                            // value of the input (0 to 1), so that a full positive value can fully reinforce the
+                            // parameter, but the input cannot invert it (as the negative range is not used)
+                            nml = this->connections[i].parameter_input->get_normal_value_unipolar();
+                            break;
+                    }
                 }
 
                 modulation += nml * this->connections[i].amount;
@@ -154,6 +167,43 @@ FLASHMEM LinkedList<MenuItem *> *FloatParameter::makeControls() {
         }*/
         return modulation;
         //this->parameter->modulateValue(modulation);
+    }
+
+    // Called on every clock tick (via parameter_manager->tick_sh() from do_tick()).
+    // Captures S&H samples for all active slots at the correct tick boundaries.
+    // Uses UINT32_MAX as a "never sampled" sentinel so that enabling S&H mid-phrase
+    // takes an immediate sample rather than holding 0.0f until the next boundary.
+    // If a boundary tick is missed (system overload), sh_last_sample retains the last
+    // correctly-captured value — get_modulation_value() keeps using it until the next
+    // boundary fires (correct S&H hold behaviour).
+    void FloatParameter::tick_sh(uint32_t current_tick) {
+        for (uint_fast8_t i = 0; i < MAX_SLOT_CONNECTIONS; i++) {
+            if (!is_modulation_slot_active(i)) continue;
+            const SHMode sh = this->connections[i].sh_mode;
+            if (sh == SH_OFF) continue;
+            const uint32_t sh_period = get_sh_ticks_for_mode(sh);
+            if (sh_period == 0) continue;
+            // Sample at tick boundaries OR on first use (sh_last_tick == UINT32_MAX).
+            const bool on_boundary = (current_tick % sh_period == 0);
+            const bool first_use   = (this->connections[i].sh_last_tick == UINT32_MAX);
+            if (!on_boundary && !first_use) continue;
+            float nml = 0.0f;
+            switch (this->connections[i].polar_mode) {
+                case MOD_SLOT_BI_NATIVE:
+                    nml = this->connections[i].parameter_input->get_normal_value_bipolar() * 0.5f;
+                    break;
+                case MOD_SLOT_UNI_CENTERED:
+                    nml = this->connections[i].parameter_input->get_normal_value_unipolar();
+                    nml = (-1.0f + (nml * 2.0f)) * 0.5f;
+                    break;
+                case MOD_SLOT_UNI_RAW:
+                default:
+                    nml = this->connections[i].parameter_input->get_normal_value_unipolar();
+                    break;
+            }
+            this->connections[i].sh_last_sample = nml;
+            this->connections[i].sh_last_tick = current_tick;
+        }
     }
 #endif
 
