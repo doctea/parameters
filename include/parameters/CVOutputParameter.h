@@ -97,6 +97,7 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
         IGateTarget *gate_manager = nullptr;
         int8_t gate_bank = -1, gate_number = 0;
         bool gate_is_on = false;    // track whether gate is currently on or off
+        bool note_is_active = false; // track whether a NoteOn has been received without matching NoteOff (independent of gate)
         bool gate_output_enabled = true;
 
         CVOutputParameter(const char* label, TargetClass *target, byte dac_channel, VALUE_TYPE polarity_mode = VALUE_TYPE::UNIPOLAR, bool inverted = false, float floor = 0.0f, float ceiling = 10.0f, bool configurable = false)
@@ -568,6 +569,7 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
                 return;
 
             this->current_pitch_note = pitch;
+            this->note_is_active = true;
             float voltage_for_pitch = get_voltage_for_pitch(pitch);
             if (this->debug && Serial) {
                 Serial.printf("%s#sendNoteOn(pitch=%3i,....)\t", this->label, pitch);
@@ -584,11 +586,28 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
         virtual void sendNoteOff(uint8_t pitch, uint8_t velocity, uint8_t channel) {
             if (this->current_pitch_note == pitch)
                 this->current_pitch_note = NOTE_OFF;
+            this->note_is_active = false;
             // todo: should probably have an option to drop the output voltage to 0 when no notes are left?
+            // ^^^ actually -- better to change to a note that is in correct quantisation since CV has no concept of 'note off' with CV Pitch only
             if ((get_gate_output_enabled() || gate_is_on) && gate_bank>=0 && gate_manager!=nullptr) {
                 gate_is_on = false;
                 gate_manager->send_gate_off(gate_bank, gate_number);
             }
+        }
+
+        bool is_note_active() const { return note_is_active; }
+
+        bool park_enabled = false;
+        bool get_park_enabled() const { return park_enabled; }
+        void set_park_enabled(bool v) { park_enabled = v; }
+
+        // Silently re-quantise CV voltage to a parked pitch when idle (no gate, no NoteOn).
+        // No-op if park is disabled, a note is currently active, or pitch is invalid.
+        void park_pitch(int8_t pitch) {
+            if (!park_enabled) return;
+            if (note_is_active) return;
+            if (!is_valid_note(pitch)) return;
+            this->updateValueFromData(get_voltage_for_pitch(pitch));
         }
 
         // No-RTTI cast helper: returns this as CVOutputParameterBase*
