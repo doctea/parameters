@@ -421,6 +421,13 @@ class FloatParameter : public BaseParameter {
     // account for rounding errors that are causing spurious modulation
     virtual bool is_modulation_slot_active(int slot);
 
+    // returns true if any slot has both a connected input AND a non-zero amount
+    virtual bool has_active_modulation() {
+        for (int i = 0; i < MAX_SLOT_CONNECTIONS; i++)
+            if (is_modulation_slot_active(i)) return true;
+        return false;
+    }
+
     // calculate the modulation value based on the inputs * modulation amounts
     virtual float get_modulation_value();
 

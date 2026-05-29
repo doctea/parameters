@@ -98,7 +98,7 @@ barlock_option_t barlock_options[BARLOCK_NUM_MODES] = {
                 period_control->add_available_value(3.0f,  "3xBar");
                 period_control->add_available_value(4.0f,  "4xBar"); //Phrase");
                 period_control->add_available_value(8.0f,  "8xBar"); //2xPhrase");
-                period_control->add_available_value(16.0f,  "16xBar"); //2xPhrase");
+                period_control->add_available_value(16.0f,  "16xBar"); //4xPhrase");
                 period_options = period_control->get_available_values();
             } else {
                 period_control->set_available_values(period_options);
