@@ -415,6 +415,58 @@ public:
         overlay.frame_colour = (m != SH_OFF) ? get_colour() : C_WHITE;
         overlay.value_fg   = C_WHITE;
 
+        // If the connected input has a history display, add a graph with S&H reconstruction
+        ParameterInputDisplay *disp_for_graph = nullptr;
+        if (parameter != nullptr && *parameter != nullptr) {
+            BaseParameterInput *inp = (*parameter)->connections[slot_number].parameter_input;
+            if (inp != nullptr) disp_for_graph = inp->parameter_input_display;
+        }
+        if (disp_for_graph != nullptr) {
+            overlay.has_extra = true;
+            overlay.extra_height = 50;
+            overlay.draw_extra_fn = [](void *userdata, DisplayTranslator *tft, int x, int y, int max_width, int max_height) {
+                auto *self = static_cast<ParameterModSlotSHControl*>(userdata);
+                FloatParameter *param = (self->parameter != nullptr) ? *(self->parameter) : nullptr;
+                if (param == nullptr) return;
+                BaseParameterInput *inp = param->connections[self->slot_number].parameter_input;
+                if (inp == nullptr) return;
+                ParameterInputDisplay *disp = inp->parameter_input_display;
+                if (disp == nullptr) return;
+
+                // Raw input signal (past=bright, future=halfbright split at current tick)
+                disp->draw_graph(x, y, max_width, max_height);
+
+                // S&H stepped reconstruction in white, derived from the same buffer
+                const SHMode sh_m = param->connections[self->slot_number].sh_mode;
+                if (sh_m == SH_OFF) return;
+                const uint32_t sh_period = get_sh_ticks_for_mode(sh_m);
+                if (sh_period == 0 || disp->memory_size == 0 || disp->logged == nullptr) return;
+
+                const uint32_t mem_sz = disp->memory_size;
+                const uint32_t cur_buf_idx = disp->ticks_to_memory_step(::ticks);
+                const uint16_t sh_col_past   = C_WHITE;
+                const uint16_t sh_col_future = tft->halfbright_565(C_WHITE);
+                int last_sh_y = -1;
+                for (int sx = x; sx < x + max_width; sx++) {
+                    // pixel → buffer index
+                    const uint32_t buf_idx = (mem_sz == (uint32_t)max_width)
+                        ? (uint32_t)(sx - x)
+                        : (uint32_t)((uint64_t)(sx - x) * mem_sz / max_width);
+                    // buffer index → tick-in-phrase → last S&H boundary → buffer index at boundary
+                    const uint32_t tick_ph  = (uint32_t)((uint64_t)buf_idx * TICKS_PER_PHRASE / mem_sz);
+                    const uint32_t samp_tk  = (tick_ph / sh_period) * sh_period;
+                    const uint32_t samp_bi  = (uint32_t)((uint64_t)samp_tk * mem_sz / TICKS_PER_PHRASE);
+                    const float v = disp->decode_memory_log(disp->logged[samp_bi < mem_sz ? samp_bi : mem_sz - 1]);
+                    const int gy = max_height - (int)(v * max_height);
+                    const uint16_t sh_col = buf_idx < cur_buf_idx ? sh_col_past : sh_col_future;
+                    if (sx > x && last_sh_y >= 0)
+                        tft->drawLine(sx - 1, y + last_sh_y, sx, y + gy, sh_col);
+                    last_sh_y = gy;
+                }
+            };
+            overlay.draw_extra_userdata = this;
+        }
+
         return menu_draw_selector_takeover_overlay(tft, pos, overlay);
     }
 
