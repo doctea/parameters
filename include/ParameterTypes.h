@@ -93,6 +93,25 @@ inline const char *get_sh_mode_label(SHMode m) {
     }
 }
 
+// Two-character abbreviations for compact display (e.g. S&H column at textsize 0).
+// Designed to be readable in 2 chars; triplets use 'T' suffix, bars/beats use lowercase.
+inline const char *get_sh_mode_short_label(SHMode m) {
+    switch (m) {
+        case SH_OFF:        return "  ";  // blank — the '~' on the line above says enough
+        case SH_32ND:       return "32";
+        case SH_16TH:       return "16";
+        case SH_16TH_TRIP:  return "6T";  // (1)6th Triplet
+        case SH_8TH:        return " 8";
+        case SH_8TH_TRIP:   return "8T";
+        case SH_BEAT:       return "bt";
+        case SH_2BEAT:      return "2b";
+        case SH_BAR:        return "Br";
+        case SH_2BAR:       return "2B";
+        case SH_PHRASE:     return "Ph";
+        default:            return "??";
+    }
+}
+
 // Stable serialisation identifiers (lowercase, no spaces)
 inline const char *get_sh_mode_save_string(SHMode m) {
     switch (m) {

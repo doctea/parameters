@@ -370,8 +370,22 @@ public:
     virtual int renderValue(bool selected, bool opened, uint16_t width) override {
         const SHMode m = get_sh_mode();
         const bool active = (m != SH_OFF);
-        colours(selected, active ? get_colour() : (uint16_t)(C_WHITE >> 1), BLACK);
-        tft->print(active ? "H" : "~");
+        const uint16_t col = active ? get_colour() : (uint16_t)(C_WHITE >> 1);
+        colours(selected, col, BLACK);
+        if (!active) {
+            // Off: single prominent '~' at textsize 1
+            tft->setTextSize(2);
+            tft->print("~");
+        } else {
+            // On: 'H' at textsize 1, then 2-char mode abbrev at textsize 0 below
+            const int16_t start_x = tft->getCursorX();
+            tft->setTextSize(1);
+            tft->println("H");
+            tft->setCursor(start_x, tft->getCursorY());
+            tft->setTextSize(0);
+            colours(selected, col, BLACK);
+            tft->println(get_sh_mode_short_label(m));
+        }
         return tft->getCursorY();
     }
 
@@ -433,9 +447,11 @@ public:
         : SubMenuItemBarCustomProportions(label, 4, false, false),
           parameter(parameter), slot_number(slot_number)
     {
-        // Column proportions: source=46%, amount=30%, mode=16%, S&H=8%
-        this->set_column_proportion(0, 0.46f);
-        this->set_column_proportion(1, 0.30f);
+        // Column proportions: source=49%, amount=27%, mode=16%, S&H=8%
+        // Source bumped +3% (one extra textsize-1 char) so 11-char names like "Ride Cymbal"
+        // fit without auto-downscaling; the amount column absorbs the difference.
+        this->set_column_proportion(0, 0.49f);
+        this->set_column_proportion(1, 0.27f);
         this->set_column_proportion(2, 0.16f);
         this->set_column_proportion(3, 0.08f);
 
