@@ -597,7 +597,7 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
 
         bool is_note_active() const { return note_is_active; }
 
-        bool park_enabled = false;
+        bool park_enabled = true;
         bool get_park_enabled() const { return park_enabled; }
         void set_park_enabled(bool v) { park_enabled = v; }
 
