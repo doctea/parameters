@@ -100,6 +100,12 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
         bool note_is_active = false; // track whether a NoteOn has been received without matching NoteOff (independent of gate)
         bool gate_output_enabled = true;
 
+        // Post-modulation slew rate (written to by ProxyParameter<float> modulation).
+        // get_slewed_value() uses this via get_effective_slew_rate_normal() override.
+        // Base (user-set) value is stored in slew_base_normal[] in DeviceBehaviour_CVOutput.
+        float effective_slew_rate_normal = 1.0f;
+        virtual float get_effective_slew_rate_normal() override { return effective_slew_rate_normal; }
+
         CVOutputParameter(const char* label, TargetClass *target, byte dac_channel, VALUE_TYPE polarity_mode = VALUE_TYPE::UNIPOLAR, bool inverted = false, float floor = 0.0f, float ceiling = 10.0f, bool configurable = false)
             : DataParameter<TargetClass,DataType>(label, target) {
                 this->dac_channel = dac_channel;
