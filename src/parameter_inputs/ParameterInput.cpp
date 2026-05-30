@@ -3,8 +3,8 @@
 #include "parameter_inputs/BarLockParameterInputs.h"
 
 lfo_option_t virtual_parameter_options[lfo_option_id::NUM] = {
-    { "FreeLFO", LFO_FREE },
-    { "LockLFO", LFO_LOCKED },
+    { "FreeSin", LFO_FREE },
+    { "Sine",    LFO_LOCKED },
     { "Rand",    RAND },
     { "Tri",     LFO_LOCKED_TRIANGLE },
     { "Saw",     LFO_LOCKED_SAW },
@@ -73,6 +73,7 @@ barlock_option_t barlock_options[BARLOCK_NUM_MODES] = {
     // for caching available_values list for period controls, saves a couple of hundred bytes
     OptionList<LambdaSelectorControl<float>::option> *period_options = nullptr;
     OptionList<LambdaSelectorControl<uint32_t>::option> *sh_period_options = nullptr;
+    OptionList<LambdaSelectorControl<int>::option> *shape_options = nullptr;
 
     FLASHMEM
     SubMenuItemBar *VirtualParameterInput::makeControls(const char *label_prefix) {
@@ -81,9 +82,35 @@ barlock_option_t barlock_options[BARLOCK_NUM_MODES] = {
 
         SubMenuItemBar *submenu = BaseParameterInput::makeControls(label_prefix);
 
+        // Shape selector: available for locked-period modes (all except FREE and RAND)
+        const bool is_locked_type = (lfo_mode != LFO_FREE && lfo_mode != RAND);
+        if (is_locked_type) {
+            // Use int as DataType since LambdaSelectorControl requires ++/-- operators,
+            // which enums don't provide; cast to/from lfo_option_id at the boundary.
+            LambdaSelectorControl<int> *shape_control = new LambdaSelectorControl<int>(
+                "Shape",
+                [=](int v) -> void { this->lfo_mode = (lfo_option_id)v; },
+                [=](void) -> int { return (int)this->lfo_mode; }
+            );
+            shape_control->go_back_on_select = true;
+            if (shape_options == nullptr) {
+                for (int i = 0; i < lfo_option_id::NUM; i++) {
+                    lfo_option_id id = (lfo_option_id)i;
+                    if (id != LFO_FREE && id != RAND) {
+                        shape_control->add_available_value(i, virtual_parameter_options[i].name);
+                    }
+                }
+                shape_options = shape_control->get_available_values();
+            } else {
+                shape_control->set_available_values(shape_options);
+            }
+            submenu->add(shape_control);
+        }
+
         if (lfo_mode==LFO_FREE) {
             submenu->add(new DirectNumberControl<float>("Speed", &this->free_sine_divisor, this->free_sine_divisor, 0.01f, 1000.0f));
-        } else if (lfo_mode==LFO_LOCKED) {
+        } else if (lfo_mode != RAND) {
+            // Period control applies to all locked-period waveforms (sine, triangle, saw, rsaw, square)
             LambdaSelectorControl<float> *period_control = new LambdaSelectorControl<float>(
                 "Period",
                 [=] (float v) -> void { this->locked_period = v; },
@@ -105,7 +132,8 @@ barlock_option_t barlock_options[BARLOCK_NUM_MODES] = {
             }
             submenu->add(period_control);
         }
-        if(lfo_mode==LFO_FREE || lfo_mode==LFO_LOCKED) {
+        if (lfo_mode != RAND) {
+            // Phase applies to all non-random modes
             DirectNumberControl<float> *phase_control = new DirectNumberControl<float>(
                 "Phase",
                 &this->locked_phase,
@@ -115,29 +143,30 @@ barlock_option_t barlock_options[BARLOCK_NUM_MODES] = {
             );
             submenu->add(phase_control);
         }
-        //if (lfo_mode==RAND) {
-            LambdaSelectorControl<uint32_t> *period_control = new LambdaSelectorControl<uint32_t>(
+        if (lfo_mode == RAND) {
+            // S&H only applies to random modes
+            LambdaSelectorControl<uint32_t> *sh_control = new LambdaSelectorControl<uint32_t>(
                 "S&H On",
                 [=] (uint32_t v) -> void { this->sh_ticks = v; },
                 [=] (void) -> uint32_t { return this->sh_ticks; }
             );
-            period_control->go_back_on_select = true;
+            sh_control->go_back_on_select = true;
             if (sh_period_options==nullptr) {
-                period_control->add_available_value(0,      "None");
-                period_control->add_available_value(PPQN/8, "32nd");
-                period_control->add_available_value(PPQN/4, "16th");
-                period_control->add_available_value(PPQN/2, "8th");
-                period_control->add_available_value(PPQN,   "Beat");
-                period_control->add_available_value(PPQN*2, "2xBeat");
-                period_control->add_available_value(PPQN*BEATS_PER_BAR,    "Bar");
-                period_control->add_available_value(PPQN*BEATS_PER_BAR*2,  "2xBar"); //Phrase");
-                period_control->add_available_value(PPQN*BEATS_PER_PHRASE, "Phrase"); //2xPhrase");
-                sh_period_options = period_control->get_available_values();
+                sh_control->add_available_value(0,      "None");
+                sh_control->add_available_value(PPQN/8, "32nd");
+                sh_control->add_available_value(PPQN/4, "16th");
+                sh_control->add_available_value(PPQN/2, "8th");
+                sh_control->add_available_value(PPQN,   "Beat");
+                sh_control->add_available_value(PPQN*2, "2xBeat");
+                sh_control->add_available_value(PPQN*BEATS_PER_BAR,    "Bar");
+                sh_control->add_available_value(PPQN*BEATS_PER_BAR*2,  "2xBar"); //Phrase");
+                sh_control->add_available_value(PPQN*BEATS_PER_PHRASE, "Phrase"); //2xPhrase");
+                sh_period_options = sh_control->get_available_values();
             } else {
-                period_control->set_available_values(sh_period_options);
+                sh_control->set_available_values(sh_period_options);
             }
-            submenu->add(period_control);        
-        //}
+            submenu->add(sh_control);
+        }
 
         return submenu;
     }

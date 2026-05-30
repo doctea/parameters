@@ -90,6 +90,13 @@ class VirtualParameterInput : public AnalogParameterInputBase<float> {
                 0.5f + ((sin(normal*2.0f*PI))/2.0);
         }
 
+        virtual const char *getExtra() override {
+            return virtual_parameter_options[lfo_mode].name;
+        }
+        virtual bool hasExtra() override {
+            return true;
+        }
+
         float get_source_value() {
             // Advance phase accumulator to current tick (catch-up).
             // All LFO modes share this accumulator; RAND does not use it.
@@ -248,6 +255,12 @@ class VirtualParameterInput : public AnalogParameterInputBase<float> {
                 //         }
                 //     )
                 // );
+
+                register_setting(new VarSetting<lfo_option_id>(
+                        "LFO Mode",
+                        "VirtualParameterInput",
+                        &this->lfo_mode
+                    ), SL_SCOPE_SCENE | SL_SCOPE_PROJECT);
 
                 register_setting(new VarSetting<float>(
                         "Locked Period",
