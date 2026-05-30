@@ -48,11 +48,13 @@ class VirtualParameterInput : public AnalogParameterInputBase<float> {
         float last_sample = 0;
         uint32_t last_sample_tick = 0;
 
-        // Phase accumulator (NCO): advances per-tick so that changing locked_period
-        // or free_sine_divisor mid-run causes no phase jump — the step size changes
-        // from the next advance onward, preserving phase continuity.
+        // Phase accumulator (NCO): advances per-tick so that changing free_sine_divisor
+        // mid-run causes no phase jump for FREE mode.  For LOCKED modes the accumulator
+        // is resynced to the bar-aligned clock position whenever locked_period or
+        // TICKS_PER_BAR (time signature) changes, or when the clock is restarted.
         float phase_acc = 0.0f;
         uint32_t last_advanced_tick = 0;
+        float last_step = -1.0f;  // sentinel: force resync on first call
 
         // When true, makeControls() skips creating a ParameterInputDisplay and
         // UI controls for this instance (~500 bytes saved).  The input is still
@@ -107,9 +109,16 @@ class VirtualParameterInput : public AnalogParameterInputBase<float> {
                     ? (1.0f / free_sine_divisor)
                     : (1.0f / ((float)TICKS_PER_BAR * locked_period));
                 if (last_advanced_tick != ticks) {
-                    if (last_advanced_tick > ticks) {
-                        // Clock reset: resync accumulator to absolute position
-                        phase_acc = fmodf((float)ticks * step, 1.0f);
+                    if (lfo_mode != LFO_FREE && step != last_step) {
+                        // Period or time-signature changed (TICKS_PER_BAR is runtime-variable):
+                        // resync accumulator to bar-aligned absolute position using
+                        // BPM_PHASE_TICKS so the result is relative to the current time sig.
+                        phase_acc = fmodf((float)BPM_PHASE_TICKS(ticks) * step, 1.0f);
+                        last_step = step;
+                    } else if (last_advanced_tick > ticks) {
+                        // Clock reset: resync accumulator to bar-aligned position
+                        phase_acc = fmodf((float)BPM_PHASE_TICKS(ticks) * step, 1.0f);
+                        last_step = step;
                     } else {
                         phase_acc = fmodf(phase_acc + (float)(ticks - last_advanced_tick) * step, 1.0f);
                     }
