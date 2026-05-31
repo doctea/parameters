@@ -779,20 +779,31 @@ class ParameterManager
 
         #ifdef ENABLE_STORAGE
             void setup_saveable_settings() override {
+                // Serial.printf("    >>> ParameterManager::setup_saveable_settings() START, %u inputs, FREE RAM = %u\n", (unsigned)available_inputs->size(), (unsigned)freeRam());
                 // add all parameter inputs to the saveable settings, 
                 // so that they get saved and loaded.
 
+                uint_fast8_t input_idx = 0;
                 for (auto* input : *available_inputs) {
+                    // if (Serial) Serial.printf("      register_child(input[%u]) before: %u\n", (unsigned)input_idx, (unsigned)freeRam());
                     this->register_child(input);
+                    // if (Serial) Serial.printf("      register_child(input[%u]) after: %u\n", (unsigned)input_idx, (unsigned)freeRam());
+                    input_idx++;
                 }
 
                 #ifdef ENABLE_CV_INPUT
+                    // Serial.printf("    >>> ParameterManager: registering %u voltage sources...\n", (unsigned)voltage_sources->size());
                     // add calibratable voltage sources to the tree
+                    uint_fast8_t vs_idx = 0;
                     for (auto* vs : *voltage_sources) {
+                        // if (Serial) Serial.printf("      register_child(voltage_source[%u]) before: %u\n", (unsigned)vs_idx, (unsigned)freeRam());
                         ISaveableSettingHost* host = vs->as_saveable_host();
                         if (host) this->register_child(host);
+                        // if (Serial) Serial.printf("      register_child(voltage_source[%u]) after: %u\n", (unsigned)vs_idx, (unsigned)freeRam());
+                        vs_idx++;
                     }
                 #endif
+                // Serial.printf("    <<< ParameterManager::setup_saveable_settings() DONE, FREE RAM = %u\n", (unsigned)freeRam());
 
                 // do we also want to save parameters here?
                 // probably not all of them, as the objects that host them probably want to 

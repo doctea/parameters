@@ -185,11 +185,11 @@ class ParameterMapPercentageControl : public DirectNumberControl<float> {
             }
         }
 
-    virtual int header(const char *text, Coord pos, bool selected = false, bool opened = false, int textSize = 0) override {
+    virtual int header(const char *text, Coord pos, bool selected = false, bool opened = false, int textSize = 0, unsigned int text_len = (unsigned int)-1) override {
         if ((*parameter)->connections[slot_number].parameter_input!=nullptr) {
-            return DirectNumberControl::header((*parameter)->connections[slot_number].parameter_input->name, pos, selected, opened, textSize);
+            return DirectNumberControl::header((*parameter)->connections[slot_number].parameter_input->name, pos, selected, opened, textSize, text_len);
         } else {
-            return DirectNumberControl::header(text, pos, selected, opened, textSize);
+            return DirectNumberControl::header(text, pos, selected, opened, textSize, text_len);
         }
     }
 
