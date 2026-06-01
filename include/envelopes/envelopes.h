@@ -80,7 +80,7 @@ class EnvelopeBase
         return this->dirty_graph;
     }
     virtual void set_dirty_graph(bool v = true) {
-        this->dirty_graph = true;
+        this->dirty_graph = v;
     }
     virtual void clear_dirty_graph() {
         EnvelopeBase::set_dirty_graph(false);
