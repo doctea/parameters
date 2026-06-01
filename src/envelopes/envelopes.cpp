@@ -1,3 +1,5 @@
+#if defined(ENABLE_ENVELOPES)
+
 #include "envelopes/envelopes.h"
 #include "envelopes/borolope.h"
 
@@ -6,11 +8,11 @@ stage_t operator++ (stage_t& d) {
     return d;
 }
 
-#ifdef ENABLE_SCREEN
+#if defined(ENABLE_SCREEN)
     #include "mymenu.h"
     #include "menuitems_object.h"
     #include "submenuitem_bar.h"
-    #include "mymenu/menuitems_envelopegraph.h"
+    #include "mymenu_items/menuitems_envelopegraph.h"
 
     FLASHMEM
     void EnvelopeBase::make_menu_items(Menu *menu, int index) {
@@ -112,4 +114,6 @@ stage_t operator++ (stage_t& d) {
 
         return this->parameters;
     }
+#endif
+
 #endif

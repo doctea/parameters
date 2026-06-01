@@ -13,7 +13,8 @@
 #define ENV_MAX_RELEASE   (PPQN*4) //96 // maximum release stage length
 
 //#if defined(ENABLE_SCREEN) // also need this for parameters support, so need a way to tell if that should be activated here
-#include <LinkedList.h>
+// #include <LinkedList.h>
+#include "parameter_list.h"
 //#endif
 
 #ifdef ENABLE_SCREEN
@@ -46,6 +47,7 @@ class EnvelopeBase
     bool loop_mode = false;
     bool invert = false;
     bool dirty_graph = true;
+    uint32_t graph_revision = 0;
 
     public:
     bool debug = false;
@@ -78,6 +80,9 @@ class EnvelopeBase
 
     virtual bool is_dirty_graph() {
         return this->dirty_graph;
+    }
+    virtual uint32_t get_graph_revision() const {
+        return this->graph_revision;
     }
     virtual void set_dirty_graph(bool v = true) {
         this->dirty_graph = v;
@@ -174,6 +179,7 @@ class EnvelopeBase
             }
         }
         if (debug) Serial.printf("%s:calculate_graph finished.", this->label);
+        this->graph_revision++;
         this->clear_dirty_graph();
     }
 
@@ -230,13 +236,15 @@ class EnvelopeBase
                 ), SL_SCOPE_SCENE
             );
 
-            // register parameters for this envelope
-            ParameterList *parameters = this->get_parameters();
-            if (parameters!=nullptr) {
-                for (auto* param : *parameters) {
-                    register_child(param);
+            #ifdef ENABLE_PARAMETERS
+                // register parameters for this envelope
+                ParameterList *parameters = this->get_parameters();
+                if (parameters!=nullptr) {
+                    for (auto* param : *parameters) {
+                        register_child(param);
+                    }
                 }
-            }
+            #endif
         }
     #endif
 };
