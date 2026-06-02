@@ -1,3 +1,6 @@
+#pragma once
+#ifdef ENABLE_CV_INPUT
+
 #include "ADCDevice.h"
 #include "../voltage_sources/ADS24vVoltageSource.h"
 #include "../parameter_inputs/VoltageParameterInput.h"
@@ -62,3 +65,5 @@ class ADCPimoroni24v : public ADCDeviceBase {
         }
 
 };
+
+#endif
