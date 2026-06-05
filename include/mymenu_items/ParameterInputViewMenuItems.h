@@ -67,6 +67,8 @@ class ParameterInputDisplay : public MenuItem
             this->set_default_colours(parameter_input->colour);
             
             this->graph_height = graph_height;
+
+            this->add_redraw_policy(REDRAW_ON_TICK);                
         }
         
         virtual void on_add() override {
@@ -133,6 +135,7 @@ class ParameterInputDisplay : public MenuItem
         #ifndef PARAMETER_INPUTS_USE_CALLBACKS
             // not using callbacks when input values change, so update every menu tick instead
             virtual void update_ticks(unsigned long ticks) {
+                this->request_redraw(REDRAW_ON_TICK);
                 this->receive_value_update(this->parameter_input->get_normal_value_unipolar());
             }
         #endif
@@ -141,6 +144,7 @@ class ParameterInputDisplay : public MenuItem
         uint_fast16_t last_position_updated = UINT16_MAX;
         memory_log last_logged_value = 0;
         virtual void receive_value_update(float value) {
+            this->request_redraw(REDRAW_ON_INVALIDATE);
             uint_fast16_t position = ticks_to_memory_step(ticks);
 
             if (position == last_position_updated)

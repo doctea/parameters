@@ -252,6 +252,9 @@ class FloatParameter : public BaseParameter {
     virtual float getLastModulatedNormalValue() {
         return this->lastModulatedNormalValue;
     }
+    virtual float getLastOutputNormalValue() {
+        return this->lastOutputNormalValue;
+    }
 
     virtual const char* getFormattedValue(float value) {
         //Serial.printf(F("WARNING: dummy FloatParameter#getFormattedValue(%f) for '%s'\n"), value, this->label);

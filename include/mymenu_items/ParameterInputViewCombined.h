@@ -17,7 +17,7 @@
 class ParameterInputCombinedDisplay : public MenuItem {
     public:
         //ParameterInputDisplay *displays[3] = { nullptr, nullptr, nullptr };
-        LinkedList<ParameterInputDisplay*> *displays = new LinkedList<ParameterInputDisplay*>();
+        LinkedList<ParameterInputDisplay*> *displays = new LinkedList<ParameterInputDisplay*>();    // TODO: can probably save a bit of RAM and CPU by changing this to an array or a MenuItemList
 
         int graph_height = 50;
 
@@ -27,6 +27,7 @@ class ParameterInputCombinedDisplay : public MenuItem {
                 if (item2!=nullptr) displays->add(item2);
                 if (item3!=nullptr) displays->add(item3);
                 this->graph_height = total_height;
+                this->add_redraw_policy(REDRAW_ON_TICK);
             }
 
         /*virtual void configure(ParameterInputDisplay *item1, ParameterInputDisplay *item2, ParameterInputDisplay *item3) {

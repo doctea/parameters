@@ -43,6 +43,20 @@ class ParameterValueMenuItem : public DirectNumberControl<float> {
             //this->step = 0.01;
         }
 
+        // used by check_needs_redraw_custom(), compared with last time it was called to determine if we need to redraw the menu item
+        virtual float get_test_value(bool currently_selected, bool currently_opened) override {
+            // if opened, we need to use the internal value (which is what the user is currently changing);
+            if (currently_opened) {
+                return this->get_internal_value();
+            } 
+
+            // if not, then according to show_output_mode, we either show the parameter's last output value (post-modulation) or the current value (pre-modulation)
+            if (this->show_output_mode) {
+                return (*parameter)->getLastOutputNormalValue();
+            }
+            return (*parameter)->getCurrentNormalValue();
+        }
+
         // // true if this widget should show the last post-modulation output value; false if it should show the pre-modulation value
         virtual ParameterValueMenuItem *set_show_output_mode(bool mode = true) {
             this->show_output_mode = mode;
@@ -185,11 +199,11 @@ class ParameterMapPercentageControl : public DirectNumberControl<float> {
             }
         }
 
-    virtual int header(const char *text, Coord pos, bool selected = false, bool opened = false, int textSize = 0) override {
+    virtual int header(const char *text, Coord pos, bool selected = false, bool opened = false, int textSize = 0, unsigned int text_len = (unsigned int)-1) override {
         if ((*parameter)->connections[slot_number].parameter_input!=nullptr) {
-            return DirectNumberControl::header((*parameter)->connections[slot_number].parameter_input->name, pos, selected, opened, textSize);
+            return DirectNumberControl::header((*parameter)->connections[slot_number].parameter_input->name, pos, selected, opened, textSize, text_len);
         } else {
-            return DirectNumberControl::header(text, pos, selected, opened, textSize);
+            return DirectNumberControl::header(text, pos, selected, opened, textSize, text_len);
         }
     }
 

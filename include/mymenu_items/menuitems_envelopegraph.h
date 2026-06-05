@@ -65,8 +65,10 @@ class EnvelopeDisplay : public MenuItem {
 
         EnvelopeDisplay(const char *label, EnvelopeBase *envelope) : MenuItem(label, false) {
             this->envelope = envelope;
+            this->add_redraw_policy(REDRAW_ON_TICK); // TODO: should be able to make this more efficient by only redrawing when the envelope state changes, but this is simpler for now
+            // this->add_redraw_policy(REDRAW_ON_CUSTOM);
         }
-
+        
         virtual void configure(EnvelopeBase *envelope) {
             this->envelope = envelope;
         }
@@ -105,7 +107,7 @@ class EnvelopeDisplay : public MenuItem {
                 #endif
             }
 
-            // todo: see if we can omptimise this by drawing in the "direction" of the framebuffer axis (ie, horizontal lines instead of vertical, from the point of view of the framebuffer)
+            // todo: see if we can optimise this by drawing in the "direction" of the framebuffer axis (ie, horizontal lines instead of vertical, from the point of view of the framebuffer)
             int last_y = 0;
             for (int screen_x = 0 ; screen_x < graph_width ; screen_x++) {
                 const uint8_t y = can_use_projection_cache
@@ -137,6 +139,7 @@ class EnvelopeDisplay : public MenuItem {
                 tft->drawFastHLine(0, base_row + y, graph_width, stage_colours[envelope->last_state.stage]);
             }
 
+            //tft->setCursor(pos.x, base_row + last_y + 5); //pos.y + PARAMETER_INPUT_GRAPH_HEIGHT + 5);    // set cursor to below the graph's output
             tft->setCursor(pos.x, pos.y + PARAMETER_INPUT_GRAPH_HEIGHT + 5);    // set cursor to below the graph's output
 
             //if (this->parameter_input!=nullptr && this->parameter_input->hasExtra())
@@ -162,6 +165,7 @@ class EnvelopeIndicator : public MenuItem {
 
     EnvelopeIndicator(const char *label, EnvelopeBase *envelope) : MenuItem(label, false) {
         this->envelope = envelope;
+        this->add_redraw_policy(REDRAW_ON_TICK);    // TODO: should be able to make this more efficient by only redrawing when the envelope state changes, but this is simpler for now
     }
 
     virtual int display(Coord pos, bool selected, bool opened) override {
