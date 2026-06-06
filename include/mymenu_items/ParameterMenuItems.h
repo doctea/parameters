@@ -43,19 +43,21 @@ class ParameterValueMenuItem : public DirectNumberControl<float> {
             //this->step = 0.01;
         }
 
-        // used by check_needs_redraw_custom(), compared with last time it was called to determine if we need to redraw the menu item
-        virtual float get_test_value(bool selected, bool opened) override {
-            // if opened, we need to use the internal value (which is what the user is currently changing);
-            if (opened) {
-                return this->get_internal_value();
-            } 
+        #if MENU_PERF_PARTIAL_UPDATES
+            // used by check_needs_redraw_custom(), compared with last time it was called to determine if we need to redraw the menu item
+            virtual float get_test_value(bool selected, bool opened) override {
+                // if opened, we need to use the internal value (which is what the user is currently changing);
+                if (opened) {
+                    return this->get_internal_value();
+                } 
 
-            // if not, then according to show_output_mode, we either show the parameter's last output value (post-modulation) or the current value (pre-modulation)
-            if (this->show_output_mode) {
-                return (*parameter)->getLastOutputNormalValue();
+                // if not, then according to show_output_mode, we either show the parameter's last output value (post-modulation) or the current value (pre-modulation)
+                if (this->show_output_mode) {
+                    return (*parameter)->getLastOutputNormalValue();
+                }
+                return (*parameter)->getCurrentNormalValue();
             }
-            return (*parameter)->getCurrentNormalValue();
-        }
+        #endif
 
         // // true if this widget should show the last post-modulation output value; false if it should show the pre-modulation value
         virtual ParameterValueMenuItem *set_show_output_mode(bool mode = true) {

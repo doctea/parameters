@@ -68,7 +68,7 @@ class ParameterInputDisplay : public MenuItem
             
             this->graph_height = graph_height;
 
-            this->add_redraw_policy(REDRAW_ON_TICK);                
+            IF_MENU_PERF_PARTIAL_UPDATES(this->add_redraw_policy(REDRAW_ON_TICK);)                
         }
         
         virtual void on_add() override {
@@ -135,7 +135,7 @@ class ParameterInputDisplay : public MenuItem
         #ifndef PARAMETER_INPUTS_USE_CALLBACKS
             // not using callbacks when input values change, so update every menu tick instead
             virtual void update_ticks(unsigned long ticks) {
-                this->request_redraw(REDRAW_ON_TICK);
+                IF_MENU_PERF_PARTIAL_UPDATES(this->request_redraw(REDRAW_ON_TICK);)
                 this->receive_value_update(this->parameter_input->get_normal_value_unipolar());
             }
         #endif
@@ -144,7 +144,7 @@ class ParameterInputDisplay : public MenuItem
         uint_fast16_t last_position_updated = UINT16_MAX;
         memory_log last_logged_value = 0;
         virtual void receive_value_update(float value) {
-            this->request_redraw(REDRAW_ON_INVALIDATE);
+            IF_MENU_PERF_PARTIAL_UPDATES(this->request_redraw(REDRAW_ON_INVALIDATE);)
             uint_fast16_t position = ticks_to_memory_step(ticks);
 
             if (position == last_position_updated)
@@ -154,6 +154,7 @@ class ParameterInputDisplay : public MenuItem
 
             // Backfill any skipped positions with the LAST value (not the new value).
             // This correctly represents what happened during the skipped ticks.
+            // TODO: hmm, i think this might be the cause of the problem where S&H random graphs are snapping to retroactive values on new samples?
             if (last_position_updated != UINT16_MAX && last_position_updated < position && (position - last_position_updated) > 1) {
                 for (uint_fast16_t i = last_position_updated + 1 ; i < position ; i++)
                     logged[i] = last_logged_value;

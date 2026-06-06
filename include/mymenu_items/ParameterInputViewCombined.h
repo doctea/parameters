@@ -27,7 +27,7 @@ class ParameterInputCombinedDisplay : public MenuItem {
                 if (item2!=nullptr) displays->add(item2);
                 if (item3!=nullptr) displays->add(item3);
                 this->graph_height = total_height;
-                this->add_redraw_policy(REDRAW_ON_TICK);
+                IF_MENU_PERF_PARTIAL_UPDATES(this->add_redraw_policy(REDRAW_ON_TICK);)
             }
 
         /*virtual void configure(ParameterInputDisplay *item1, ParameterInputDisplay *item2, ParameterInputDisplay *item3) {

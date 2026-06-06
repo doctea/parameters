@@ -65,7 +65,7 @@ class EnvelopeDisplay : public MenuItem {
 
         EnvelopeDisplay(const char *label, EnvelopeBase *envelope) : MenuItem(label, false) {
             this->envelope = envelope;
-            this->add_redraw_policy(REDRAW_ON_TICK); // TODO: should be able to make this more efficient by only redrawing when the envelope state changes, but this is simpler for now
+            IF_MENU_PERF_PARTIAL_UPDATES(this->add_redraw_policy(REDRAW_ON_TICK);) // TODO: should be able to make this more efficient by only redrawing when the envelope state changes, but this is simpler for now
             // this->add_redraw_policy(REDRAW_ON_CUSTOM);
         }
         
@@ -165,7 +165,7 @@ class EnvelopeIndicator : public MenuItem {
 
     EnvelopeIndicator(const char *label, EnvelopeBase *envelope) : MenuItem(label, false) {
         this->envelope = envelope;
-        this->add_redraw_policy(REDRAW_ON_TICK);    // TODO: should be able to make this more efficient by only redrawing when the envelope state changes, but this is simpler for now
+        IF_MENU_PERF_PARTIAL_UPDATES(this->add_redraw_policy(REDRAW_ON_TICK);)    // TODO: should be able to make this more efficient by only redrawing when the envelope state changes, but this is simpler for now
     }
 
     virtual int display(Coord pos, bool selected, bool opened) override {
