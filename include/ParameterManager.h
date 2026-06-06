@@ -470,7 +470,7 @@ class ParameterManager
                             }
 
                             // add a control that outputs the input calibration data to the serial port
-                            menu->add(new LambdaActionItem("Output Calibration Data", [=]() -> void {
+                            menu->add(new LambdaActionItem("Serial-dump Calibration Data", [=]() -> void {
                                 Serial.println("Outputting calibration data...");
                                 unsigned int i = 0;
                                 for (auto* vs : *this->voltage_sources) {

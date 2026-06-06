@@ -3,31 +3,39 @@
 
 #include <Arduino.h>
 
-#include "VoltageSource.h"
+// ADSVoltageSourceBase (no ADS1X15 dependency) is in ADSVoltageSource.h.
+#include "ADSVoltageSource.h"
 
 //#include "ADS1X15.h"
 
 // for reading from Arduino analog pin
-class ArduinoPinVoltageSource : public VoltageSourceBase {
+class ArduinoPinVoltageSource : public ADSVoltageSourceBase {
     public:
         byte pin = 0;
-        float correction_value_1 = 1.0; //0.976937;
-        float correction_value_2 = 0.0; //0.0123321;
-
-        // todo: probably move this into VoltageSourceBase and make it more generic, eg have a 'calibration' struct or something that can be used by any VoltageSource, and then have a method on VoltageSourceBase like 'apply_calibration(float raw_voltage)' that is called by the fetch_current_voltage() of each VoltageSource after it has read the raw voltage, and which applies the correction values etc to return the final voltage value?
-        float minimum_input_voltage = 0.0f;
+        // correction_value_1 / correction_value_2 are inherited from ADSVoltageSourceBase
 
         bool invert = false;
 
-        ArduinoPinVoltageSource(int global_slot, byte pin, float minimum_input_voltage, float maximum_input_voltage = 5.0, bool invert = false, bool supports_pitch = false) 
-            : ArduinoPinVoltageSource(global_slot, pin, maximum_input_voltage, invert, supports_pitch) {
-            this->minimum_input_voltage = minimum_input_voltage;
+        // get_default_calib_start/end/step inherited from ADSVoltageSourceBase
+        // (returns minimum_input_voltage..maximum_input_voltage @ 1V step).
+
+        // Constructor with explicit minimum and maximum voltage range.
+        ArduinoPinVoltageSource(int global_slot, byte pin, float minimum_input_voltage, float maximum_input_voltage = 5.0, bool invert = false, bool supports_pitch = false)
+            : ADSVoltageSourceBase(global_slot, minimum_input_voltage, maximum_input_voltage, supports_pitch) {
+            this->pin = pin;
+            this->invert = invert;
+            this->correction_value_1 = 1.0f;
+            this->correction_value_2 = 0.0f;
+            pinMode(pin, INPUT);
         }
 
         ArduinoPinVoltageSource(int global_slot, byte pin, float maximum_input_voltage = 5.0, bool invert = false, bool supports_pitch = false) 
-            : VoltageSourceBase(global_slot, maximum_input_voltage, supports_pitch) {
+            : ADSVoltageSourceBase(global_slot, maximum_input_voltage, supports_pitch) {
             this->pin = pin;
             this->invert = invert;
+            // Set inherited correction defaults to identity (no correction)
+            this->correction_value_1 = 1.0f;
+            this->correction_value_2 = 0.0f;
             pinMode(pin,INPUT);
         }
 
@@ -52,17 +60,20 @@ class ArduinoPinVoltageSource : public VoltageSourceBase {
             return this->get_corrected_voltage(voltageFromAdc);
         }
 
-        // correct for non-linearity
-        float get_corrected_voltage (float voltageFromAdc) {
-            // TODO: what is the maths behind this?  make configurable, etc 
-            // from empirical measuring of received voltage and asked wolfram alpha to figure it out:-
-            //  1v: v=1008        = 0.99206349206
-            //  2v: v=2031-2034   = 0.98473658296
-            //  3v: v=3060        = 0.98039215686
-            //  4v: v=4086-4089   = 0.9789525208
-            // https://www.wolframalpha.com/input?i=linear+fit+%7B%7B1.008%2C1%7D%2C+%7B2.034%2C2%7D%2C+%7B3.063%2C3%7D%2C+%7B4.086%2C4%7D%2C+%7B5.1%2C5%7D%7D
-            return (voltageFromAdc * correction_value_1) + correction_value_2;
-        };
+        // Returns pre-correction intermediate voltage for calibration.
+        // Model: corrected = cv1 * ((avg_adc / 1024.0) * voltage_range + minimum_input_voltage) + cv2
+        // compute_calibration() is inherited from ADSVoltageSourceBase (same linear OLS model).
+        virtual float fetch_calibration_sample() override {
+            int16_t v1 = analogRead(this->pin);
+            int16_t v2 = analogRead(this->pin);
+            int16_t v3 = analogRead(this->pin);
+            int value = (v1 + v2 + v3) / 3;
+            if (this->invert)
+                value = 1023 - value;
+            float voltage_range = this->maximum_input_voltage - this->minimum_input_voltage;
+            return ((float)value / 1024.0f) * voltage_range + this->minimum_input_voltage;
+        }
+
 };
 
 #endif

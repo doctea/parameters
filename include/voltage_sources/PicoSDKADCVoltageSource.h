@@ -6,25 +6,28 @@
 
 #include "debug.h"
 
-#include "VoltageSource.h"
+// ADSVoltageSource.h provides ADSVoltageSourceBase (linear calibration base,
+// no ADS1X15 dependency) and the ENABLE_SCREEN forward declarations.
+#include "ADSVoltageSource.h"
 
-#ifdef ENABLE_SCREEN
-    //#include "menuitems.h"
-    class MenuItem;
-    class Menu;
-#endif
-
-class WorkshopVoltageSourceBase : public VoltageSourceBase {
+// WorkshopVoltageSourceBase: calibration base for Music Thing Workshop Computer.
+// Inherits from ADSVoltageSourceBase to get correction_value_1/2, get_corrected_voltage
+// (linear model), compute_calibration (OLS), fetch_calibration_sample, and as_ads_source().
+class WorkshopVoltageSourceBase : public ADSVoltageSourceBase {
     public:
-        float correction_value_1 = 1.0; //0.976937;
-        float correction_value_2 = 0.0; //0.0123321;
-        //float correction_value_1 = 2.0; //0.976937;
-        //float correction_value_2 = -0.5; //0.0123321;
+        // correction_value_1/2 inherited from ADSVoltageSourceBase (defaults: 1.0, 0.0 set below)
 
         WorkshopVoltageSourceBase(int global_slot, float maximum_input_voltage = 5.0, bool supports_pitch = false) 
-            : VoltageSourceBase(global_slot, maximum_input_voltage, supports_pitch) {}
+            : ADSVoltageSourceBase(global_slot, maximum_input_voltage, supports_pitch) {
+            // Identity correction by default (no distortion on Workshop ADC assumed).
+            this->correction_value_1 = 1.0f;
+            this->correction_value_2 = 0.0f;
+        }
         WorkshopVoltageSourceBase(int global_slot, bool supports_pitch = false) 
-            : VoltageSourceBase(global_slot, supports_pitch) {}
+            : ADSVoltageSourceBase(global_slot, supports_pitch) {
+            this->correction_value_1 = 1.0f;
+            this->correction_value_2 = 0.0f;
+        }
 
         #if defined(ENABLE_SCREEN)
             FLASHMEM virtual MenuItem *makeCalibrationControls(int i) override;
@@ -36,9 +39,7 @@ class WorkshopVoltageSourceBase : public VoltageSourceBase {
             virtual void save_calibration() override;
         #endif
 
-        virtual bool needs_calibration() override {
-            return true;
-        }
+        // needs_calibration() and as_ads_source() inherited from ADSVoltageSourceBase.
 
         virtual void output_calibration_data() override {
             Serial.printf("WorkshopVoltageSource calibration data for slot %i: correction_value_1=%6.6f : correction_value_2=%6.6f\n", global_slot, this->correction_value_1, this->correction_value_2);
@@ -224,10 +225,15 @@ class ComputerCardVoltageSource : public WorkshopVoltageSourceBase {
             return voltageFromAdc;
         }
 
-        virtual float get_corrected_voltage(float voltageFromAdc) {
-            return (voltageFromAdc * correction_value_1) + correction_value_2;
-            //return (voltageFromAdc + correction_value_2) * correction_value_1;
-            //return (voltageFromAdc - 0.25) * 2.0;
+        // get_corrected_voltage() inherited from ADSVoltageSourceBase: corrected = cv1 * raw + cv2.
+
+        // Returns pre-correction intermediate voltage for calibration.
+        // Uses real_value (cached by fetch_current_voltage) to avoid re-running the channel switch.
+        // Model: corrected = cv1 * adcread_to_voltage(raw_adc) + cv2
+        // compute_calibration() is inherited from ADSVoltageSourceBase (linear OLS model).
+        virtual float fetch_calibration_sample() override {
+            fetch_current_voltage();  // refresh real_value
+            return adcread_to_voltage(real_value);
         }
 
 };

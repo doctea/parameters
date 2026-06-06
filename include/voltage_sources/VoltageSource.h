@@ -24,9 +24,16 @@ class VoltageSourceBase {
         float current_value = 0.0f;
         float last_value = 0.0f;
 
+        float minimum_input_voltage = 0.0f;
         float maximum_input_voltage = 10.0f;
 
         int global_slot = -1;
+        VoltageSourceBase(int global_slot, float minimum_input_voltage, float maximum_input_voltage, bool supports_pitch = false)
+            : VoltageSourceBase(global_slot, supports_pitch) {
+            this->minimum_input_voltage = minimum_input_voltage;
+            this->maximum_input_voltage = maximum_input_voltage;
+        }
+
         VoltageSourceBase(int global_slot, float maximum_input_voltage = 5.0, bool supports_pitch = false) 
             : VoltageSourceBase(global_slot, supports_pitch) {
             this->maximum_input_voltage = maximum_input_voltage;
@@ -59,9 +66,11 @@ class VoltageSourceBase {
             return this->current_value;
         }
 
-        // return a normalised version of the last value (ie 0.0-1.0)
+        // return a normalised version of the last value (0.0-1.0 across the full input voltage range)
         virtual float get_voltage_normal() {
-            return this->get_voltage() / this->maximum_input_voltage;
+            float range = this->maximum_input_voltage - this->minimum_input_voltage;
+            if (range == 0.0f) return 0.0f;
+            return (this->get_voltage() - this->minimum_input_voltage) / range;
         }
 
         virtual bool supports_pitch() {
