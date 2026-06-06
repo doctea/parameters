@@ -44,9 +44,9 @@ class ParameterValueMenuItem : public DirectNumberControl<float> {
         }
 
         // used by check_needs_redraw_custom(), compared with last time it was called to determine if we need to redraw the menu item
-        virtual float get_test_value(bool currently_selected, bool currently_opened) override {
+        virtual float get_test_value(bool selected, bool opened) override {
             // if opened, we need to use the internal value (which is what the user is currently changing);
-            if (currently_opened) {
+            if (opened) {
                 return this->get_internal_value();
             } 
 
@@ -404,6 +404,11 @@ public:
     }
 
     virtual bool wants_fullscreen_overlay_when_opened_in_bar() override { return true; }
+    virtual MenuItem_RedrawPolicy get_overlay_redraw_policy() const override {
+        // This overlay can draw a live graph (when a ParameterInput with history is connected),
+        // so always request tick-based redraws to keep the graph current.
+        return REDRAW_ON_TICK;
+    }
 
     virtual int display(Coord pos, bool selected, bool opened) override {
         if (!opened) {

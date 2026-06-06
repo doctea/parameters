@@ -127,6 +127,12 @@ class ParameterMenuItemSelector : public SelectorControl<int_least16_t> { //publ
     }
 
     virtual int display(Coord pos, bool selected, bool opened) override {
+        // pos.y = this->header(label, pos, selected, opened);
+        //tft->setCursor(pos.x, pos.y);
+        tft->drawLine(pos.x, pos.y, tft->width(), pos.y, this->default_fg);
+        pos.y+=2;
+        tft->setCursor(pos.x, pos.y);
+
         tft->setTextSize(2);
         //Serial.printf("ParameterMenuItemSelector parameter address is @%p (address of that pointer is @%p)\n", this->parameter, &this->parameter);
 
@@ -220,13 +226,18 @@ class LowMemorySwitcherMenuItem : public MenuItem {
             this->parameter_selector = parameter_selector;
             this->default_fg = default_fg;
             this->selectable = false;
+            this->add_redraw_policy(REDRAW_ALWAYS); // because we need to update the parameter pointer of the dependent controls when this is drawn, so we need to redraw whenever this is drawn
     }
 
     virtual int display(Coord pos, bool selected, bool opened) override {
         //Serial.printf("switching lowmemory_controls.parameter pointer from @%p to @%p\n", lowmemory_controls.parameter, &this->parameter_selector->parameter);
         // dont actually display anything, just update the parameter_selector
-        lowmemory_controls.parameter = this->parameter_selector->parameter;
-        // todo: tell the dependent controls to update their internal values etc
+        if (lowmemory_controls.parameter != this->parameter_selector->parameter) {
+            //Serial.printf("switching lowmemory_controls.parameter pointer from @%p to @%p\n", lowmemory_controls.parameter, &this->parameter_selector->parameter);
+            lowmemory_controls.parameter = this->parameter_selector->parameter;
+            lowmemory_controls.parameter_amount_controls->post_event(REDRAW_ON_INVALIDATE);
+            // todo: tell the dependent controls to update their internal values etc?
+        }
         return pos.y;
     }
 };
@@ -244,14 +255,18 @@ class LowMemoryEmbedMenuItem : public MenuItem {
             //this->parameter_selector = parameter_selector;
             this->default_fg = default_fg;
             this->selectable = false;
+            this->add_redraw_policy(REDRAW_ALWAYS); // because we need to update the parameter pointer of the dependent controls when this is drawn, so we need to redraw whenever this is drawn
     }
 
     virtual int display(Coord pos, bool selected, bool opened) override {
         //Serial.printf("switching lowmemory_controls.parameter pointer from @%p to @%p\n", lowmemory_controls.parameter, &this->parameter_selector->parameter);
         // dont actually display anything, just update the parameter_selector
-        //lowmemory_controls.parameter = this->parameter_selector->parameter;
-        lowmemory_controls.parameter = this->parameter;
-        // todo: tell the dependent controls to update their internal values etc
+        if (lowmemory_controls.parameter != this->parameter) {
+            //Serial.printf("switching lowmemory_controls.parameter pointer from @%p to @%p\n", lowmemory_controls.parameter, &this->parameter_selector->parameter);
+            lowmemory_controls.parameter = this->parameter;
+            lowmemory_controls.parameter_amount_controls->post_event(REDRAW_ON_INVALIDATE);
+            // todo: tell the dependent controls to update their internal values etc?
+        }
         return pos.y;
     }
 };
