@@ -39,6 +39,8 @@ class ArduinoPinVoltageSource : public ADSVoltageSourceBase {
             pinMode(pin,INPUT);
         }
 
+        virtual uint8_t get_adc_channel() const { return this->pin; }
+
         // ask the ADC for its current voltage
         virtual float fetch_current_voltage() override {
             int16_t value;

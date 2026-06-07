@@ -271,11 +271,12 @@ public:
     void dump_to_serial() {
         Serial.println("# === CV Input Calibration Dump ===");
         if (voltage_source != nullptr) {
-            Serial.printf("# Source: slot=%d  channel=%d  cur_cv1=%.6f  cur_cv2=%.6f\n",
+            Serial.printf("# Source: slot=%d  channel=%d  cur_cv1=%.6f  cur_cv2=%.6f  smooth_alpha=%.6f\n",
                 voltage_source->global_slot,
                 (int)voltage_source->get_adc_channel(),
                 voltage_source->correction_value_1,
-                voltage_source->correction_value_2);
+                voltage_source->correction_value_2,
+                voltage_source->smooth_alpha);
         }
         if (has_backup) {
             Serial.printf("# Backup (pre-Apply): cv1=%.6f  cv2=%.6f\n", backup_cv1, backup_cv2);
