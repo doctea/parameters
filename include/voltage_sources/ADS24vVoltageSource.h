@@ -13,9 +13,9 @@
     template<class ADS1X15Type>
     class ADS24vVoltageSource : public ADSVoltageSource<ADS1X15Type> {
         public:
-            ADS24vVoltageSource(int global_slot, ADS1X15Type *ads_source, byte channel, float minimum_input_voltage = 0.0, float maximum_input_voltage = 10.0) :
-                ADSVoltageSource<ADS1X15Type>(global_slot, ads_source, channel, minimum_input_voltage, maximum_input_voltage, true) {
-                    // note this passes 'true' as the last argument above, because this can support 1v/oct
+            ADS24vVoltageSource(int global_slot, ADS1X15Type *ads_source, byte channel, float minimum_input_voltage = 0.0, float maximum_input_voltage = 10.0, bool supports_pitch = true, float smooth_alpha = VOLTAGE_SOURCE_DEFAULT_SMOOTHING) :
+                ADSVoltageSource<ADS1X15Type>(global_slot, ads_source, channel, minimum_input_voltage, maximum_input_voltage, supports_pitch, smooth_alpha) {
+                    // note this defaults to 'true' as the last argument above, because this can support 1v/oct
                     //this->debug = true;
                     this->correction_value_1 = 1182.0;
                     this->correction_value_2 = 0.041;

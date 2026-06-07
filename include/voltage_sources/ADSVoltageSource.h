@@ -26,14 +26,14 @@ class ADSVoltageSourceBase : public VoltageSourceBase
         float correction_value_1 = 0.976937;
         float correction_value_2 = 0.0123321;
 
-        ADSVoltageSourceBase(int global_slot, float minimum_input_voltage = 0.0, float maximum_input_voltage = 5.0, bool supports_pitch = false) 
-            : VoltageSourceBase(global_slot, minimum_input_voltage, maximum_input_voltage, supports_pitch) {
+        ADSVoltageSourceBase(int global_slot, float minimum_input_voltage = 0.0, float maximum_input_voltage = 5.0, bool supports_pitch = false, float smooth_alpha = VOLTAGE_SOURCE_DEFAULT_SMOOTHING) 
+            : VoltageSourceBase(global_slot, minimum_input_voltage, maximum_input_voltage, supports_pitch, smooth_alpha) {
             #ifdef ENABLE_STORAGE
                 this->set_path_segment_fmt("volt_src_%i", global_slot);
             #endif
         }
-        ADSVoltageSourceBase(int global_slot, bool supports_pitch = false) 
-            : VoltageSourceBase(global_slot, supports_pitch) {
+        ADSVoltageSourceBase(int global_slot, bool supports_pitch = false, float smooth_alpha = VOLTAGE_SOURCE_DEFAULT_SMOOTHING) 
+            : VoltageSourceBase(global_slot, supports_pitch, smooth_alpha) {
             #ifdef ENABLE_STORAGE
                 this->set_path_segment_fmt("volt_src_%i", global_slot);
             #endif
@@ -52,6 +52,9 @@ class ADSVoltageSourceBase : public VoltageSourceBase
                 register_setting(new VarSetting<float>(
                     "correction_value_2", "Calibration", &this->correction_value_2
                 ), SL_SCOPE_SYSTEM);
+                register_setting(new VarSetting<float>(
+                    "smooth_alpha", "Calibration", &this->smooth_alpha
+                ), SL_SCOPE_SYSTEM);
             }
             ISaveableSettingHost* as_saveable_host() override { return this; }
         #endif
@@ -64,9 +67,10 @@ class ADSVoltageSourceBase : public VoltageSourceBase
         virtual ADSVoltageSourceBase* as_ads_source() override { return this; }
 
         virtual void output_calibration_data() override {
-            Serial.printf("ADSVoltageSource calibration data for slot %i: correction_value_1=%6.6f : correction_value_2=%6.6f\n", global_slot, this->correction_value_1, this->correction_value_2);
+            Serial.printf("ADSVoltageSource calibration data for slot %i: correction_value_1=%6.6f : correction_value_2=%6.6f : smooth_alpha=%6.6f\n", global_slot, this->correction_value_1, this->correction_value_2, this->smooth_alpha);
             Serial.printf("correction_value_1=%6.6f\n", this->correction_value_1);
             Serial.printf("correction_value_2=%6.6f\n", this->correction_value_2);
+            Serial.printf("smooth_alpha=%6.6f\n", this->smooth_alpha);
         }
 
         // Apply linear correction: corrected = cv1 * raw + cv2.
@@ -74,6 +78,8 @@ class ADSVoltageSourceBase : public VoltageSourceBase
         virtual float get_corrected_voltage(float voltageFromAdc) {
             return (voltageFromAdc * correction_value_1) + correction_value_2;
         }
+
+        // update() with EMA smoothing is inherited from VoltageSourceBase.
 
         // Last pre-correction sample produced by fetch_current_voltage().
         // Written by ADSVoltageSource<T>::fetch_current_voltage() and
@@ -151,8 +157,8 @@ class ADSVoltageSource : public ADSVoltageSourceBase {
         // returns this value because its adcread_to_voltage() applies cv1.
         float _raw_adc_sample = 0.0f;
 
-        ADSVoltageSource(int global_slot, ADS1X15Type *ads_source, byte channel, float minimum_input_voltage = 0.0, float maximum_input_voltage = 5.0, bool supports_pitch = false) 
-            : ADSVoltageSourceBase(global_slot, minimum_input_voltage, maximum_input_voltage, supports_pitch) {
+        ADSVoltageSource(int global_slot, ADS1X15Type *ads_source, byte channel, float minimum_input_voltage = 0.0, float maximum_input_voltage = 5.0, bool supports_pitch = false, float smooth_alpha = VOLTAGE_SOURCE_DEFAULT_SMOOTHING) 
+            : ADSVoltageSourceBase(global_slot, minimum_input_voltage, maximum_input_voltage, supports_pitch, smooth_alpha) {
             this->ads_source = ads_source;
             this->channel = channel;
         }

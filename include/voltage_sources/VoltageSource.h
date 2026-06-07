@@ -14,6 +14,17 @@
     #include "saveloadlib.h"
 #endif
 
+#ifndef VOLTAGE_SOURCE_DEFAULT_SMOOTHING 
+    #define VOLTAGE_SOURCE_DEFAULT_SMOOTHING 1.0f
+    /*
+    How to think about alpha:
+        alpha = 1.0 — off, instant response (current behaviour)
+        alpha = 0.5 — each new reading contributes 50%; settles to ~97% of a step change in ~5 updates
+        alpha = 0.2 — more noise reduction; settles in ~18 updates
+        alpha = 0.1 — heavy smoothing; settles in ~40 updates
+    */
+#endif
+
 // base class for a voltage source, eg a wrapper around an ADC library
 class VoltageSourceBase {
     bool has_pitch_capability = false;
@@ -27,21 +38,30 @@ class VoltageSourceBase {
         float minimum_input_voltage = 0.0f;
         float maximum_input_voltage = 10.0f;
 
+        // Exponential moving average smoothing applied in update().
+        // alpha = 1.0 → no smoothing (default, instant response).
+        // alpha = 0.1 → heavy smoothing (slow to respond).
+        // Formula: current_value = alpha * new_sample + (1 - alpha) * current_value
+        float smooth_alpha = VOLTAGE_SOURCE_DEFAULT_SMOOTHING;
+
         int global_slot = -1;
-        VoltageSourceBase(int global_slot, float minimum_input_voltage, float maximum_input_voltage, bool supports_pitch = false)
-            : VoltageSourceBase(global_slot, supports_pitch) {
+        VoltageSourceBase(int global_slot, float minimum_input_voltage, float maximum_input_voltage, bool supports_pitch = false, float smooth_alpha = VOLTAGE_SOURCE_DEFAULT_SMOOTHING) {
+            this->global_slot = global_slot;
             this->minimum_input_voltage = minimum_input_voltage;
             this->maximum_input_voltage = maximum_input_voltage;
+            this->has_pitch_capability = supports_pitch;
+            this->smooth_alpha = smooth_alpha;
         }
 
-        VoltageSourceBase(int global_slot, float maximum_input_voltage = 5.0, bool supports_pitch = false) 
-            : VoltageSourceBase(global_slot, supports_pitch) {
+        VoltageSourceBase(int global_slot, float maximum_input_voltage = 5.0, bool supports_pitch = false, float smooth_alpha = VOLTAGE_SOURCE_DEFAULT_SMOOTHING) 
+            : VoltageSourceBase(global_slot, 0.0f, maximum_input_voltage, supports_pitch, smooth_alpha) {
             this->maximum_input_voltage = maximum_input_voltage;
         }
 
-        VoltageSourceBase(int global_slot, bool supports_pitch = false) {
+        VoltageSourceBase(int global_slot, bool supports_pitch = false, float smooth_alpha = VOLTAGE_SOURCE_DEFAULT_SMOOTHING) {
             this->global_slot = global_slot;
             this->has_pitch_capability = supports_pitch;
+            this->smooth_alpha = smooth_alpha;
         }
 
 
@@ -55,10 +75,14 @@ class VoltageSourceBase {
         }
 
         virtual void update() {
-            //last_value = ads_source->readADC(channel);
-            //if (this->debug) Serial.printf("VoltageSource@%p#update() about to fetch_current_voltage()\n", this);
             this->last_value = this->current_value;
-            this->current_value = this->fetch_current_voltage();
+            const float raw = this->fetch_current_voltage();
+            if (this->smooth_alpha >= 1.0f) {
+                this->current_value = raw;
+            } else {
+                this->current_value = this->smooth_alpha * raw
+                                    + (1.0f - this->smooth_alpha) * this->current_value;
+            }
         }
 
         // returns the last read raw voltage value

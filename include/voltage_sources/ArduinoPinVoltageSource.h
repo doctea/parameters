@@ -20,8 +20,8 @@ class ArduinoPinVoltageSource : public ADSVoltageSourceBase {
         // (returns minimum_input_voltage..maximum_input_voltage @ 1V step).
 
         // Constructor with explicit minimum and maximum voltage range.
-        ArduinoPinVoltageSource(int global_slot, byte pin, float minimum_input_voltage, float maximum_input_voltage = 5.0, bool invert = false, bool supports_pitch = false)
-            : ADSVoltageSourceBase(global_slot, minimum_input_voltage, maximum_input_voltage, supports_pitch) {
+        ArduinoPinVoltageSource(int global_slot, byte pin, float minimum_input_voltage, float maximum_input_voltage = 5.0, bool invert = false, bool supports_pitch = false, float smooth_alpha = VOLTAGE_SOURCE_DEFAULT_SMOOTHING)
+            : ADSVoltageSourceBase(global_slot, minimum_input_voltage, maximum_input_voltage, supports_pitch, smooth_alpha) {
             this->pin = pin;
             this->invert = invert;
             this->correction_value_1 = 1.0f;
@@ -29,8 +29,8 @@ class ArduinoPinVoltageSource : public ADSVoltageSourceBase {
             pinMode(pin, INPUT);
         }
 
-        ArduinoPinVoltageSource(int global_slot, byte pin, float maximum_input_voltage = 5.0, bool invert = false, bool supports_pitch = false) 
-            : ADSVoltageSourceBase(global_slot, maximum_input_voltage, supports_pitch) {
+        ArduinoPinVoltageSource(int global_slot, byte pin, float maximum_input_voltage = 5.0, bool invert = false, bool supports_pitch = false, float smooth_alpha = VOLTAGE_SOURCE_DEFAULT_SMOOTHING) 
+            : ADSVoltageSourceBase(global_slot, maximum_input_voltage, supports_pitch, smooth_alpha) {
             this->pin = pin;
             this->invert = invert;
             // Set inherited correction defaults to identity (no correction)
@@ -41,16 +41,26 @@ class ArduinoPinVoltageSource : public ADSVoltageSourceBase {
 
         // ask the ADC for its current voltage
         virtual float fetch_current_voltage() override {
-            //int16_t value = ads_source->readADC(channel);
-            int16_t value1 = analogRead(this->pin); //ads_source->readADC(channel);
-            int16_t value2 = analogRead(this->pin); 
-            int16_t value3 = analogRead(this->pin); 
+            int16_t value;
+            #ifdef FAST_VOLTAGE_READS
+                value = analogRead(this->pin);
+                #ifdef ARDUINO_ARCH_RP2350
+                    // if we're on RP2350, apply correction from https://github.com/kitanokitsune/rp2040adc_correction
+                    value = this->rp2350adc_correction(value);
+                #endif
+            #else 
+                int16_t value1 = analogRead(this->pin);
+                int16_t value2 = analogRead(this->pin); 
+                int16_t value3 = analogRead(this->pin); 
 
-            int value = (value1+value2+value3) / 3;
+                #ifdef ARDUINO_ARCH_RP2350
+                    // if we're on RP2350, apply correction from https://github.com/kitanokitsune/rp2040adc_correction
+                    value1 = this->rp2350adc_correction(value1);
+                    value2 = this->rp2350adc_correction(value2);
+                    value3 = this->rp2350adc_correction(value3);
+                #endif
 
-            // if we're on RP2350, apply correction from https://github.com/kitanokitsune/rp2040adc_correction
-            #ifdef ARDUINO_ARCH_RP2350
-                value = this->rp2350adc_correction(value);
+                value = (value1+value2+value3) / 3;
             #endif
 
             if (this->invert) 
