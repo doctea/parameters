@@ -36,11 +36,11 @@ FLASHMEM MenuItem *FloatParameter::makeControl() {
     return controls;
 }*/
 
-FLASHMEM LinkedList<MenuItem *> *FloatParameter::makeControls() {
+FLASHMEM MenuItemList *FloatParameter::makeControls() {
     Debug_printf(F("FloatParameter#makeControls for %s - is_modulatable is %s\n"), this->label, this->is_modulatable() ? "true" : "false");
 
     // list for storing all the controls we're about to add
-    LinkedList<MenuItem *> *controls = new LinkedList<MenuItem *>();
+    MenuItemList *controls = new MenuItemList();
 
     // add any custom controls that the particular parameter type wants to add (eg CC+channel selectors for MIDICCParameters)
     this->addCustomTypeControls(controls);

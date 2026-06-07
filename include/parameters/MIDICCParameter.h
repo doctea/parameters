@@ -80,7 +80,7 @@ class MIDICCParameter : public DataParameter<TargetClass,DataType> {
 
         #ifdef ENABLE_SCREEN
         FLASHMEM
-        virtual LinkedList<MenuItem *> *addCustomTypeControls(LinkedList<MenuItem *> *controls) override { 
+        virtual MenuItemList *addCustomTypeControls(MenuItemList *controls) override { 
             if (this->configurable) {
                 SubMenuItem *bar = new SubMenuItemBar("Settings", true, false);
 

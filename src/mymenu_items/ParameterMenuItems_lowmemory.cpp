@@ -102,7 +102,7 @@ void create_low_memory_parameter_controls_actual() {
 
 // add controls for several parameters in one place, with a UI to switch between them
 // todo: add support for the CustomTypeControls of the parameters too..
-//        ^ for this, perhaps we create and store the LinkedList<MenuItem*>* created by addCustomTypeControls
+//        ^ for this, perhaps we create and store the MenuItemList* created by addCustomTypeControls
 //          and then we render them in the LowMemoryEmbedMenuItem.
 void create_low_memory_parameter_controls(const char *label, ParameterList *parameters, int_fast16_t default_fg) {
     ////// control to select which parameter the other controls will edit
@@ -121,7 +121,7 @@ void create_low_memory_parameter_controls(const char *label, FloatParameter *par
     //Serial.printf("before create_low_memory_parameter_controls(%s), RAM usage is %u\n", label, freeRam()); Serial.flush();
 
     // add the custom controls for this parameter first
-    LinkedList<MenuItem*> *custom_controls = new LinkedList<MenuItem*>();
+    MenuItemList *custom_controls = new MenuItemList();
     parameter->addCustomTypeControls(custom_controls);
     //Serial.printf("after addCustomTypeControls for %s, RAM usage is %u\n", label, freeRam()); Serial.flush();
     menu->add(custom_controls);

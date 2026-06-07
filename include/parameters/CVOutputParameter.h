@@ -416,7 +416,7 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
         //FLASHMEM virtual LinkedList<MenuItem *> *makeControls() override;
         #ifdef ENABLE_SCREEN
         FLASHMEM
-        virtual LinkedList<MenuItem *> *addCustomTypeControls(LinkedList<MenuItem *> *controls) override { 
+        virtual MenuItemList *addCustomTypeControls(MenuItemList *controls) override { 
             if (this->configurable) {
                 //SubMenuItem *bar = new SubMenuItemBar("Settings", true, false);
 
@@ -453,8 +453,8 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
             return controls; 
         };
 
-        virtual LinkedList<MenuItem*> *makeCalibrationControls() { 
-            LinkedList<MenuItem*> *controls = new LinkedList<MenuItem*>();
+        virtual MenuItemList *makeCalibrationControls() { 
+            MenuItemList *controls = new MenuItemList();
 
             SubMenuItem *bar2 = new SubMenuItemBar("Calibration", true, false);
             bar2->add(new ParameterInputSelectorControl<CVOutputParameter>(
@@ -549,7 +549,7 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
         }
 
         virtual MenuItem *makeCalibrationLoadSaveControls() { 
-            //LinkedList<MenuItem*> *controls = new LinkedList<MenuItem*>();
+            //MenuItemList *controls = new MenuItemList();
 
             SubMenuItem *bar4 = new SubMenuItemBar("Calibration", false, false);
             bar4->add(new LambdaActionConfirmItem("Save", [=](void) -> void { 

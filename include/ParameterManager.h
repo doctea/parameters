@@ -360,7 +360,7 @@ class ParameterManager
             // add all the available parameters to the main menu
             FLASHMEM void addAllParameterMenuItems(Menu *menu) {
                 for (auto* param : *this->available_parameters) {
-                    //LinkedList<MenuItem*> *ctrls = this->makeMenuItemsForParameter(param);
+                    //MenuItemList *ctrls = this->makeMenuItemsForParameter(param);
                     //menu->add(ctrls);
                     menu->add(this->makeMenuItemsForParameter(param));
                 }
@@ -410,12 +410,12 @@ class ParameterManager
                 MenuItem *ctrl = p->makeControl();
                 return ctrl;
             }
-            FLASHMEM LinkedList<MenuItem *> *makeMenuItemsForParameter(FloatParameter *p, const char *label_prefix = "") {
+            FLASHMEM MenuItemList *makeMenuItemsForParameter(FloatParameter *p, const char *label_prefix = "") {
                 if (strcmp(p->label,"None")==0) 
                     return nullptr;
                 //Debug_println(F("makeMenuItemsForParameter calling makeControls!..")); Serial_flush();
                 //Serial.printf("makeMenuItemsForParameter has parameter @%p, doing makeControls\n", p); Serial.flush();
-                LinkedList<MenuItem *> *ctrls = p->makeControls();
+                MenuItemList *ctrls = p->makeControls();
                 //Serial.println("returning controls..");
                 return ctrls;
             }
@@ -494,7 +494,7 @@ class ParameterManager
                         for (auto* parameter : *this->available_parameters) {
                             Serial.printf("\tParameterManager#addAllCVOutputCalibrationMenuItems() for parameter '%s'\n", parameter->label); Serial_flush();
                             
-                            LinkedList<MenuItem *> *calibration_controls = parameter->makeCalibrationControls();
+                            MenuItemList *calibration_controls = parameter->makeCalibrationControls();
                             if (calibration_controls!=nullptr) {
                                 Serial.println("Got some controls..."); Serial_flush();
                                 if (!page_created) {
