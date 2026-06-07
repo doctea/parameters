@@ -72,7 +72,7 @@ class ParameterManager
         LinkedList<ADCDeviceBase*>      *devices = new LinkedList<ADCDeviceBase*>();  // actual i2c ADC devices, potentially with multiple channels
         LinkedList<VoltageSourceBase*>  *voltage_sources = new LinkedList<VoltageSourceBase*>();  // voltage-measuring channels
         LinkedList<BaseParameterInput*> *available_inputs = new LinkedList<BaseParameterInput*>();  // ParameterInputs, ie wrappers around input mechanism, assignable to a Parameter
-        LinkedList<FloatParameter*>     *available_parameters = new LinkedList<FloatParameter*>();        // Parameters, ie wrappers around destination object
+        ParameterList     *available_parameters = new ParameterList();        // Parameters, ie wrappers around destination object
 
         // Hashtable<String, BaseParameterInput*> *available_inputs_hash = nullptr; //= new Hashtable<String, BaseParameterInput*>();
 
