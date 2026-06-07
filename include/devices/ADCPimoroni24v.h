@@ -9,7 +9,8 @@
 
 #include "Wire.h"
 
-#define MAX_INPUT_VOLTAGE_24V   10
+#define MIN_INPUT_VOLTAGE_24V   -5.0
+#define MAX_INPUT_VOLTAGE_24V    5.0
 #define ADSDeviceClass ADS1015
 
 class ADCPimoroni24v : public ADCDeviceBase {
@@ -17,7 +18,8 @@ class ADCPimoroni24v : public ADCDeviceBase {
         bool initialised = false;
         uint8_t address = 0x48;
         uint8_t gain = 2;
-        uint8_t max_input_voltage = MAX_INPUT_VOLTAGE_24V;
+        float minimum_input_voltage = MIN_INPUT_VOLTAGE_24V;
+        float maximum_input_voltage = MAX_INPUT_VOLTAGE_24V;
         uint8_t MAX_CHANNELS = 3;
 
         ADSDeviceClass *actual_device = nullptr;
@@ -27,9 +29,16 @@ class ADCPimoroni24v : public ADCDeviceBase {
 
         ADCPimoroni24v () : ADCDeviceBase () {}
 
-        ADCPimoroni24v (uint8_t address, TwoWire *_wire, int max_input_voltage = MAX_INPUT_VOLTAGE_24V, uint8_t gain = 2) : ADCPimoroni24v () {
+        ADCPimoroni24v (
+            uint8_t address, 
+            TwoWire *_wire, 
+            float min_input_voltage = MIN_INPUT_VOLTAGE_24V, 
+            float max_input_voltage = MAX_INPUT_VOLTAGE_24V, 
+            uint8_t gain = 2
+        ) : ADCPimoroni24v () {
             this->address = address;
-            this->max_input_voltage = max_input_voltage;
+            this->minimum_input_voltage = min_input_voltage;
+            this->maximum_input_voltage = max_input_voltage;
             this->gain = gain;
             this->_wire = _wire;
         }
@@ -59,7 +68,13 @@ class ADCPimoroni24v : public ADCDeviceBase {
             if (!this->initialised)
                 this->init();
             if (initialised_sources<MAX_CHANNELS)
-                return new ADS24vVoltageSource<ADSDeviceClass>(global_slot, this->actual_device, initialised_sources++, max_input_voltage);
+                return new ADS24vVoltageSource<ADSDeviceClass>(
+                    global_slot, 
+                    this->actual_device, 
+                    initialised_sources++, 
+                    minimum_input_voltage, 
+                    maximum_input_voltage
+                );
             else 
                 return nullptr;
         }

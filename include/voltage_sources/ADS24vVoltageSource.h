@@ -13,8 +13,8 @@
     template<class ADS1X15Type>
     class ADS24vVoltageSource : public ADSVoltageSource<ADS1X15Type> {
         public:
-            ADS24vVoltageSource(int global_slot, ADS1X15Type *ads_source, byte channel, float maximum_input_voltage = 10.0) :
-                ADSVoltageSource<ADS1X15Type>(global_slot, ads_source, channel, maximum_input_voltage, true) {
+            ADS24vVoltageSource(int global_slot, ADS1X15Type *ads_source, byte channel, float minimum_input_voltage = 0.0, float maximum_input_voltage = 10.0) :
+                ADSVoltageSource<ADS1X15Type>(global_slot, ads_source, channel, minimum_input_voltage, maximum_input_voltage, true) {
                     // note this passes 'true' as the last argument above, because this can support 1v/oct
                     //this->debug = true;
                     this->correction_value_1 = 1182.0;
@@ -59,21 +59,17 @@
                 return corrected2;
             }
 
-            // Returns the raw averaged ADC integer cast to float.
-            // This is the y-variable for the ADS24vVoltageSource calibration model:
-            //   adc = cv1 * cv2 * V + cv1   (i.e. adc = slope*V + intercept, cv1=intercept, cv2=slope/intercept)
+            // The Pimoroni regression uses raw ADC integers as samples (y-variable),
+            // not the adcread_to_voltage() output, because adcread_to_voltage() already
+            // applies cv1: (adc/cv1) - 1.0.  We must return the uncorrupted raw count.
+            // _raw_adc_sample is cached by ADSVoltageSource<T>::fetch_current_voltage()
+            // before adcread_to_voltage() is called — no extra I2C read needed.
             virtual float fetch_calibration_sample() override {
-                if (!this->ads_source->isConnected()) return 0.0f;
-                int16_t v1 = this->ads_source->readADC(this->channel);
-                int16_t v2 = this->ads_source->readADC(this->channel);
-                int16_t v3 = this->ads_source->readADC(this->channel);
-                return (float)((v1 + v2 + v3) / 3);
+                return this->_raw_adc_sample;
             }
 
-            // Calibration sweep defaults: ±5 V covers the usable input range.
-            virtual float get_default_calib_start() const override { return -5.0f; }
-            virtual float get_default_calib_end()   const override { return  5.0f; }
-            virtual float get_default_calib_step()  const override { return  1.0f; }
+            // Calibration sweep defaults: derived from minimum/maximum_input_voltage.
+            // get_default_calib_start/end/step() inherited from ADSVoltageSourceBase.
 
             // Inverse of the Pimoroni two-stage correction:
             //   adcread_to_voltage(adc)  = (adc / cv1) - 1.0

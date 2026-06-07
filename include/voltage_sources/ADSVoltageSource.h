@@ -26,15 +26,8 @@ class ADSVoltageSourceBase : public VoltageSourceBase
         float correction_value_1 = 0.976937;
         float correction_value_2 = 0.0123321;
 
-        ADSVoltageSourceBase(int global_slot, float minimum_input_voltage, float maximum_input_voltage, bool supports_pitch = false)
+        ADSVoltageSourceBase(int global_slot, float minimum_input_voltage = 0.0, float maximum_input_voltage = 5.0, bool supports_pitch = false) 
             : VoltageSourceBase(global_slot, minimum_input_voltage, maximum_input_voltage, supports_pitch) {
-            #ifdef ENABLE_STORAGE
-                this->set_path_segment_fmt("volt_src_%i", global_slot);
-            #endif
-        }
-
-        ADSVoltageSourceBase(int global_slot, float maximum_input_voltage = 5.0, bool supports_pitch = false) 
-            : VoltageSourceBase(global_slot, maximum_input_voltage, supports_pitch) {
             #ifdef ENABLE_STORAGE
                 this->set_path_segment_fmt("volt_src_%i", global_slot);
             #endif
@@ -82,10 +75,18 @@ class ADSVoltageSourceBase : public VoltageSourceBase
             return (voltageFromAdc * correction_value_1) + correction_value_2;
         }
 
-        // Returns an intermediate (pre-correction) sample value for calibration regression.
-        // Default fallback: return the current corrected voltage (subclasses override).
+        // Last pre-correction sample produced by fetch_current_voltage().
+        // Written by ADSVoltageSource<T>::fetch_current_voltage() and
+        // ArduinoPinVoltageSource::fetch_current_voltage() on every update.
+        // fetch_calibration_sample() returns this — no extra ADC reads needed.
+        float _pre_correction_sample = 0.0f;
+
+        // Return the pre-correction intermediate from the most recent update-loop read.
+        // No new I2C / ADC transaction; avoids concurrent-access issues.
+        // ADS24vVoltageSource overrides this to return the raw ADC integer instead
+        // (required because its adcread_to_voltage() already applies cv1).
         virtual float fetch_calibration_sample() {
-            return this->fetch_current_voltage();
+            return this->_pre_correction_sample;
         }
 
         // OLS linear regression: target = cv1 * sample + cv2.
@@ -110,8 +111,7 @@ class ADSVoltageSourceBase : public VoltageSourceBase
             return true;
         }
 
-        // Default calibration sweep range: derived from minimum/maximum_input_voltage.
-        // Subclasses with a fixed hardware range (e.g. ADS24vVoltageSource) override these.
+        // Default calibration sweep range.  Subclasses override to suit their input range.
         virtual float get_default_calib_start() const { return this->minimum_input_voltage; }
         virtual float get_default_calib_end()   const { return this->maximum_input_voltage; }
         virtual float get_default_calib_step()  const { return 1.0f; }
@@ -146,8 +146,13 @@ class ADSVoltageSource : public ADSVoltageSourceBase {
         byte channel = 0;
         ADS1X15Type *ads_source;
 
-        ADSVoltageSource(int global_slot, ADS1X15Type *ads_source, byte channel, float maximum_input_voltage = 5.0, bool supports_pitch = false) 
-            : ADSVoltageSourceBase(global_slot, maximum_input_voltage, supports_pitch) {
+        // Raw ADC integer (as float) cached by fetch_current_voltage() before
+        // adcread_to_voltage() is called.  ADS24vVoltageSource::fetch_calibration_sample()
+        // returns this value because its adcread_to_voltage() applies cv1.
+        float _raw_adc_sample = 0.0f;
+
+        ADSVoltageSource(int global_slot, ADS1X15Type *ads_source, byte channel, float minimum_input_voltage = 0.0, float maximum_input_voltage = 5.0, bool supports_pitch = false) 
+            : ADSVoltageSourceBase(global_slot, minimum_input_voltage, maximum_input_voltage, supports_pitch) {
             this->ads_source = ads_source;
             this->channel = channel;
         }
@@ -202,7 +207,9 @@ class ADSVoltageSource : public ADSVoltageSourceBase {
                 Debug_printf(F("ADSVoltageSource channel %i read ADC voltageFromAdc %i\t :"), channel, adcReading); Serial_flush();
             }
 
+            this->_raw_adc_sample = (float)adcReading;
             float voltageFromAdc = this->adcread_to_voltage(adcReading);
+            this->_pre_correction_sample = voltageFromAdc;
 
             float voltageCorrected = this->get_corrected_voltage(voltageFromAdc);
 
@@ -224,19 +231,9 @@ class ADSVoltageSource : public ADSVoltageSourceBase {
         }
 
         virtual uint8_t get_adc_channel() const override { return this->channel; }
-
-        // Returns pre-correction library voltage: adcread_to_voltage(avg of 3 reads).
-        // This is the x-variable for the ADSVoltageSource calibration model:
-        //   V_corrected = cv1 * adcread_to_voltage(adc) + cv2
-        // compute_calibration() is inherited from ADSVoltageSourceBase (same linear OLS model).
-        virtual float fetch_calibration_sample() override {
-            if (!ads_source->isConnected()) return 0.0f;
-            int16_t v1 = ads_source->readADC(this->channel);
-            int16_t v2 = ads_source->readADC(this->channel);
-            int16_t v3 = ads_source->readADC(this->channel);
-            return this->adcread_to_voltage((int16_t)((v1 + v2 + v3) / 3));
-        }
-
+        // fetch_calibration_sample() inherited from ADSVoltageSourceBase:
+        // returns _pre_correction_sample (set above in fetch_current_voltage).
+        // ADS24vVoltageSource overrides to return _raw_adc_sample instead.
 };
 
 #endif  // __has_include("ADS1X15.h")

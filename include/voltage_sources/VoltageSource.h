@@ -66,11 +66,15 @@ class VoltageSourceBase {
             return this->current_value;
         }
 
-        // return a normalised version of the last value (0.0-1.0 across the full input voltage range)
+        // Returns voltage normalised by maximum_input_voltage.
+        // For unipolar sources (0..max): returns 0.0 to 1.0.
+        // For bipolar sources (-max..+max, minimum_input_voltage == 0): returns -1.0 to +1.0.
+        // This is intentional: maximum_input_voltage is the full-scale reference, not a
+        // one-sided bound.  Downstream code (VoltageParameterInput, BIPOLAR constrain) relies
+        // on this convention.  Do NOT change to a (v-min)/(max-min) range mapping here.
         virtual float get_voltage_normal() {
-            float range = this->maximum_input_voltage - this->minimum_input_voltage;
-            if (range == 0.0f) return 0.0f;
-            return (this->get_voltage() - this->minimum_input_voltage) / range;
+            if (this->maximum_input_voltage == 0.0f) return 0.0f;
+            return this->get_voltage() / this->maximum_input_voltage;
         }
 
         virtual bool supports_pitch() {

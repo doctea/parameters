@@ -56,23 +56,12 @@ class ArduinoPinVoltageSource : public ADSVoltageSourceBase {
             //float voltageFromAdc = ((float)value/1024.0) * this->maximum_input_voltage;
 
             float voltageFromAdc = ((float)value/1024.0) * voltage_range + this->minimum_input_voltage;
+            this->_pre_correction_sample = voltageFromAdc;  // cached for fetch_calibration_sample()
             
             return this->get_corrected_voltage(voltageFromAdc);
         }
-
-        // Returns pre-correction intermediate voltage for calibration.
-        // Model: corrected = cv1 * ((avg_adc / 1024.0) * voltage_range + minimum_input_voltage) + cv2
-        // compute_calibration() is inherited from ADSVoltageSourceBase (same linear OLS model).
-        virtual float fetch_calibration_sample() override {
-            int16_t v1 = analogRead(this->pin);
-            int16_t v2 = analogRead(this->pin);
-            int16_t v3 = analogRead(this->pin);
-            int value = (v1 + v2 + v3) / 3;
-            if (this->invert)
-                value = 1023 - value;
-            float voltage_range = this->maximum_input_voltage - this->minimum_input_voltage;
-            return ((float)value / 1024.0f) * voltage_range + this->minimum_input_voltage;
-        }
+        // fetch_calibration_sample() inherited from ADSVoltageSourceBase: returns _pre_correction_sample.
+        // compute_calibration() inherited from ADSVoltageSourceBase (linear OLS model).
 
 };
 
