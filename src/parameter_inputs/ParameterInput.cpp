@@ -56,11 +56,13 @@ barlock_option_t barlock_options[BARLOCK_NUM_MODES] = {
             submenu->add(type_selector);
 
             // todo: invert should probably be valid even for non-bipolar inputs?
-            submenu->add(new LambdaToggleControl(
-                "Invert", 
-                [=](bool v) -> void { this->setInverted(v); }, 
-                [=](void) -> bool { return this->inverted; }
-            ));
+            if (this->supports_inverted()) {
+                submenu->add(new LambdaToggleControl(
+                    "Invert", 
+                    [=](bool v) -> void { this->setInverted(v); }, 
+                    [=](void) -> bool { return this->inverted; }
+                ));
+            }
 
             menu->add(submenu); // Input type
 

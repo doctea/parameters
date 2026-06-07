@@ -76,6 +76,11 @@ class BaseParameterInput
       return this->group_and_name;
     }
 
+    // whether to show inverted options for this type - override in subclasses
+    virtual bool supports_inverted() {
+      return false;
+    }
+
     // whether to show unipolar/bipolar options for this type - override in subclasses
     virtual bool supports_bipolar_input() {
       return true;

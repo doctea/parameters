@@ -99,6 +99,10 @@ class VirtualParameterInput : public AnalogParameterInputBase<float> {
             return true;
         }
 
+        virtual bool supports_inverted() {
+            return this->lfo_mode != RAND; // makes no sense to invert a random value since its random across the range anyway
+        }
+
         float get_source_value() {
             // Advance phase accumulator to current tick (catch-up).
             // All LFO modes share this accumulator; RAND does not use it.
@@ -144,6 +148,7 @@ class VirtualParameterInput : public AnalogParameterInputBase<float> {
                         last_sample = input_type == BIPOLAR
                             ? (float)random(-1000, 1000) / 1000.0f
                             : (float)random(0, 1000) / 1000.0f;
+                        // if (sh_ticks == PPQN) Serial.printf("Tick %u, got random sample on beat %u: %3.3f", ticks, ticks / PPQN, last_sample);
                         break;
                     case LFO_LOCKED_TRIANGLE: {
                         const float v = 1.0f - 2.0f * fabsf(frac - 0.5f);  // 0 at edges, 1 at mid
@@ -166,6 +171,7 @@ class VirtualParameterInput : public AnalogParameterInputBase<float> {
                     default: return 0.0f;
                 }
             }
+            // if (sh_ticks == PPQN) Serial.printf("!! returning %3.3f !! on beat %u\n", last_sample, ticks / PPQN);
             return last_sample;
         }
 
@@ -179,7 +185,10 @@ class VirtualParameterInput : public AnalogParameterInputBase<float> {
             //float currentValue = this->voltage_source->get_voltage_normal();
             float currentValue = this->get_source_value();
             
-            if (this->is_significant_change(currentValue, this->lastValue)) {
+            // if VirtualParameterInputs (almost) always update currentValue on read to ensure that callbacks get fulfilled
+            // todo: maybe we should limit this a little tho to prevent churn?
+            // if (this->sh_ticks > 0 || this->is_significant_change(currentValue, this->lastValue)) {
+            if (true) {
                 this->lastValue = this->currentValue;
                 this->currentValue = currentValue;
                 //Serial.printf("%c: Setting this->currentValue to ", this->name);
@@ -187,23 +196,17 @@ class VirtualParameterInput : public AnalogParameterInputBase<float> {
                 //this->currentValue = currentValue;
                 //this->currentValue = currentValue = this->get_normal_value(currentValue);
                 #ifdef ENABLE_PRINTF
-                if (this->debug) {
-                    /*Serial.printf("%s: VoltageParameterInput->read() got intermediate %i, voltage ", this->name, intermediate);
-                    Serial.print((uint32_t) this->ads->toVoltage(intermediate));
-                    Serial.printf(", final %i", (uint32_t) currentValue*1000.0);
-                    Serial.println();*/
-                    Debug_printf(F("%c: VoltageParameterInput->read() got voltage "), this->name); //
-                    Debug_println(currentValue);
-                }
-                #endif
+                    if (this->debug) {
+                        Debug_printf(F("%c: VoltageParameterInput->read() got voltage "), this->name); //
+                        Debug_println(currentValue);
+                    }
 
-                #ifdef ENABLE_PRINTF
-                if (this->debug) {
-                    Debug_printf(F("VoltageParameterInput#read() for '%c': got currentValue "), this->name); Serial_flush();
-                    Debug_print(currentValue); Serial_flush();
-                    Debug_print(F(" converted to normal ")); Serial_flush();
-                    Debug_println(normal); Serial_flush();
-                }
+                    if (this->debug) {
+                        Debug_printf(F("VoltageParameterInput#read() for '%c': got currentValue "), this->name); Serial_flush();
+                        Debug_print(currentValue); Serial_flush();
+                        Debug_print(F(" converted to normal ")); Serial_flush();
+                        Debug_println(normal); Serial_flush();
+                    }
                 #endif
 
                 #ifdef PARAMETER_INPUTS_USE_CALLBACKS

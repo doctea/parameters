@@ -144,13 +144,17 @@ class ParameterInputDisplay : public MenuItem
         uint_fast16_t last_position_updated = UINT16_MAX;
         memory_log last_logged_value = 0;
         virtual void receive_value_update(float value) {
-            IF_MENU_PERF_PARTIAL_UPDATES(this->request_redraw(REDRAW_ON_INVALIDATE);)
             uint_fast16_t position = ticks_to_memory_step(ticks);
-
+            
             if (position == last_position_updated)
                 return;
 
+            IF_MENU_PERF_PARTIAL_UPDATES(this->request_redraw(REDRAW_ON_INVALIDATE);)
+
             memory_log encoded = encode_memory_log(value);
+            // if (strcmp(this->parameter_input->get_name(), "Rand beat") == 0) {
+            //     Serial.printf("Beat %u tick %u: Received an updated value in %s: %f - encoded to %u\n", ticks / PPQN, ticks % PPQN, this->parameter_input->get_name(), value, encoded);
+            // }
 
             // Backfill any skipped positions with the LAST value (not the new value).
             // This correctly represents what happened during the skipped ticks.
