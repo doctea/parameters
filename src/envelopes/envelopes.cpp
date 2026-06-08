@@ -18,7 +18,7 @@ stage_t operator++ (stage_t& d) {
     void EnvelopeBase::make_menu_items(Menu *menu, int index) {
         char label[40];
         snprintf(label, 40, "%s Env", this->label);
-        menu->add_page(label, C_WHITE, false);
+        menu->add_page(label, C_WHITE, false, "Envelopes");
 
         menu->add(new EnvelopeDisplay("Graph", this));
         menu->add(new EnvelopeIndicator("Indicator", this));

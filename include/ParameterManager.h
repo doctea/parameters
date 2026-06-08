@@ -453,7 +453,7 @@ class ParameterManager
                         menu->add(submenuitem);
                     } else {
                         if(this->voltage_sources->size()>0){
-                            menu->add_page("Input Calibration");
+                            menu->add_page("Input Calibration", C_WHITE, true, "Calibration");
                             unsigned int idx = 0;
                             for (auto* voltage_source : *this->voltage_sources) {
                                 menu->add(voltage_source->makeCalibrationControls(idx));
@@ -498,7 +498,7 @@ class ParameterManager
                             if (calibration_controls!=nullptr) {
                                 Serial.println("Got some controls..."); Serial_flush();
                                 if (!page_created) {
-                                    menu->add_page("Output Calibration");
+                                    menu->add_page("Output Calibration", C_WHITE, true, "Calibration");
                                     page_created = true;                                    
                                 }
                                 menu->add(new SeparatorMenuItem(parameter->label));
@@ -1007,7 +1007,7 @@ extern ParameterManager *parameter_manager;
                 outputs->add(cvp);
         }
         if (outputs->size() > 0) {
-            menu->add_page("Osc Tuning");
+            menu->add_page("Osc Tuning", C_WHITE, true, "Calibration");
             auto *state = new CVOutputTuningState(outputs);
             addOscillatorTuningItemsToPage(menu, state);
         } else {

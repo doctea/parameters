@@ -131,7 +131,7 @@ void ParameterManager::process_calibration() {
     FLASHMEM void ParameterManager::addAllParameterInputMenuItems(Menu *menu, bool page_per_input) {
         const char *last_group_name = nullptr;
 
-        menu->add_page("QuickJumpInputs");
+        menu->add_page("QuickJumpInputs", C_WHITE, true, "Navigation");
         CustomQuickPagesMenuItem *quickjump = new CustomQuickPagesMenuItem("QuickJump to Inputs");
         menu->add(quickjump);
         page_t *started_page = menu->get_selected_page();   // for remembering what page the quickjump menu itself is
@@ -150,7 +150,7 @@ void ParameterManager::process_calibration() {
                     snprintf(label, MENU_C_MAX, "%s: %s", parameter_input->group_name, parameter_input->name);
                 else
                     snprintf(label, MENU_C_MAX, "%s inputs", parameter_input->group_name);
-                menu->add_page(label, parameter_input->colour);
+                menu->add_page(label, parameter_input->colour, true, "Parameter Inputs");
                 last_group_name = parameter_input->group_name;
                 snprintf(label, MENU_C_MAX, "%s ", last_group_name);
 
@@ -169,7 +169,7 @@ void ParameterManager::process_calibration() {
     FLASHMEM void ParameterManager::addAllParameterInputOverviews(Menu *menu) {
         const char *last_group_name = nullptr;
 
-        menu->add_page("QuickJumpOverview");
+        menu->add_page("QuickJumpOverview", C_WHITE, true, "Navigation");
         CustomQuickPagesMenuItem *quickjump = new CustomQuickPagesMenuItem("QuickJump to Overviews");
         menu->add(quickjump);
         page_t *started_page = menu->get_selected_page();   // for remembering what page the quickjump menu itself is
@@ -185,7 +185,7 @@ void ParameterManager::process_calibration() {
             char label[MENU_C_MAX];
             if (last_group_name!=parameter_input->group_name) {                        
                 snprintf(label, MENU_C_MAX, "%s Overview", parameter_input->group_name);
-                menu->add_page(label, parameter_input->colour);
+                menu->add_page(label, parameter_input->colour, true, "Navigation");
                 last_group_name = parameter_input->group_name;
                 //snprintf(label, MENU_C_MAX, "%s ", last_group_name);
 
