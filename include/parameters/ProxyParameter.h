@@ -3,6 +3,12 @@
 #include "Parameter.h"
 
 template<class DataType>
+struct ProxiedValue {
+    DataType source;
+    DataType effective;
+};
+
+template<class DataType>
 class ProxyParameter : public DataParameterBase<DataType> 
     #ifdef ENABLE_STORAGE
         , virtual public SHDynamic<0, 4> // no children; ~2-4 own settings (range, modslots if enabled)
@@ -18,6 +24,11 @@ class ProxyParameter : public DataParameterBase<DataType>
             this->source = source;
             this->target = target;
             this->initialise_values(minimumDataValue, maximumDataValue);
+        }
+
+    ProxyParameter(const char *label, ProxiedValue<DataType> *value, DataType minimumDataValue, DataType maximumDataValue) 
+        : ProxyParameter<DataType>(label, &value->source, &value->effective, minimumDataValue, maximumDataValue)
+        {
         }
 
     virtual DataType getter() override {
@@ -62,19 +73,40 @@ class ProxyParameter : public DataParameterBase<DataType>
     #endif       
 };
 
-#ifdef ENABLE_SCALES
-
-#include "midi_helpers.h"
-
+// ProxyParameter that uses a labelled_value_list_t to provide labels for the values
 template<class DataType=int8_t>
-class ProxyNoteParameter : public ProxyParameter<DataType> {
+class ProxyLabelledParameter : public ProxyParameter<DataType> {
+
+    labelled_value_list_t<DataType> *value_labels = nullptr;
+
     public:
-    ProxyNoteParameter(const char *label, int8_t *source, int8_t *target, int8_t minimumDataValue = MIDI_MIN_NOTE, int8_t maximumDataValue = MIDI_MAX_NOTE) 
-        : ProxyParameter<DataType>(label, source, target, minimumDataValue, maximumDataValue) {}
+    ProxyLabelledParameter(const char *label, DataType *source, DataType *target, labelled_value_list_t<DataType> *value_labels)
+        : ProxyParameter<DataType>(label, source, target, value_labels->minimum_value(), value_labels->maximum_value()) {
+            this->value_labels = value_labels;
+        }
+    ProxyLabelledParameter(const char *label, ProxiedValue<DataType> *value, labelled_value_list_t<DataType> *value_labels)
+        : ProxyLabelledParameter<DataType>(label, &value->source, &value->effective, value_labels) {
+        }
 
     virtual const char* parseFormattedDataType(int value) override {
-        return get_note_name_c(value);
+        static char buf[MENU_C_MAX];
+        snprintf(buf, MENU_C_MAX, "%s", value_labels->get_label_for_value(value));
+        return buf;
     }
 };
+
+#ifdef ENABLE_SCALES
+
+    #include "midi_helpers.h"
+    template<class DataType=int8_t>
+    class ProxyNoteParameter : public ProxyParameter<DataType> {
+        public:
+        ProxyNoteParameter(const char *label, int8_t *source, int8_t *target, int8_t minimumDataValue = MIDI_MIN_NOTE, int8_t maximumDataValue = MIDI_MAX_NOTE) 
+            : ProxyParameter<DataType>(label, source, target, minimumDataValue, maximumDataValue) {}
+
+        virtual const char* parseFormattedDataType(int value) override {
+            return get_note_name_c(value);
+        }
+    };
 
 #endif

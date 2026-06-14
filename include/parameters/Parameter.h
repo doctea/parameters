@@ -1000,7 +1000,7 @@ class DataParameterBase : public FloatParameter {
             if (debug && Serial) Serial.printf("\tgot value_to_send=%3.3f\n", (float)value_to_send);
 
             if (force || value_to_send!=this->last_sent_value) {
-                if (debug && Serial) Serial.printf("\tsending..."); Serial.flush();
+                if (debug && Serial) { Serial.printf("\tsending..."); Serial.flush(); }
                 this->lastRealOutputNormalValue = slewed_value;
                 this->setTargetValueFromData(value_to_send, true); //force);
                 this->last_sent_value = value_to_send;
@@ -1168,6 +1168,36 @@ class DataParameter : public DataParameterBase<DataType> {
 
 };
 
+// DataParameter that uses a labelled_value_list_t to display values for the parameter
+template<class DataType = float>
+class LabeledDataParameter : public DataParameterBase<DataType> {
+    public:
+    labelled_value_list_t<DataType> *labelled_value_list = nullptr;
+
+    LabeledDataParameter(const char *label, labelled_value_list_t<DataType> *labelled_value_list) 
+        : DataParameterBase<DataType>(label) {
+        this->labelled_value_list = labelled_value_list;
+    }
+    LabeledDataParameter(const char *label, labelled_value_list_t<DataType> *labelled_value_list, DataType initial_value_normal) 
+        : LabeledDataParameter<DataType>(label, labelled_value_list) {
+        this->initialNormalValue = initial_value_normal;
+    }
+    LabeledDataParameter(const char *label, labelled_value_list_t<DataType> *labelled_value_list, DataType initial_value_normal, DataType minimumDataValue, DataType maximumDataValue) 
+        : LabeledDataParameter<DataType>(label, labelled_value_list, initial_value_normal) {
+        this->minimumDataLimit = this->minimumDataRange = minimumDataValue;
+        this->maximumDataLimit = this->maximumDataRange = maximumDataValue;
+    }
+
+    virtual const char *parseFormattedDataType(DataType value) override {
+        if (this->labelled_value_list!=nullptr) {
+            return this->labelled_value_list->get_label_for_value(value);
+        } else {
+            return DataParameterBase<DataType>::parseFormattedDataType(value);
+        }
+    }
+
+};
+
 
 #include "functional-vlpp.h"
 template<class DataType = float>
@@ -1232,4 +1262,34 @@ class LDataParameter : public DataParameterBase<DataType> {
 
             this->setter_func((DataType)value);
         }
+};
+
+
+template<class DataType = float>
+class LabelledLDataParameter : public LDataParameter<DataType> {
+    public:
+    labelled_value_list_t<DataType> *labelled_value_list = nullptr;
+
+    LabelledLDataParameter(const char *label, labelled_value_list_t<DataType> *labelled_value_list) 
+        : LDataParameter<DataType>(label) {
+        this->labelled_value_list = labelled_value_list;
+    }
+    LabelledLDataParameter(const char *label, labelled_value_list_t<DataType> *labelled_value_list, DataType initial_value_normal) 
+        : LabelledLDataParameter<DataType>(label, labelled_value_list) {
+        this->initialNormalValue = initial_value_normal;
+    }
+    LabelledLDataParameter(const char *label, labelled_value_list_t<DataType> *labelled_value_list, DataType initial_value_normal, DataType minimumDataValue, DataType maximumDataValue) 
+        : LabelledLDataParameter<DataType>(label, labelled_value_list, initial_value_normal) {
+        this->minimumDataLimit = this->minimumDataRange = minimumDataValue;
+        this->maximumDataLimit = this->maximumDataRange = maximumDataValue;
+    }
+
+    virtual const char *parseFormattedDataType(DataType value) override {
+        if (this->labelled_value_list!=nullptr) {
+            return this->labelled_value_list->get_label_for_value(value);
+        } else {
+            return LDataParameter<DataType>::parseFormattedDataType(value);
+        }
+    }
+
 };

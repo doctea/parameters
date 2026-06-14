@@ -52,9 +52,9 @@ class ToggleParameter : public DataParameter<TargetClass,DataType> {
         //    return;
 
         // if (this->debug) {
-            Serial.print("ToggleParameter#updateValueFromData("); Serial_flush();
-            Serial.print(value);
-            Serial.println(")"); Serial_flush();
+            // Serial.print("ToggleParameter#updateValueFromData("); Serial_flush();
+            // Serial.print(value);
+            // Serial.println(")"); Serial_flush();
         // }
 
         this->lastDataValue = this->currentDataValue;
