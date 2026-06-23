@@ -306,7 +306,7 @@ inline SubMenuItem *makeFeedbackCalibrationControls(
         false
     );
     val_display->setReadOnly(true);
-    val_display->selectable = false;
+    val_display->flags.selectable = false;
     monitor_bar->add(val_display);
 
     bar->add(monitor_bar);

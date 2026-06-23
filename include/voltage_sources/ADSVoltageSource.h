@@ -181,11 +181,11 @@ class ADSVoltageSource : public ADSVoltageSourceBase {
         bool already_succeeded = false;
         virtual float fetch_current_voltage() override {
             if (this->debug) {
-                Debug_println(F("in ADSVoltageSource#fetch_current_voltage().."));
-                Debug_printf(F("\tads_source is @%p, reading from channel %i\n"), this->ads_source, this->channel);
+                Debug_println("in ADSVoltageSource#fetch_current_voltage()..");
+                Debug_printf("\tads_source is @%p, reading from channel %i\n", this->ads_source, this->channel);
             }            
             if (!already_succeeded) 
-                Debug_printf(F("ADSVoltageSource#fetch_current_voltage reading from channel %i, check you're using correct address ADC board if crash here!\n"), this->channel);
+                Debug_printf("ADSVoltageSource#fetch_current_voltage reading from channel %i, check you're using correct address ADC board if crash here!\n", this->channel);
 
             if (!ads_source->isConnected()) {
                 if (this->debug) {
@@ -206,11 +206,11 @@ class ADSVoltageSource : public ADSVoltageSourceBase {
             #endif
 
             if (!already_succeeded) 
-                Debug_printf(F("ADSVoltageSource#fetch_current_voltage didn't crash on first read, so address is probably ok!\n"), this->channel);
+                Debug_printf("ADSVoltageSource#fetch_current_voltage didn't crash on first read, so address is probably ok!\n", this->channel);
             already_succeeded = true;
 
             if (this->debug) {
-                Debug_printf(F("ADSVoltageSource channel %i read ADC voltageFromAdc %i\t :"), channel, adcReading); Serial_flush();
+                Debug_printf("ADSVoltageSource channel %i read ADC voltageFromAdc %i\t :", channel, adcReading); Serial_flush();
             }
 
             this->_raw_adc_sample = (float)adcReading;
@@ -220,11 +220,11 @@ class ADSVoltageSource : public ADSVoltageSourceBase {
             float voltageCorrected = this->get_corrected_voltage(voltageFromAdc);
 
             if (this->debug) {
-                Debug_print(F(" after correction stage 2 got "));
+                Debug_print(" after correction stage 2 got ");
                 Debug_println(voltageCorrected);
             }
 
-            if (this->debug) Debug_printf(F("in ADSVoltageSource#fetch_current_voltage() finishing (and returning %f)\n"), voltageCorrected);
+            if (this->debug) Debug_printf("in ADSVoltageSource#fetch_current_voltage() finishing (and returning %f)\n", voltageCorrected);
 
             return voltageCorrected;
         }

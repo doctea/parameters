@@ -45,8 +45,8 @@ bool ParameterManager::save_voltage_calibration(int slot) {
 
 #include "debug.h"
 
-LinkedList<BaseParameterInput*> *ParameterManager::get_available_pitch_inputs() {
-    static LinkedList<BaseParameterInput*> *available_pitch_inputs = new LinkedList<BaseParameterInput*>();
+GenericList<BaseParameterInput*> *ParameterManager::get_available_pitch_inputs() {
+    static GenericList<BaseParameterInput*> *available_pitch_inputs = new GenericList<BaseParameterInput*>();
     static bool already_calculated = false;
     if (!already_calculated) {
         for (auto* input : *available_inputs) {

@@ -143,13 +143,17 @@ class AnalogParameterInputBase : public ParameterInput {
       virtual void setup_saveable_settings() override {
         BaseParameterInput::setup_saveable_settings();
 
-        register_setting(
-          new LSaveableSetting<bool>(
-            "Inverted",
-            "AnalogParameterInputBase",
-            &this->inverted
-          ), SL_SCOPE_SCENE | SL_SCOPE_PROJECT
-        );
+        // Some derived inputs (e.g. random virtual sources) do not use inversion,
+        // so skip allocating a setting entry for those to save RAM.
+        if (this->supports_inverted()) {
+          register_setting(
+            new LSaveableSetting<bool>(
+              "Inverted",
+              "AnalogParameterInputBase",
+              &this->inverted
+            ), SL_SCOPE_SCENE | SL_SCOPE_PROJECT
+          );
+        }
       }
     #endif
 };

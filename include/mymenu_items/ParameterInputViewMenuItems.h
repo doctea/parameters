@@ -62,7 +62,7 @@ class ParameterInputDisplay : public MenuItem
             // Buffer is screen-width sized: one slot per pixel column.
             // This is fixed at construction and never changes, avoiding OOB writes when
             // the time signature (and thus TICKS_PER_PHRASE) changes at runtime.
-            this->selectable = !input->supports_bipolar_input();
+            this->flags.selectable = !input->supports_bipolar_input();
             if (parameter_input!=nullptr) 
             this->set_default_colours(parameter_input->colour);
             

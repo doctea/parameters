@@ -16,7 +16,7 @@ class VoltageParameterInput;
 template<class TargetClass>
 class ParameterInputSelectorControl : public SelectorControl<int_least16_t> {
     BaseParameterInput *initial_selected_parameter_input = nullptr;
-    LinkedList<BaseParameterInput*> *available_parameter_inputs = nullptr;
+    GenericList<BaseParameterInput*> *available_parameter_inputs = nullptr;
 
     TargetClass *target_object = nullptr;
     TargetClass **proxy_target_object = &target_object;
@@ -121,7 +121,7 @@ class ParameterInputSelectorControl : public SelectorControl<int_least16_t> {
         TargetClass *target_object, 
         void(TargetClass::*setter_func)(BaseParameterInput*), 
         BaseParameterInput*(TargetClass::*getter_func)(), 
-        LinkedList<BaseParameterInput*> *available_parameter_inputs,
+        GenericList<BaseParameterInput*> *available_parameter_inputs,
         BaseParameterInput *initial_parameter_input = nullptr,
         bool show_values = false
     ) : SelectorControl(label, 0) {
@@ -138,14 +138,14 @@ class ParameterInputSelectorControl : public SelectorControl<int_least16_t> {
         TargetClass **proxy_target_object, 
         void(TargetClass::*setter_func)(BaseParameterInput*), 
         BaseParameterInput*(TargetClass::*getter_func)(),
-        LinkedList<BaseParameterInput*> *available_parameter_inputs,
+        GenericList<BaseParameterInput*> *available_parameter_inputs,
         BaseParameterInput *initial_parameter_input = nullptr,
         bool show_values = false
     ) : ParameterInputSelectorControl(label, *proxy_target_object, setter_func, getter_func, available_parameter_inputs, initial_parameter_input, show_values) {
         this->proxy_target_object = proxy_target_object;
     };
 
-    virtual void configure (LinkedList<BaseParameterInput*> *available_parameter_inputs) {
+    virtual void configure (GenericList<BaseParameterInput*> *available_parameter_inputs) {
         this->available_parameter_inputs = available_parameter_inputs;
         char *initial_name = (char*)"None";
         if (this->initial_selected_parameter_input!=nullptr)
@@ -348,7 +348,7 @@ class ParameterInputSelectorControl : public SelectorControl<int_least16_t> {
         //msg[20] = '\0'; // limit the string so we don't overflow set_last_message
         menu_set_last_message(msg,GREEN);
 
-        return go_back_on_select;
+        return flags.go_back_on_select;
     }
 
 };

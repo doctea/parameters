@@ -6,7 +6,7 @@
 //   OscillatorTuningControls.h -> CVOutputParameter.h -> ParameterInputMenuItems.h
 //   -> ParameterManager.h -> OscillatorTuningControls.h
 #include "parameters/CVOutputParameterBase.h"
-#include <LinkedList.h>
+#include <GenericList.h>
 #include "submenuitem.h"
 #include "submenuitem_bar.h"
 #include "menuitems_lambda.h"
@@ -19,14 +19,14 @@
 // the selected output, pitch A/B, active pitch, and octave position.
 class CVOutputTuningState {
 public:
-    LinkedList<CVOutputParameterBase *> *available_outputs = nullptr;
+    GenericList<CVOutputParameterBase *> *available_outputs = nullptr;
     int8_t selected_output_index = 0;
     int8_t pitch_a = 48;   // C3
     int8_t pitch_b = 60;   // C4
     bool   active_is_b    = false;
     int8_t octave_position = 4;   // C4 = MIDI 60
 
-    CVOutputTuningState(LinkedList<CVOutputParameterBase *> *outputs)
+    CVOutputTuningState(GenericList<CVOutputParameterBase *> *outputs)
         : available_outputs(outputs) {}
 
     CVOutputParameterBase *get_selected_output() {
@@ -234,7 +234,7 @@ inline void addOscillatorTuningItemsToPage(Menu *menu, CVOutputTuningState *stat
         false
     );
     oct_display->setReadOnly(true);
-    oct_display->selectable = false;
+    oct_display->flags.selectable = false;
     oct_bar->add(oct_display);
     menu->add(oct_bar);
 }

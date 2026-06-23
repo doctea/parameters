@@ -3,14 +3,24 @@
 #include "parameter_inputs/BarLockParameterInputs.h"
 
 lfo_option_t virtual_parameter_options[lfo_option_id::NUM] = {
-    { "FreeSin", LFO_FREE },
-    { "Sine",    LFO_LOCKED },
-    { "Rand",    RAND },
-    { "Tri",     LFO_LOCKED_TRIANGLE },
-    { "Saw",     LFO_LOCKED_SAW },
-    { "RSaw",    LFO_LOCKED_RSAW },
-    { "Sqr",     LFO_LOCKED_SQUARE },
+    { "Free", LFO_FREE },
+    { "Sync", LFO_LOCKED },
+    { "Rand", RAND },
 };
+
+static const virtual_lfo_waveform_id virtual_waveform_option_ids[] = {
+    VIRTUAL_LFO_WAVE_SINE,
+    VIRTUAL_LFO_WAVE_TRIANGLE,
+    VIRTUAL_LFO_WAVE_SAW,
+    VIRTUAL_LFO_WAVE_SQUARE,
+};
+
+static const char *virtual_waveform_option_names[] = {
+    "Sine", "Tri", "Saw", "Sqr"
+};
+
+constexpr int NUM_WAVEFORM_OPTIONS =
+    sizeof(virtual_waveform_option_ids) / sizeof(virtual_waveform_option_ids[0]);
 
 barlock_option_t barlock_options[BARLOCK_NUM_MODES] = {
     { "BR-Log",    BARLOCK_RISE_LOG       },
@@ -47,12 +57,12 @@ barlock_option_t barlock_options[BARLOCK_NUM_MODES] = {
 
         if (this->supports_bipolar_input()) {
             SubMenuItemBar *submenu = new SubMenuItemBar("Further options", true);
-            submenu->show_header = false;
+            submenu->flags.show_header = false;
             submenu->default_fg = this->colour;
             // inputs now rely on their parameter to choose whether to use polar or bipolar version
             InputTypeSelectorControl<> *type_selector = new InputTypeSelectorControl<>("Polarity", &this->input_type);
             type_selector->default_fg = this->colour;
-            //type_selector->show_header = false;
+            //type_selector->flags.show_header = false;
             submenu->add(type_selector);
 
             // todo: invert should probably be valid even for non-bipolar inputs?
@@ -84,23 +94,21 @@ barlock_option_t barlock_options[BARLOCK_NUM_MODES] = {
 
         SubMenuItemBar *submenu = BaseParameterInput::makeControls(label_prefix);
 
-        // Shape selector: available for locked-period modes (all except FREE and RAND)
-        const bool is_locked_type = (lfo_mode != LFO_FREE && lfo_mode != RAND);
-        if (is_locked_type) {
-            // Use int as DataType since LambdaSelectorControl requires ++/-- operators,
-            // which enums don't provide; cast to/from lfo_option_id at the boundary.
+        // Shape selector: available for both FREE and LOCKED (everything except RAND).
+        if (!this->is_rand_source()) {
             LambdaSelectorControl<int> *shape_control = new LambdaSelectorControl<int>(
                 "Shape",
-                [=](int v) -> void { this->lfo_mode = (lfo_option_id)v; },
-                [=](void) -> int { return (int)this->lfo_mode; }
+                [=](int v) -> void {
+                    this->set_waveform_id((virtual_lfo_waveform_id)v);
+                },
+                [=](void) -> int {
+                    return (int)this->waveform_id;
+                }
             );
-            shape_control->go_back_on_select = true;
+            shape_control->flags.go_back_on_select = true;
             if (shape_options == nullptr) {
-                for (int i = 0; i < lfo_option_id::NUM; i++) {
-                    lfo_option_id id = (lfo_option_id)i;
-                    if (id != LFO_FREE && id != RAND) {
-                        shape_control->add_available_value(i, virtual_parameter_options[i].name);
-                    }
+                for (int i = 0; i < (int)NUM_WAVEFORM_OPTIONS; i++) {
+                    shape_control->add_available_value((int)virtual_waveform_option_ids[i], virtual_waveform_option_names[i]);
                 }
                 shape_options = shape_control->get_available_values();
             } else {
@@ -109,10 +117,10 @@ barlock_option_t barlock_options[BARLOCK_NUM_MODES] = {
             submenu->add(shape_control);
         }
 
-        if (lfo_mode==LFO_FREE) {
+        if (this->is_free_source()) {
             submenu->add(new DirectNumberControl<float>("Speed", &this->free_sine_divisor, this->free_sine_divisor, 0.01f, 1000.0f));
-        } else if (lfo_mode != RAND) {
-            // Period control applies to all locked-period waveforms (sine, triangle, saw, rsaw, square)
+        } else if (this->is_locked_source()) {
+            // Period control applies to all locked-period waveforms.
             LambdaSelectorControl<float> *period_control = new LambdaSelectorControl<float>(
                 "Period",
                 [=] (float v) -> void { this->locked_period = v; },
@@ -134,7 +142,7 @@ barlock_option_t barlock_options[BARLOCK_NUM_MODES] = {
             }
             submenu->add(period_control);
         }
-        if (lfo_mode != RAND) {
+        if (!this->is_rand_source()) {
             // Phase applies to all non-random modes
             DirectNumberControl<float> *phase_control = new DirectNumberControl<float>(
                 "Phase",
@@ -145,14 +153,14 @@ barlock_option_t barlock_options[BARLOCK_NUM_MODES] = {
             );
             submenu->add(phase_control);
         }
-        if (lfo_mode == RAND) {
+        if (this->is_rand_source()) {
             // S&H only applies to random modes
             LambdaSelectorControl<uint32_t> *sh_control = new LambdaSelectorControl<uint32_t>(
                 "S&H On",
                 [=] (uint32_t v) -> void { this->sh_ticks = v; },
                 [=] (void) -> uint32_t { return this->sh_ticks; }
             );
-            sh_control->go_back_on_select = true;
+            sh_control->flags.go_back_on_select = true;
             if (sh_period_options==nullptr) {
                 sh_control->add_available_value(0,      "None");
                 sh_control->add_available_value(PPQN/8, "32nd");

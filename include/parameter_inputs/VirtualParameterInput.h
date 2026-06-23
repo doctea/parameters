@@ -13,17 +13,29 @@
 // todo: (more) options to configure LFO type, speed, etc
 // todo: support MIDI pitch generation
 
-// see ParameterInput.cpp for the string def
+// Backward-compatible source selector used by current call sites and save data.
 enum lfo_option_id {
     LFO_FREE,
     LFO_LOCKED,
     RAND,
-    LFO_LOCKED_TRIANGLE,    // triangle wave — cheaper than sine, no sin() call
-    LFO_LOCKED_SAW,         // rising ramp 0→1
-    LFO_LOCKED_RSAW,        // falling ramp 1→0
-    LFO_LOCKED_SQUARE,      // square wave — hard gate/ducking
     NUM
 };
+
+// New split model: source family is separate from waveform shape.
+enum virtual_lfo_source_id {
+    VIRTUAL_LFO_FREE,
+    VIRTUAL_LFO_LOCKED,
+    VIRTUAL_LFO_RAND,
+};
+
+enum virtual_lfo_waveform_id {
+    VIRTUAL_LFO_WAVE_SINE,
+    VIRTUAL_LFO_WAVE_TRIANGLE,
+    VIRTUAL_LFO_WAVE_SAW,
+    VIRTUAL_LFO_WAVE_SQUARE,
+};
+
+constexpr int NUM_WAVEFORMS = (int)VIRTUAL_LFO_WAVE_SQUARE + 1;
 
 struct lfo_option_t {
     const char *name;
@@ -31,11 +43,13 @@ struct lfo_option_t {
 };
 
 extern lfo_option_t virtual_parameter_options[lfo_option_id::NUM];
-#define MAX_LFO_ID (sizeof(virtual_parameter_options) / sizeof(Lfo_option_t))
+#define MAX_LFO_ID (sizeof(virtual_parameter_options) / sizeof(lfo_option_t))
 
 class VirtualParameterInput : public AnalogParameterInputBase<float> {
     public:
-        lfo_option_id lfo_mode = LFO_LOCKED;
+        const lfo_option_id lfo_mode;
+        const virtual_lfo_source_id source_id;
+        virtual_lfo_waveform_id waveform_id = VIRTUAL_LFO_WAVE_SINE;
 
         // wave parameters
         float free_sine_divisor = 100.0f;
@@ -65,13 +79,48 @@ class VirtualParameterInput : public AnalogParameterInputBase<float> {
                               lfo_option_id lfo_mode = LFO_LOCKED,
                               float locked_period = 4.0f, float locked_phase = 0.0f,
                               uint32_t sh_ticks = 0, bool lightweight = false)
-                : AnalogParameterInputBase(name, group_name) {
-            this->lfo_mode     = lfo_mode;
+                                : AnalogParameterInputBase(name, group_name),
+                                    lfo_mode(lfo_mode),
+                                    source_id(this->source_for_mode(lfo_mode)),
+                                    waveform_id(this->waveform_for_mode(lfo_mode)) {
             this->locked_period = locked_period;
             this->locked_phase  = locked_phase;
             this->sh_ticks      = sh_ticks;
             this->lightweight   = lightweight;
         }
+
+        static virtual_lfo_source_id source_for_mode(lfo_option_id mode) {
+            if (mode == LFO_FREE) return VIRTUAL_LFO_FREE;
+            if (mode == RAND) return VIRTUAL_LFO_RAND;
+            return VIRTUAL_LFO_LOCKED;
+        }
+
+        static virtual_lfo_waveform_id waveform_for_mode(lfo_option_id mode) {
+            (void)mode;
+            return VIRTUAL_LFO_WAVE_SINE;
+        }
+
+        static const char *waveform_name(virtual_lfo_waveform_id waveform) {
+            switch (waveform) {
+                case VIRTUAL_LFO_WAVE_SINE: return "Sine";
+                case VIRTUAL_LFO_WAVE_TRIANGLE: return "Tri";
+                case VIRTUAL_LFO_WAVE_SAW: return "Saw";
+                case VIRTUAL_LFO_WAVE_SQUARE: return "Sqr";
+                default: return "Sine";
+            }
+        }
+
+        void set_waveform_id(virtual_lfo_waveform_id waveform) {
+            if (!this->is_rand_source()) {
+                this->waveform_id = waveform;
+            }
+        }
+
+        bool is_free_source() const { return this->source_id == VIRTUAL_LFO_FREE; }
+        bool is_locked_source() const { return this->source_id == VIRTUAL_LFO_LOCKED; }
+        bool is_rand_source() const { return this->source_id == VIRTUAL_LFO_RAND; }
+
+        bool is_locked_waveform() const { return this->source_id == VIRTUAL_LFO_LOCKED; }
 
         // virtual bool supports_pitch() override {
         //     return false;
@@ -93,14 +142,14 @@ class VirtualParameterInput : public AnalogParameterInputBase<float> {
         }
 
         virtual const char *getExtra() override {
-            return virtual_parameter_options[lfo_mode].name;
+            return this->is_rand_source() ? "Rand" : waveform_name(this->waveform_id);
         }
         virtual bool hasExtra() override {
             return true;
         }
 
         virtual bool supports_inverted() {
-            return this->lfo_mode != RAND; // makes no sense to invert a random value since its random across the range anyway
+            return !this->is_rand_source(); // makes no sense to invert a random value since its random across the range anyway
         }
 
         float get_source_value() {
@@ -108,12 +157,12 @@ class VirtualParameterInput : public AnalogParameterInputBase<float> {
             // All LFO modes share this accumulator; RAND does not use it.
             // Because loop() runs far faster than tick rate, elapsed is almost always 1,
             // but the catch-up handles cases where this is called less frequently.
-            if (lfo_mode != RAND) {
-                const float step = (lfo_mode == LFO_FREE)
+            if (!this->is_rand_source()) {
+                const float step = (this->is_free_source())
                     ? (1.0f / free_sine_divisor)
                     : (1.0f / ((float)TICKS_PER_BAR * locked_period));
                 if (last_advanced_tick != ticks) {
-                    if (lfo_mode != LFO_FREE && step != last_step) {
+                    if (!this->is_free_source() && step != last_step) {
                         // Period or time-signature changed (TICKS_PER_BAR is runtime-variable):
                         // resync accumulator to bar-aligned absolute position using
                         // BPM_PHASE_TICKS so the result is relative to the current time sig.
@@ -139,36 +188,32 @@ class VirtualParameterInput : public AnalogParameterInputBase<float> {
                 // changing it causes an intentional immediate phase shift.
                 const float frac = fmodf(phase_acc + locked_phase, 1.0f);
 
-                switch (lfo_mode) {
-                    case LFO_FREE:
-                    case LFO_LOCKED:
-                        last_sample = calculate_lfo(frac);
-                        break;
-                    case RAND:
-                        last_sample = input_type == BIPOLAR
-                            ? (float)random(-1000, 1000) / 1000.0f
-                            : (float)random(0, 1000) / 1000.0f;
-                        // if (sh_ticks == PPQN) Serial.printf("Tick %u, got random sample on beat %u: %3.3f", ticks, ticks / PPQN, last_sample);
-                        break;
-                    case LFO_LOCKED_TRIANGLE: {
-                        const float v = 1.0f - 2.0f * fabsf(frac - 0.5f);  // 0 at edges, 1 at mid
-                        last_sample = (input_type == BIPOLAR) ? (v * 2.0f - 1.0f) : v;
-                        break;
+                if (this->is_rand_source()) {
+                    last_sample = input_type == BIPOLAR
+                        ? (float)random(-1000, 1000) / 1000.0f
+                        : (float)random(0, 1000) / 1000.0f;
+                } else {
+                    switch (this->waveform_id) {
+                        case VIRTUAL_LFO_WAVE_SINE:
+                            last_sample = calculate_lfo(frac);
+                            break;
+                        case VIRTUAL_LFO_WAVE_TRIANGLE: {
+                            const float v = 1.0f - 2.0f * fabsf(frac - 0.5f);
+                            last_sample = (input_type == BIPOLAR) ? (v * 2.0f - 1.0f) : v;
+                            break;
+                        }
+                        case VIRTUAL_LFO_WAVE_SAW:
+                            last_sample = (input_type == BIPOLAR) ? (frac * 2.0f - 1.0f) : frac;
+                            break;
+                        case VIRTUAL_LFO_WAVE_SQUARE: {
+                            const float v = (frac < 0.5f) ? 1.0f : 0.0f;
+                            last_sample = (input_type == BIPOLAR) ? (v * 2.0f - 1.0f) : v;
+                            break;
+                        }
+                        default:
+                            last_sample = calculate_lfo(frac);
+                            break;
                     }
-                    case LFO_LOCKED_SAW:
-                        last_sample = (input_type == BIPOLAR) ? (frac * 2.0f - 1.0f) : frac;
-                        break;
-                    case LFO_LOCKED_RSAW: {
-                        const float v = 1.0f - frac;
-                        last_sample = (input_type == BIPOLAR) ? (v * 2.0f - 1.0f) : v;
-                        break;
-                    }
-                    case LFO_LOCKED_SQUARE: {
-                        const float v = (frac < 0.5f) ? 1.0f : 0.0f;
-                        last_sample = (input_type == BIPOLAR) ? (v * 2.0f - 1.0f) : v;
-                        break;
-                    }
-                    default: return 0.0f;
                 }
             }
             // if (sh_ticks == PPQN) Serial.printf("!! returning %3.3f !! on beat %u\n", last_sample, ticks / PPQN);
@@ -252,48 +297,47 @@ class VirtualParameterInput : public AnalogParameterInputBase<float> {
             virtual void setup_saveable_settings() override {
                 AnalogParameterInputBase::setup_saveable_settings();
 
-                // @@TODO: maybe figure out how/if we can set this up on the fly -- difficulty will be in updating the 
-                // UI controls dynamically when these settings change, but would be nice
-                // register_setting(
-                //     new LSaveableSetting<lfo_option_id>(
-                //         "LFO Mode",
-                //         "VirtualParameterInput",
-                //         &this->lfo_mode,
-                //         [=](lfo_option_id value) -> void {
-                //             this->lfo_mode = value;
-                //         },
-                //         [=](void) -> lfo_option_id {
-                //             return this->lfo_mode;
-                //         }
-                //     )
-                // );
+                // Type is immutable after creation. Only behavior-shaping settings are saveable.
+                if (!this->is_rand_source()) {
+                    register_setting(new LSaveableSetting<virtual_lfo_waveform_id>(
+                        "Waveform",
+                        "VirtualParameterInput",
+                        &this->waveform_id,
+                        [=](virtual_lfo_waveform_id value) -> void { this->set_waveform_id(value); },
+                        [=](void) -> virtual_lfo_waveform_id { return this->waveform_id; }
+                    ), SL_SCOPE_SCENE | SL_SCOPE_PROJECT);
+                }
 
-                register_setting(new VarSetting<lfo_option_id>(
-                        "LFO Mode",
-                        "VirtualParameterInput",
-                        &this->lfo_mode
-                    ), SL_SCOPE_SCENE | SL_SCOPE_PROJECT);
+                if (this->is_free_source()) {
+                    register_setting(new VarSetting<float>(
+                            "Free Sine Divisor",
+                            "VirtualParameterInput",
+                            &this->free_sine_divisor
+                        ), SL_SCOPE_SCENE | SL_SCOPE_PROJECT);
+                }
 
-                register_setting(new VarSetting<float>(
-                        "Locked Period",
-                        "VirtualParameterInput",
-                        &this->locked_period
-                    ), SL_SCOPE_SCENE | SL_SCOPE_PROJECT);
-                register_setting(new VarSetting<float>(
-                        "Locked Phase",
-                        "VirtualParameterInput",
-                        &this->locked_phase
-                    ), SL_SCOPE_SCENE | SL_SCOPE_PROJECT);
-                register_setting(new VarSetting<float>(
-                        "Free Sine Divisor",
-                        "VirtualParameterInput",
-                        &this->free_sine_divisor
-                    ), SL_SCOPE_SCENE | SL_SCOPE_PROJECT);
+                if (this->is_locked_source()) {
+                    register_setting(new VarSetting<float>(
+                            "Locked Period",
+                            "VirtualParameterInput",
+                            &this->locked_period
+                        ), SL_SCOPE_SCENE | SL_SCOPE_PROJECT);
+                }
+
+                if (!this->is_rand_source()) {
+                    register_setting(new VarSetting<float>(
+                            "Locked Phase",
+                            "VirtualParameterInput",
+                            &this->locked_phase
+                        ), SL_SCOPE_SCENE | SL_SCOPE_PROJECT);
+                }
+
                 register_setting(new VarSetting<uint32_t>(
                         "Sample&Hold Ticks",
                         "VirtualParameterInput",
                         &this->sh_ticks
                     ), SL_SCOPE_SCENE | SL_SCOPE_PROJECT);
+
             }
         #endif
 
@@ -303,3 +347,60 @@ class VirtualParameterInput : public AnalogParameterInputBase<float> {
         #endif
 
 };
+
+class FreeVirtualParameterInput : public VirtualParameterInput {
+    public:
+        FreeVirtualParameterInput(char *name, const char *group_name,
+                                  float free_sine_divisor = 100.0f,
+                                  virtual_lfo_waveform_id waveform_id = VIRTUAL_LFO_WAVE_SINE,
+                                  float locked_phase = 0.0f,
+                                  uint32_t sh_ticks = 0,
+                                  bool lightweight = false)
+            : VirtualParameterInput(name, group_name, LFO_FREE, 4.0f, locked_phase, sh_ticks, lightweight) {
+            this->waveform_id = waveform_id;
+            this->free_sine_divisor = free_sine_divisor;
+        }
+};
+
+class LockedVirtualParameterInput : public VirtualParameterInput {
+    public:
+        LockedVirtualParameterInput(char *name, const char *group_name,
+                                    virtual_lfo_waveform_id waveform_id = VIRTUAL_LFO_WAVE_SINE,
+                                    float locked_period = 4.0f,
+                                    float locked_phase = 0.0f,
+                                    uint32_t sh_ticks = 0,
+                                    bool lightweight = false)
+            : VirtualParameterInput(name, group_name, LFO_LOCKED, locked_period, locked_phase, sh_ticks, lightweight) {
+            this->waveform_id = waveform_id;
+        }
+};
+
+class RandomVirtualParameterInput : public VirtualParameterInput {
+    public:
+        RandomVirtualParameterInput(char *name, const char *group_name,
+                                    uint32_t sh_ticks = 0,
+                                    bool lightweight = false)
+            : VirtualParameterInput(name, group_name, RAND, 4.0f, 0.0f, sh_ticks, lightweight) {
+            this->waveform_id = VIRTUAL_LFO_WAVE_SINE;
+        }
+};
+
+inline VirtualParameterInput *makeVirtualParameterInput(
+    char *name,
+    const char *group_name,
+    lfo_option_id lfo_mode = LFO_LOCKED,
+    float locked_period = 4.0f,
+    float locked_phase = 0.0f,
+    uint32_t sh_ticks = 0,
+    bool lightweight = false
+) {
+    switch (lfo_mode) {
+        case LFO_FREE:
+            return new FreeVirtualParameterInput(name, group_name, 100.0f, VIRTUAL_LFO_WAVE_SINE, locked_phase, sh_ticks, lightweight);
+        case RAND:
+            return new RandomVirtualParameterInput(name, group_name, sh_ticks, lightweight);
+        case LFO_LOCKED:
+        default:
+            return new LockedVirtualParameterInput(name, group_name, VIRTUAL_LFO_WAVE_SINE, locked_period, locked_phase, sh_ticks, lightweight);
+    }
+}

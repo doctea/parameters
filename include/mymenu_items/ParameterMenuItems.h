@@ -37,7 +37,7 @@ class ParameterValueMenuItem : public DirectNumberControl<float> {
 
             //this->debug = true;
 
-            go_back_on_select = true;
+            flags.go_back_on_select = true;
             //this->minimumDataValue = parameter->minimumDataValue;
             //this->maximumDataValue = parameter->maximumDataValue;
             //this->step = 0.01;
@@ -258,7 +258,7 @@ class ParameterConnectionPolarityTypeSelectorControl : public SelectorControl<in
         this->parameter = parameter;
         this->slot_number = slot_number;
         this->actual_value_index = (*this->parameter)->connections[slot_number].polar_mode;
-        this->go_back_on_select = true;
+        this->flags.go_back_on_select = true;
     }
 
     virtual const char* get_label_for_value(int_least8_t index) override {
@@ -348,7 +348,7 @@ class ParameterConnectionPolarityTypeSelectorControl : public SelectorControl<in
         snprintf(msg, MENU_MESSAGE_MAX, "Set polarity to %i: %s", selected_value_index, get_label_for_value(selected_value_index));
         menu_set_last_message(msg, GREEN);
 
-        return go_back_on_select;
+        return flags.go_back_on_select;
     }
 
 };
@@ -379,7 +379,7 @@ class ParameterModSlotSHControl : public MenuItem {
 public:
     ParameterModSlotSHControl(const char *label, FloatParameter **parameter, byte slot_number)
         : MenuItem(label), parameter(parameter), slot_number(slot_number) {
-        this->go_back_on_select = true;
+        this->flags.go_back_on_select = true;
         overlay_value_buf[0] = '\0';
     }
 
@@ -497,7 +497,7 @@ public:
     }
     virtual bool button_select() override {
         // set_sh_mode((SHMode)((int(get_sh_mode()) + 1) % int(SH_MODE_COUNT)));
-        return go_back_on_select;
+        return flags.go_back_on_select;
     }
     virtual bool knob_left() override {
         const SHMode cur = get_sh_mode();
@@ -547,7 +547,7 @@ public:
             parameter_manager->available_inputs,
             initial_input
         );
-        source->go_back_on_select = true;
+        source->flags.go_back_on_select = true;
         this->add(source);
 
         // Amount control
@@ -602,7 +602,7 @@ class ParameterMenuItem : public SubMenuItemBarCustomProportions {
         this->add(new ParameterRangeMenuItem("Max", this->proxy_parameter, MAXIMUM));
         ParameterValueMenuItem *output = new ParameterValueMenuItem((char*)"Output", this->proxy_parameter);
         output->setReadOnly();
-        output->selectable = false;
+        output->flags.selectable = false;
         output->set_show_output_mode();
         this->add(output);
     }

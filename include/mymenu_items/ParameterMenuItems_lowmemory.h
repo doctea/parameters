@@ -225,7 +225,7 @@ class LowMemorySwitcherMenuItem : public MenuItem {
             this->parameters = parameters;
             this->parameter_selector = parameter_selector;
             this->default_fg = default_fg;
-            this->selectable = false;
+            this->flags.selectable = false;
             IF_MENU_PERF_PARTIAL_UPDATES(this->add_redraw_policy(REDRAW_ALWAYS);) // because we need to update the parameter pointer of the dependent controls when this is drawn, so we need to redraw whenever this is drawn
     }
 
@@ -254,7 +254,7 @@ class LowMemoryEmbedMenuItem : public MenuItem {
             this->parameter = parameter;
             //this->parameter_selector = parameter_selector;
             this->default_fg = default_fg;
-            this->selectable = false;
+            this->flags.selectable = false;
             IF_MENU_PERF_PARTIAL_UPDATES(this->add_redraw_policy(REDRAW_ALWAYS);) // because we need to update the parameter pointer of the dependent controls when this is drawn, so we need to redraw whenever this is drawn
     }
 

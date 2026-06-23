@@ -33,7 +33,7 @@
 
 //#include "mymenu_items/ParameterInputViewMenuItems.h"
 
-#include <LinkedList.h>
+#include <GenericList.h>
 #include "parameter_list.h"
 
 #include <profiling.h>
@@ -69,9 +69,9 @@ class ParameterManager
         bool (*save_system_settings_callback)() = nullptr;
         bool (*load_system_settings_callback)() = nullptr;
 
-        LinkedList<ADCDeviceBase*>      *devices = new LinkedList<ADCDeviceBase*>();  // actual i2c ADC devices, potentially with multiple channels
-        LinkedList<VoltageSourceBase*>  *voltage_sources = new LinkedList<VoltageSourceBase*>();  // voltage-measuring channels
-        LinkedList<BaseParameterInput*> *available_inputs = new LinkedList<BaseParameterInput*>();  // ParameterInputs, ie wrappers around input mechanism, assignable to a Parameter
+        GenericList<ADCDeviceBase*>      *devices = new GenericList<ADCDeviceBase*>();  // actual i2c ADC devices, potentially with multiple channels
+        GenericList<VoltageSourceBase*>  *voltage_sources = new GenericList<VoltageSourceBase*>();  // voltage-measuring channels
+        GenericList<BaseParameterInput*> *available_inputs = new GenericList<BaseParameterInput*>();  // ParameterInputs, ie wrappers around input mechanism, assignable to a Parameter
         ParameterList     *available_parameters = new ParameterList();        // Parameters, ie wrappers around destination object
 
         // Hashtable<String, BaseParameterInput*> *available_inputs_hash = nullptr; //= new Hashtable<String, BaseParameterInput*>();
@@ -117,7 +117,7 @@ class ParameterManager
             this->param_none = this->addParameter(new FloatParameter((char*)"None"));
         }
 
-        LinkedList<BaseParameterInput*> *get_available_pitch_inputs();
+        GenericList<BaseParameterInput*> *get_available_pitch_inputs();
         FLASHMEM ADCDeviceBase *addADCDevice(ADCDeviceBase *device);
         FLASHMEM VoltageSourceBase *addVoltageSource(VoltageSourceBase *voltage_source);
         //FLASHMEM 
@@ -204,7 +204,7 @@ class ParameterManager
         }
         /*FASTRUN int getPitchInputIndex(BaseParameterInput *param) {
             if (param==nullptr) return -1;
-            LinkedList<BaseParameterInput*> *pitch_inputs = this->get_available_pitch_inputs();
+            GenericList<BaseParameterInput*> *pitch_inputs = this->get_available_pitch_inputs();
             const unsigned int size = pitch_inputs->size();
             for (unsigned int i = 0 ; i < size ; i++) {
                 if (param==pitch_inputs->get(i))
@@ -1000,7 +1000,7 @@ extern ParameterManager *parameter_manager;
   #ifdef ENABLE_CV_OUTPUT
     #include "mymenu_items/OscillatorTuningControls.h"
     inline void ParameterManager::addOscillatorTuningMenuItems(Menu *menu) {
-        LinkedList<CVOutputParameterBase *> *outputs = new LinkedList<CVOutputParameterBase *>();
+        GenericList<CVOutputParameterBase *> *outputs = new GenericList<CVOutputParameterBase *>();
         for (auto* p : *this->available_parameters) {
             CVOutputParameterBase *cvp = p->as_cv_output_base();
             if (cvp != nullptr)

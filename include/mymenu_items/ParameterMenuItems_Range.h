@@ -25,7 +25,7 @@ class ParameterRangeMenuItem : public DirectNumberControl<float> {
             }
             this->range_type = range_type;
 
-            go_back_on_select = true;
+            flags.go_back_on_select = true;
             //this->minimumDataValue = parameter->minimumDataValue;
             //this->maximumDataValue = parameter->maximumDataValue;
             //this->step = 0.01;
@@ -143,7 +143,7 @@ class ParameterRangeMenuItem : public DirectNumberControl<float> {
             //Serial.printf("ParameterRangeMenuItem#button_select - internal value is %3.3f!\n", this->get_internal_value());
             //this->change_value(this->get_internal_value());
 
-            return go_back_on_select;
+            return flags.go_back_on_select;
         }
 
         virtual void change_value(float new_value) override {    // doesn't override, implements for normalled float?

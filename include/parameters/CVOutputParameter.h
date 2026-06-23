@@ -480,7 +480,7 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
                     false
                 );
             input->setReadOnly(true);
-            input->selectable = false;
+            input->flags.selectable = false;
             bar2->add(input );               
 
             SubMenuItem *bar3 = new SubMenuItemBar("Settings", true, false);

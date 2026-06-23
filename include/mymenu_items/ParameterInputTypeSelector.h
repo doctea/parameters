@@ -13,7 +13,7 @@ class InputTypeSelectorControl : public SelectorControl<int_least16_t> {
         this->target = target;
         actual_value_index = *target;
         this->selected_value_index = this->actual_value_index = this->getter();
-        this->go_back_on_select = true;
+        this->flags.go_back_on_select = true;
     };
 
     virtual const char* get_label_for_value(int_least16_t index) override {
@@ -95,7 +95,7 @@ class InputTypeSelectorControl : public SelectorControl<int_least16_t> {
         //msg[tft->get_c_max()] = '\0'; // limit the string so we don't overflow set_last_message
         menu_set_last_message(msg, GREEN);
 
-        return go_back_on_select;
+        return flags.go_back_on_select;
     }
 
 };
