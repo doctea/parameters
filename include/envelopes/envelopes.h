@@ -205,7 +205,7 @@ class EnvelopeBase
 
     #ifdef ENABLE_SCREEN
         FLASHMEM
-        virtual void make_menu_items(Menu *menu, int index);
+        virtual void make_menu_items(Menu *menu, int index, const char *group_name = "Envelopes");
     #endif
 
     #ifdef ENABLE_PARAMETERS
@@ -476,7 +476,7 @@ class RegularEnvelope : public EnvelopeBase {
 
     #ifdef ENABLE_SCREEN
         FLASHMEM
-        virtual void make_menu_items(Menu *menu, int index) override;
+        virtual void make_menu_items(Menu *menu, int index, const char *group_name = "Envelopes") override;
     #endif
 
     #ifdef ENABLE_STORAGE

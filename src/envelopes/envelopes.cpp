@@ -15,18 +15,18 @@ stage_t operator++ (stage_t& d) {
     #include "mymenu_items/menuitems_envelopegraph.h"
 
     FLASHMEM
-    void EnvelopeBase::make_menu_items(Menu *menu, int index) {
+    void EnvelopeBase::make_menu_items(Menu *menu, int index, const char *group_name = "Envelopes") {
         char label[40];
         snprintf(label, 40, "%s Env", this->label);
-        menu->add_page(label, C_WHITE, false, "Envelopes");
+        menu->add_page(label, C_WHITE, false, group_name);
 
         menu->add(new EnvelopeDisplay("Graph", this));
         menu->add(new EnvelopeIndicator("Indicator", this));
     }
 
     FLASHMEM
-    void RegularEnvelope::make_menu_items(Menu *menu, int index) {
-        EnvelopeBase::make_menu_items(menu, index);
+    void RegularEnvelope::make_menu_items(Menu *menu, int index, const char *group_name) {
+        EnvelopeBase::make_menu_items(menu, index, group_name);
         //#ifdef ENABLE_ENVELOPE_MENUS
             //menu->add(new EnvelopeDisplay("Graph", this));
             //menu->add(new EnvelopeIndicator("Indicator", this));
@@ -60,8 +60,8 @@ stage_t operator++ (stage_t& d) {
     }
 
     FLASHMEM
-    void Weirdolope::make_menu_items(Menu *menu, int index) {
-        EnvelopeBase::make_menu_items(menu, index);
+    void Weirdolope::make_menu_items(Menu *menu, int index, const char *group_name) {
+        EnvelopeBase::make_menu_items(menu, index, group_name);
 
         /*SubMenuItemBar *sub_menu_item_columns = new SubMenuItemBar("Options");
         sub_menu_item_columns->flags.show_header = false;

@@ -199,6 +199,7 @@ class FloatParameter : public BaseParameter {
         }
         uint32_t delta = millis() - last_slewed_at;
         last_slewed_at = millis();
+        if (delta > 50) delta = 50;  // cap delta to prevent huge slew steps after idle gaps between notes // TODO: check if this is actually necessary
 
         if (debug && Serial) Serial.printf("%s#get_slewed_value() - slewing enabled, slew_rate is %3.3f, slew_rate_normal is %3.3f\n", this->label, this->slew_rate, this->slew_rate_normal);
 

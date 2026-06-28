@@ -295,7 +295,7 @@ class Weirdolope : public EnvelopeBase {
 
     #ifdef ENABLE_SCREEN
         FLASHMEM
-        virtual void make_menu_items(Menu *menu, int index) override;
+        virtual void make_menu_items(Menu *menu, int index, const char *group_name = "Borolope") override;
     #endif
 
     #ifdef ENABLE_STORAGE
