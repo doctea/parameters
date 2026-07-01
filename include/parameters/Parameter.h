@@ -30,6 +30,8 @@
 
 #ifdef USE_ARX_TYPE_TRAITS
     #include <ArxTypeTraits.h>
+#else
+    #include <type_traits>
 #endif
 
 #include "debug.h"
@@ -643,7 +645,13 @@ class DataParameterBase : public FloatParameter {
                 Serial.printf(",\trange is %3.3f to %3.3f ", (float)this->get_effective_minimum_data_value(), (float)this->get_effective_maximum_data_value());
             }
             value = this->constrainNormal(value);
-            DataType data = this->get_effective_minimum_data_value() + (value * (float)(this->get_effective_maximum_data_value() - this->get_effective_minimum_data_value()));
+            float scaled = value * (float)(this->get_effective_maximum_data_value() - this->get_effective_minimum_data_value());
+            // For integer DataTypes, round instead of truncate to avoid float precision errors
+            // (e.g. 7/23 * 23 may evaluate to 6.9999... which truncates to 6 instead of 7).
+            // For float DataTypes the branch is a no-op and will be optimised away by the compiler.
+            if (std::is_integral<DataType>::value)
+                scaled = roundf(scaled);
+            DataType data = this->get_effective_minimum_data_value() + (DataType)scaled;
             //if (this->debug/* && value>=0.0f*/) if (Serial) Serial.printf(" => %i\n", data);
             if (this->debug && Serial) Serial.printf(" => %3.3f\n", (float)data);
             return data;
