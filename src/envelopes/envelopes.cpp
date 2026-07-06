@@ -15,7 +15,7 @@ stage_t operator++ (stage_t& d) {
     #include "mymenu_items/menuitems_envelopegraph.h"
 
     FLASHMEM
-    void EnvelopeBase::make_menu_items(Menu *menu, int index, const char *group_name = "Envelopes") {
+    void EnvelopeBase::make_menu_items(Menu *menu, int index, const char *group_name) {
         char label[40];
         snprintf(label, 40, "%s Env", this->label);
         menu->add_page(label, C_WHITE, false, group_name);
