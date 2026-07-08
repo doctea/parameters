@@ -156,6 +156,7 @@ FLASHMEM MenuItemList *FloatParameter::makeControls() {
                     }
                 }
 
+                // todo: check connection mode and use += or *= as appropriate
                 modulation += nml * this->connections[i].amount;
                 number_of_modulations++;
             }
