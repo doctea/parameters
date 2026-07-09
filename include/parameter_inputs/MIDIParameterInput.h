@@ -118,7 +118,7 @@ class MIDICCParameterInput : public MIDIParameterInputBase {
 
 
 // basically the same as a MIDIParameterInput, but for pitch bend events, which are 14-bit values (0-16383) instead of 7-bit (0-127)
-// TODO: implement this properly, and add a MIDI_PitchBend_Source class to handle pitch bend events and update any registered MIDIPitchBendParameterInput objects
+// TODO: add a way to specify the pitch bend range (in semitones) for this input, so that it can be converted to a bipolar value in volts/octave or Hz
 class MIDIPitchBendParameterInput : public MIDIParameterInputBase {
     public:
         int8_t channel = 0;       // channel to listen to; 0 == omni
