@@ -844,7 +844,11 @@ class ParameterManager
         }
 
         // handle slicing stages of update and throttling updates - also update mixers
-        FASTRUN void throttled_update_cv_input__all(int time_between_cv_input_updates = TIME_BETWEEN_CV_INPUT_UPDATES, bool slice_stages = false, bool slice_mixers = false) {
+        FASTRUN void throttled_update_cv_input__all(
+            int time_between_cv_input_updates = TIME_BETWEEN_CV_INPUT_UPDATES, 
+            bool slice_stages = false, 
+            bool slice_mixers = false
+    ) {
             {
                 if (ready_for_next_update(time_between_cv_input_updates)) {
                     if (slice_stages) {
@@ -910,6 +914,7 @@ class ParameterManager
         };
         // todo: allow to enable only parameters or only inputs
         FASTRUN void output_parameter_representation(int columns = 100, int8_t mode = GRAPH_PARAMETER | VALUE_INPUT) {
+        // FASTRUN void output_parameter_representation(int columns = 100, int8_t mode = VALUE_PARAMETER | VALUE_INPUT) {
             // don't bother if serial isn't connected
             if (!Serial)
                 return;
@@ -927,7 +932,11 @@ class ParameterManager
                 for (auto* p : *this->available_parameters) {
                     if (strcmp(p->label,"None")==0) { ++i; continue; }
                     float v = p->getLastModulatedNormalValue();
-                    int pos = constrain((float)columns * v, 0, columns-1);
+                    // Normalize to [0,1] using the parameter's actual range so that
+                    // parameters with a negative minimum (e.g. [-1,1]) display correctly.
+                    float range = p->maximumNormalValue - p->minimumNormalValue;
+                    float normalized = (range > 0.0f) ? (v - p->minimumNormalValue) / range : 0.5f;
+                    int pos = constrain((int)((float)columns * normalized), 0, columns-1);
                     line[pos] = '0' +  (i % '9');
                     ++i;
                 }
@@ -950,7 +959,7 @@ class ParameterManager
                 unsigned int i = 0;
                 for (auto* p : *this->available_parameters) {
                     if (strcmp(p->label,"None")==0) { ++i; continue; }
-                    Serial.printf("%c=%s=%1.3f\t", '0'+i, p->label, p->getLastModulatedNormalValue());                
+                    Serial.printf("%c=%s=%1.3f=%s\t", '0'+i, p->label, p->getLastModulatedNormalValue(), p->getFormattedLastOutputValue());
                     ++i;
                 }
             }

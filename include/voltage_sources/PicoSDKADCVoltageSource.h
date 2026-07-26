@@ -18,7 +18,7 @@ class WorkshopVoltageSourceBase : public ADSVoltageSourceBase {
         // correction_value_1/2 inherited from ADSVoltageSourceBase (defaults: 1.0, 0.0 set below)
 
         WorkshopVoltageSourceBase(int global_slot, float maximum_input_voltage = 5.0, bool supports_pitch = false) 
-            : ADSVoltageSourceBase(global_slot, maximum_input_voltage, supports_pitch) {
+            : ADSVoltageSourceBase(global_slot, 0.0f, maximum_input_voltage, supports_pitch) {
             // Identity correction by default (no distortion on Workshop ADC assumed).
             this->correction_value_1 = 1.0f;
             this->correction_value_2 = 0.0f;
@@ -189,32 +189,33 @@ class ComputerCardVoltageSource : public WorkshopVoltageSourceBase {
             #endif
 
             real_value = adcReading;
-            if (this->debug) {
-                Serial.printf("ComputerCardVoltageSource channel %i read ADC value %i\t :", channel, adcReading); Serial_flush();
-            }
-
-            if (channel > 3) {
-                //adcReading *= 2; // scale up the CV inputs to match the -6 to +6V range of the CV inputs
-                // todo: fix this properly?
-                //adcReading += 2047; // 0-5V range
-            }
-
-            float voltageFromAdc = this->adcread_to_voltage(adcReading);
-
             if (this->debug && Serial) {
-                Serial.printf("WorkshopVoltageSource channel %i read ADC voltageFromAdc %i\t :", channel, adcReading); Serial_flush();
+                Serial.printf("ComputerCardVoltageSource channel %i read ADC value %i\n", channel, adcReading); Serial_flush();
             }
+
+            // Bipolar channels (CV/Audio, ch >= 4): signed ±2048 ADC value.
+            //   Negate so positive physical input → positive voltage, matching the unipolar
+            //   convention. This makes inverted=true on VoltageParameterInput the user-facing
+            //   polarity control rather than a hardware correction.
+            //   Scale to ±maximum_input_voltage so get_voltage_normal() returns -1.0..+1.0.
+            // Unipolar channels (knobs/switch, ch < 4): 0-4095 ADC value → 0..max voltage.
+            //   Hardware is inverted (fully CCW = max ADC), so subtract from max to restore
+            //   the natural low→high direction.
+            const bool bipolar = (channel >= 4);
+            float voltageFromAdc = bipolar
+                ? -float(adcReading) * (maximum_input_voltage / 2048.0f)
+                : this->adcread_to_voltage(adcReading);
 
             float voltageCorrected = this->get_corrected_voltage(voltageFromAdc);
 
             if (this->debug && Serial) {
-                Serial.print(F(" after correction stage 2 got "));
-                Serial.println(voltageCorrected);
+                Serial.printf("  voltageFromAdc=%f  voltageCorrected=%f  returning=%f\n",
+                    voltageFromAdc, voltageCorrected,
+                    bipolar ? voltageCorrected : (maximum_input_voltage - voltageCorrected));
+                Serial_flush();
             }
 
-            if (this->debug && Serial) Serial.printf("in WorkshopVoltageSource#fetch_current_voltage() finishing!! (and returning %f)\n", voltageCorrected);
-
-            return maximum_input_voltage - voltageCorrected;
+            return bipolar ? voltageCorrected : (maximum_input_voltage - voltageCorrected);
         }
 
         virtual float adcread_to_voltage(int16_t adcReading) {
