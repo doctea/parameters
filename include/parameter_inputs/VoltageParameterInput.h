@@ -50,6 +50,9 @@ class VoltageParameterInput
                 Debug_printf("%c#get_voltage_pitch() has no voltage_source?!", this->name); Serial_flush();
                 return 0.0;
             } else {
+                if (this->inverted) {
+                    return this->voltage_source->maximum_input_voltage - this->voltage_source->get_voltage();
+                }
                 return this->voltage_source->get_voltage();
             }
         }

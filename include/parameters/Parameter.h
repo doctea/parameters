@@ -1177,35 +1177,6 @@ class DataParameter : public DataParameterBase<DataType> {
 
 };
 
-// DataParameter that uses a labelled_value_list_t to display values for the parameter
-template<class DataType = float>
-class LabeledDataParameter : public DataParameterBase<DataType> {
-    public:
-    labelled_value_list_t<DataType> *labelled_value_list = nullptr;
-
-    LabeledDataParameter(const char *label, labelled_value_list_t<DataType> *labelled_value_list) 
-        : DataParameterBase<DataType>(label) {
-        this->labelled_value_list = labelled_value_list;
-    }
-    LabeledDataParameter(const char *label, labelled_value_list_t<DataType> *labelled_value_list, DataType initial_value_normal) 
-        : LabeledDataParameter<DataType>(label, labelled_value_list) {
-        this->initialNormalValue = initial_value_normal;
-    }
-    LabeledDataParameter(const char *label, labelled_value_list_t<DataType> *labelled_value_list, DataType initial_value_normal, DataType minimumDataValue, DataType maximumDataValue) 
-        : LabeledDataParameter<DataType>(label, labelled_value_list, initial_value_normal) {
-        this->minimumDataLimit = this->minimumDataRange = minimumDataValue;
-        this->maximumDataLimit = this->maximumDataRange = maximumDataValue;
-    }
-
-    virtual const char *parseFormattedDataType(DataType value) override {
-        if (this->labelled_value_list!=nullptr) {
-            return this->labelled_value_list->get_label_for_value(value);
-        } else {
-            return DataParameterBase<DataType>::parseFormattedDataType(value);
-        }
-    }
-
-};
 
 
 #include "functional-vlpp.h"
@@ -1274,31 +1245,69 @@ class LDataParameter : public DataParameterBase<DataType> {
 };
 
 
-template<class DataType = float>
-class LabelledLDataParameter : public LDataParameter<DataType> {
-    public:
-    labelled_value_list_t<DataType> *labelled_value_list = nullptr;
+#ifdef ENABLE_SCREEN
 
-    LabelledLDataParameter(const char *label, labelled_value_list_t<DataType> *labelled_value_list) 
-        : LDataParameter<DataType>(label) {
-        this->labelled_value_list = labelled_value_list;
-    }
-    LabelledLDataParameter(const char *label, labelled_value_list_t<DataType> *labelled_value_list, DataType initial_value_normal) 
-        : LabelledLDataParameter<DataType>(label, labelled_value_list) {
-        this->initialNormalValue = initial_value_normal;
-    }
-    LabelledLDataParameter(const char *label, labelled_value_list_t<DataType> *labelled_value_list, DataType initial_value_normal, DataType minimumDataValue, DataType maximumDataValue) 
-        : LabelledLDataParameter<DataType>(label, labelled_value_list, initial_value_normal) {
-        this->minimumDataLimit = this->minimumDataRange = minimumDataValue;
-        this->maximumDataLimit = this->maximumDataRange = maximumDataValue;
-    }
+    // TODO: are these two classes actually used anywhere? If not, remove them.
+    // they seem to be identical, and neither actually supports lambda callbacks in the constructor...!
 
-    virtual const char *parseFormattedDataType(DataType value) override {
-        if (this->labelled_value_list!=nullptr) {
-            return this->labelled_value_list->get_label_for_value(value);
-        } else {
-            return LDataParameter<DataType>::parseFormattedDataType(value);
+    // DataParameter that uses a labelled_value_list_t to display values for the parameter
+    // only makes sense to use if screen is enabled?
+    // not actually sure which projects this is used in?
+    template<class DataType = float>
+    class LabeledDataParameter : public DataParameterBase<DataType> {
+        public:
+        labelled_value_list_t<DataType> *labelled_value_list = nullptr;
+
+        LabeledDataParameter(const char *label, labelled_value_list_t<DataType> *labelled_value_list) 
+            : DataParameterBase<DataType>(label) {
+            this->labelled_value_list = labelled_value_list;
         }
-    }
+        LabeledDataParameter(const char *label, labelled_value_list_t<DataType> *labelled_value_list, DataType initial_value_normal) 
+            : LabeledDataParameter<DataType>(label, labelled_value_list) {
+            this->initialNormalValue = initial_value_normal;
+        }
+        LabeledDataParameter(const char *label, labelled_value_list_t<DataType> *labelled_value_list, DataType initial_value_normal, DataType minimumDataValue, DataType maximumDataValue) 
+            : LabeledDataParameter<DataType>(label, labelled_value_list, initial_value_normal) {
+            this->minimumDataLimit = this->minimumDataRange = minimumDataValue;
+            this->maximumDataLimit = this->maximumDataRange = maximumDataValue;
+        }
 
-};
+        virtual const char *parseFormattedDataType(DataType value) override {
+            if (this->labelled_value_list!=nullptr) {
+                return this->labelled_value_list->get_label_for_value(value);
+            } else {
+                return DataParameterBase<DataType>::parseFormattedDataType(value);
+            }
+        }
+    };
+
+    template<class DataType = float>
+    class LabelledLDataParameter : public LDataParameter<DataType> {
+        public:
+        labelled_value_list_t<DataType> *labelled_value_list = nullptr;
+
+        LabelledLDataParameter(const char *label, labelled_value_list_t<DataType> *labelled_value_list) 
+            : LDataParameter<DataType>(label) {
+            this->labelled_value_list = labelled_value_list;
+        }
+        LabelledLDataParameter(const char *label, labelled_value_list_t<DataType> *labelled_value_list, DataType initial_value_normal) 
+            : LabelledLDataParameter<DataType>(label, labelled_value_list) {
+            this->initialNormalValue = initial_value_normal;
+        }
+        LabelledLDataParameter(const char *label, labelled_value_list_t<DataType> *labelled_value_list, DataType initial_value_normal, DataType minimumDataValue, DataType maximumDataValue) 
+            : LabelledLDataParameter<DataType>(label, labelled_value_list, initial_value_normal) {
+            this->minimumDataLimit = this->minimumDataRange = minimumDataValue;
+            this->maximumDataLimit = this->maximumDataRange = maximumDataValue;
+        }
+
+        virtual const char *parseFormattedDataType(DataType value) override {
+            if (this->labelled_value_list!=nullptr) {
+                return this->labelled_value_list->get_label_for_value(value);
+            } else {
+                return LDataParameter<DataType>::parseFormattedDataType(value);
+            }
+        }
+
+    };
+
+#endif

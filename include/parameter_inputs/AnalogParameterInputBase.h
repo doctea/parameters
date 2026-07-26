@@ -36,6 +36,9 @@ class AnalogParameterInputBase : public ParameterInput {
         Debug_printf(F("%s: SET INVERTED on an AnalogParameterInput!"), this->name);
       #endif
     }
+    virtual bool supports_inverted() {
+      return true;
+    }
 
     virtual void loop () override {
       read();

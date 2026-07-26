@@ -159,7 +159,10 @@ void ParameterManager::process_calibration() {
                     quickjump->add_page(menu->get_selected_page());
             }
             //this->addParameterInputMenuItems(menu, parameter_input, label); //label_prefix);
-            parameter_input->makeControls(label);
+            SubMenuItem *submenu = parameter_input->makeControls(label);
+            if (submenu != nullptr) {
+                menu->add(submenu);
+            }
         }
     }
 

@@ -55,17 +55,19 @@ barlock_option_t barlock_options[BARLOCK_NUM_MODES] = {
         this->parameter_input_display = parameter_input_display;
         menu->add(parameter_input_display);
 
-        if (this->supports_bipolar_input()) {
-            SubMenuItemBar *submenu = new SubMenuItemBar("Further options", true);
-            submenu->flags.show_header = false;
+        if (this->supports_bipolar_input() || this->supports_inverted()) {
+            SubMenuItemBar *submenu = new SubMenuItemBar("Input type", true, true);
             submenu->default_fg = this->colour;
-            // inputs now rely on their parameter to choose whether to use polar or bipolar version
-            InputTypeSelectorControl<> *type_selector = new InputTypeSelectorControl<>("Polarity", &this->input_type);
-            type_selector->default_fg = this->colour;
-            //type_selector->flags.show_header = false;
-            submenu->add(type_selector);
+            submenu->flags.show_header = false;
 
-            // todo: invert should probably be valid even for non-bipolar inputs?
+            if (this->supports_bipolar_input()) {
+                // inputs now rely on their parameter to choose whether to use polar or bipolar version
+                InputTypeSelectorControl<> *type_selector = new InputTypeSelectorControl<>("Polarity", &this->input_type);
+                type_selector->default_fg = this->colour;
+                //type_selector->flags.show_header = false;
+                submenu->add(type_selector);
+            }
+
             if (this->supports_inverted()) {
                 submenu->add(new LambdaToggleControl(
                     "Invert", 
@@ -74,10 +76,9 @@ barlock_option_t barlock_options[BARLOCK_NUM_MODES] = {
                 ));
             }
 
-            menu->add(submenu); // Input type
-
             return submenu;
         }
+
         // todo: maybe add options for inverted, rectified, etc?
         return nullptr;
     }
@@ -93,6 +94,15 @@ barlock_option_t barlock_options[BARLOCK_NUM_MODES] = {
         if (lightweight) return nullptr;
 
         SubMenuItemBar *submenu = BaseParameterInput::makeControls(label_prefix);
+
+        // if submenu is nullptr, makeControls() probably returned nothing because the input
+        // doesn't support inverted or bipolar, so we need to create a new submenu for the rest of the controls
+        if (submenu == nullptr) {
+            char label[MENU_C_MAX];
+            snprintf(label, MENU_C_MAX, "%s%s", label_prefix, this->name);
+            submenu = new SubMenuItemBar(label, true, true);
+            submenu->default_fg = this->colour;
+        }
 
         // Shape selector: available for both FREE and LOCKED (everything except RAND).
         if (!this->is_rand_source()) {

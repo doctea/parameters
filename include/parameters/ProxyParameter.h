@@ -73,27 +73,34 @@ class ProxyParameter : public DataParameterBase<DataType>
     #endif       
 };
 
-// ProxyParameter that uses a labelled_value_list_t to provide labels for the values
-template<class DataType=int8_t>
-class ProxyLabelledParameter : public ProxyParameter<DataType> {
+#ifdef ENABLE_SCREEN
+    // ProxyParameter that uses a labelled_value_list_t to provide labels for the values
+    template<class DataType=int8_t>
+    class ProxyLabelledParameter : public ProxyParameter<DataType> {
 
-    labelled_value_list_t<DataType> *value_labels = nullptr;
+        labelled_value_list_t<DataType> *value_labels = nullptr;
 
-    public:
-    ProxyLabelledParameter(const char *label, DataType *source, DataType *target, labelled_value_list_t<DataType> *value_labels)
-        : ProxyParameter<DataType>(label, source, target, value_labels->minimum_value(), value_labels->maximum_value()) {
-            this->value_labels = value_labels;
+        public:
+        ProxyLabelledParameter(const char *label, DataType *source, DataType *target, labelled_value_list_t<DataType> *value_labels)
+            : ProxyParameter<DataType>(label, source, target, value_labels->minimum_value(), value_labels->maximum_value()) {
+                this->value_labels = value_labels;
+            }
+        ProxyLabelledParameter(const char *label, ProxiedValue<DataType> *value, labelled_value_list_t<DataType> *value_labels)
+            : ProxyLabelledParameter<DataType>(label, &value->source, &value->effective, value_labels) {
+            }
+
+        virtual const char* parseFormattedDataType(int value) override {
+            static char buf[MENU_C_MAX];
+            snprintf(buf, MENU_C_MAX, "%s", value_labels->get_label_for_value(value));
+            return buf;
         }
-    ProxyLabelledParameter(const char *label, ProxiedValue<DataType> *value, labelled_value_list_t<DataType> *value_labels)
-        : ProxyLabelledParameter<DataType>(label, &value->source, &value->effective, value_labels) {
-        }
-
-    virtual const char* parseFormattedDataType(int value) override {
-        static char buf[MENU_C_MAX];
-        snprintf(buf, MENU_C_MAX, "%s", value_labels->get_label_for_value(value));
-        return buf;
-    }
-};
+    };
+#else 
+    // ProxyLabelledParameter is only available if ENABLE_SCREEN is defined
+    // otherwise, substitute it for a version that doesn't care about the labels
+    template<class DataType=int8_t>
+    using ProxyLabelledParameter = ProxyParameter<DataType>;
+#endif
 
 #ifdef ENABLE_SCALES
 
