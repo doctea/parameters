@@ -230,11 +230,19 @@ class ComputerCardVoltageSource : public WorkshopVoltageSourceBase {
 
         // Returns pre-correction intermediate voltage for calibration.
         // Uses real_value (cached by fetch_current_voltage) to avoid re-running the channel switch.
-        // Model: corrected = cv1 * adcread_to_voltage(raw_adc) + cv2
+        // For bipolar channels (ch >= 4) real_value is signed ±2048, so we must use the same
+        // ±max/2048 scale as fetch_current_voltage() — not the unipolar 4095 divisor.
         // compute_calibration() is inherited from ADSVoltageSourceBase (linear OLS model).
         virtual float fetch_calibration_sample() override {
             fetch_current_voltage();  // refresh real_value
+            if (channel >= 4)
+                return -float(real_value) * (maximum_input_voltage / 2048.0f);
             return adcread_to_voltage(real_value);
+        }
+
+        // Calibration sweep range: bipolar channels span -max..+max, unipolar span 0..max.
+        virtual float get_default_calib_start() const override {
+            return (channel >= 4) ? -maximum_input_voltage : minimum_input_voltage;
         }
 
 };

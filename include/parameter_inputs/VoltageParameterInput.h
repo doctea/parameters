@@ -51,6 +51,10 @@ class VoltageParameterInput
                 return 0.0;
             } else {
                 if (this->inverted) {
+                    // Bipolar sources span -max..+max; negate to invert direction.
+                    // Unipolar sources span 0..max; subtract from max to flip.
+                    if (this->input_type == BIPOLAR)
+                        return -this->voltage_source->get_voltage();
                     return this->voltage_source->maximum_input_voltage - this->voltage_source->get_voltage();
                 }
                 return this->voltage_source->get_voltage();
