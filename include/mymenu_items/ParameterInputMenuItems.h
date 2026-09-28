@@ -36,7 +36,7 @@ class ParameterInputSelectorControl : public SelectorControl<int_least16_t> {
     }
 
     bool is_valid_value_index(int index) const {
-        return index>=0 && index<(int)this->num_values;
+        return index>=0 && index<=this->get_none_index();
     }
 
     int get_sanitised_index(int index) const {
@@ -104,7 +104,7 @@ class ParameterInputSelectorControl : public SelectorControl<int_least16_t> {
     }
 
     int wrap_index(int index) {
-        const int count = (int)this->num_values;
+        const int count = this->get_none_index() + 1;
         if (count<=0)
             return 0;
         while (index < 0)
@@ -131,7 +131,7 @@ class ParameterInputSelectorControl : public SelectorControl<int_least16_t> {
         this->target_object = target_object;
         this->setter_func = setter_func;
         this->getter_func = getter_func;
-        this->num_values = available_parameter_inputs->size() + 1;  // + 1 for None optino .. 
+        this->num_values = this->get_none_index() + 1;  // + 1 for None option; refreshed live by get_num_values()
     };
     ParameterInputSelectorControl(
         const char *label, 
@@ -144,6 +144,12 @@ class ParameterInputSelectorControl : public SelectorControl<int_least16_t> {
     ) : ParameterInputSelectorControl(label, *proxy_target_object, setter_func, getter_func, available_parameter_inputs, initial_parameter_input, show_values) {
         this->proxy_target_object = proxy_target_object;
     };
+
+    // inputs can still be registered after this control is constructed, so never rely on the cached count
+    virtual int get_num_values() override {
+        this->num_values = this->get_none_index() + 1;
+        return (int)this->num_values;
+    }
 
     virtual void configure (GenericList<BaseParameterInput*> *available_parameter_inputs) {
         this->available_parameter_inputs = available_parameter_inputs;

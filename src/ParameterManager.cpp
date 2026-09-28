@@ -87,6 +87,13 @@ BaseParameterInput *ParameterManager::addInput(BaseParameterInput *input) {
 
 FLASHMEM FloatParameter *ParameterManager::addParameter(FloatParameter *parameter) {
     Debug_printf("ParameterManager#addParameter(%p), labeled '%s'\n", parameter, parameter->label);
+
+    // check if the parameter is already in the list
+    for (auto* p : *this->available_parameters) {
+        if (p == parameter) 
+            return parameter;
+    }
+
     this->available_parameters->add(parameter);
     return parameter;
 }
