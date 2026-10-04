@@ -150,6 +150,11 @@ class BaseParameterInput
     }
 
     #ifdef ENABLE_STORAGE
+      // Return true if this input's saveable host is already registered elsewhere in the tree, so ParameterManager won't register it again.
+      virtual bool is_saveable_host_owned_elsewhere() {
+        return false;
+      }
+
       virtual void setup_saveable_settings() override {
         ISaveableSettingHost::setup_saveable_settings();
 

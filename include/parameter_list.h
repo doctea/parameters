@@ -45,4 +45,13 @@ public:
     FloatParameter** end()   { return _items + _count; }
     FloatParameter* const* begin() const { return _items; }
     FloatParameter* const* end()   const { return _items + _count; }
+
+    FloatParameter* getByName(const char *name) const {
+        for (uint16_t i = 0; i < _count; ++i) {
+            if (_items[i] && strcmp(_items[i]->label, name) == 0) {
+                return _items[i];
+            }
+        }
+        return nullptr;
+    }
 };

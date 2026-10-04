@@ -785,6 +785,7 @@ class ParameterManager
 
                 uint_fast8_t input_idx = 0;
                 for (auto* input : *available_inputs) {
+                    if (input->is_saveable_host_owned_elsewhere()) continue;
                     // if (Serial) Serial.printf("      register_child(input[%u]) before: %u\n", (unsigned)input_idx, (unsigned)freeRam());
                     this->register_child(input);
                     // if (Serial) Serial.printf("      register_child(input[%u]) after: %u\n", (unsigned)input_idx, (unsigned)freeRam());
