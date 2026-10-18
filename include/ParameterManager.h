@@ -932,7 +932,7 @@ class ParameterManager
                 unsigned int i = 0;
                 for (auto* p : *this->available_parameters) {
                     if (strcmp(p->label,"None")==0) { ++i; continue; }
-                    float v = p->getLastModulatedNormalValue();
+                    float v = p->getLastOutputNormalValue();
                     // Normalize to [0,1] using the parameter's actual range so that
                     // parameters with a negative minimum (e.g. [-1,1]) display correctly.
                     float range = p->maximumNormalValue - p->minimumNormalValue;
@@ -960,7 +960,7 @@ class ParameterManager
                 unsigned int i = 0;
                 for (auto* p : *this->available_parameters) {
                     if (strcmp(p->label,"None")==0) { ++i; continue; }
-                    Serial.printf("%c=%s=%1.3f=%s\t", '0'+i, p->label, p->getLastModulatedNormalValue(), p->getFormattedLastOutputValue());
+                    Serial.printf("%c=%s=%1.3f=%s\t", '0'+i, p->label, p->getLastOutputNormalValue(), p->getFormattedLastOutputValue());
                     ++i;
                 }
             }
