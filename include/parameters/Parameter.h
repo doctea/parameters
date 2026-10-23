@@ -1244,6 +1244,32 @@ class LDataParameter : public DataParameterBase<DataType> {
         }
 };
 
+template<class DataType = bool>
+class LToggleDataParameter : public LDataParameter<DataType> {
+    public:
+        LToggleDataParameter(const char *label, typename LDataParameter<DataType>::setter_func_def setter_func, typename LDataParameter<DataType>::getter_func_def getter_func)
+            : LDataParameter<DataType>(label, setter_func, getter_func) {}
+        LToggleDataParameter(const char *label, float initial_value_normal, typename LDataParameter<DataType>::setter_func_def setter_func, typename LDataParameter<DataType>::getter_func_def getter_func)
+            : LDataParameter<DataType>(label, initial_value_normal, setter_func, getter_func) {}
+
+    // @@TODO: we may want to have a 'threshold' setting for the toggle, instead of hardcoding 0.5f
+    // and maybe we want to be able to go bipolar with it, too; and maybe an invert option?
+
+    // we want it to behave like a toggle parameter specifically for boolean values
+    // so, probably if the value is > 50% then we want to send true, otherwise false
+    virtual DataType normalToData(float value) override {
+        return value >= 0.5f;
+    }
+
+    virtual float dataToNormal(DataType value) override {
+        return value ? 1.0f : 0.0f;
+    }
+
+    virtual const char* getFormattedValue() override {
+        return this->getCurrentDataValue() ? BaseParameter::label_on : BaseParameter::label_off;
+    }
+};
+
 
 #ifdef ENABLE_SCREEN
 

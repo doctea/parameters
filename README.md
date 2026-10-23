@@ -27,6 +27,35 @@ Build flags:
 - -DPARAMETER_INPUTS_USE_CALLBACKS to use callbacks for parameter input value changes in ParameterInputDisplay, instead of polling from menu
 - -DDISABLE_PARAMETER_INPUT_SELECTORS to disable parameter input selectors on the 'heavyweight' parameter controls
 
+## CV output voltage ranges
+
+CV output calibration maps the configured physical voltage limits to
+`calibrated_lowest_value` and `calibrated_highest_value`, then applies hardware
+inversion. For a -5V..+5V output, -5V maps to the low endpoint, 0V to the
+midpoint, and +5V to the high endpoint. A 0V..10V output retains its unipolar
+mapping. Voltages outside the physical limits are clamped before DAC conversion.
+Narrowing the editable modulation range does not rescale the calibration.
+
+Both automatic and manual feedback calibration use the physical voltage
+endpoints. Recalibrate bipolar channels if their saved endpoints were previously
+measured at 0V/10V rather than -5V/+5V. The polarity selector alone does not
+change the configured voltage limits or the hardware's supported range.
+
+The calibration Output readout tracks the commanded voltage rather than MIDI
+base history. Output and Check V writes lock the DAC against modulation, notes,
+pitch bend and parking until unlocked. Save/Revert resumes normal modulated
+output. Simple calibration supports Fine +/- before Accept and a 1..4096-code
+Step control; endpoint nudges saturate and binary search reaches individual DAC
+codes without adjacent-code stalls. One DAC code over a 10V span is about 0.15mV.
+
+Disabling MIDI notes clears the held note/gate and pitch bend, forces a zero
+base, and leaves slot modulation connected. Park cannot alter a MIDI-disabled
+or calibration-locked output. Disabling Park clears an idle base to zero and
+also returns it to zero on subsequent matching Note Offs.
+
+Run `python3 test_cvoutput.py` with Python 3 and g++ available for host regression
+checks of the production conversion and calibration methods.
+
 ## Modulation Slot Modes
 
 Per-slot modulation mode is configured with compact labels (defined centrally in [include/ParameterTypes.h](include/ParameterTypes.h)):
@@ -136,4 +165,3 @@ Practical implications:
     - Quantisation/scale/key settings
     - OutputNodes
   - ParameterInputs (managed by ParameterManager)
-

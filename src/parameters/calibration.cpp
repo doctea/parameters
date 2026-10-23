@@ -25,12 +25,8 @@ uint16_t calibrate_find_dac_value_for(DAC8574 *dac_output, int channel, VoltageP
     src->read();
     src->get_voltage();
 
-    //float intended_voltage = 0.0;
-    int guess_din = (intended_voltage/10.0) * 65535;
-    if (guess_din==0) 
-        guess_din = 3000;
-    else if (guess_din==65535)
-        guess_din = 64000;
+    // Start inside the DAC range regardless of the configured voltage endpoints.
+    int guess_din = 32768;
     int last_guess_din = guess_din;
     float actual_read = 0.0f;
     float last_read = actual_read;
@@ -41,8 +37,6 @@ uint16_t calibrate_find_dac_value_for(DAC8574 *dac_output, int channel, VoltageP
     Serial.printf("----\nStarting calibrate_find_dac_value_for(%i, '%s', %3.3f)\n", channel, src->name, intended_voltage);
     Serial.printf("Starting with guess_din of %i.\n", guess_din);
 
-    //if (inverted) intended_voltage = 10.0 - intended_voltage;
-
     #ifdef USE_ATOMIC
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
     #endif
@@ -50,8 +44,7 @@ uint16_t calibrate_find_dac_value_for(DAC8574 *dac_output, int channel, VoltageP
         do {
             dac_output->write(
                 channel, 
-                //inverted ? (65535 - guess_din) : 
-                guess_din
+                inverted ? (65535 - guess_din) : guess_din
             );
             //delay(1);
             /*
@@ -65,7 +58,6 @@ uint16_t calibrate_find_dac_value_for(DAC8574 *dac_output, int channel, VoltageP
             actual_read = src->fetch_current_voltage();
             actual_read = src->fetch_current_voltage();
             actual_read = src->fetch_current_voltage();
-            actual_read = inverted ? 10.0 - actual_read : actual_read;   // INVERT THE *READING*
 
             if (actual_read > intended_voltage) {
                 if (last_guess_din < guess_din) {

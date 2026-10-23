@@ -35,6 +35,7 @@ public:
     uint16_t lo_bracket      = 0;
     uint16_t hi_bracket      = 65535;
     uint16_t current_test_value = 32768;
+    uint16_t fine_step = 1;
 
     // backup taken when first leaving IDLE so we can always revert
     bool     has_backup      = false;
@@ -44,15 +45,15 @@ public:
     // current voltage set by the range-check control ("Check V")
     float    check_voltage   = 0.0f;
 
-    // button labels derived from the output's data range (e.g. "Cal 0V"/"Cal 10V" or "Cal -5V"/"Cal +5V")
+    // Labels use physical voltage limits (e.g. "Cal 0V"/"Cal 10V" or "Cal -5V"/"Cal +5V").
     char cal_low_label[12]  = "Cal Low";
     char cal_high_label[12] = "Cal High";
 
     explicit CVOutputFeedbackCalibState(CVOutputParameter<DACClass, DataType> *out)
         : output(out) {
         if (out != nullptr) {
-            snprintf(cal_low_label,  sizeof(cal_low_label),  "Cal %.0fV", (double)out->minimumDataRange);
-            snprintf(cal_high_label, sizeof(cal_high_label), "Cal %.0fV", (double)out->maximumDataRange);
+            snprintf(cal_low_label,  sizeof(cal_low_label),  "Cal %.0fV", (double)out->minimumDataLimit);
+            snprintf(cal_high_label, sizeof(cal_high_label), "Cal %.0fV", (double)out->maximumDataLimit);
         }
     }
 
@@ -72,16 +73,16 @@ public:
         const uint16_t raw = output->inverted
             ? (uint16_t)((uint32_t)__UINT16_MAX__ - current_test_value)
             : current_test_value;
-        output->target->write(output->dac_channel, raw);
+        output->write_calibration_dac_value(raw);
     }
 
     // During FINE_TUNE: output the floor or ceiling voltage through the fully calibrated
     // (+ inversion) path so the user sees the result of each nudge immediately.
     void output_calibrated_endpoint() {
         if (output == nullptr || output->target == nullptr) return;
-        const float    endpoint = calibrating_high ? output->maximumDataRange : output->minimumDataRange;
-        const uint16_t raw      = output->get_dac_value_for_voltage(endpoint);
-        output->target->write(output->dac_channel, raw);
+        const uint16_t value = get_active_calibrated_value();
+        const uint16_t raw = output->inverted ? (uint16_t)(65535 - value) : value;
+        output->write_calibration_dac_value(raw);
     }
 
     // ---- start calibrating an endpoint ---------------------------------
@@ -89,7 +90,7 @@ public:
     void start_calibrate_low() {
         if (output == nullptr) return;
         snapshot_backup();
-        output->calibration_mode = true;  // block modulation/MIDI from overwriting test output
+        output->set_output_locked(true);
         calibrating_high   = false;
         lo_bracket         = 0;
         hi_bracket         = 65535;
@@ -101,7 +102,7 @@ public:
     void start_calibrate_high() {
         if (output == nullptr) return;
         snapshot_backup();
-        output->calibration_mode = true;  // block modulation/MIDI from overwriting test output
+        output->set_output_locked(true);
         calibrating_high   = true;
         lo_bracket         = 0;
         hi_bracket         = 65535;
@@ -115,6 +116,8 @@ public:
     void too_high() {
         if (phase != BINARY_SEARCH) return;
         hi_bracket         = current_test_value;
+        if (lo_bracket >= current_test_value && current_test_value > 0)
+            lo_bracket = current_test_value - 1;
         current_test_value = (uint16_t)(((uint32_t)lo_bracket + hi_bracket) / 2);
         output_test_value();
     }
@@ -122,7 +125,9 @@ public:
     void too_low() {
         if (phase != BINARY_SEARCH) return;
         lo_bracket         = current_test_value;
-        current_test_value = (uint16_t)(((uint32_t)lo_bracket + hi_bracket) / 2);
+        if (hi_bracket <= current_test_value && current_test_value < 65535)
+            hi_bracket = current_test_value + 1;
+        current_test_value = (uint16_t)(((uint32_t)lo_bracket + hi_bracket + 1) / 2);
         output_test_value();
     }
 
@@ -140,22 +145,38 @@ public:
 
     // ---- fine-tune controls (FINE_TUNE phase) ---------------------------
 
+    void begin_fine_tune() {
+        if (phase == IDLE && output != nullptr) {
+            snapshot_backup();
+            output->set_output_locked(true);
+            phase = FINE_TUNE;
+        } else if (phase == BINARY_SEARCH) {
+            accept_binary();
+        }
+    }
+
     void nudge_up() {
+        begin_fine_tune();
         if (phase != FINE_TUNE) return;
+        const uint16_t value = (uint16_t)min((uint32_t)65535,
+            (uint32_t)get_active_calibrated_value() + fine_step);
         if (calibrating_high) {
-            output->calibrated_highest_value++;
+            output->calibrated_highest_value = value;
         } else {
-            output->calibrated_lowest_value++;
+            output->calibrated_lowest_value = value;
         }
         output_calibrated_endpoint();
     }
 
     void nudge_down() {
+        begin_fine_tune();
         if (phase != FINE_TUNE) return;
+        const uint16_t current = get_active_calibrated_value();
+        const uint16_t value = current > fine_step ? current - fine_step : 0;
         if (calibrating_high) {
-            if (output->calibrated_highest_value > 0) output->calibrated_highest_value--;
+            output->calibrated_highest_value = value;
         } else {
-            if (output->calibrated_lowest_value > 0) output->calibrated_lowest_value--;
+            output->calibrated_lowest_value = value;
         }
         output_calibrated_endpoint();
     }
@@ -165,10 +186,9 @@ public:
     // Restore normal operation: clear calibration lock, re-output current value, return to IDLE.
     void finish() {
         if (output == nullptr) return;
-        output->calibration_mode = false;
-        output->setTargetValueFromData(output->getCurrentDataValue(), true);
-        output->process_pending();
+        output->set_output_locked(false);
         phase = IDLE;
+        has_backup = false;
     }
 
     void revert() {
@@ -201,6 +221,10 @@ public:
                          cal_low_label, cal_high_label);
                 return buf;
             case BINARY_SEARCH:
+                if (current_test_value == 0 || current_test_value == 65535) {
+                    snprintf(buf, sizeof(buf), "DAC limit: reverse, Accept or fine-tune");
+                    return buf;
+                }
                 snprintf(buf, sizeof(buf), "%s search: High/Low, then Accept",
                          calibrating_high ? cal_high_label : cal_low_label);
                 return buf;
@@ -215,7 +239,7 @@ public:
 
     ~CVOutputFeedbackCalibState() {
         // Safety net: clear calibration lock if the menu is destroyed without Save/Revert.
-        if (output != nullptr) output->calibration_mode = false;
+        if (output != nullptr) output->set_output_locked(false);
     }
 
     // ---- range-check / verification ----------------------------------------
@@ -227,8 +251,7 @@ public:
         if (output == nullptr || output->target == nullptr) return;
         if (phase != IDLE) return;
         check_voltage = v;
-        const uint16_t raw = output->get_dac_value_for_voltage(v);
-        output->target->write(output->dac_channel, raw);
+        output->set_calibration_voltage(v);
     }
 };
 
@@ -264,7 +287,12 @@ inline SubMenuItem *makeFeedbackCalibrationControls(
     monitor_bar->add(new LambdaToggleControl(
         "Lock Output",
         [=](bool v) -> void {
-            if (state->output != nullptr) state->output->calibration_mode = v;
+            if (state->output == nullptr) return;
+            if (!v && state->phase != CVOutputFeedbackCalibState<DACClass,DataType>::IDLE) {
+                menu_set_last_message("Save or Revert calibration first", ORANGE);
+                return;
+            }
+            state->output->set_output_locked(v);
         },
         [=]() -> bool {
             return state->output != nullptr && state->output->calibration_mode;
@@ -274,8 +302,8 @@ inline SubMenuItem *makeFeedbackCalibrationControls(
     // Check voltage: step through whole-volt values to verify calibration across the full range.
     // Works only in IDLE phase; lock the output first so modulation doesn't overwrite it.
     {
-        const float check_min = state->output != nullptr ? (float)state->output->minimumDataRange : 0.0f;
-        const float check_max = state->output != nullptr ? (float)state->output->maximumDataRange : 10.0f;
+        const float check_min = state->output != nullptr ? (float)state->output->minimumDataLimit : 0.0f;
+        const float check_max = state->output != nullptr ? (float)state->output->maximumDataLimit : 10.0f;
         auto *check_ctrl = new LambdaNumberControl<float>(
             "Check V",
             [=](float v) -> void { state->output_check_voltage(v); },
@@ -336,6 +364,11 @@ inline SubMenuItem *makeFeedbackCalibrationControls(
 
     // Fine-tune controls
     SubMenuItemBar *fine_bar = new SubMenuItemBar("Fine Tune", true, false);
+    fine_bar->add(new LambdaNumberControl<uint16_t>("Step",
+        [=](uint16_t v) { state->fine_step = v; },
+        [=]() -> uint16_t { return state->fine_step; },
+        nullptr, (uint16_t)1, (uint16_t)4096, false, true
+    ));
     fine_bar->add(new LambdaActionItem("Fine -",
         [=]() -> void { state->nudge_down(); }
     ));

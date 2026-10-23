@@ -1,7 +1,5 @@
 #pragma once
 
-//#define ENABLE_CV_OUTPUT 0x4C 
-
 #if defined(ENABLE_CV_OUTPUT) || defined(ENABLE_CV_OUTPUT_2) || defined(ENABLE_CV_OUTPUT_3)
 
 #include "debug.h"
@@ -14,10 +12,6 @@
 
 // todo: make CVOutputParameter more agnostic about underlying library so it can support other DACs
 #include <DAC8574.h>
-
-// todo: add auto-calibration ability
-// todo: figure out an interface to allow using CVOutputParameter as a 1v/oct output from MIDI...
-// todo: make able to switch between unipolar/bipolar modes, with different calibration for each
 
 #ifdef ENABLE_SCREEN
     #include "menu.h"
@@ -73,14 +67,12 @@ template<class TargetClass=DAC8574, class DataType=float>
 class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, virtual public ICalibratable, virtual public IMIDINoteAndCCTarget, public CVOutputParameterBase {
     public:
         byte dac_channel = 0;
-        //DataType floor, ceiling;
 
         bool inverted = false;
         bool calibration_mode = false;  // when true, process_pending() is a no-op (blocks modulation during feedback calibration)
+        bool midi_notes_enabled = true;
+        DataType output_voltage = 0;
         VALUE_TYPE polarity = VALUE_TYPE::UNIPOLAR;
-
-        //DataType calibrated_min_output_voltage = 0.33;
-        //DataType calibrated_max_output_voltage = 9.53;
 
         uint16_t calibrated_lowest_value  = 2044; //1487; //2163; 
         uint16_t calibrated_highest_value = 59386; //62321; //62455;
@@ -106,6 +98,10 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
         float effective_slew_rate_normal = 1.0f;
         virtual float get_effective_slew_rate_normal() override { return effective_slew_rate_normal; }
 
+        virtual DataType getCurrentDataValue() override {
+            return midi_notes_enabled ? this->currentDataValue : (DataType)0;
+        }
+
         CVOutputParameter(const char* label, TargetClass *target, byte dac_channel, VALUE_TYPE polarity_mode = VALUE_TYPE::UNIPOLAR, bool inverted = false, float floor = 0.0f, float ceiling = 10.0f, bool configurable = false)
             : DataParameter<TargetClass,DataType>(label, target) {
                 this->dac_channel = dac_channel;
@@ -127,7 +123,6 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
                 #endif
 
                 // force setting output to the starting value
-
                 this->setTargetValueFromData(this->getCurrentDataValue(), true);
                 this->process_pending();
 
@@ -151,65 +146,33 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
             this->set_calibration_parameter_input(parameter_manager->getInputForName(input_name));
         }
 
-        /*virtual const char* getFormattedValue() override {
-            static char fmt[MENU_C_MAX] = "              ";
-            sprintf(fmt, "%i", this->getCurrentDataValue());
-            //Serial.printf("getFormattedValue: '%s'\n", fmt);
-            return fmt;
-        };*/
-
-
         void calibrate() override {
+            if (this->calibration_input == nullptr) {
+                Serial_printf("CVOutputParameter#calibrate(%s): no calibration input configured\n", this->label);
+                return;
+            }
             Serial_println("Finding lowest value..\n");
-            this->calibrated_lowest_value = calibrate_find_dac_value_for(this->target, this->dac_channel, this->calibration_input, 0.0, this->inverted);
+            this->calibrated_lowest_value = calibrate_find_dac_value_for(this->target, this->dac_channel, this->calibration_input, this->minimumDataLimit, this->inverted);
             Serial_println("Finding highest value..\n");
-            this->calibrated_highest_value = calibrate_find_dac_value_for(this->target, this->dac_channel, this->calibration_input, 10.0, this->inverted);
+            this->calibrated_highest_value = calibrate_find_dac_value_for(this->target, this->dac_channel, this->calibration_input, this->maximumDataLimit, this->inverted);
         }
         
         virtual DataType map(DataType x, DataType in_min, DataType in_max, DataType out_min, DataType out_max) {
-            return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+            DataType result = (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+            // if (Serial) Serial.printf("%s: map(x=%f,\tin_min=%f,\tin_max=%f,\tout_min=%f,\tout_max=%f)\t= result=%f\n", this->get_cv_label(), x, in_min, in_max, out_min, out_max, result);
+            return result;
         }
-
-        /*virtual DataType get_calibrated_voltage(DataType intended_voltage) {
-            // if 0.0 gives -0.351
-                // then to get real 0.0 we need to add 0.351 to it
-            // if 10.0 gives 10.297
-                // then to get real 10.0 we need to subtract 0.297 from it
-                // so therefore max should be 10.0 - (10.297-10.0) ?
-
-            // zero offset = uni_min_output_voltage * -65535
-            float zero_offset = calibrated_min_output_voltage; // * -65535.0;
-            float apex_offset = calibrated_max_output_voltage;
-            //float total_range = uni_max_output_voltage - uni_min_output_voltage;
-            //float total_range = uni_max_output_voltage - zero_offset + apex_offset;
-
-            //intended_voltage += zero_offset;
-            //intended_voltage /= 10.0;
-            //intended_voltage *= (total_range/10.0);
-            //intended_voltage *= 10.0;
-            //intended_voltage = map(intended_voltage, 0.0, 10.0, uni_min_output_voltage, total_range);
-
-            float real_zero = zero_offset;
-            float real_apex = apex_offset;
-            //Serial.printf("real_zero=%3.3f, ",    real_zero);
-            //Serial.printf("real_apex=%3.3f, ",    real_apex);
-            //Serial.printf("uni_max_output_voltage=%3.3f, ", uni_max_output_voltage);
-            //Serial.printf("apex_offset=%3.3f, ",    apex_offset);
-            //Serial.printf(" => \n");
-
-            intended_voltage = map(intended_voltage, this->minimumDataLimit, this->maximumDataLimit, real_zero, real_apex);
-
-            return intended_voltage;
-        }*/
         
         virtual uint16_t get_calibrated_dac_value(DataType uncalibrated_voltage) {
-            //DataType calibrated_voltage = get_calibrated_voltage(uncalibrated_voltage);
-
-            uint16_t dac_value = (float)__UINT16_MAX__ * (uncalibrated_voltage / this->maximumDataLimit);
-
-            dac_value = map(dac_value, 0, __UINT16_MAX__, calibrated_lowest_value, calibrated_highest_value);
-
-            return dac_value;
+            // Calibration spans the physical voltage limits, not the editable modulation range.
+            DataType voltage = this->constrainDataToLimit(uncalibrated_voltage);
+            return (uint16_t)map(
+                voltage, 
+                this->minimumDataLimit, 
+                this->maximumDataLimit,
+                calibrated_lowest_value, 
+                calibrated_highest_value
+            );
         }
 
         virtual uint16_t get_dac_value_for_voltage(DataType uncalibrated_voltage) {
@@ -234,6 +197,7 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
         }
 
         virtual void refresh_pitch_output(bool force = true) {
+            if (!midi_notes_enabled || calibration_mode) return;
             if (is_valid_note(this->current_pitch_note)) {
                 DataType voltage_for_pitch = get_voltage_for_pitch(this->current_pitch_note);
                 #if CV_PITCH_BEND_TRACE
@@ -259,6 +223,7 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
         }
 
         virtual void apply_pitch_bend_delta_to_current_output(float previous_total_bend, bool force = false) {
+            if (!midi_notes_enabled || calibration_mode) return;
             float current_total_bend = this->get_pitch_bend_semitones();
             float delta_semitones = current_total_bend - previous_total_bend;
             if (!force && delta_semitones == 0.0f)
@@ -284,6 +249,7 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
         }
 
         virtual void set_channel_pitch_bend_semitones(float semitones, bool force = false) {
+            if (!midi_notes_enabled || calibration_mode) return;
             float previous_total_bend = this->get_pitch_bend_semitones();
             if (!force && this->channel_pitch_bend_semitones == semitones)
                 return;
@@ -300,6 +266,7 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
         }
 
         virtual void set_omni_pitch_bend_semitones(float semitones, bool force = false) {
+            if (!midi_notes_enabled || calibration_mode) return;
             float previous_total_bend = this->get_pitch_bend_semitones();
             if (!force && this->omni_pitch_bend_semitones == semitones)
                 return;
@@ -325,9 +292,6 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
 
                 uint16_t calibrated_dac_value = get_dac_value_for_voltage(value);
 
-                // TODO: without this, output value widget doesn't update; with it, 
-                // slew doesn't work since it incorrectly records the mid-slew value as the current target value
-                //this->currentDataValue = value;
 
                 if (last_value!=calibrated_dac_value || force) {
                     // only store the pending value, for setting DAC value later during process_pending
@@ -342,6 +306,23 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
             }
         }
 
+        void write_calibration_dac_value(uint16_t raw) {
+            if (this->target == nullptr) return;
+            this->is_pending_value = false;
+            this->target->write(this->dac_channel, raw);
+            const float logical = this->inverted ? __UINT16_MAX__ - raw : raw;
+            const float span = (float)calibrated_highest_value - calibrated_lowest_value;
+            if (span != 0.0f)
+                output_voltage = this->minimumDataLimit +
+                    (logical - calibrated_lowest_value) * (this->maximumDataLimit - this->minimumDataLimit) / span;
+        }
+
+        void set_calibration_voltage(DataType voltage) {
+            this->set_output_locked(true);
+            this->write_calibration_dac_value(this->get_dac_value_for_voltage(voltage));
+            output_voltage = this->constrainDataToLimit(voltage);
+        }
+
         // called after all parameter modulation processing has been done so that reading and writing don't get entangled and cause problems
         virtual void process_pending() override {
             if (calibration_mode) {
@@ -350,7 +331,7 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
             }
             if (is_pending_value) {
                 if (this->debug) Serial_printf("%u\t: %s#setTargetValueFromData(%u) on channel %u!\n", micros(), this->label, pending_value, dac_channel);
-                this->target->write(dac_channel, pending_value);
+                this->write_calibration_dac_value(pending_value);
                 /* // for testing all channels
                 this->target->write(1, pending_value);
                 this->target->write(2, pending_value);
@@ -368,49 +349,48 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
             }
         }
 
-        // don't think this is actually needed -- why would we want to load/save the dac channel dynamically?
         #ifdef ENABLE_STORAGE
-        virtual void setup_saveable_settings() override {
-            DataParameter<TargetClass,DataType>::setup_saveable_settings();
+            virtual void setup_saveable_settings() override {
+                DataParameter<TargetClass,DataType>::setup_saveable_settings();
 
-            this->register_setting(new LSaveableSetting<uint16_t>(
-                "calibrated_lowest_value",
-                "Calibration",
-                nullptr,
-                [=](uint16_t value) -> void {
-                    this->calibrated_lowest_value = value;
-                    this->setTargetValueFromData(this->getCurrentDataValue(), true);
-                },
-                [=]() -> uint16_t {
-                    return this->calibrated_lowest_value;
-                }
-            ), SL_SCOPE_SYSTEM, false);
+                this->register_setting(new LSaveableSetting<uint16_t>(
+                    "calibrated_lowest_value",
+                    "Calibration",
+                    nullptr,
+                    [=](uint16_t value) -> void {
+                        this->calibrated_lowest_value = value;
+                        this->setTargetValueFromData(this->getCurrentDataValue(), true);
+                    },
+                    [=]() -> uint16_t {
+                        return this->calibrated_lowest_value;
+                    }
+                ), SL_SCOPE_SYSTEM, false);
 
-            this->register_setting(new LSaveableSetting<uint16_t>(
-                "calibrated_highest_value",
-                "Calibration",
-                nullptr,
-                [=](uint16_t value) -> void {
-                    this->calibrated_highest_value = value;
-                    this->setTargetValueFromData(this->getCurrentDataValue(), true);
-                },
-                [=]() -> uint16_t {
-                    return this->calibrated_highest_value;
-                }
-            ), SL_SCOPE_SYSTEM, false);
+                this->register_setting(new LSaveableSetting<uint16_t>(
+                    "calibrated_highest_value",
+                    "Calibration",
+                    nullptr,
+                    [=](uint16_t value) -> void {
+                        this->calibrated_highest_value = value;
+                        this->setTargetValueFromData(this->getCurrentDataValue(), true);
+                    },
+                    [=]() -> uint16_t {
+                        return this->calibrated_highest_value;
+                    }
+                ), SL_SCOPE_SYSTEM, false);
 
-            this->register_setting(new LSaveableSetting<const char*>(
-                "calibration_input",
-                "Calibration",
-                nullptr,
-                [=](const char* value) -> void {
-                    this->set_calibration_parameter_input(value);
-                },
-                [=]() -> const char* {
-                    return this->calibration_input != nullptr ? this->calibration_input->name : "";
-                }
-            ), SL_SCOPE_SYSTEM, false);
-        }
+                this->register_setting(new LSaveableSetting<const char*>(
+                    "calibration_input",
+                    "Calibration",
+                    nullptr,
+                    [=](const char* value) -> void {
+                        this->set_calibration_parameter_input(value);
+                    },
+                    [=]() -> const char* {
+                        return this->calibration_input != nullptr ? this->calibration_input->name : "";
+                    }
+                ), SL_SCOPE_SYSTEM, false);
+            }
         #endif
 
         //FLASHMEM virtual LinkedList<MenuItem *> *makeControls() override;
@@ -418,29 +398,10 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
         FLASHMEM
         virtual MenuItemList *addCustomTypeControls(MenuItemList *controls) override { 
             if (this->configurable) {
-                //SubMenuItem *bar = new SubMenuItemBar("Settings", true, false);
-
-                /*bar->add(new DirectNumberControl<byte>(
-                    "Output CC", //label, 
-                    &this->cc_number,
-                    this->cc_number,
-                    MIDI_MIN_VELOCITY,
-                    MIDI_MAX_VELOCITY
-                ));*/
-
-                /*bar->add(new DirectNumberControl<byte>(
-                    "Output MIDI Channel", 
-                    &this->channel,
-                    this->channel,
-                    MIDI_MIN_CHANNEL,
-                    MIDI_MAX_CHANNEL
-                ));*/
-
                 // TODO: ... calibration settings maybe?
             }
 
             // calibration settings..
-            //controls->add(new VALUE_TYPE<uint16_t>("uni min dac", &calibrated_lowest_value, calibrated_lowest_value,  0, __UINT16_MAX__));
             SubMenuItem *bar1 = new SubMenuItemBar("Settings", true, false);
             // todo: make InputTypeSelectorControl fire a function to switch the ranges+calibration
             InputTypeSelectorControl<> *type_selector = new InputTypeSelectorControl<>("Polarity", &this->polarity);
@@ -484,19 +445,16 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
             bar2->add(input );               
 
             SubMenuItem *bar3 = new SubMenuItemBar("Settings", true, false);
-            //bar3->add(new DirectNumberControl<uint16_t>("uni min dac", &calibrated_lowest_value,  calibrated_lowest_value,  0, __UINT16_MAX__));
-            //bar3->add(new DirectNumberControl<uint16_t>("uni max dac", &calibrated_highest_value, calibrated_highest_value, 0, __UINT16_MAX__));
             bar3->add(new LambdaNumberControl<DataType>("Output", 
                 [=] (DataType value) -> void { 
-                    this->setTargetValueFromData(value, true);
+                    this->set_calibration_voltage(value);
                 }, 
                 [=] () -> DataType { 
-                    //return this->getCurrentDataValue();
-                    return this->getLastDataValue();
+                    return this->output_voltage;
                 },
                 nullptr,
-                this->minimumDataRange,
-                this->maximumDataRange,
+                this->minimumDataLimit,
+                this->maximumDataLimit,
                 true, 
                 true
             ));
@@ -505,7 +463,7 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
             bar3->add(new LambdaNumberControl<uint16_t>("uni min dac", 
                 [=] (uint16_t value) -> void { 
                     this->calibrated_lowest_value = value; 
-                    this->setTargetValueFromData(this->getCurrentDataValue(), true);
+                    this->set_calibration_voltage(this->output_voltage);
                 }, 
                 [=] () -> uint16_t { 
                     return this->calibrated_lowest_value; 
@@ -519,7 +477,7 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
             bar3->add(new LambdaNumberControl<uint16_t>("uni max dac", 
                 [=] (uint16_t value) -> void { 
                     this->calibrated_highest_value = value; 
-                    this->setTargetValueFromData(this->getCurrentDataValue(), true);
+                    this->set_calibration_voltage(this->output_voltage);
                 }, 
                 [=] () -> uint16_t { 
                     return this->calibrated_highest_value; 
@@ -549,8 +507,6 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
         }
 
         virtual MenuItem *makeCalibrationLoadSaveControls() { 
-            //MenuItemList *controls = new MenuItemList();
-
             SubMenuItem *bar4 = new SubMenuItemBar("Calibration", false, false);
             bar4->add(new LambdaActionConfirmItem("Save", [=](void) -> void { 
                 this->save_calibration(); 
@@ -571,7 +527,7 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
         }
 
         virtual void sendNoteOn(uint8_t pitch, uint8_t velocity, uint8_t channel) {
-            if (!is_valid_note(pitch))
+            if (!midi_notes_enabled || calibration_mode || !is_valid_note(pitch))
                 return;
 
             this->current_pitch_note = pitch;
@@ -590,26 +546,53 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
             }
         }
         virtual void sendNoteOff(uint8_t pitch, uint8_t velocity, uint8_t channel) {
+            if (this->current_pitch_note != pitch) return;
             if (this->current_pitch_note == pitch)
                 this->current_pitch_note = NOTE_OFF;
             this->note_is_active = false;
-            // todo: should probably have an option to drop the output voltage to 0 when no notes are left?
-            // ^^^ actually -- better to change to a note that is in correct quantisation since CV has no concept of 'note off' with CV Pitch only
+
             if ((get_gate_output_enabled() || gate_is_on) && gate_bank>=0 && gate_manager!=nullptr) {
                 gate_is_on = false;
                 gate_manager->send_gate_off(gate_bank, gate_number);
             }
+
+            if (!park_enabled && !calibration_mode)
+                this->updateValueFromData((DataType)0);
         }
 
         bool is_note_active() const { return note_is_active; }
 
+        void set_midi_notes_enabled(bool enabled) {
+            if (enabled) {
+                midi_notes_enabled = true;
+                return;
+            }
+
+            if (is_valid_note(current_pitch_note))
+                sendNoteOff(current_pitch_note, 0, 1);
+
+            current_pitch_note = NOTE_OFF;
+            note_is_active = false;
+            omni_pitch_bend_semitones = channel_pitch_bend_semitones = 0.0f;
+            this->updateValueFromData((DataType)0);
+            midi_notes_enabled = false;
+            this->setTargetValueFromNormal(this->getCurrentNormalValue() + this->get_modulation_value(), true);
+            this->process_pending();
+        }
+
         bool park_enabled = true;
         bool get_park_enabled() const { return park_enabled; }
-        void set_park_enabled(bool v) { park_enabled = v; }
+        void set_park_enabled(bool v) {
+            park_enabled = v;
+            if (!v && !note_is_active && !calibration_mode)
+                this->updateValueFromData((DataType)0);
+        }
 
         // Silently re-quantise CV voltage to a parked pitch when idle (no gate, no NoteOn).
+        // Ensure that if the output is being used to drive pitch that would be heard, that it at least will be in key.
         // No-op if park is disabled, a note is currently active, or pitch is invalid.
         void park_pitch(int8_t pitch) {
+            if (!midi_notes_enabled || calibration_mode) return;
             if (!park_enabled) return;
             if (note_is_active) return;
             if (!is_valid_note(pitch)) return;
@@ -652,7 +635,7 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
         virtual void tuning_output_voltage(float voltage) override {
             if (this->target != nullptr) {
                 const uint16_t raw = this->get_dac_value_for_voltage(voltage);
-                this->target->write(this->dac_channel, raw);
+                this->write_calibration_dac_value(raw);
             }
         }
 
@@ -665,7 +648,13 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
         }
 
         virtual void set_output_locked(bool locked) override {
+            if (calibration_mode == locked) return;
             this->calibration_mode = locked;
+            this->is_pending_value = false;
+            if (!locked) {
+                this->setTargetValueFromNormal(this->getCurrentNormalValue() + this->get_modulation_value(), true);
+                this->process_pending();
+            }
         }
 
         virtual bool is_output_locked() const override {
