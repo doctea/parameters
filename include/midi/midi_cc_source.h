@@ -34,19 +34,24 @@ class MIDI_CC_Source {
     }
 
     // register a MIDI CC parameter input to this object
-    FLASHMEM void addParameterInput(MIDIParameterInputBase *parameter_input) {
+    FLASHMEM MIDIParameterInputBase *addParameterInput(MIDIParameterInputBase *parameter_input) {
         this->parameter_inputs->add(parameter_input);
         parameter_manager->addInput(parameter_input);
+        return parameter_input;
     }
 
     // add a new MIDIParameterInput to this object and the parameter manager
-    void addCCParameterInput(const char *name, const char *group_name, byte number, byte channel = 0) {
-        this->addParameterInput(new MIDICCParameterInput((char*)name, group_name, number, channel));
+    MIDICCParameterInput *addCCParameterInput(const char *name, const char *group_name, byte number, byte channel = 0) {
+        return (MIDICCParameterInput *)this->addParameterInput(
+            new MIDICCParameterInput((char*)name, group_name, number, channel)
+        );
     }
 
     // add a new MIDIPitchBendParameterInput to this object and the parameter manager
-    void addPitchBendParameterInput(const char *name, const char *group_name, byte channel = 0) {
-        this->addParameterInput(new MIDIPitchBendParameterInput((char*)name, group_name, channel));
+    MIDIPitchBendParameterInput *addPitchBendParameterInput(const char *name, const char *group_name, byte channel = 0) {
+        return (MIDIPitchBendParameterInput *)this->addParameterInput(
+            new MIDIPitchBendParameterInput((char*)name, group_name, channel)
+        );
     }
 };
 
