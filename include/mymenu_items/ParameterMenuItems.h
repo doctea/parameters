@@ -226,7 +226,6 @@ class ParameterMapPercentageControl : public DirectNumberControl<float> {
         if (!(*parameter)->is_modulation_slot_active(slot_number))
             this->default_fg = tft->halfbright_565(this->default_fg);
             
-        // todo: update label based on connected parameter input.. see thoughts on how best to do this in submenuitem_bar.h!
         //Serial.printf("renderValue in ParameterMapPercentageControl\tfor %s,\tgot default_fg colour %04x from slot_number %i colour %04x, max_character_width=%i\n", this->label, this->default_fg, slot_number, parameter->connections[slot_number].parameter_input->colour, max_character_width);
         return DirectNumberControl::renderValue(selected, opened, max_character_width);
     }
@@ -237,6 +236,36 @@ class ParameterMapPercentageControl : public DirectNumberControl<float> {
 
     virtual void set_current_value(float value) override {
         (*parameter)->connections[slot_number].amount = value;
+    }
+
+    float previously_switched_value = 0.0f;
+
+    virtual bool button_right() override {
+        this->button_right_unopened();
+        return true; // indicate that the button press was handled
+    }
+
+    virtual bool button_right_unopened() override {
+        // cycle through values 0% -> 100% -> -100% -> 0%
+        if (this->get_current_value() == 0.0f) {
+            this->set_current_value(1.0f); // example action: set value to 1 if it was 0
+            this->internal_value = 1.0f;
+            return true; // indicate that the button press was handled
+        } else if (this->get_current_value() == 1.0f) {
+            this->set_current_value(-1.0f); // example action: set value to 0 if it was 1
+            this->internal_value = -1.0f;
+            return true; // indicate that the button press was handled
+        } else if (this->get_current_value() == -1.0f) {
+            this->set_current_value(0.0f); // example action: set value to 0 if it was -1
+            this->internal_value = 0.0f;
+            return true; // indicate that the button press was handled
+        }
+
+        float temp = this->get_current_value();
+        this->set_current_value(previously_switched_value);
+        this->internal_value = previously_switched_value;
+        previously_switched_value = temp;
+        return false; // indicate that the button press was not handled
     }
 
 };
@@ -352,6 +381,61 @@ class ParameterConnectionPolarityTypeSelectorControl : public SelectorControl<in
     }
 
 };
+
+#ifdef ENABLE_PARAMETERS_MIDI_LEARN
+    // One-character per-slot MIDI Learn control that goes into 'AWAITING MIDI INPUT' mode (with a popout overlay?) when selected.
+    class ParameterModSlotMidiLearnControl : public MenuItem {
+        FloatParameter **parameter;
+        byte slot_number;
+        bool last_rendered_active = false;
+
+        bool is_active() const {
+            return parameter != nullptr && *parameter != nullptr &&
+                (*parameter)->is_valid_slot(slot_number) &&
+                (*parameter)->connections[slot_number].midi_learn_active;
+        }
+
+    public:
+        ParameterModSlotMidiLearnControl(const char *label, FloatParameter **parameter, byte slot_number)
+            : MenuItem(label), parameter(parameter), slot_number(slot_number) {
+            this->flags.go_back_on_select = true;
+            #if MENU_PERF_PARTIAL_UPDATES
+                this->add_redraw_policy(REDRAW_ON_CUSTOM);
+            #endif
+        }
+
+        virtual int renderValue(bool selected, bool, uint16_t) override {
+            const bool active = is_active();
+            last_rendered_active = active;
+            // todo: would be cool to pulse this indicator when active
+            const uint16_t col = active ? default_fg : (uint16_t)(C_WHITE >> 1);
+            colours(selected, col, BLACK);
+            tft->setTextSize(2);
+            tft->print(active ? "?" : "L");
+            return tft->getCursorY();
+        }
+
+        virtual bool action_opened() override {
+            if (parameter_manager != nullptr && parameter != nullptr && *parameter != nullptr) {
+                if (is_active())
+                    parameter_manager->stop_midi_learn(*parameter, slot_number);
+                else
+                    parameter_manager->start_midi_learn(*parameter, slot_number);
+            }
+            return false;   // don't 'open' the menu item itself
+        }
+
+        // todo: we might want to display some kind of fullscreen overlay kinda thing while
+        // waiting for a MIDI learn candidate to be proposed
+        #if MENU_PERF_PARTIAL_UPDATES
+            virtual bool check_needs_redraw_custom(bool, bool) override {
+                return is_active() != last_rendered_active;
+            }
+        #endif
+
+        virtual bool wants_fullscreen_overlay_when_opened_in_bar() override { return false; }
+    };
+#endif
 
 
 // One-character per-slot S&H mode indicator that opens a popout overlay when selected.
@@ -517,16 +601,28 @@ class ParameterModSlotRow : public SubMenuItemBarCustomProportions {
     int slot_number;
 public:
     ParameterModSlotRow(const char *label, FloatParameter **parameter, int slot_number)
-        : SubMenuItemBarCustomProportions(label, 4, false, false),
+        : SubMenuItemBarCustomProportions(label,
+          #ifdef ENABLE_PARAMETERS_MIDI_LEARN
+              5,
+          #else
+              4,
+          #endif
+          false, false),
           parameter(parameter), slot_number(slot_number)
     {
-        // Column proportions: source=49%, amount=27%, mode=16%, S&H=8%
+        // Source stays at 49%; learn takes 8% from amount when enabled.
         // Source bumped +3% (one extra textsize-1 char) so 11-char names like "Ride Cymbal"
         // fit without auto-downscaling; the amount column absorbs the difference.
-        this->set_column_proportion(0, 0.49f);
-        this->set_column_proportion(1, 0.27f);
-        this->set_column_proportion(2, 0.16f);
-        this->set_column_proportion(3, 0.08f);
+        this->set_column_proportion(0, 0.49f);          // Source column
+        this->set_column_proportion(1, 0.27f);          // Amount column
+        float individual_widths = 1.0f-(0.49f+0.27f);
+        #ifdef ENABLE_PARAMETERS_MIDI_LEARN
+            this->set_column_proportion(2, individual_widths / 3.0);  // Mode column
+            this->set_column_proportion(3, individual_widths / 3.0);  // S&H column
+            this->set_column_proportion(4, individual_widths / 3.0);  // Learn column
+        #else
+            this->set_column_proportion(2, individual_widths);      // Mode column
+        #endif
 
         BaseParameterInput *initial_input = nullptr;
         if (parameter != nullptr && *parameter != nullptr)
@@ -541,7 +637,7 @@ public:
             default: setter = &FloatParameter::set_slot_2_input; getter = &FloatParameter::get_slot_2_input; break;
         }
         ParameterInputSelectorControl<FloatParameter> *source = new ParameterInputSelectorControl<FloatParameter>(
-            "Src",
+            "Source",
             parameter,
             setter, getter,
             parameter_manager->available_inputs,
@@ -562,7 +658,12 @@ public:
         );
         this->add(mode);
 
-        // S&H mode (4th column, single-character indicator + popout overlay)
+        #ifdef ENABLE_PARAMETERS_MIDI_LEARN
+            // 4th column (MIDI Learn control)
+            this->add(new ParameterModSlotMidiLearnControl("MIDI Learn", parameter, slot_number));
+        #endif
+
+        // S&H mode (4th or 5th column, single-character indicator + popout overlay)
         this->add(new ParameterModSlotSHControl("SH", parameter, slot_number));
     }
 

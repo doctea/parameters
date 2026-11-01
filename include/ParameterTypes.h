@@ -25,14 +25,28 @@ enum MODULATION_SLOT_MODE : uint8_t {
 // without touching menu/widget code.
 
 // Compact UI labels for slot modulation modes (easy to redefine project-wide).
-#ifndef MOD_SLOT_BI_NATIVE_LABEL
-  #define MOD_SLOT_BI_NATIVE_LABEL "B+-"
-#endif
-#ifndef MOD_SLOT_UNI_RAW_LABEL
-  #define MOD_SLOT_UNI_RAW_LABEL "U+ "
-#endif
-#ifndef MOD_SLOT_UNI_CENTERED_LABEL
-  #define MOD_SLOT_UNI_CENTERED_LABEL "U+-"
+
+#ifndef MOD_SLOT_FANCY_SYMBOLS
+    #ifndef MOD_SLOT_BI_NATIVE_LABEL
+        #define MOD_SLOT_BI_NATIVE_LABEL    "B+-"
+    #endif
+    #ifndef MOD_SLOT_UNI_RAW_LABEL
+        #define MOD_SLOT_UNI_RAW_LABEL      "U+ "
+    #endif
+    #ifndef MOD_SLOT_UNI_CENTERED_LABEL
+        #define MOD_SLOT_UNI_CENTERED_LABEL "U+-"
+    #endif
+#else
+    // https://learn.adafruit.com/adafruit-gfx-graphics-library/graphics-primitives
+    #ifndef MOD_SLOT_BI_NATIVE_LABEL
+        #define MOD_SLOT_BI_NATIVE_LABEL    "\x12" //"B+-"
+    #endif
+    #ifndef MOD_SLOT_UNI_RAW_LABEL
+        #define MOD_SLOT_UNI_RAW_LABEL      "\x18" //"U+ "
+    #endif
+    #ifndef MOD_SLOT_UNI_CENTERED_LABEL
+        #define MOD_SLOT_UNI_CENTERED_LABEL "\x17" //"U+-"
+    #endif
 #endif
 
 // Set to 1 for lightweight runtime tracing of CV pitch-bend routing and applied values.

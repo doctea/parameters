@@ -998,7 +998,51 @@ class ParameterManager
             }
         }
 
+        #ifdef ENABLE_PARAMETERS_MIDI_LEARN
+            FloatParameter *awaiting_midi_learn = nullptr;
+            uint8_t awaiting_midi_learn_slot = 0;
+            uint32_t midi_learn_revision = 0;
 
+            bool is_midi_learn_active() const {
+                return awaiting_midi_learn != nullptr &&
+                    awaiting_midi_learn->is_valid_slot(awaiting_midi_learn_slot);
+            }
+            uint32_t get_midi_learn_revision() const {
+                return midi_learn_revision;
+            }
+            bool start_midi_learn(FloatParameter *parameter, byte slot_number) {
+                if (parameter == nullptr || !parameter->is_valid_slot(slot_number))
+                    return false;
+                if (awaiting_midi_learn == parameter && awaiting_midi_learn_slot == slot_number)
+                    return true;
+                stop_midi_learn();
+                awaiting_midi_learn = parameter;
+                awaiting_midi_learn_slot = slot_number;
+                parameter->connections[slot_number].midi_learn_active = true;
+                ++midi_learn_revision;
+                return true;
+            }
+            void stop_midi_learn() {
+                if (awaiting_midi_learn == nullptr)
+                    return;
+                if (awaiting_midi_learn->is_valid_slot(awaiting_midi_learn_slot))
+                    awaiting_midi_learn->connections[awaiting_midi_learn_slot].midi_learn_active = false;
+                awaiting_midi_learn = nullptr;
+                awaiting_midi_learn_slot = 0;
+                ++midi_learn_revision;
+            }
+            void stop_midi_learn(FloatParameter *parameter, byte slot_number) {
+                if (awaiting_midi_learn == parameter && awaiting_midi_learn_slot == slot_number)
+                    stop_midi_learn();
+            }
+            bool propose_midi_learn(BaseParameterInput *input) {
+                if (input == nullptr || !is_midi_learn_active())
+                    return false;
+                awaiting_midi_learn->set_slot_input(awaiting_midi_learn_slot, input);
+                stop_midi_learn();
+                return true;
+            }
+        #endif
 };
 
 extern ParameterManager *parameter_manager;

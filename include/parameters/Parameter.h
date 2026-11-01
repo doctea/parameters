@@ -70,6 +70,10 @@ struct ParameterToInputConnection {
     SHMode sh_mode = SH_OFF;         // saved/loaded
     float sh_last_sample = 0.0f;     // runtime state only — NOT saved
     uint32_t sh_last_tick = UINT32_MAX;  // runtime state only — NOT saved; UINT32_MAX = never sampled
+
+    #ifdef ENABLE_PARAMETERS_MIDI_LEARN
+        bool midi_learn_active = false;  // runtime state only — NOT saved
+    #endif
     //bool volt_per_octave = false;
 };
 
