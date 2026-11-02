@@ -621,7 +621,8 @@ public:
             this->set_column_proportion(3, individual_widths / 3.0);  // S&H column
             this->set_column_proportion(4, individual_widths / 3.0);  // Learn column
         #else
-            this->set_column_proportion(2, individual_widths);      // Mode column
+            this->set_column_proportion(2, individual_widths / 2.0f);  // Mode column
+            this->set_column_proportion(3, individual_widths / 2.0f);  // S&H column
         #endif
 
         BaseParameterInput *initial_input = nullptr;
