@@ -58,8 +58,12 @@ class BaseParameter;
 
 #define MAX_SLOT_CONNECTIONS 3
 
+#define MOD_SLOT_SUM 0
+#define MOD_SLOT_MULT 1
+
 struct ParameterToInputConnection {
-    //BaseParameter *parameter = nullptr;
+    // Connection mode: sum or multiply
+    byte operation_mode = MOD_SLOT_SUM;  // default to sum
     BaseParameterInput *parameter_input = nullptr;
     float amount = 0.0f;
     // Legacy field name retained for compatibility; this now stores MODULATION_SLOT_MODE.
@@ -74,7 +78,6 @@ struct ParameterToInputConnection {
     #ifdef ENABLE_PARAMETERS_MIDI_LEARN
         bool midi_learn_active = false;  // runtime state only — NOT saved
     #endif
-    //bool volt_per_octave = false;
 };
 
 const size_t MAX_PARAMETER_NAME_LENGTH = 20;
@@ -427,6 +430,34 @@ class FloatParameter : public BaseParameter {
         this->set_slot_polarity(2, polar_mode);
     }
 
+    virtual int get_slot_operation_mode(int8_t slot) {
+        if (!is_valid_slot(slot))
+            return MOD_SLOT_SUM; // default to sum
+        return this->connections[slot].operation_mode;
+    }
+    virtual int get_slot_0_operation_mode() {
+        return this->get_slot_operation_mode(0);
+    }
+    virtual int get_slot_1_operation_mode() {
+        return this->get_slot_operation_mode(1);
+    }
+    virtual int get_slot_2_operation_mode() {
+        return this->get_slot_operation_mode(2);
+    }
+    virtual void set_slot_0_operation_mode(int operation_mode) {
+        this->set_slot_operation_mode(0, operation_mode);
+    }
+    virtual void set_slot_1_operation_mode(int operation_mode) {
+        this->set_slot_operation_mode(1, operation_mode);
+    }
+    virtual void set_slot_2_operation_mode(int operation_mode) {
+        this->set_slot_operation_mode(2, operation_mode);
+    }
+    virtual void set_slot_operation_mode(int8_t slot, int operation_mode) {
+        if (!is_valid_slot(slot)) return;
+        this->connections[slot].operation_mode = operation_mode;
+    }
+
 
     virtual void reset_mappings() {
         this->set_slot_0_amount(0.0f);
@@ -742,8 +773,12 @@ class DataParameterBase : public FloatParameter {
             DataType current_value = this->getCurrentDataValue();
 
             // Early-exit: skip the expensive send path if nothing has changed and not slewing
-            if (!slewing && current_value == lastGetterValue
-                && this->modulateNormalValue == lastModulatedNormalValue)
+            if (
+                !initial_output_pending
+                && !slewing 
+                && current_value == lastGetterValue
+                && this->modulateNormalValue == lastModulatedNormalValue
+            )
                 return;
 
             if (debug) {
@@ -986,6 +1021,7 @@ class DataParameterBase : public FloatParameter {
         #endif
 
         DataType last_sent_value = 0;
+        bool initial_output_pending = false;
         // set the target from normalised post-modulation value
         virtual void setTargetValueFromNormal(float value, bool force = false) {
             //if (strcmp(this->label, "CVPO1-A")==0) this->debug = true; else this->debug = false;
@@ -1012,10 +1048,11 @@ class DataParameterBase : public FloatParameter {
             DataType value_to_send = this->normalToData(slewed_value);
             if (debug && Serial) Serial.printf("\tgot value_to_send=%3.3f\n", (float)value_to_send);
 
-            if (force || value_to_send!=this->last_sent_value) {
+            if (force || initial_output_pending || value_to_send!=this->last_sent_value) {
                 if (debug && Serial) { Serial.printf("\tsending..."); Serial.flush(); }
                 this->lastRealOutputNormalValue = slewed_value;
                 this->setTargetValueFromData(value_to_send, true); //force);
+                this->initial_output_pending = false;
                 this->last_sent_value = value_to_send;
                 this->lastOutputNormalValue = slewed_value;
             } else {

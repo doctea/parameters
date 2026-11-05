@@ -617,12 +617,14 @@ public:
         this->set_column_proportion(1, 0.27f);          // Amount column
         float individual_widths = 1.0f-(0.49f+0.27f);
         #ifdef ENABLE_PARAMETERS_MIDI_LEARN
-            this->set_column_proportion(2, individual_widths / 3.0);  // Mode column
-            this->set_column_proportion(3, individual_widths / 3.0);  // S&H column
-            this->set_column_proportion(4, individual_widths / 3.0);  // Learn column
+            this->set_column_proportion(2, individual_widths / 4.0);  // Operation mode
+            this->set_column_proportion(3, individual_widths / 4.0);  // Mode column
+            this->set_column_proportion(4, individual_widths / 4.0);  // S&H column
+            this->set_column_proportion(5, individual_widths / 4.0);  // Learn column
         #else
-            this->set_column_proportion(2, individual_widths / 2.0f);  // Mode column
-            this->set_column_proportion(3, individual_widths / 2.0f);  // S&H column
+            this->set_column_proportion(2, individual_widths / 3.0f);  // Operation mode
+            this->set_column_proportion(3, individual_widths / 3.0f);  // Mode column
+            this->set_column_proportion(4, individual_widths / 3.0f);  // S&H column
         #endif
 
         BaseParameterInput *initial_input = nullptr;
@@ -652,6 +654,23 @@ public:
         snprintf(amt_label, sizeof(amt_label), "Amt%i", slot_number + 1);
         ParameterMapPercentageControl *amount = new ParameterMapPercentageControl(amt_label, parameter, slot_number);
         this->add(amount);
+
+        // Operation mode control
+        ObjectToggleControl<FloatParameter, int> *operation_mode = new ObjectToggleControl<FloatParameter, int>(
+            "OpMode", *parameter, 
+            slot_number==0 ? &FloatParameter::set_slot_0_operation_mode : 
+                (slot_number==1 ? &FloatParameter::set_slot_1_operation_mode : 
+                    &FloatParameter::set_slot_2_operation_mode
+                ),
+            slot_number==0 ? &FloatParameter::get_slot_0_operation_mode : 
+                (slot_number==1 ? &FloatParameter::get_slot_1_operation_mode : 
+                    &FloatParameter::get_slot_2_operation_mode
+                ),
+            nullptr,
+            "x",
+            "+"
+        );
+        this->add(operation_mode);
 
         // Mode selector
         ParameterConnectionPolarityTypeSelectorControl *mode = new ParameterConnectionPolarityTypeSelectorControl(

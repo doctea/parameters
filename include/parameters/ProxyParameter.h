@@ -24,6 +24,9 @@ class ProxyParameter : public DataParameterBase<DataType>
             this->source = source;
             this->target = target;
             this->initialise_values(minimumDataValue, maximumDataValue);
+            this->lastGetterValue = *source;
+            this->last_sent_value = *target;
+            this->initial_output_pending = *source != *target;
         }
 
     ProxyParameter(const char *label, ProxiedValue<DataType> *value, DataType minimumDataValue, DataType maximumDataValue) 
@@ -42,6 +45,7 @@ class ProxyParameter : public DataParameterBase<DataType>
     virtual void setTargetValueFromData(DataType value, bool force = false) override {
         *this->target = value;
         this->lastOutputNormalValue = this->dataToNormal(value);
+        this->initial_output_pending = false;
     }
 
     virtual float getCurrentNormalValue() override {
@@ -54,10 +58,12 @@ class ProxyParameter : public DataParameterBase<DataType>
     virtual void updateValueFromNormal(float v) override {
         this->last_sent_value = *this->target = *this->source = this->normalToData(v);
         this->lastOutputNormalValue = v;
+        this->initial_output_pending = false;
     }
     virtual void updateValueFromData(DataType v) override {
        this->last_sent_value = *this->target = *this->source = v;
        this->lastOutputNormalValue = this->dataToNormal(v);
+    this->initial_output_pending = false;
        //this->lastOutputValue = v;
        //*this->target = *this->source = v;        
     }

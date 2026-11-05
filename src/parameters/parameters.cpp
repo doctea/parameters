@@ -157,7 +157,11 @@ FLASHMEM MenuItemList *FloatParameter::makeControls() {
                 }
 
                 // todo: check connection mode and use += or *= as appropriate
-                modulation += nml * this->connections[i].amount;
+                if (this->connections[i].operation_mode == MOD_SLOT_SUM) {
+                    modulation += nml * this->connections[i].amount;
+                } else if (this->connections[i].operation_mode == MOD_SLOT_MULT) {
+                    modulation *= nml * this->connections[i].amount;
+                }
                 number_of_modulations++;
             }
         }

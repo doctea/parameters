@@ -158,6 +158,7 @@ float FloatParameter::get_amount_for_slot(int8_t slot) {
                 char* comma2 = strchr(comma1 + 1, ',');
                 float amount = 0.0f;
                 uint8_t mode = MOD_SLOT_UNI_RAW;
+                uint8_t operation_mode = MOD_SLOT_SUM;
                 SHMode sh_mode = SH_OFF;
                 if (comma2) {
                     *comma2 = '\0';
@@ -168,6 +169,16 @@ float FloatParameter::get_amount_for_slot(int8_t slot) {
                     if (comma3) {
                         *comma3 = '\0';
                         sh_mode = get_sh_mode_from_save_string(comma3 + 1);
+                        char *comma4 = strchr(comma3 + 1, ',');
+                        if (comma4) {
+                            // backwards compatibility: "sum" / "mult" for operation_mode
+                            *comma4 = '\0';
+                            if (strcmp(comma3 + 1, "sum") == 0) {
+                                operation_mode = MOD_SLOT_SUM;
+                            } else if (strcmp(comma3 + 1, "mult") == 0) {
+                                operation_mode = MOD_SLOT_MULT;
+                            }
+                        }
                     }
                     // Backward compatibility:
                     // - legacy: "bipolar" / "unipolar"
@@ -192,6 +203,7 @@ float FloatParameter::get_amount_for_slot(int8_t slot) {
                 target->connections[s].sh_mode = sh_mode;
                 target->connections[s].sh_last_sample = 0.0f;  // reset runtime state on load
                 target->connections[s].sh_last_tick = UINT32_MAX;  // UINT32_MAX = never sampled
+                target->connections[s].operation_mode = operation_mode;  // default to sum
                 if (!semi) break;
                 cursor = semi + 1;
             }
