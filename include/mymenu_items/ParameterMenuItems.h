@@ -14,7 +14,6 @@
 class ParameterValueMenuItem : public DirectNumberControl<float> {
     public:
         FloatParameter **parameter = nullptr;
-        //Parameter<TargetClass, DataType> *parameter = nullptr;
 
         bool show_output_mode = false;  // true if this widget should show the last post-modulation output value; false if it should show the pre-modulation value
 
@@ -182,10 +181,52 @@ class ParameterValueMenuItem : public DirectNumberControl<float> {
 #include "ParameterInputMenuItems.h"
 #include "ParameterMenuItems_Range.h"
 
-class ParameterMapPercentageControl : public DirectNumberControl<float> {
+// Methods and variables shared between modulation slot row controls
+class ParameterSlotControlMixins {
     public:
-    FloatParameter **parameter = nullptr;
-    int slot_number;
+        FloatParameter **parameter = nullptr;
+        uint8_t slot_number = 0;
+
+        ParameterSlotControlMixins(FloatParameter **parameter, uint8_t slot_number) 
+            : parameter(parameter), slot_number(slot_number) {}
+
+        uint16_t get_colour() const {
+            if (
+                parameter != nullptr && *parameter != nullptr 
+                && (*parameter)->connections[slot_number].parameter_input != nullptr
+            )
+                return (*parameter)->connections[slot_number].parameter_input->colour;
+            return C_WHITE;
+        }
+
+        bool is_active() const {
+            return parameter != nullptr && *parameter != nullptr &&
+                (*parameter)->is_valid_slot(slot_number) &&
+                (*parameter)->connections[slot_number].midi_learn_active;
+        }
+
+        float get_slot_amount() {
+            if (
+                parameter != nullptr && *parameter != nullptr 
+                && (*parameter)->is_valid_slot(slot_number)) 
+            {
+                return (*parameter)->connections[slot_number].amount;
+            }
+            return 0.0f;
+        }
+
+        BaseParameterInput *get_slot_parameter_input() {
+            if (parameter != nullptr && *parameter != nullptr && (*parameter)->is_valid_slot(slot_number)) {
+                return (*parameter)->connections[slot_number].parameter_input;
+            }
+            return nullptr;
+        }
+};
+
+
+class ParameterMapPercentageControl : public ParameterSlotControlMixins, public DirectNumberControl<float> {
+
+    public:
     ParameterMapPercentageControl(char *label, FloatParameter **parameter, int slot_number) :
         DirectNumberControl<float> (
             label, 
@@ -194,11 +235,12 @@ class ParameterMapPercentageControl : public DirectNumberControl<float> {
             -2.0f,
             2.0f,
             nullptr
-        ), parameter(parameter), slot_number(slot_number)
+        ), ParameterSlotControlMixins(parameter, slot_number)
         {
-            if ((*parameter)->connections[slot_number].parameter_input!=nullptr) {
-                this->default_fg = (*parameter)->connections[slot_number].parameter_input->colour;
-            }
+            // if ((*parameter)->connections[slot_number].parameter_input!=nullptr) {
+            //     this->default_fg = (*parameter)->connections[slot_number].parameter_input->colour;
+            // }
+            this->default_fg = this->get_colour();
         }
 
     virtual int header(const char *text, Coord pos, bool selected = false, bool opened = false, int textSize = 0, unsigned int text_len = (unsigned int)-1) override {
@@ -218,15 +260,13 @@ class ParameterMapPercentageControl : public DirectNumberControl<float> {
     virtual int renderValue(bool selected, bool opened, uint16_t max_character_width) override {
         //Serial.printf("%s: renderValue has parameter=%p and *parameter=%p\n", get_label(), this->parameter, *this->parameter);
         // update the control with the colour from the connected parameter input, if there is one
-        this->default_fg = (parameter!=nullptr && *parameter!=nullptr && (*parameter)->connections[slot_number].parameter_input!=nullptr)
-                            ? (*parameter)->connections[slot_number].parameter_input->colour
-                            : C_WHITE;
+        this->default_fg = this->get_colour();
 
         if (opened) this->default_fg = GREEN;
         if (!(*parameter)->is_modulation_slot_active(slot_number))
             this->default_fg = tft->halfbright_565(this->default_fg);
             
-        //Serial.printf("renderValue in ParameterMapPercentageControl\tfor %s,\tgot default_fg colour %04x from slot_number %i colour %04x, max_character_width=%i\n", this->label, this->default_fg, slot_number, parameter->connections[slot_number].parameter_input->colour, max_character_width);
+        //Serial.printf("renderValue in ParameterMapPercentageControl\tfor %s,\tgot default_fg colour %04x from slot_number %i colour %04x, max_character_width=%i\n", this->label, this->default_fg, slot_number, this->get_colour(), max_character_width);
         return DirectNumberControl::renderValue(selected, opened, max_character_width);
     }
 
@@ -276,17 +316,19 @@ class ParameterMapPercentageControl : public DirectNumberControl<float> {
 
 
 // widget for editing the polarity of a parameter input's connection to parameter mixer
-class ParameterConnectionPolarityTypeSelectorControl : public SelectorControl<int_least8_t> {
-    FloatParameter **parameter;
-    byte slot_number;
-
+class ParameterConnectionPolarityTypeSelectorControl : 
+    public ParameterSlotControlMixins, 
+    public SelectorControl<int_least8_t> 
+{
     public:
 
-    ParameterConnectionPolarityTypeSelectorControl(const char *label, FloatParameter **parameter, byte slot_number) 
-        : SelectorControl(label) { 
-        this->parameter = parameter;
-        this->slot_number = slot_number;
-        this->actual_value_index = (*this->parameter)->connections[slot_number].polar_mode;
+    ParameterConnectionPolarityTypeSelectorControl(
+        const char *label, 
+        FloatParameter **parameter, 
+        byte slot_number
+    ) : ParameterSlotControlMixins(parameter, slot_number), SelectorControl(label) 
+    { 
+        this->actual_value_index = (*this->ParameterSlotControlMixins::parameter)->connections[slot_number].polar_mode;
         this->flags.go_back_on_select = true;
     }
 
@@ -303,22 +345,19 @@ class ParameterConnectionPolarityTypeSelectorControl : public SelectorControl<in
     }
 
     virtual void setter (int_least8_t new_value) {
-        if (this->parameter != nullptr)
-            (*this->parameter)->connections[slot_number].polar_mode = new_value;
+        if (parameter != nullptr)
+            (*parameter)->connections[slot_number].polar_mode = new_value;
         actual_value_index = new_value;
     }
     virtual int_least8_t getter () {
         //return clock_mode; //selected_value_index;
-        if (this->parameter != nullptr)
-            return (*this->parameter)->connections[slot_number].polar_mode;
+        if (parameter != nullptr)
+            return (*parameter)->connections[slot_number].polar_mode;
         return MOD_SLOT_UNI_RAW;
     }
 
     virtual int renderValue(bool selected, bool opened, uint16_t width) override {
-        if (this->parameter != nullptr && (*this->parameter)->connections[slot_number].parameter_input != nullptr)
-            this->default_fg = (*this->parameter)->connections[slot_number].parameter_input->colour;
-        else
-            this->default_fg = C_WHITE;
+        this->default_fg = this->get_colour();
         return SelectorControl::renderValue(selected, opened, width);
     }
 
@@ -327,12 +366,10 @@ class ParameterConnectionPolarityTypeSelectorControl : public SelectorControl<in
         //int textSize = tft->get_textsize_for_width(label, tft->width()/2);
         int_fast8_t textSize = 0;
         pos.y = header(label, pos, selected, opened, textSize);
-        //tft->setTextSize(2);
 
-        num_values = 3; //NUM_CLOCK_SOURCES;
+        num_values = 3;
 
         tft->setCursor(pos.x, pos.y);
-        //tft->setTextColor((*this->parameter)->connections[slot_number].parameter_input->colour, BLACK);
 
         if (!opened) {
             // not opened, so just show the current value
@@ -384,20 +421,12 @@ class ParameterConnectionPolarityTypeSelectorControl : public SelectorControl<in
 
 #ifdef ENABLE_PARAMETERS_MIDI_LEARN
     // One-character per-slot MIDI Learn control that goes into 'AWAITING MIDI INPUT' mode (with a popout overlay?) when selected.
-    class ParameterModSlotMidiLearnControl : public MenuItem {
-        FloatParameter **parameter;
-        byte slot_number;
+    class ParameterModSlotMidiLearnControl : public ParameterSlotControlMixins, public MenuItem {
         bool last_rendered_active = false;
-
-        bool is_active() const {
-            return parameter != nullptr && *parameter != nullptr &&
-                (*parameter)->is_valid_slot(slot_number) &&
-                (*parameter)->connections[slot_number].midi_learn_active;
-        }
 
     public:
         ParameterModSlotMidiLearnControl(const char *label, FloatParameter **parameter, byte slot_number)
-            : MenuItem(label), parameter(parameter), slot_number(slot_number) {
+            : ParameterSlotControlMixins(parameter, slot_number), MenuItem(label) {
             this->flags.go_back_on_select = true;
             #if MENU_PERF_PARTIAL_UPDATES
                 this->add_redraw_policy(REDRAW_ON_CUSTOM);
@@ -440,9 +469,7 @@ class ParameterConnectionPolarityTypeSelectorControl : public SelectorControl<in
 
 // One-character per-slot S&H mode indicator that opens a popout overlay when selected.
 // Cycles through SHMode values with left/right/select; renders "~" (off) or "H" (active).
-class ParameterModSlotSHControl : public MenuItem {
-    FloatParameter **parameter;
-    byte slot_number;
+class ParameterModSlotSHControl : public ParameterSlotControlMixins, public MenuItem {
     char overlay_value_buf[8];
 
     SHMode get_sh_mode() const {
@@ -453,16 +480,10 @@ class ParameterModSlotSHControl : public MenuItem {
         if (parameter == nullptr || *parameter == nullptr) return;
         (*parameter)->connections[slot_number].sh_mode = m;
     }
-    uint16_t get_colour() const {
-        if (parameter != nullptr && *parameter != nullptr &&
-                (*parameter)->connections[slot_number].parameter_input != nullptr)
-            return (*parameter)->connections[slot_number].parameter_input->colour;
-        return C_WHITE;
-    }
 
 public:
     ParameterModSlotSHControl(const char *label, FloatParameter **parameter, byte slot_number)
-        : MenuItem(label), parameter(parameter), slot_number(slot_number) {
+        : ParameterSlotControlMixins(parameter, slot_number), MenuItem(label) {
         this->flags.go_back_on_select = true;
         overlay_value_buf[0] = '\0';
     }
@@ -507,8 +528,10 @@ public:
         overlay_value_buf[sizeof(overlay_value_buf) - 1] = '\0';
 
         const char *src_name = nullptr;
-        if (parameter != nullptr && *parameter != nullptr &&
-                (*parameter)->connections[slot_number].parameter_input != nullptr)
+        if (
+            parameter != nullptr && *parameter != nullptr 
+            && (*parameter)->connections[slot_number].parameter_input != nullptr
+        )
             src_name = (*parameter)->connections[slot_number].parameter_input->name;
 
         SelectorTakeoverOverlaySpec overlay;
@@ -521,11 +544,10 @@ public:
         overlay.value_fg   = C_WHITE;
 
         // If the connected input has a history display, add a graph with S&H reconstruction
+        BaseParameterInput *inp = this->get_slot_parameter_input();
         ParameterInputDisplay *disp_for_graph = nullptr;
-        if (parameter != nullptr && *parameter != nullptr) {
-            BaseParameterInput *inp = (*parameter)->connections[slot_number].parameter_input;
-            if (inp != nullptr) disp_for_graph = inp->parameter_input_display;
-        }
+        if (inp != nullptr) disp_for_graph = inp->parameter_input_display;
+
         if (disp_for_graph != nullptr) {
             overlay.has_extra = true;
             overlay.extra_height = 50;
@@ -533,7 +555,7 @@ public:
                 auto *self = static_cast<ParameterModSlotSHControl*>(userdata);
                 FloatParameter *param = (self->parameter != nullptr) ? *(self->parameter) : nullptr;
                 if (param == nullptr) return;
-                BaseParameterInput *inp = param->connections[self->slot_number].parameter_input;
+                BaseParameterInput *inp = self->get_slot_parameter_input();
                 if (inp == nullptr) return;
                 ParameterInputDisplay *disp = inp->parameter_input_display;
                 if (disp == nullptr) return;
@@ -595,20 +617,54 @@ public:
 };
 
 
+// Control that toggles the operation mode (sum, mult) of a parameter slot
+// like a toggle, between "x" and "+"
+class ParameterOperationModeControl : public ParameterSlotControlMixins, public MenuItem {
+
+    public:
+    ParameterOperationModeControl(const char *label, FloatParameter **parameter, int slot_number) : 
+        ParameterSlotControlMixins(parameter, slot_number), MenuItem(label) {
+    }
+
+    virtual int renderValue(bool selected, bool, uint16_t) override {
+        colours(selected, this->get_colour(), BLACK);
+
+        tft->setTextSize(2);
+        if (parameter == nullptr || *parameter == nullptr) {
+            tft->print("?");
+            return tft->getCursorY();
+        }
+
+        int mode = (*parameter)->get_slot_operation_mode(slot_number);
+        tft->print(mode == MOD_SLOT_SUM ? "+" : "x");
+
+        return tft->getCursorY();
+    }
+
+    virtual bool action_opened() override {
+        // toggle between sum and multiply operation modes
+        (*parameter)->set_slot_operation_mode(
+            slot_number,
+            (*parameter)->get_slot_operation_mode(slot_number) == MOD_SLOT_SUM ? MOD_SLOT_MULT : MOD_SLOT_SUM
+        );
+        return false;   // don't 'open' the menu item itself
+    }
+
+};
+
+
 // One row for a single modulation slot: [source selector | amount % | mode selector | S&H]
-class ParameterModSlotRow : public SubMenuItemBarCustomProportions {
-    FloatParameter **parameter;
-    int slot_number;
+class ParameterModSlotRow : public ParameterSlotControlMixins, public SubMenuItemBarCustomProportions {
 public:
     ParameterModSlotRow(const char *label, FloatParameter **parameter, int slot_number)
-        : SubMenuItemBarCustomProportions(label,
+        : ParameterSlotControlMixins(parameter, slot_number),
+          SubMenuItemBarCustomProportions(label,
           #ifdef ENABLE_PARAMETERS_MIDI_LEARN
               5,
           #else
               4,
           #endif
-          false, false),
-          parameter(parameter), slot_number(slot_number)
+          false, false)
     {
         // Source stays at 49%; learn takes 8% from amount when enabled.
         // Source bumped +3% (one extra textsize-1 char) so 11-char names like "Ride Cymbal"
@@ -628,8 +684,7 @@ public:
         #endif
 
         BaseParameterInput *initial_input = nullptr;
-        if (parameter != nullptr && *parameter != nullptr)
-            initial_input = (*parameter)->connections[slot_number].parameter_input;
+        initial_input = get_slot_parameter_input();
 
         // Source selector — slot-specific setter/getter function pointers
         void(FloatParameter::*setter)(BaseParameterInput*) = nullptr;
@@ -656,21 +711,10 @@ public:
         this->add(amount);
 
         // Operation mode control
-        ObjectToggleControl<FloatParameter, int> *operation_mode = new ObjectToggleControl<FloatParameter, int>(
-            "OpMode", *parameter, 
-            slot_number==0 ? &FloatParameter::set_slot_0_operation_mode : 
-                (slot_number==1 ? &FloatParameter::set_slot_1_operation_mode : 
-                    &FloatParameter::set_slot_2_operation_mode
-                ),
-            slot_number==0 ? &FloatParameter::get_slot_0_operation_mode : 
-                (slot_number==1 ? &FloatParameter::get_slot_1_operation_mode : 
-                    &FloatParameter::get_slot_2_operation_mode
-                ),
-            nullptr,
-            "x",
-            "+"
+        ParameterOperationModeControl *operation_mode_control = new ParameterOperationModeControl(
+            "OpMode", parameter, slot_number
         );
-        this->add(operation_mode);
+        this->add(operation_mode_control);
 
         // Mode selector
         ParameterConnectionPolarityTypeSelectorControl *mode = new ParameterConnectionPolarityTypeSelectorControl(

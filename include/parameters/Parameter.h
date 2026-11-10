@@ -63,9 +63,10 @@ class BaseParameter;
 
 struct ParameterToInputConnection {
     // Connection mode: sum or multiply
-    byte operation_mode = MOD_SLOT_SUM;  // default to sum
     BaseParameterInput *parameter_input = nullptr;
     float amount = 0.0f;
+    
+    byte operation_mode = MOD_SLOT_SUM;  // default to sum   
     // Legacy field name retained for compatibility; this now stores MODULATION_SLOT_MODE.
     byte polar_mode = MOD_SLOT_UNI_RAW;
 
