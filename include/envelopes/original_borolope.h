@@ -28,6 +28,7 @@
 // Now modified quite a bit by Tristan Rowley with full thanks and royalties ;-) to Russell Borogove for the basis!
 //  Seems to work OK on an Arduino Nano
 
+#include "shared_debug.h"
 #include "parameters/Parameter.h"
 
 #include "Clock.h"
@@ -142,8 +143,8 @@ private:
 public:
 
   Envelope(char *label) : BaseParameter(label) {
-    Serial.print("Instantiated envelope "); Serial.flush();
-    Serial.println(label); Serial.flush();
+    Serial_print("Instantiated envelope "); Serial_flush();
+    Serial_println(label); Serial_flush();
   }
 
   virtual bool matches_label(char *label) {
@@ -261,8 +262,8 @@ public:
       }*/
       setterCallback(envelopeLevel, force);
     } else if (debug) {
-      Serial.print(label);
-      Serial.println(F(": setterCallback is NULL?!"));
+      Serial_print(label);
+      Serial_println(F(": setterCallback is NULL?!"));
     }
   }
   
@@ -289,15 +290,15 @@ public:
           if (envelopeState==ENVELOPE_STATE_IDLE) {
               if (envelopeLevel>envelopeStopLevel && slewRate>0.01) {
                 if (debug) {
-                  Serial.print(label);
-                  Serial.print(F(": stageStartLevel is "));
-                  Serial.print(stageStartLevel);
-                  Serial.print(F(", with slewRate at "));
-                  Serial.print(slewRate);
-                  Serial.print(F(" @ time elapsed "));
-                  Serial.print((unsigned long)(bpm_clock()-stageStartedAt));
-                  Serial.print(F(" after some maths = "));
-                  Serial.print(constrain((bpm_clock()-stageStartedAt)/slewRate, 0.0f, 1.0f));
+                  Serial_print(label);
+                  Serial_print(F(": stageStartLevel is "));
+                  Serial_print(stageStartLevel);
+                  Serial_print(F(", with slewRate at "));
+                  Serial_print(slewRate);
+                  Serial_print(F(" @ time elapsed "));
+                  Serial_print((unsigned long)(bpm_clock()-stageStartedAt));
+                  Serial_print(F(" after some maths = "));
+                  Serial_print(constrain((bpm_clock()-stageStartedAt)/slewRate, 0.0f, 1.0f));
                 }
                 
                 envelopeLevel = lerp(
@@ -308,8 +309,8 @@ public:
                 );
                 if (inverted) envelopeLevel = 1.0 - envelopeLevel;
                 if (debug) {
-                  Serial.print(F(" gives level "));
-                  Serial.println(envelopeLevel);
+                  Serial_print(F(" gives level "));
+                  Serial_println(envelopeLevel);
                 }
               } else {
                 /*if(debug) {
@@ -320,8 +321,8 @@ public:
               }
           } else if (envelopeState==ENVELOPE_STATE_ATTACK) {
               if(debug) {
-                Serial.print(label);
-                Serial.println(F(": ENVELOPE_STATE_ATTACK"));
+                Serial_print(label);
+                Serial_println(F(": ENVELOPE_STATE_ATTACK"));
               }
               delta = lerp( AttackRateTable[EnvA], AttackRateTable[EnvB], EnvAlpha );
               envelopeLevel += delta;
@@ -332,8 +333,8 @@ public:
               }
           } else if (envelopeState==ENVELOPE_STATE_DECAY) {
               if(debug) {
-                Serial.print(label);
-                Serial.println(F(": ENVELOPE_STATE_DECAY"));
+                Serial_print(label);
+                Serial_println(F(": ENVELOPE_STATE_DECAY"));
               }
               damp = lerp( DecayRateTable[EnvA], DecayRateTable[EnvB], EnvAlpha );
               envelopeLevel *= damp;
@@ -344,8 +345,8 @@ public:
               }
           } else if (envelopeState==ENVELOPE_STATE_SUSTAIN) {
               if(debug) {
-                Serial.print(label);
-                Serial.println(F(": ENVELOPE_STATE_SUSTAIN"));
+                Serial_print(label);
+                Serial_println(F(": ENVELOPE_STATE_SUSTAIN"));
               }
               damp = lerp( SustainRateTable[EnvA], SustainRateTable[EnvB], EnvAlpha );
               envelopeLevel *= damp;
@@ -355,8 +356,8 @@ public:
               }
           }  else if (envelopeState==ENVELOPE_STATE_RELEASE) {
               if(debug) {
-                Serial.print(label);
-                Serial.println(F(": ENVELOPE_STATE_RELEASE"));
+                Serial_print(label);
+                Serial_println(F(": ENVELOPE_STATE_RELEASE"));
               }
               damp = lerp( ReleaseRateTable[EnvA], ReleaseRateTable[EnvB], EnvAlpha );
               envelopeLevel *= damp;
@@ -366,7 +367,7 @@ public:
               }
           } else if (envelopeState==ENVELOPE_STATE_INVERTED_RELEASE) { 
               // TODO: this doesn't really do what we actually want it to
-              if(debug) Serial.println("ENVELOPE_STATE_INVERTED_RELEASE");
+              if(debug) Serial_println("ENVELOPE_STATE_INVERTED_RELEASE");
               //damp = lerp( ReleaseRateTable[EnvA], ReleaseRateTable[EnvB], EnvAlpha );
               //envelopeLevel *= damp;
               envelopeLevel = constrain(envelopeLevel*slewRate, 0.0f, 1.0f);
@@ -377,8 +378,8 @@ public:
               //if (inverted) envelopeLevel = 1.0f - envelopeLevel;
           } else  {
               if(debug) {
-                Serial.print(label);
-                Serial.println(F(": UNKNOWN ENVELOPE STATE?"));
+                Serial_print(label);
+                Serial_println(F(": UNKNOWN ENVELOPE STATE?"));
               }
           }
           //Serial.print("envelopeLevel = ");
@@ -390,11 +391,11 @@ public:
           setEnvelope(envelopeLevel);
           //return;
       } else if (debug) {
-        Serial.print(label);
-        Serial.print(F(": ttg >0 (is "));
-        Serial.print((unsigned long)ttg);
-        Serial.print(F(") and bpm_clock is "));
-        Serial.println((unsigned long)bpm_clock());
+        Serial_print(label);
+        Serial_print(F(": ttg >0 (is "));
+        Serial_print((unsigned long)ttg);
+        Serial_print(F(") and bpm_clock is "));
+        Serial_println((unsigned long)bpm_clock());
         //Serial.print(F(" and nextEnvelopeUpdate is"));
         //Serial.println(nextEnvelopeUpdate);
       }

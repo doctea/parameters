@@ -1,5 +1,6 @@
 #pragma once
 
+#include "shared_debug.h"
 #include "ParameterInput.h"
 #include "AnalogParameterInputBase.h"
 
@@ -71,7 +72,7 @@ class VoltageParameterInput
 
         virtual void read() override {
             if(this->voltage_source==nullptr) {
-                Serial.printf("ERROR in VoltageParameterInput#read(): voltage_source is null for %s\n", this->name); Serial_flush();
+                Serial_printf("ERROR in VoltageParameterInput#read(): voltage_source is null for %s\n", this->name); Serial_flush();
                 return;
             }
 
@@ -81,8 +82,8 @@ class VoltageParameterInput
                 this->lastValue = this->currentValue;
                 this->currentValue = currentValue;
                 if (this->debug) {
-                    Serial.printf("VoltageParameterInput#read() in '%s':\tSetting this->currentValue to ", this->name);
-                    Serial.println(currentValue);
+                    Serial_printf("VoltageParameterInput#read() in '%s':\tSetting this->currentValue to ", this->name);
+                    Serial_println(currentValue);
                 }
                 //this->currentValue = currentValue;
                 //this->currentValue = currentValue = this->get_normal_value(currentValue);

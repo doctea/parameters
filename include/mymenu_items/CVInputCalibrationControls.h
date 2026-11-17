@@ -2,6 +2,7 @@
 
 #ifdef ENABLE_SCREEN
 
+#include "shared_debug.h"
 #include "voltage_sources/ADSVoltageSource.h"
 #include "submenuitem.h"
 #include "submenuitem_bar.h"
@@ -269,9 +270,9 @@ public:
     // The header block (lines beginning with #) gives human context;
     // the CSV rows can be imported directly into a spreadsheet.
     void dump_to_serial() {
-        Serial.println("# === CV Input Calibration Dump ===");
+        Serial_println("# === CV Input Calibration Dump ===");
         if (voltage_source != nullptr) {
-            Serial.printf("# Source: slot=%d  channel=%d  cur_cv1=%.6f  cur_cv2=%.6f  smooth_alpha=%.6f\n",
+            Serial_printf("# Source: slot=%d  channel=%d  cur_cv1=%.6f  cur_cv2=%.6f  smooth_alpha=%.6f\n",
                 voltage_source->global_slot,
                 (int)voltage_source->get_adc_channel(),
                 voltage_source->correction_value_1,
@@ -279,34 +280,34 @@ public:
                 voltage_source->smooth_alpha);
         }
         if (has_backup) {
-            Serial.printf("# Backup (pre-Apply): cv1=%.6f  cv2=%.6f\n", backup_cv1, backup_cv2);
+            Serial_printf("# Backup (pre-Apply): cv1=%.6f  cv2=%.6f\n", backup_cv1, backup_cv2);
         }
-        Serial.printf("# Config: start=%.4f  end=%.4f  step=%.4f  samples_per_step=%d\n",
+        Serial_printf("# Config: start=%.4f  end=%.4f  step=%.4f  samples_per_step=%d\n",
             start_voltage, end_voltage, step_size, (int)samples_per_step);
         const int8_t ns = num_steps();
         const int steps_done = (step < 0) ? 0 : (step < ns ? (int)step : (int)ns);
         int n_valid = 0;
         for (int i = 0; i < steps_done; i++)
             if (!is_skipped[i]) n_valid++;
-        Serial.printf("# Steps: total=%d  recorded=%d  valid=%d\n", (int)ns, steps_done, n_valid);
+        Serial_printf("# Steps: total=%d  recorded=%d  valid=%d\n", (int)ns, steps_done, n_valid);
         if (results_ready) {
-            Serial.printf("# New fit: cv1=%.6f  cv2=%.6f\n", new_cv1, new_cv2);
-            Serial.printf("# Max errors: old=%.6fV (%.2fmV)  new=%.6fV (%.2fmV)\n",
+            Serial_printf("# New fit: cv1=%.6f  cv2=%.6f\n", new_cv1, new_cv2);
+            Serial_printf("# Max errors: old=%.6fV (%.2fmV)  new=%.6fV (%.2fmV)\n",
                 max_error_old, max_error_old * 1000.0f,
                 max_error_new, max_error_new * 1000.0f);
         } else {
-            Serial.println("# New fit: not ready");
+            Serial_println("# New fit: not ready");
         }
         // Use backup cv1/cv2 for the "before" column if Apply was already pressed,
         // so the old vs new comparison is always meaningful.
         const float ref_cv1 = has_backup ? backup_cv1 : (voltage_source ? voltage_source->correction_value_1 : 1.0f);
         const float ref_cv2 = has_backup ? backup_cv2 : (voltage_source ? voltage_source->correction_value_2 : 0.0f);
-        Serial.println("# Columns: step,target_V,raw_sample,skipped,pred_old_V,err_old_V,pred_new_V,err_new_V");
-        Serial.println("step,target_V,raw_sample,skipped,pred_old_V,err_old_V,pred_new_V,err_new_V");
+        Serial_println("# Columns: step,target_V,raw_sample,skipped,pred_old_V,err_old_V,pred_new_V,err_new_V");
+        Serial_println("step,target_V,raw_sample,skipped,pred_old_V,err_old_V,pred_new_V,err_new_V");
         for (int i = 0; i < steps_done; i++) {
             const float target_v = start_voltage + i * step_size;
             if (is_skipped[i]) {
-                Serial.printf("%d,%.4f,,1,,,,\n", i, target_v);
+                Serial_printf("%d,%.4f,,1,,,,\n", i, target_v);
             } else {
                 float pred_old = 0.0f, pred_new = 0.0f;
                 if (voltage_source != nullptr) {
@@ -317,16 +318,16 @@ public:
                 const float err_old = pred_old - target_v;
                 if (results_ready) {
                     const float err_new = pred_new - target_v;
-                    Serial.printf("%d,%.4f,%.6f,0,%.6f,%+.6f,%.6f,%+.6f\n",
+                    Serial_printf("%d,%.4f,%.6f,0,%.6f,%+.6f,%.6f,%+.6f\n",
                         i, target_v, samples[i],
                         pred_old, err_old, pred_new, err_new);
                 } else {
-                    Serial.printf("%d,%.4f,%.6f,0,%.6f,%+.6f,,\n",
+                    Serial_printf("%d,%.4f,%.6f,0,%.6f,%+.6f,,\n",
                         i, target_v, samples[i], pred_old, err_old);
                 }
             }
         }
-        Serial.println("# === End Calibration Dump ===");
+        Serial_println("# === End Calibration Dump ===");
     }
 };
 

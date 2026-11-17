@@ -1,3 +1,5 @@
+#include "shared_debug.h"
+
 #ifdef ENABLE_OFFCUTS
 
 char NEXT_GATE_INPUT_NAME = 'M';
@@ -28,8 +30,8 @@ class GateInput {
     
     GateInput() {
       name = NEXT_GATE_INPUT_NAME++;
-      Serial.print("Instantiated GateInput named ");
-      Serial.print(name);
+      Serial_print("Instantiated GateInput named ");
+      Serial_print(name);
     }
     GateInput(int in_inputPin, Envelope &in_target) 
       : GateInput () {
@@ -37,12 +39,12 @@ class GateInput {
       pinMode(inputPin, INPUT);
 
       target = &in_target;
-      Serial.print("GateInput instantiated with name ");
-      Serial.print(name);
-      Serial.print(" and pin ");
-      Serial.print(inputPin);
-      Serial.print(", passed envelope ");
-      Serial.println((uint32_t) target);
+      Serial_print("GateInput instantiated with name ");
+      Serial_print(name);
+      Serial_print(" and pin ");
+      Serial_print(inputPin);
+      Serial_print(", passed envelope ");
+      Serial_println((uint32_t) target);
       //gate_on_callback = in_gate_on_callback;
       //gate_off_callback = in_gate_off_callback;
     }
@@ -52,11 +54,11 @@ class GateInput {
       pinMode(inputPin, INPUT);
       gate_on_callback = in_gate_on_callback;
       gate_off_callback = in_gate_off_callback;
-      Serial.print("GateInput instantiated with name ");
-      Serial.print(name);
-      Serial.print(" and pin ");
-      Serial.print(inputPin);
-      Serial.println(", passed callbacks ");
+      Serial_print("GateInput instantiated with name ");
+      Serial_print(name);
+      Serial_print(" and pin ");
+      Serial_print(inputPin);
+      Serial_println(", passed callbacks ");
     }
 
     void setDebug() {
@@ -111,23 +113,23 @@ class GateInput {
     
       if (changed) {
         if (debug) {
-          Serial.print(name);
-          Serial.println(F(": GateInput changed!"));
+          Serial_print(name);
+          Serial_println(F(": GateInput changed!"));
         }
         if (triggered) {
           //Serial.println("==== Gate start");
           if (gate_on_callback != NULL) {
             if (debug) {
-              Serial.print(name);
-              Serial.println(F(": calling gate_on_callback"));
+              Serial_print(name);
+              Serial_println(F(": calling gate_on_callback"));
             }
             gate_on_callback();
           }
           if (target) {
             if (debug) {
-              Serial.print(name);
-              Serial.print(F(": calling gate_on against "));
-              Serial.println((uint32_t) &target);
+              Serial_print(name);
+              Serial_print(F(": calling gate_on against "));
+              Serial_println((uint32_t) &target);
             }
             target->gate_on();
           }
@@ -136,16 +138,16 @@ class GateInput {
           //Serial.println("==== Gate stop");
           if (gate_off_callback != NULL) {
             if (debug) {
-              Serial.print(name);
-              Serial.println(F(": calling gate_off_callback"));
+              Serial_print(name);
+              Serial_println(F(": calling gate_off_callback"));
             }
             gate_off_callback();
           }
           if (target) {
             if (debug) {
-              Serial.print(name);
-              Serial.print(F(": calling gate_off against "));
-              Serial.println((uint32_t) &target);
+              Serial_print(name);
+              Serial_print(F(": calling gate_off against "));
+              Serial_println((uint32_t) &target);
             }
             target->gate_off();
           }
@@ -161,8 +163,8 @@ class AnalogGateInput : public GateInput {
 
     AnalogGateInput(int in_inputPin, Envelope &target)
       : GateInput{in_inputPin, target} {
-      Serial.print(F("AnalogGateInput instantiated, passed envelope "));
-      Serial.println((uint32_t) &target);
+      Serial_print(F("AnalogGateInput instantiated, passed envelope "));
+      Serial_println((uint32_t) &target);
     }
     AnalogGateInput(int in_inputPin, Callback in_gate_on_callback, Callback in_gate_off_callback) 
       : GateInput (in_inputPin, in_gate_on_callback, in_gate_off_callback) 
@@ -171,9 +173,9 @@ class AnalogGateInput : public GateInput {
     bool read_value() {
       int areading = analogRead(inputPin); //>=768;
       if (debug) {
-          Serial.print(name);
-          Serial.print(F(": areading is "));
-          Serial.println(areading);
+          Serial_print(name);
+          Serial_print(F(": areading is "));
+          Serial_println(areading);
       }      
       int reading = areading >= trigger_level;
       return reading;    
@@ -193,11 +195,11 @@ class DigitalGateInput : public GateInput {
     bool read_value() {
       int value = digitalRead(inputPin);
       if (debug) {
-        Serial.print(name);
-        Serial.print(F(": read_value from pin "));
-        Serial.print(inputPin);
-        Serial.print(F(" is "));
-        Serial.println(value);
+        Serial_print(name);
+        Serial_print(F(": read_value from pin "));
+        Serial_print(inputPin);
+        Serial_print(F(" is "));
+        Serial_println(value);
       }
       return value;
     }

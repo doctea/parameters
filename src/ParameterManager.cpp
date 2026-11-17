@@ -2,6 +2,7 @@
 
 #ifdef ENABLE_SCREEN
 
+#include "shared_debug.h"
     #include "parameter_inputs/ParameterInput.h"
     #include "mymenu_items/ParameterInputViewMenuItems.h"
 
@@ -66,10 +67,10 @@ FLASHMEM ADCDeviceBase *ParameterManager::addADCDevice(ADCDeviceBase *device) {
 
 FLASHMEM VoltageSourceBase *ParameterManager::addVoltageSource(VoltageSourceBase *voltage_source) {
     Debug_printf("ParameterManager#addVoltageSource(%p)\n", voltage_source);
-    Serial.printf("ParameterManager#addVoltageSource(%p)\n", voltage_source);
+    Serial_printf("ParameterManager#addVoltageSource(%p)\n", voltage_source);
 
     if (voltage_source==nullptr) {
-        Serial.println("WARNING: ParameterManager#addVoltageSource() was passed a nullptr!!!");
+        Serial_println("WARNING: ParameterManager#addVoltageSource() was passed a nullptr!!!");
     }
     this->voltage_sources->add(voltage_source);
     return voltage_source;

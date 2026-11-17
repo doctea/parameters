@@ -26,6 +26,7 @@
 
 // Now modified quite a bit by doctea/Tristan Rowley with full thanks and royalties ;-) to Russell Borogove!
 
+#include "shared_debug.h"
 #include "envelopes.h"
 
 class Weirdolope : public EnvelopeBase {
@@ -193,7 +194,7 @@ class Weirdolope : public EnvelopeBase {
         return_state.lvl_start = level_start;
         return_state.elapsed = stage_elapsed;
 
-        if (debug) Serial.printf("%s:\tcalculate_envelope_level(stage=%i,\tstage_elapsed=%i,\tlevel_start=%1.3f,\tvelocity=%1.3f)", this->label, stage, stage_elapsed, level_start, velocity);
+        if (debug) Serial_printf("%s:\tcalculate_envelope_level(stage=%i,\tstage_elapsed=%i,\tlevel_start=%1.3f,\tvelocity=%1.3f)", this->label, stage, stage_elapsed, level_start, velocity);
 
         if (stage==OFF) {
             envelopeLevel = 0.0;
@@ -208,9 +209,9 @@ class Weirdolope : public EnvelopeBase {
             );*/
         } else if (stage==ATTACK) {
             float delta = lerp( AttackRateTable[EnvA], AttackRateTable[EnvB], EnvAlpha );
-            if (debug && Serial) Serial.printf("%s: ATTACK phase, stage_elapsed=%i, envelopeLevel=%1.3f, delta=%1.3f =>", this->label, stage_elapsed, envelopeLevel, delta);
+            if (debug) Serial_printf("%s: ATTACK phase, stage_elapsed=%i, envelopeLevel=%1.3f, delta=%1.3f =>", this->label, stage_elapsed, envelopeLevel, delta);
             envelopeLevel += (delta * (float)(stage_elapsed+1));
-            if (debug && Serial) Serial.printf("%3.3f\n", envelopeLevel);
+            if (debug) Serial_printf("%3.3f\n", envelopeLevel);
             if (envelopeLevel >= 1.0f) {
                 envelopeLevel = 1.0f;
                 return_state.lvl_start = envelopeLevel;
@@ -244,7 +245,7 @@ class Weirdolope : public EnvelopeBase {
                 envelopeLevel *= damp;
             }
             if (envelopeLevel <= envelopeStopLevel) {
-                if (debug && Serial) Serial.printf("%s:\t!!!! Release staged reached level %1.3f (passing threshold %3.3f) after %i stages\n", this->label, envelopeLevel, envelopeStopLevel, stage_elapsed);
+                if (debug) Serial_printf("%s:\t!!!! Release staged reached level %1.3f (passing threshold %3.3f) after %i stages\n", this->label, envelopeLevel, envelopeStopLevel, stage_elapsed);
                 return_state.stage = OFF;
                 envelopeLevel = 0.0f;
             } else {
@@ -254,7 +255,7 @@ class Weirdolope : public EnvelopeBase {
 
         return_state.lvl_now = envelopeLevel;
 
-        if (debug && Serial) Serial.printf(" => %i & %i from envelopeLevel=%1.3f\n", return_state.lvl_now, return_state.lvl_start, envelopeLevel);
+        if (debug) Serial_printf(" => %i & %i from envelopeLevel=%1.3f\n", return_state.lvl_now, return_state.lvl_start, envelopeLevel);
 
         if (use_caching) {
             this->clear_dirty_calc();

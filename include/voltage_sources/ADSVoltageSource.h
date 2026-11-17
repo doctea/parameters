@@ -2,6 +2,7 @@
 
 #ifdef ENABLE_CV_INPUT
 
+#include "shared_debug.h"
 #include "debug.h"
 
 #include "VoltageSource.h"
@@ -67,10 +68,10 @@ class ADSVoltageSourceBase : public VoltageSourceBase
         virtual ADSVoltageSourceBase* as_ads_source() override { return this; }
 
         virtual void output_calibration_data() override {
-            Serial.printf("ADSVoltageSource calibration data for slot %i: correction_value_1=%6.6f : correction_value_2=%6.6f : smooth_alpha=%6.6f\n", global_slot, this->correction_value_1, this->correction_value_2, this->smooth_alpha);
-            Serial.printf("correction_value_1=%6.6f\n", this->correction_value_1);
-            Serial.printf("correction_value_2=%6.6f\n", this->correction_value_2);
-            Serial.printf("smooth_alpha=%6.6f\n", this->smooth_alpha);
+            Serial_printf("ADSVoltageSource calibration data for slot %i: correction_value_1=%6.6f : correction_value_2=%6.6f : smooth_alpha=%6.6f\n", global_slot, this->correction_value_1, this->correction_value_2, this->smooth_alpha);
+            Serial_printf("correction_value_1=%6.6f\n", this->correction_value_1);
+            Serial_printf("correction_value_2=%6.6f\n", this->correction_value_2);
+            Serial_printf("smooth_alpha=%6.6f\n", this->smooth_alpha);
         }
 
         // Apply linear correction: corrected = cv1 * raw + cv2.
@@ -189,7 +190,7 @@ class ADSVoltageSource : public ADSVoltageSourceBase {
 
             if (!ads_source->isConnected()) {
                 if (this->debug) {
-                    Serial.printf("ADSVoltageSource#fetch_current_voltage(): underlying ADC isn't connected!\n");
+                    Serial_printf("ADSVoltageSource#fetch_current_voltage(): underlying ADC isn't connected!\n");
                 }
                 return 0.0f;
             }

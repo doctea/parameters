@@ -4,6 +4,7 @@
 
 #ifdef ENABLE_CV_INPUT
 
+#include "shared_debug.h"
 #include "debug.h"
 
 // ADSVoltageSource.h provides ADSVoltageSourceBase (linear calibration base,
@@ -42,9 +43,9 @@ class WorkshopVoltageSourceBase : public ADSVoltageSourceBase {
         // needs_calibration() and as_ads_source() inherited from ADSVoltageSourceBase.
 
         virtual void output_calibration_data() override {
-            Serial.printf("WorkshopVoltageSource calibration data for slot %i: correction_value_1=%6.6f : correction_value_2=%6.6f\n", global_slot, this->correction_value_1, this->correction_value_2);
-            Serial.printf("correction_value_1=%6.6f\n", this->correction_value_1);
-            Serial.printf("correction_value_2=%6.6f\n", this->correction_value_2);
+            Serial_printf("WorkshopVoltageSource calibration data for slot %i: correction_value_1=%6.6f : correction_value_2=%6.6f\n", global_slot, this->correction_value_1, this->correction_value_2);
+            Serial_printf("correction_value_1=%6.6f\n", this->correction_value_1);
+            Serial_printf("correction_value_2=%6.6f\n", this->correction_value_2);
         }
         
 };
@@ -145,7 +146,7 @@ class ComputerCardVoltageSource : public WorkshopVoltageSourceBase {
         bool already_succeeded = false;
         virtual float fetch_current_voltage() override {
             if (this->debug) {
-                Serial.printf("in WorkshopVoltageSource#fetch_current_voltage(slot=%i, channel=%i)..", global_slot, channel);
+                Serial_printf("in WorkshopVoltageSource#fetch_current_voltage(slot=%i, channel=%i)..", global_slot, channel);
                 //Debug_printf(F("\tads_source is @%p, reading from channel %i\n"), this->ads_source, this->channel);
             }            
             if (!already_succeeded) 
@@ -178,7 +179,7 @@ class ComputerCardVoltageSource : public WorkshopVoltageSourceBase {
                     adcReading = sw->AudioIn(channel-6);
                     break;
                 default:
-                    if (Serial) Serial.printf("ComputerCardVoltageSource#fetch_current_voltage() unknown channel %i, returning 0\n", channel);
+                    Serial_printf("ComputerCardVoltageSource#fetch_current_voltage() unknown channel %i, returning 0\n", channel);
                     adcReading = 0;
                     break;
             }
@@ -189,8 +190,8 @@ class ComputerCardVoltageSource : public WorkshopVoltageSourceBase {
             #endif
 
             real_value = adcReading;
-            if (this->debug && Serial) {
-                Serial.printf("ComputerCardVoltageSource channel %i read ADC value %i\n", channel, adcReading); Serial_flush();
+            if (this->debug) {
+                Serial_printf("ComputerCardVoltageSource channel %i read ADC value %i\n", channel, adcReading); Serial_flush();
             }
 
             // Bipolar channels (CV/Audio, ch >= 4): signed ±2048 ADC value.
@@ -208,8 +209,8 @@ class ComputerCardVoltageSource : public WorkshopVoltageSourceBase {
 
             float voltageCorrected = this->get_corrected_voltage(voltageFromAdc);
 
-            if (this->debug && Serial) {
-                Serial.printf("  voltageFromAdc=%f  voltageCorrected=%f  returning=%f\n",
+            if (this->debug) {
+                Serial_printf("  voltageFromAdc=%f  voltageCorrected=%f  returning=%f\n",
                     voltageFromAdc, voltageCorrected,
                     bipolar ? voltageCorrected : (maximum_input_voltage - voltageCorrected));
                 Serial_flush();
@@ -220,8 +221,8 @@ class ComputerCardVoltageSource : public WorkshopVoltageSourceBase {
 
         virtual float adcread_to_voltage(int16_t adcReading) {
             float voltageFromAdc = float(adcReading) * (maximum_input_voltage / 4095.0); // 12 bit ADC, 0-4095
-            if (this->debug && Serial) {
-                Serial.printf("ComputerCardVoltageSource channel %i read ADC voltageFromAdc %i, converted to voltageFromAdc %3.3f\t :", channel, adcReading, voltageFromAdc); Serial_flush();
+            if (this->debug) {
+                Serial_printf("ComputerCardVoltageSource channel %i read ADC voltageFromAdc %i, converted to voltageFromAdc %3.3f\t :", channel, adcReading, voltageFromAdc); Serial_flush();
             }
             return voltageFromAdc;
         }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "shared_debug.h"
 #include "VoltageParameterInput.h"
 
 #include "functional-vlpp.h"
@@ -33,7 +34,7 @@ class ThresholdToggleParameterInput : public VoltageParameterInput {
                 readValue = 1.0f - readValue;
             }
 
-            if (this->debug) Serial.printf("ThresholdToggleParameterInput::read() %s readValue %f\n", this->name, readValue);
+            if (this->debug) Serial_printf("ThresholdToggleParameterInput::read() %s readValue %f\n", this->name, readValue);
 
             if (firstRun || this->is_significant_change(readValue, this->lastValue)) {
                 this->lastValue = readValue;

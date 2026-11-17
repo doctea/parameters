@@ -1,4 +1,5 @@
 /*#include "parameters/Parameter.h"
+#include "shared_debug.h"
 #include "ParameterManager.h"
 
 extern ParameterManager parameter_manager;
@@ -34,11 +35,11 @@ void FloatParameter::set_slot_input(int8_t slot, const char *name) {
 void FloatParameter::set_slot_input(int8_t slot, BaseParameterInput *parameter_input) {
     Debug_printf(F("PARAMETERS\tFloatParameter#set_slot_input in '%s': asked to set slot %i on %s to point to %s\n"), this->label, slot, this->label, parameter_input->name);
     if (!this->is_valid_slot(slot)) {
-        if (Serial) Serial.printf("%s#set_slot_input(%i) isn't a valid slot number!\n", this->label, slot);
+        Serial_printf("%s#set_slot_input(%i) isn't a valid slot number!\n", this->label, slot);
         return;
     }
     if (parameter_input==nullptr) {
-        if (Serial) Serial.printf("%s#set_slot_input(%i) was passed a nullptr!\n", this->label, slot);
+        Serial_printf("%s#set_slot_input(%i) was passed a nullptr!\n", this->label, slot);
     }
     this->connections[slot].parameter_input = parameter_input;
     /*#ifdef ENABLE_SCREEN

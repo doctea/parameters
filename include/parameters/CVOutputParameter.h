@@ -2,6 +2,7 @@
 
 #if defined(ENABLE_CV_OUTPUT) || defined(ENABLE_CV_OUTPUT_2) || defined(ENABLE_CV_OUTPUT_3)
 
+#include "shared_debug.h"
 #include "debug.h"
 
 #include "parameters/Parameter.h"
@@ -533,10 +534,10 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
             this->current_pitch_note = pitch;
             this->note_is_active = true;
             float voltage_for_pitch = get_voltage_for_pitch(pitch);
-            if (this->debug && Serial) {
-                Serial.printf("%s#sendNoteOn(pitch=%3i,....)\t", this->label, pitch);
-                Serial.printf("-> %3s,\t", get_note_name_c(pitch));
-                Serial.printf("got voltage_for_pitch = %3.3f\n", voltage_for_pitch);
+            if (this->debug) {
+                Serial_printf("%s#sendNoteOn(pitch=%3i,....)\t", this->label, pitch);
+                Serial_printf("-> %3s,\t", get_note_name_c(pitch));
+                Serial_printf("got voltage_for_pitch = %3.3f\n", voltage_for_pitch);
             }
             this->updateValueFromData(voltage_for_pitch);
 
@@ -688,9 +689,9 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
         }
 
         virtual void output_calibration_data () override {
-            Serial.printf("CVOutputParameter calibration data for %s: calibrated_lowest_value=%u : calibrated_highest_value=%u\n", this->label, this->calibrated_lowest_value, this->calibrated_highest_value);
-            Serial.printf("calibrated_lowest_value=%u\n", this->calibrated_lowest_value);
-            Serial.printf("calibrated_highest_value=%u\n", this->calibrated_highest_value);
+            Serial_printf("CVOutputParameter calibration data for %s: calibrated_lowest_value=%u : calibrated_highest_value=%u\n", this->label, this->calibrated_lowest_value, this->calibrated_highest_value);
+            Serial_printf("calibrated_lowest_value=%u\n", this->calibrated_lowest_value);
+            Serial_printf("calibrated_highest_value=%u\n", this->calibrated_highest_value);
         }
 
         // TEMPORARY LEGACY FALLBACK
@@ -737,8 +738,8 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
         virtual void save_calibration() override {
             if (parameter_manager != nullptr && parameter_manager->save_system_settings_callback != nullptr) {
                 parameter_manager->save_system_settings_callback();
-            } else if (Serial) {
-                Serial.println("CVOutputParameter::save_calibration: system settings callback not configured");
+            } else {
+                Serial_println("CVOutputParameter::save_calibration: system settings callback not configured");
             }
         }
         virtual void load_calibration() override {
@@ -746,8 +747,8 @@ class CVOutputParameter : virtual public DataParameter<TargetClass,DataType>, vi
                 if (!parameter_manager->load_system_settings_callback()) {
                     load_legacy_calibration_file();
                 }
-            } else if (Serial) {
-                Serial.println("CVOutputParameter::load_calibration: system settings callback not configured");
+            } else {
+                Serial_println("CVOutputParameter::load_calibration: system settings callback not configured");
             }
         }
 };

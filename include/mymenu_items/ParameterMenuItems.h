@@ -1,5 +1,6 @@
 #pragma once
 
+#include "shared_debug.h"
 #include "Arduino.h"
 
 #include "menu.h"
@@ -102,7 +103,7 @@ class ParameterValueMenuItem : public DirectNumberControl<float> {
             static char fmt[20] = "";
             //snprintf(fmt, 20, "%s", this->parameter->getFormattedLastOutputValue());
             snprintf(fmt, 20, "%s", (*parameter)->getFormattedLastOutputValue());
-            if (this->debug) Serial.printf("%s#getFormattedOutputValue() returning\t'%s'\t\t(in ParameterValueMenuItem)\n", this->label, fmt);
+            if (this->debug) Serial_printf("%s#getFormattedOutputValue() returning\t'%s'\t\t(in ParameterValueMenuItem)\n", this->label, fmt);
             return fmt;
         }
 
@@ -143,7 +144,7 @@ class ParameterValueMenuItem : public DirectNumberControl<float> {
             //this->debug = true; (*parameter)->debug = true;
             (*parameter)->incrementValue();
             this->internal_value = (*parameter)->getCurrentNormalValue(); //this->maximumDataValue;
-            if (this->debug) Serial.printf((const char*)F("ParameterValueMenuItem#increase_value updated internal_value to %f (from %f * 100.0)\n"), internal_value, (*parameter)->getCurrentNormalValue());
+            if (this->debug) Serial_printf((const char*)F("ParameterValueMenuItem#increase_value updated internal_value to %f (from %f * 100.0)\n"), internal_value, (*parameter)->getCurrentNormalValue());
             //this->debug = false; (*parameter)->debug = false;
         }
         // directly decrease the parameter's value
@@ -152,7 +153,7 @@ class ParameterValueMenuItem : public DirectNumberControl<float> {
 
             (*parameter)->decrementValue();
             this->internal_value = (*parameter)->getCurrentNormalValue(); // * 100.0; //this->maximumDataValue;
-            if (this->debug) Serial.printf((const char*)F("ParameterValueMenuItem#decrease_value updated internal_value to %f (from %f * 100.0)\n"), internal_value, (*parameter)->getCurrentNormalValue());
+            if (this->debug) Serial_printf((const char*)F("ParameterValueMenuItem#decrease_value updated internal_value to %f (from %f * 100.0)\n"), internal_value, (*parameter)->getCurrentNormalValue());
             //this->debug = false; (*parameter)->debug = false;
         }
 

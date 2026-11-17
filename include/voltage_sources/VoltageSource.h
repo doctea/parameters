@@ -1,5 +1,6 @@
 #pragma once
 
+#include "shared_debug.h"
 #include "Arduino.h"
 
 #include "ads.h"
@@ -112,7 +113,7 @@ class VoltageSourceBase {
             return false;
         }
         virtual void output_calibration_data() {
-            Serial.printf("VoltageSourceBase calibration data for slot %i: no calibration data\n", global_slot);
+            Serial_printf("VoltageSourceBase calibration data for slot %i: no calibration data\n", global_slot);
         }
 
         #ifdef ENABLE_STORAGE
@@ -126,7 +127,7 @@ class VoltageSourceBase {
         #ifdef ENABLE_SCREEN
             //FLASHMEM 
             virtual MenuItem *makeCalibrationControls(int i) {
-                Serial.println(F("makeCalibrationControls() in VoltageSourceBase returning nullptr"));
+                Serial_println(F("makeCalibrationControls() in VoltageSourceBase returning nullptr"));
                 return nullptr;
             }
         #endif

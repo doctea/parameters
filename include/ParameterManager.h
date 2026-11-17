@@ -6,6 +6,7 @@
 
 #if defined(USE_UCLOCK) 
     #if defined(CORE_TEENSY)
+#include "shared_debug.h"
         #include <util/atomic.h>
         #define USE_ATOMIC
     #elif defined(ARDUINO_ARCH_RP2040) || defined(ARDUINO_ARCH_RP2350)
@@ -155,7 +156,7 @@ class ParameterManager
                 if (strcmp(param->label, parameter_name)==0)
                     return param;
             }
-            Serial.printf("WARNING: getParameterForName couldn't find parameter with name '%s'\n", parameter_name);
+            Serial_printf("WARNING: getParameterForName couldn't find parameter with name '%s'\n", parameter_name);
             return nullptr;
         }
 
@@ -234,9 +235,9 @@ class ParameterManager
 
             //if (this->debug) Serial.printf(F("ParameterManager#update_voltage_sources() just did read from %i\n"), last_read);
             //#ifdef ENABLE_PRINTF
-                if (this->debug && Serial) {
+                if (this->debug) {
                     //Serial.printf("Reading from ADC %i...", last_read);
-                    Serial.printf("update_voltage_sources read value %f\n", voltage_sources->get(last_read)->current_value);
+                    Serial_printf("update_voltage_sources read value %f\n", voltage_sources->get(last_read)->current_value);
                 }
             //#endif
 
@@ -283,7 +284,7 @@ class ParameterManager
             // this is going to be pretty intensive; may need to adjust the way this works...
             //unsigned long update_mixers_started = micros();
             //ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-                if (debug && Serial) Serial.printf("update_mixers has %i parameters to process\n", this->available_parameters->size());
+                if (debug) Serial_printf("update_mixers has %i parameters to process\n", this->available_parameters->size());
                 for (auto* param : *this->available_parameters) {
                     if (param!=nullptr) {
                         PROFILE_START(p_pm_mixer_update);
@@ -339,15 +340,15 @@ class ParameterManager
                 menu->add(new LambdaActionConfirmItem("SaveSys", [=]() -> void {
                     if (this->save_system_settings_callback != nullptr) {
                         this->save_system_settings_callback();
-                    } else if (Serial) {
-                        Serial.println(F("Save System Settings callback not configured"));
+                    } else {
+                        Serial_println(F("Save System Settings callback not configured"));
                     }
                 }));
                 menu->add(new LambdaActionConfirmItem("LoadSys", [=]() -> void {
                     if (this->load_system_settings_callback != nullptr) {
                         this->load_system_settings_callback();
-                    } else if (Serial) {
-                        Serial.println(F("Load System Settings callback not configured"));
+                    } else {
+                        Serial_println(F("Load System Settings callback not configured"));
                     }
                 }));
             }
@@ -471,11 +472,11 @@ class ParameterManager
 
                             // add a control that outputs the input calibration data to the serial port
                             menu->add(new LambdaActionItem("Serial-dump Calibration Data", [=]() -> void {
-                                Serial.println("Outputting calibration data...");
+                                Serial_println("Outputting calibration data...");
                                 unsigned int i = 0;
                                 for (auto* vs : *this->voltage_sources) {
                                     if (vs->needs_calibration()) {
-                                        Serial.printf("Voltage Source %i: %i\n", i, vs->global_slot);
+                                        Serial_printf("Voltage Source %i: %i\n", i, vs->global_slot);
                                         vs->output_calibration_data();
                                     }
                                     ++i;
@@ -489,53 +490,53 @@ class ParameterManager
                 #ifdef ENABLE_CV_OUTPUT
                     void addAllCVOutputCalibrationMenuItems(Menu *menu) {
                         bool page_created = false;
-                        Serial.printf("------------\nParameterManager#addAllCVOutputCalibrationMenuItems()\n");
+                        Serial_printf("------------\nParameterManager#addAllCVOutputCalibrationMenuItems()\n");
                         unsigned int idx = 0;
                         for (auto* parameter : *this->available_parameters) {
-                            Serial.printf("\tParameterManager#addAllCVOutputCalibrationMenuItems() for parameter '%s'\n", parameter->label); Serial_flush();
+                            Serial_printf("\tParameterManager#addAllCVOutputCalibrationMenuItems() for parameter '%s'\n", parameter->label); Serial_flush();
                             
                             MenuItemList *calibration_controls = parameter->makeCalibrationControls();
                             if (calibration_controls!=nullptr) {
-                                Serial.println("Got some controls..."); Serial_flush();
+                                Serial_println("Got some controls..."); Serial_flush();
                                 if (!page_created) {
                                     menu->add_page("Output Calibration", C_WHITE, true, "Calibration");
                                     page_created = true;                                    
                                 }
                                 menu->add(new SeparatorMenuItem(parameter->label));
-                                Serial.println("Adding calibration controls..."); Serial_flush();
+                                Serial_println("Adding calibration controls..."); Serial_flush();
                                 menu->add(calibration_controls);
-                                Serial.println("Added calibration controls!"); Serial_flush();
+                                Serial_println("Added calibration controls!"); Serial_flush();
                             } else {
-                                Serial.printf("Nothing to add for parameter %i\n", idx);
+                                Serial_printf("Nothing to add for parameter %i\n", idx);
                             }
 
-                            Serial.println("\t\taddAllCVOutputCalibrationMenuItems done!"); Serial_flush();
-                            Serial.printf("\tfinished with parameter %i\n", idx);
+                            Serial_println("\t\taddAllCVOutputCalibrationMenuItems done!"); Serial_flush();
+                            Serial_printf("\tfinished with parameter %i\n", idx);
 
-                            Serial.printf("free ram is %u\n", freeRam());
+                            Serial_printf("free ram is %u\n", freeRam());
                             #ifdef ARDUINO_TEENSY41
-                                Serial.printf("free ext ram is %u\n", freeExtRam());
+                                Serial_printf("free ext ram is %u\n", freeExtRam());
                             #endif
                             ++idx;
                         }
                         
                         // add a control that outputs the calibration data to the serial port
                         menu->add(new LambdaActionItem("Output Calibration Data", [=]() -> void {
-                            Serial.println("Outputting input calibration data...");
+                            Serial_println("Outputting input calibration data...");
                             unsigned int i = 0;
                             for (auto* p : *this->available_parameters) {
                                 if (p==nullptr) {
-                                    Serial.printf("WARNING: parameter %i is null!\n", i);
+                                    Serial_printf("WARNING: parameter %i is null!\n", i);
                                     ++i;
                                     continue;
                                 }
                                 if (p->needs_calibration()) {
-                                    Serial.printf("Parameter %i: %s\n", i, p->label); Serial_flush();
+                                    Serial_printf("Parameter %i: %s\n", i, p->label); Serial_flush();
                                     p->output_calibration_data();
                                 }
                                 ++i;
                             }
-                            Serial.println("Outputting input calibration data done!");
+                            Serial_println("Outputting input calibration data done!");
                         }));
                         if (page_created) {
                             this->addSystemSettingsActionItems(menu);
@@ -854,7 +855,7 @@ class ParameterManager
                 if (ready_for_next_update(time_between_cv_input_updates)) {
                     if (slice_stages) {
                         static int_fast8_t current_mode = 0;
-                        if (debug) { Serial.println(F("about to do parameter_manager->update_voltage_sources()..")); Serial_flush(); }
+                        if (debug) { Serial_println(F("about to do parameter_manager->update_voltage_sources()..")); Serial_flush(); }
                         switch (current_mode) {
                             case 0:
                                 this->update_voltage_sources();
@@ -864,7 +865,7 @@ class ParameterManager
                                 //if(debug) Serial.println("just did parameter_manager->update_voltage_sources().."); Serial_flush();
                                 //if(debug) Serial.println("about to do parameter_manager->update_inputs().."); Serial_flush();
                                 this->update_inputs();
-                                if(debug && Serial) { Serial.println(F("just did parameter_manager->update_inputs()..")); Serial_flush(); }
+                                if (debug) { Serial_println(F("just did parameter_manager->update_inputs()..")); Serial_flush(); }
                                 //if(debug) Serial.println("about to do parameter_manager->update_mixers().."); Serial_flush();
                                 current_mode++;
                                 break;
@@ -873,25 +874,25 @@ class ParameterManager
                                     this->update_mixers_sliced();
                                 else
                                     this->update_mixers();
-                                if(debug && Serial) { Serial.println(F("just did parameter_manager->update_mixers()..")); Serial_flush(); }
+                                if (debug) { Serial_println(F("just did parameter_manager->update_mixers()..")); Serial_flush(); }
                                 current_mode = 0;
 
                                 this->process_pending();
                                 break;
                         }
                     } else {
-                        if(debug) { Serial.println(F("about to do parameter_manager->update_voltage_sources()..")); Serial_flush(); }
+                        if(debug) { Serial_println(F("about to do parameter_manager->update_voltage_sources()..")); Serial_flush(); }
                         this->update_voltage_sources();
                         //if(debug) Serial.println("just did parameter_manager->update_voltage_sources().."); Serial_flush();
                         //if(debug) Serial.println("about to do parameter_manager->update_inputs().."); Serial_flush();
                         this->update_inputs();
-                        if(debug) { Serial.println(F("just did parameter_manager->update_inputs()..")); Serial_flush(); }
+                        if(debug) { Serial_println(F("just did parameter_manager->update_inputs()..")); Serial_flush(); }
                         //if(debug) Serial.println("about to do parameter_manager->update_mixers().."); Serial_flush();
                         #ifdef USE_ATOMIC
                         ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
                         #endif
                         {
-                        if(debug) { Serial.println("about to do parameter_manager->update_mixers().."); Serial_flush(); }
+                        if(debug) { Serial_println("about to do parameter_manager->update_mixers().."); Serial_flush(); }
 
                         if (slice_mixers)
                             this->update_mixers_sliced();
@@ -917,7 +918,7 @@ class ParameterManager
         FASTRUN void output_parameter_representation(int columns = 100, int8_t mode = GRAPH_PARAMETER | VALUE_INPUT) {
         // FASTRUN void output_parameter_representation(int columns = 100, int8_t mode = VALUE_PARAMETER | VALUE_INPUT) {
             // don't bother if serial isn't connected
-            if (!Serial)
+            if (!FOUNDLING_SERIAL_CONNECTED)
                 return;
 
             static float *last_input_values = new float[this->available_inputs->size()];
@@ -953,14 +954,14 @@ class ParameterManager
                 }
             }
 
-            Serial.printf(line);
+            Serial_printf(line);
             
             // output a key to the parameters and inputs
             if (mode & VALUE_PARAMETER) {
                 unsigned int i = 0;
                 for (auto* p : *this->available_parameters) {
                     if (strcmp(p->label,"None")==0) { ++i; continue; }
-                    Serial.printf("%c=%s=%1.3f=%s\t", '0'+i, p->label, p->getLastOutputNormalValue(), p->getFormattedLastOutputValue());
+                    Serial_printf("%c=%s=%1.3f=%s\t", '0'+i, p->label, p->getLastOutputNormalValue(), p->getFormattedLastOutputValue());
                     ++i;
                 }
             }
@@ -969,13 +970,13 @@ class ParameterManager
                 for (auto* p : *this->available_inputs) {
                     float v = p->get_normal_value_unipolar();
                     
-                    Serial.printf("\t%c=%s=%1.3f %c", 'A'+i, p->name, v, 
+                    Serial_printf("\t%c=%s=%1.3f %c", 'A'+i, p->name, v,
                         v<last_input_values[i] ? 'v' : v>last_input_values[i] ? '^' : ' ');
                     last_input_values[i] = v;
                     ++i;
                 }
             }
-            Serial.println();
+            Serial_println();
         }
 
 

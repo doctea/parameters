@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "shared_debug.h"
 #include "bpm.h"
 #include "functional-vlpp.h"
 #include "SinTables.h"
@@ -154,7 +155,7 @@ class EnvelopeBase
     }
 
     virtual void calculate_graph() {
-        if (debug) Serial.printf("%s:calculate_graph starting..", this->label);
+        if (debug) Serial_printf("%s:calculate_graph starting..", this->label);
         envelope_state_t graph_state = {
             .stage = ATTACK,
             .lvl_start = 0.0f,
@@ -178,7 +179,7 @@ class EnvelopeBase
                 graph_state.lvl_start = result.lvl_now;
             }
         }
-        if (debug) Serial.printf("%s:calculate_graph finished.", this->label);
+        if (debug) Serial_printf("%s:calculate_graph finished.", this->label);
         this->graph_revision++;
         this->clear_dirty_graph();
     }

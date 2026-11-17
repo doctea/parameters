@@ -5,6 +5,7 @@
     #define MODULATION_THRESHOLD 0.01
 #endif
 
+#include "shared_debug.h"
 #include "ParameterTypes.h"
 
 #include <Arduino.h>
@@ -127,7 +128,7 @@ class BaseParameter
             return false;
         }
         virtual void output_calibration_data() {
-            Serial.printf("BaseParameter calibration data for %s: no calibration data\n", this->label);
+            Serial_printf("BaseParameter calibration data for %s: no calibration data\n", this->label);
         }
 
         #ifdef ENABLE_SCREEN
@@ -194,7 +195,7 @@ class FloatParameter : public BaseParameter {
     virtual void set_slew_rate_normal(float slew_rate_normal) {
         this->slew_rate_normal = slew_rate_normal;
         this->slew_rate = map(slew_rate_normal, 0.0f, 1.0f, slowest_slew_rate, fastest_slew_rate) / 100.0f;
-        if (debug && Serial) Serial.printf("%s#set_slew_rate_normal(%3.3f) - slew_rate is %3.3f\n", this->label, slew_rate_normal, this->slew_rate);
+        if (debug) Serial_printf("%s#set_slew_rate_normal(%3.3f) - slew_rate is %3.3f\n", this->label, slew_rate_normal, this->slew_rate);
     }
 
     // Returns the slew rate normalised value to actually use for slewing.
@@ -211,36 +212,36 @@ class FloatParameter : public BaseParameter {
         last_slewed_at = millis();
         if (delta > 50) delta = 50;  // cap delta to prevent huge slew steps after idle gaps between notes // TODO: check if this is actually necessary
 
-        if (debug && Serial) Serial.printf("%s#get_slewed_value() - slewing enabled, slew_rate is %3.3f, slew_rate_normal is %3.3f\n", this->label, this->slew_rate, this->slew_rate_normal);
+        if (debug) Serial_printf("%s#get_slewed_value() - slewing enabled, slew_rate is %3.3f, slew_rate_normal is %3.3f\n", this->label, this->slew_rate, this->slew_rate_normal);
 
         float eff_rate = (eff_slew * (fastest_slew_rate - slowest_slew_rate) + slowest_slew_rate) / 100.0f;
         float slew_rate = eff_rate * (float)delta;
         float diff = normal - this->lastRealOutputNormalValue;
         
         if (debug) {
-            Serial.printf("%s#get_slewed_value()\ttarget value=%3.4f\t - lastOutputNormalValue=%3.4f\t => diff=%3.4f\n", this->label, normal, this->lastRealOutputNormalValue, diff);
+            Serial_printf("%s#get_slewed_value()\ttarget value=%3.4f\t - lastOutputNormalValue=%3.4f\t => diff=%3.4f\n", this->label, normal, this->lastRealOutputNormalValue, diff);
             //Serial.printf("%s#get_slewed_value()\tnormal=%3.4f,\tlastOutputNormalValue=%3.4f,\tdiff=%3.4f,\tslew_rate=%3.4f\n", this->label, normal, lastOutputNormalValue, diff, slew_rate);
         }
 
         if (abs(diff)>0.0)
-            if (debug) Serial.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! diff is non-zero!");
+            if (debug) Serial_println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! diff is non-zero!");
 
-        if (debug && Serial)
-            Serial.printf("%s#get_slewed_value()\tnormal=%3.4f,\tlast_slewed_value=%3.4f,\tdiff=%3.4f,\tslew_rate=%3.4f\n", this->label, normal, last_slewed_value, diff, slew_rate);
+        if (debug)
+            Serial_printf("%s#get_slewed_value()\tnormal=%3.4f,\tlast_slewed_value=%3.4f,\tdiff=%3.4f,\tslew_rate=%3.4f\n", this->label, normal, last_slewed_value, diff, slew_rate);
 
         if (diff > slew_rate) {
             slewing = true;
-            if (debug && Serial) Serial.printf("slewing up:\t%3.4f + %3.4f -> %3.4f\n", lastRealOutputNormalValue, slew_rate, lastOutputNormalValue + slew_rate);
+            if (debug) Serial_printf("slewing up:\t%3.4f + %3.4f -> %3.4f\n", lastRealOutputNormalValue, slew_rate, lastOutputNormalValue + slew_rate);
             normal = lastRealOutputNormalValue + slew_rate;
         } else if (diff < -slew_rate) {
             slewing = true;
-            if (debug && Serial) Serial.printf("slewing down:\t%3.4f - %3.4f -> %3.4f\n", lastRealOutputNormalValue, slew_rate, lastOutputNormalValue - slew_rate);
+            if (debug) Serial_printf("slewing down:\t%3.4f - %3.4f -> %3.4f\n", lastRealOutputNormalValue, slew_rate, lastOutputNormalValue - slew_rate);
             normal = lastRealOutputNormalValue - slew_rate;
         } else 
             slewing = false;
 
-        if (debug && Serial) {
-            Serial.printf("%s#get_slewed_value()\treturning %f\n", this->label, normal);
+        if (debug) {
+            Serial_printf("%s#get_slewed_value()\treturning %f\n", this->label, normal);
         }
         last_slewed_value = normal;
         return normal;
@@ -285,7 +286,7 @@ class FloatParameter : public BaseParameter {
 
     virtual void updateValueFromNormal(float value/*, float range = 1.0*/) override {
         // TODO: we might actually want this to do something?
-        Serial.printf((const char*)F("WARNING: dummy FloatParameter#updateValueFromNormal(%f) for '%s'\n"), value, this->label);
+        Serial_printf((const char*)F("WARNING: dummy FloatParameter#updateValueFromNormal(%f) for '%s'\n"), value, this->label);
     };
 
     virtual void on_unbound(BaseParameterInput *input) {
@@ -295,10 +296,10 @@ class FloatParameter : public BaseParameter {
     }
 
     virtual void incrementValue() {
-        Serial.printf((const char*)F("WARNING: dummy FloatParameter#incrementValue() for '%s'\n"), this->label);
+        Serial_printf((const char*)F("WARNING: dummy FloatParameter#incrementValue() for '%s'\n"), this->label);
     }
     virtual void decrementValue() {
-        Serial.printf((const char*)F("WARNING: dummy FloatParameter#decrementValue() for '%s'\n"), this->label);
+        Serial_printf((const char*)F("WARNING: dummy FloatParameter#decrementValue() for '%s'\n"), this->label);
     }
 
     // parameter input mixing / modulation stuff
@@ -368,7 +369,7 @@ class FloatParameter : public BaseParameter {
     virtual void set_slot_input(int8_t slot, BaseParameterInput *parameter_input);
     virtual void set_slot_amount(int8_t slot, float amount) {
         if (!is_valid_slot(slot)) {
-            Serial.printf("WARNING: in '%s', set_slot_amount with invalid slot number %i\n", this->label, slot);
+            Serial_printf("WARNING: in '%s', set_slot_amount with invalid slot number %i\n", this->label, slot);
             return;
         }
         this->connections[slot].amount = amount;
@@ -525,8 +526,8 @@ class FloatParameter : public BaseParameter {
         float current_value = this->currentNormalValue;
         if (debug)
             if (strcmp(this->label, "None")!=0) {
-                Serial.printf("update_mixer() in %s\tgot current_value=", this->label);
-                Serial.println(current_value);
+                Serial_printf("update_mixer() in %s\tgot current_value=", this->label);
+                Serial_println(current_value);
             }
         //if (modulateNormalValue!=lastModulatedNormalValue) {
             //this->sendCurrentTargetValue();
@@ -619,7 +620,7 @@ class DataParameterBase : public FloatParameter {
             this->minimumDataRange = v;
             if (this->minimumDataRange < this->minimumDataLimit)
                 this->minimumDataRange = this->minimumDataLimit;
-            if (this->debug) Serial.printf("%s#setRangeMinimumLimit(%3.3f) => %3.3f\t(minimumDataLimit is %3.3f)\n", this->label, v, this->minimumDataRange, this->minimumDataLimit);
+            if (this->debug) Serial_printf("%s#setRangeMinimumLimit(%3.3f) => %3.3f\t(minimumDataLimit is %3.3f)\n", this->label, v, this->minimumDataRange, this->minimumDataLimit);
             //this->minimumNormalValue = this->dataToNormal(minimumDataRange);
         }
         virtual void setRangeMaximumLimit(float v) override {
@@ -674,11 +675,11 @@ class DataParameterBase : public FloatParameter {
 
         virtual DataType normalToData(float value) {
             if (this->debug) {
-                Serial.printf("%s#", this->label);
-                Serial.printf("normalToData(%f) ", value);
+                Serial_printf("%s#", this->label);
+                Serial_printf("normalToData(%f) ", value);
                 //Serial.printf(", range is %i to %i ", this->minimumDataLimit, this->maximumDataLimit);
                 //Serial.printf(",\trange is %3.3f to %3.3f ", (float)this->minimumDataLimit, (float)this->maximumDataLimit);
-                Serial.printf(",\trange is %3.3f to %3.3f ", (float)this->get_effective_minimum_data_value(), (float)this->get_effective_maximum_data_value());
+                Serial_printf(",\trange is %3.3f to %3.3f ", (float)this->get_effective_minimum_data_value(), (float)this->get_effective_maximum_data_value());
             }
             value = this->constrainNormal(value);
             float scaled = value * (float)(this->get_effective_maximum_data_value() - this->get_effective_minimum_data_value());
@@ -689,15 +690,15 @@ class DataParameterBase : public FloatParameter {
                 scaled = roundf(scaled);
             DataType data = this->get_effective_minimum_data_value() + (DataType)scaled;
             //if (this->debug/* && value>=0.0f*/) if (Serial) Serial.printf(" => %i\n", data);
-            if (this->debug && Serial) Serial.printf(" => %3.3f\n", (float)data);
+            if (this->debug) Serial_printf(" => %3.3f\n", (float)data);
             return data;
         }
         virtual float dataToNormal(DataType value) {
             //if (this->debug) Serial.printf("dataToNormal(%i) ", value);
             value = constrainDataToRange(value);
-            if (this->debug) Serial.printf("%s#dataToNormal(%3.3f) ", this->label, (float)value);
+            if (this->debug) Serial_printf("%s#dataToNormal(%3.3f) ", this->label, (float)value);
             float normal = (float)(value - get_effective_minimum_data_value()) / (float)(get_effective_maximum_data_value() - get_effective_minimum_data_value());
-            if (this->debug) Serial.printf(" => %3.3f\n", normal);
+            if (this->debug) Serial_printf(" => %3.3f\n", normal);
             return normal;
             // eg   min = 0, max = 100, actual = 50 ->          ( 50 - 0 ) / (100-0)            = 0.5
             //      min = 0, max = 100, actual = 75 ->          ( 75 - 0 ) / (100-0)            = 0.75
@@ -740,11 +741,11 @@ class DataParameterBase : public FloatParameter {
 
         // update internal param and call setter on target
         virtual void updateValueFromData(DataType value) {
-            if (this->debug) { Serial.printf("DataParameterBase#updateValueFromData(%i)\n", value); Serial_flush(); }
+            if (this->debug) { Serial_printf("DataParameterBase#updateValueFromData(%i)\n", value); Serial_flush(); }
 
             if (this->getCurrentDataValue()==value) {
                 if (this->debug) {
-                    Serial.printf("DataParameterBase#updateValueFromData(%i) - value is the same as current value, returning\n", value);
+                    Serial_printf("DataParameterBase#updateValueFromData(%i) - value is the same as current value, returning\n", value);
                     Serial_flush();
                 }
                 return;
@@ -754,18 +755,18 @@ class DataParameterBase : public FloatParameter {
             this->lastNormalValue = this->lastNormalValue;
 
             this->currentDataValue = value;
-            if (this->debug) Serial.printf("DataParameterBase#updateValueFromData(%i) - currentDataValue=%i, about to call dataToNormal(%u)\n", value, this->currentDataValue, value);
+            if (this->debug) Serial_printf("DataParameterBase#updateValueFromData(%i) - currentDataValue=%i, about to call dataToNormal(%u)\n", value, this->currentDataValue, value);
             this->currentNormalValue = this->dataToNormal((DataType)value);
-            if (this->debug) Serial.printf("called dataToNormal(%u) - currentNormalValue=%3.3f\n", value, this->currentNormalValue);
+            if (this->debug) Serial_printf("called dataToNormal(%u) - currentNormalValue=%3.3f\n", value, this->currentNormalValue);
 
             if (this->debug) {
-                Serial.printf("DataParameterBase#updateValueFromData(%i) - currentDataValue=%i, currentNormalValue=%3.3f\n", value, this->currentDataValue, this->currentNormalValue);
+                Serial_printf("DataParameterBase#updateValueFromData(%i) - currentDataValue=%i, currentNormalValue=%3.3f\n", value, this->currentDataValue, this->currentNormalValue);
                 Serial_flush();
             }
 
-            if (this->debug) Serial.println("DataParameterBase#updateValueFromData() - about to call sendCurrentTargetValue() -> ");
+            if (this->debug) Serial_println("DataParameterBase#updateValueFromData() - about to call sendCurrentTargetValue() -> ");
             this->sendCurrentTargetValue();
-            if (this->debug) Serial.println("<- DataParameterBase#updateValueFromData() - called sendCurrentTargetValue()");
+            if (this->debug) Serial_println("<- DataParameterBase#updateValueFromData() - called sendCurrentTargetValue()");
         }
 
         DataType lastGetterValue = (DataType)0;
@@ -783,8 +784,8 @@ class DataParameterBase : public FloatParameter {
                 return;
 
             if (debug) {
-                Serial.printf("---->\nupdate_mixer() in %s\tgot current_value=", this->label);
-                Serial.println(current_value);
+                Serial_printf("---->\nupdate_mixer() in %s\tgot current_value=", this->label);
+                Serial_println(current_value);
             }
 
             this->sendCurrentTargetValue();
@@ -792,9 +793,9 @@ class DataParameterBase : public FloatParameter {
             lastGetterValue = current_value;
 
             if (debug) {
-                Serial.printf("update_mixer() in %s\tgot lastOutputNormalValue=", this->label);
-                Serial.println(lastOutputNormalValue);
-                Serial.println("<----");
+                Serial_printf("update_mixer() in %s\tgot lastOutputNormalValue=", this->label);
+                Serial_println(lastOutputNormalValue);
+                Serial_println("<----");
             }
         }
 
@@ -848,44 +849,44 @@ class DataParameterBase : public FloatParameter {
         virtual void incrementValue() override {
             //this->debug = true;
             if (this->debug) {
-                Serial.println("--");
-                Serial.printf("DataParameterBase#incrementValue() for '%s', normal %f, data %i about to call updateValueFromData()....\n", this->label, this->getCurrentNormalValue(), this->getCurrentDataValue());
+                Serial_println("--");
+                Serial_printf("DataParameterBase#incrementValue() for '%s', normal %f, data %i about to call updateValueFromData()....\n", this->label, this->getCurrentNormalValue(), this->getCurrentDataValue());
             }
             DataType current_value = this->getCurrentDataValue();
-            if (this->debug) Serial.printf("DataParameterBase#incrementValue() for '%s', current value is %i\n", this->label, current_value);
+            if (this->debug) Serial_printf("DataParameterBase#incrementValue() for '%s', current value is %i\n", this->label, current_value);
             DataType incremented_value = this->incrementDataValue(current_value);
-            if (this->debug) Serial.printf("DataParameterBase#incrementValue() for '%s', incremented value is %i\n", this->label, incremented_value);
-            if (this->debug) Serial.printf("before updateValueFromData() called...\n");
+            if (this->debug) Serial_printf("DataParameterBase#incrementValue() for '%s', incremented value is %i\n", this->label, incremented_value);
+            if (this->debug) Serial_printf("before updateValueFromData() called...\n");
             this->updateValueFromData(incremented_value);
-            if (this->debug) Serial.printf("...after updateValueFromData() called.\n");
+            if (this->debug) Serial_printf("...after updateValueFromData() called.\n");
             this->last_changed_at = millis();
             if (this->debug) {
-                Serial.printf("....DataParameterBase#incrementValue() for '%s', value became normal %f, data %i\n", this->label, this->getCurrentNormalValue(),this->getCurrentDataValue());
-                Serial.println("--");
+                Serial_printf("....DataParameterBase#incrementValue() for '%s', value became normal %f, data %i\n", this->label, this->getCurrentNormalValue(),this->getCurrentDataValue());
+                Serial_println("--");
             }
         }
         // decrement the value and update
         virtual void decrementValue() override {
             //this->debug = true;
-            if (this->debug) Serial.printf((const char*)F("--\nDataParameterBase#decrementValue() for '%s', initial FormattedValue '%s' (normal %f)"), this->label, this->getFormattedValue(this->getCurrentDataValue()), this->getCurrentNormalValue());
+            if (this->debug) Serial_printf((const char*)F("--\nDataParameterBase#decrementValue() for '%s', initial FormattedValue '%s' (normal %f)"), this->label, this->getFormattedValue(this->getCurrentDataValue()), this->getCurrentNormalValue());
             this->updateValueFromData(this->decrementDataValue((DataType)this->getCurrentDataValue()));
             this->last_changed_at = millis();
-            if (this->debug) Serial.printf((const char*)F("DataParameterBase#decrementValue() for '%s' became %s (normal %f)\n--\n"), this->label, this->getFormattedValue(this->getCurrentDataValue()), this->getCurrentNormalValue());
+            if (this->debug) Serial_printf((const char*)F("DataParameterBase#decrementValue() for '%s' became %s (normal %f)\n--\n"), this->label, this->getFormattedValue(this->getCurrentDataValue()), this->getCurrentNormalValue());
         }
 
         // returns an incremented DataType version of input value (unsigned int) - up to the current Range maximum
         virtual DataType incrementDataValue(unsigned int value) {
             if (this->debug) {
-                Serial.printf("Parameter#incrementDataValue(%i)..\n", value); Serial.printf("\ttaking value %i and doing ++ on it..", value);
-                Serial.printf("\tcurrent step is %i... ", this->get_current_step((int)value));
+                Serial_printf("Parameter#incrementDataValue(%i)..\n", value); Serial_printf("\ttaking value %i and doing ++ on it..", value);
+                Serial_printf("\tcurrent step is %i... ", this->get_current_step((int)value));
             }
 
             value += this->get_current_step((int)value);
-            if (this->debug) Serial.printf("\tgot %i.\n", value);
+            if (this->debug) Serial_printf("\tgot %i.\n", value);
             long min_value = (long)this->get_effective_minimum_data_value();
             long max_value = (long)this->get_effective_maximum_data_value();
             long new_value = constrain((long)value, min_value, max_value);
-            if (this->debug) Serial.printf("\tbecame %i (after constrain to %i:%i)..\n", new_value, this->minimumDataLimit, this->maximumDataLimit);
+            if (this->debug) Serial_printf("\tbecame %i (after constrain to %i:%i)..\n", new_value, this->minimumDataLimit, this->maximumDataLimit);
             return (DataType)new_value;
         }
         // returns a decremented DataType version of input value (int) - down to the current Range minimum
@@ -941,13 +942,13 @@ class DataParameterBase : public FloatParameter {
         }
         // constrain a <DataType> value to be within the minimum-maximum of the underlying Parameter
         virtual DataType constrainDataToLimit(DataType value) {
-            if (debug) Serial.printf("%s#constrainDataToLimit(%3.3f): constraining to lie between %3.3f and %3.3f\n", this->label, (float)value, (float)this->minimumDataLimit, (float)this->maximumDataLimit);
+            if (debug) Serial_printf("%s#constrainDataToLimit(%3.3f): constraining to lie between %3.3f and %3.3f\n", this->label, (float)value, (float)this->minimumDataLimit, (float)this->maximumDataLimit);
             return constrain(value, this->minimumDataLimit, this->maximumDataLimit);
         }
 
         // constrain a <DataType> value to be within the minimum-maximum of the current custom range
         virtual DataType constrainDataToRange(DataType value) {
-            if (debug && Serial) Serial.printf("%s#constrainDataToRange(%3.3f): constraining to lie between %3.3f and %3.3f\n", this->label, (float)value, (float)this->minimumDataLimit, (float)this->maximumDataLimit);
+            if (debug) Serial_printf("%s#constrainDataToRange(%3.3f): constraining to lie between %3.3f and %3.3f\n", this->label, (float)value, (float)this->minimumDataLimit, (float)this->maximumDataLimit);
             return constrain(value, this->get_effective_minimum_data_value(), this->get_effective_maximum_data_value());
         }
 
@@ -1030,36 +1031,36 @@ class DataParameterBase : public FloatParameter {
             float constrained_value = this->constrainNormal(value);
             this->lastModulatedNormalValue = constrained_value;
             //this->lastOutputNormalValue = this->lastModulatedNormalValue; // = value;
-            if (debug && Serial) { 
-                Serial.printf("%s#setTargetValueFromNormal(%3.3f) got modulated value %3.3f, ", this->label, value, constrained_value);
-                Serial.flush();
+            if (debug) {
+                Serial_printf("%s#setTargetValueFromNormal(%3.3f) got modulated value %3.3f, ", this->label, value, constrained_value);
+                Serial_flush();
             }
 
             float slewed_value = constrained_value;
             if (slewing || lastModulatedNormalValue!=lastOutputNormalValue) {
                 slewed_value = this->get_slewed_value(constrained_value);
-                if (this->debug && Serial) {
-                    Serial.printf("%s:\tslewed from\t%3.3f\tto %3.3f\n", this->label, constrained_value, slewed_value);
-                    Serial.flush();
+                if (this->debug) {
+                    Serial_printf("%s:\tslewed from\t%3.3f\tto %3.3f\n", this->label, constrained_value, slewed_value);
+                    Serial_flush();
                 }
             }
 
             //float slewed_value = this->get_slewed_value(constrained_value);          
 
             DataType value_to_send = this->normalToData(slewed_value);
-            if (debug && Serial) Serial.printf("\tgot value_to_send=%3.3f\n", (float)value_to_send);
+            if (debug) Serial_printf("\tgot value_to_send=%3.3f\n", (float)value_to_send);
 
             if (force || initial_output_pending || value_to_send!=this->last_sent_value) {
-                if (debug && Serial) { Serial.printf("\tsending..."); Serial.flush(); }
+                if (debug) { Serial_printf("\tsending..."); Serial_flush(); }
                 this->lastRealOutputNormalValue = slewed_value;
                 this->setTargetValueFromData(value_to_send, true); //force);
                 this->initial_output_pending = false;
                 this->last_sent_value = value_to_send;
                 this->lastOutputNormalValue = slewed_value;
             } else {
-                if (debug && Serial) {
-                    Serial.printf("\tnot sending! (force=%i, last_sent_value=%3.3f, value_to_send=%3.3f)\n", force, this->last_sent_value, value_to_send); 
-                    Serial.flush();
+                if (debug) {
+                    Serial_printf("\tnot sending! (force=%i, last_sent_value=%3.3f, value_to_send=%3.3f)\n", force, this->last_sent_value, value_to_send);
+                    Serial_flush();
                 }
             }
             //this->setTargetValueFromData(value_to_send, force);
@@ -1195,11 +1196,11 @@ class DataParameter : public DataParameterBase<DataType> {
                     }*/
                 #endif
                 if (target==nullptr) {
-                    Serial.printf("WARNING: setTargetValueFromData() avoided calling setter_func on nullptr in %s!\n", this->label); Serial_flush();
+                    Serial_printf("WARNING: setTargetValueFromData() avoided calling setter_func on nullptr in %s!\n", this->label); Serial_flush();
                     return;
                 }
                 if (setter_func==nullptr) {
-                    Serial.printf("WARNING: setTargetValueFromData() avoided calling null setter_func in %s!\n", this->label); Serial_flush();
+                    Serial_printf("WARNING: setTargetValueFromData() avoided calling null setter_func in %s!\n", this->label); Serial_flush();
                     return;
                 }
                 (this->target->*setter_func)((DataType)value);

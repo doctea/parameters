@@ -1,3 +1,4 @@
+#include "shared_debug.h"
 #include "parameters/calibration.h"
 #ifdef USE_ATOMIC
     #include "SimplyAtomic.h"
@@ -14,7 +15,7 @@
 
 uint16_t calibrate_find_dac_value_for(DAC8574 *dac_output, int channel, VoltageParameterInput *src, float intended_voltage, bool inverted) {
     if (src==nullptr) {
-        Serial.printf("calibrate_find_dac_value_for(channel=%u) passed a null VoltageParameterInput!\n", channel);
+        Serial_printf("calibrate_find_dac_value_for(channel=%u) passed a null VoltageParameterInput!\n", channel);
         return intended_voltage * 65535.0;
     }
     parameter_manager->update_voltage_sources();
@@ -34,8 +35,8 @@ uint16_t calibrate_find_dac_value_for(DAC8574 *dac_output, int channel, VoltageP
     bool overshot = false;
     float tolerance = 0.001;
 
-    Serial.printf("----\nStarting calibrate_find_dac_value_for(%i, '%s', %3.3f)\n", channel, src->name, intended_voltage);
-    Serial.printf("Starting with guess_din of %i.\n", guess_din);
+    Serial_printf("----\nStarting calibrate_find_dac_value_for(%i, '%s', %3.3f)\n", channel, src->name, intended_voltage);
+    Serial_printf("Starting with guess_din of %i.\n", guess_din);
 
     #ifdef USE_ATOMIC
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
@@ -61,20 +62,20 @@ uint16_t calibrate_find_dac_value_for(DAC8574 *dac_output, int channel, VoltageP
 
             if (actual_read > intended_voltage) {
                 if (last_guess_din < guess_din) {
-                    Serial.println("OVERSHOT 1!");
+                    Serial_println("OVERSHOT 1!");
                     overshot = true;
                     tolerance *= 1.25;
-                    Serial.printf("Set tolerance to %3.3f\n", tolerance);
+                    Serial_printf("Set tolerance to %3.3f\n", tolerance);
                 }
                 last_guess_din = guess_din;
 
                 guess_din--;
             } else if (actual_read < intended_voltage) {
                 if (last_guess_din > guess_din) {
-                    Serial.println("OVERSHOT 2!");
+                    Serial_println("OVERSHOT 2!");
                     overshot = true;
                     tolerance *= 1.25;
-                    Serial.printf("Set tolerance to %3.3f\n", tolerance);
+                    Serial_printf("Set tolerance to %3.3f\n", tolerance);
                 }
                 last_guess_din = guess_din;
 
@@ -95,20 +96,20 @@ uint16_t calibrate_find_dac_value_for(DAC8574 *dac_output, int channel, VoltageP
 
             last_read = actual_read;
 
-            Serial.printf("Finding %3.3f:\t", intended_voltage);
-            Serial.printf("Tried %i\t", last_guess_din);
-            Serial.printf("And got result %3.3f", last_read);
-            if (inverted) Serial.printf(" (inverted)");
-            Serial.printf("\t(making difference of %3.3f)", fabs(max(actual_read,intended_voltage) - min(actual_read,intended_voltage)));
-            Serial.println();
+            Serial_printf("Finding %3.3f:\t", intended_voltage);
+            Serial_printf("Tried %i\t", last_guess_din);
+            Serial_printf("And got result %3.3f", last_read);
+            if (inverted) Serial_printf(" (inverted)");
+            Serial_printf("\t(making difference of %3.3f)", fabs(max(actual_read,intended_voltage) - min(actual_read,intended_voltage)));
+            Serial_println();
 
             //Serial.printf(" (wanted %3.3f)\n", intended_voltage);
 
         } while (fabs(max(actual_read,intended_voltage) - min(actual_read,intended_voltage)) > tolerance);
 
-        Serial.printf("got actual_read=%3.3f ", actual_read);
-        Serial.printf("(%3.3f distance from intended %3.3f, with final tolerance %3.3f) ", fabs(actual_read) - fabs(intended_voltage), intended_voltage, tolerance);
-        Serial.printf("and last_guess_din=%i\n", last_guess_din);           
+        Serial_printf("got actual_read=%3.3f ", actual_read);
+        Serial_printf("(%3.3f distance from intended %3.3f, with final tolerance %3.3f) ", fabs(actual_read) - fabs(intended_voltage), intended_voltage, tolerance);
+        Serial_printf("and last_guess_din=%i\n", last_guess_din);
     }
 
     //return (actual_read/10.0) * 65535.0;

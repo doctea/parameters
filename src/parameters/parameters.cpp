@@ -158,12 +158,15 @@ FLASHMEM MenuItemList *FloatParameter::makeControls() {
 
                 // todo: check connection mode and use += or *= as appropriate
                 if (this->connections[i].operation_mode == MOD_SLOT_SUM) {
+                    // Serial_printf("%s#get_modulation_value() summing by %f\n", this->label, (nml * this->connections[i].amount));
                     modulation += nml * this->connections[i].amount;
                 } else if (this->connections[i].operation_mode == MOD_SLOT_MULT) {
-                    modulation *= nml * this->connections[i].amount;
+                    // Serial_printf("%s#get_modulation_value() multiplying by %f\n", this->label, (nml * this->connections[i].amount));
+                    modulation *= (nml * this->connections[i].amount);
                 }
                 number_of_modulations++;
             }
+            // Serial_printf("%s#get_modulation_value() processed modulation slot %i, final modulation value %f\n", this->label, i, modulation);
         }
         if (this->debug && number_of_modulations>0) 
             Debug_printf(F("%s#get_modulation_value()\treturning\t%f from\t%i modulations\n"), this->label, modulation, number_of_modulations);
