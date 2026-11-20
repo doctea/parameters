@@ -201,9 +201,13 @@ class ParameterSlotControlMixins {
         }
 
         bool is_active() const {
-            return parameter != nullptr && *parameter != nullptr &&
-                (*parameter)->is_valid_slot(slot_number) &&
-                (*parameter)->connections[slot_number].midi_learn_active;
+            return 
+                parameter != nullptr 
+                && *parameter != nullptr 
+                && (*parameter)->is_valid_slot(slot_number) 
+                #ifdef ENABLE_PARAMETERS_MIDI_LEARN
+                    &&(*parameter)->connections[slot_number].midi_learn_active;
+                #endif
         }
 
         float get_slot_amount() {
