@@ -133,26 +133,27 @@ float FloatParameter::get_amount_for_slot(int8_t slot) {
                 } else if (target->connections[s].polar_mode == MOD_SLOT_UNI_CENTERED) {
                     mode = "uni_centered";
                 }
-                p += snprintf(p, end - p, "%s%s,%.6g,%s,%s",
+                p += snprintf(p, end - p, "%s%s,%.6g,%s,%s,%s",
                     s == 0 ? "" : ";",
                     name ? name : "",
                     (double)amount,
                     mode,
-                    get_sh_mode_save_string(target->connections[s].sh_mode));
+                    get_sh_mode_save_string(target->connections[s].sh_mode),
+                    target->connections[s].operation_mode == MOD_SLOT_MULT ? "mult" : "sum");
             }
             return linebuf;
         }
         bool parse_key_value(const char* key, const char* value) override {
             if (strcmp(key, "modslots") != 0) return false;
             // parse semicolon-separated tuples
-            char buf[128];
+            char buf[SL_MAX_LINE];
             strncpy(buf, value, sizeof(buf) - 1);
             buf[sizeof(buf)-1] = '\0';
             char* cursor = buf;
             for (uint_fast8_t s = 0; s < MAX_SLOT_CONNECTIONS; ++s) {
                 char* semi = strchr(cursor, ';');
                 if (semi) *semi = '\0';
-                // parse "name,amount,mode[,sh_mode]"
+                // parse "name,amount,mode[,sh_mode[,operation_mode]]"
                 char* comma1 = strchr(cursor, ',');
                 if (!comma1) break;
                 *comma1 = '\0';
@@ -169,17 +170,15 @@ float FloatParameter::get_amount_for_slot(int8_t slot) {
                     char* comma3 = strchr(comma2 + 1, ',');
                     if (comma3) {
                         *comma3 = '\0';
-                        sh_mode = get_sh_mode_from_save_string(comma3 + 1);
+                        // Optional 5th token: operation_mode (missing = sum)
                         char *comma4 = strchr(comma3 + 1, ',');
                         if (comma4) {
-                            // backwards compatibility: "sum" / "mult" for operation_mode
                             *comma4 = '\0';
-                            if (strcmp(comma3 + 1, "sum") == 0) {
-                                operation_mode = MOD_SLOT_SUM;
-                            } else if (strcmp(comma3 + 1, "mult") == 0) {
+                            if (strcmp(comma4 + 1, "mult") == 0) {
                                 operation_mode = MOD_SLOT_MULT;
                             }
                         }
+                        sh_mode = get_sh_mode_from_save_string(comma3 + 1);
                     }
                     // Backward compatibility:
                     // - legacy: "bipolar" / "unipolar"
