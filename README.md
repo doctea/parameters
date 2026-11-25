@@ -12,7 +12,7 @@ Based on code extracted from my [envor2](https://github.com/doctea/envor2) and [
 - VoltageSources read from the ADCDevice, represents one channel of the device
 - ParameterInputs fetches values from VoltageSources (so in theory can have multiple ParameterInputs feeding from the same VoltageSource)
   - if a ParameterInput supports_pitch then it can also generate a note corresponding to the 1v/oct value for the voltage
-- Parameters fetch values from ParameterInputs (currently up to 3 ParameterInputs can be attached to each Parameter)
+- Parameters fetch values from ParameterInputs (three slots by default, configurable at build time)
   - Amount % modulation for each connected ParameterInput is mixed together
   - Result is sent to target objects (eg MIDI output, envelope, variable, etc)
 - ParameterMenuItem is a way to interact directly with that Parameter value.
@@ -26,6 +26,15 @@ Build flags:
 
 - -DPARAMETER_INPUTS_USE_CALLBACKS to use callbacks for parameter input value changes in ParameterInputDisplay, instead of polling from menu
 - -DDISABLE_PARAMETER_INPUT_SELECTORS to disable parameter input selectors on the 'heavyweight' parameter controls
+- `-DMAX_SLOT_CONNECTIONS=4` to use four modulation slots instead of three. Set this globally for every translation unit because it changes the parameter object layout.
+
+## Mixer controls and presets
+
+Select the output value to toggle its history graph. The slot `#` control moves a slot with the knob, keeping its settings together. Mixer settings, including their underlying modulation slots and ranges, are included in scene saves.
+
+With `ENABLE_STORAGE` and `ENABLE_SD` or `ENABLE_LITTLEFS`, mixers share eight presets at `mixer_presets/preset0.txt` through `preset7.txt`. An asterisk marks an existing preset. The mixer page also offers confirmed load, save, and copy-from-mixer actions. Override `MIXER_PRESET_DIRECTORY` and `MIXER_PRESET_PATH_FORMAT` together to change the location.
+
+Run `node test_modslot_count.js` for focused host checks.
 
 ## CV output voltage ranges
 
@@ -109,7 +118,7 @@ Practical implications:
   - Multiple ADCDevices also works (so getting 6x inputs using two Pimoroni boards on different i2c addresses is possible)
 - MenuItems for [mymenu](https://github.com/doctea/mymenu) that allow changing Parameter values and ParameterInput-Parameter mappings
   - graph of modulation amount/history
-  - selectable 3 ParameterInputs per Parameter
+  - configurable ParameterInput slots per Parameter
   - change how much each selected ParameterInput affects the Parameter, from -100% to +100%
   - switch between bipolar/unipolar ranges on per-ParameterInput level, for both input and output
 - Incoming MIDI CC as a modulation source

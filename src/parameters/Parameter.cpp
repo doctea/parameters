@@ -33,7 +33,7 @@ void FloatParameter::set_slot_input(int8_t slot, const char *name) {
 #endif
 
 void FloatParameter::set_slot_input(int8_t slot, BaseParameterInput *parameter_input) {
-    Debug_printf(F("PARAMETERS\tFloatParameter#set_slot_input in '%s': asked to set slot %i on %s to point to %s\n"), this->label, slot, this->label, parameter_input->name);
+    Debug_printf(F("PARAMETERS\tFloatParameter#set_slot_input in '%s': asked to set slot %i on %s to point to %s\n"), this->label, slot, this->label, parameter_input ? parameter_input->name : "None");
     if (!this->is_valid_slot(slot)) {
         Serial_printf("%s#set_slot_input(%i) isn't a valid slot number!\n", this->label, slot);
         return;
@@ -109,6 +109,34 @@ float FloatParameter::get_amount_for_slot(int8_t slot) {
     return this->connections[slot].amount;
 }
 
+bool FloatParameter::swap_slots(int from, int to) {
+    if (from < 0 || from >= MAX_SLOT_CONNECTIONS || to < 0 || to >= MAX_SLOT_CONNECTIONS) return false;
+    if (from == to) return true;
+    #ifdef ENABLE_PARAMETERS_MIDI_LEARN
+        if (parameter_manager && parameter_manager->awaiting_midi_learn == this)
+            parameter_manager->stop_midi_learn();
+    #endif
+    const ParameterToInputConnection saved = connections[from];
+    connections[from] = connections[to];
+    connections[to] = saved;
+    return true;
+}
+
+bool FloatParameter::move_slot(int from, int to) {
+    if (from < 0 || from >= MAX_SLOT_CONNECTIONS || to < 0 || to >= MAX_SLOT_CONNECTIONS) return false;
+    if (from == to) return true;
+    #ifdef ENABLE_PARAMETERS_MIDI_LEARN
+        if (parameter_manager && parameter_manager->awaiting_midi_learn == this)
+            parameter_manager->stop_midi_learn();
+    #endif
+    const ParameterToInputConnection saved = connections[from];
+    const int direction = from < to ? 1 : -1;
+    for (int slot = from; slot != to; slot += direction)
+        connections[slot] = connections[slot + direction];
+    connections[to] = saved;
+    return true;
+}
+
 #ifdef ENABLE_STORAGE
     // Compact single-object save/load for all modulation slots on a FloatParameter.
     // Format: modslots=inputname0,amount0,mode0;inputname1,amount1,mode1;...
@@ -124,8 +152,16 @@ float FloatParameter::get_amount_for_slot(int8_t slot) {
             char* p = linebuf;
             char* end = linebuf + sizeof(linebuf);
             p += snprintf(p, end - p, "modslots=");
-            for (uint_fast8_t s = 0; s < MAX_SLOT_CONNECTIONS && p < end; ++s) {
-                const char* name = target->get_input_group_and_name_for_slot(s);
+            int last_slot = MAX_SLOT_CONNECTIONS - 1;
+            while (last_slot >= 0) {
+                const auto &connection = target->connections[last_slot];
+                if (connection.parameter_input || connection.amount != 0.0f || connection.polar_mode != MOD_SLOT_UNI_RAW ||
+                    connection.sh_mode != SH_OFF || connection.operation_mode != MOD_SLOT_SUM)
+                    break;
+                --last_slot;
+            }
+            for (int s = 0; s <= last_slot && p < end; ++s) {
+                const char* name = target->connections[s].parameter_input ? target->get_input_group_and_name_for_slot(s) : "";
                 float amount = target->get_amount_for_slot(s);
                 const char* mode = "uni_raw";
                 if (target->connections[s].polar_mode == MOD_SLOT_BI_NATIVE) {
@@ -133,77 +169,51 @@ float FloatParameter::get_amount_for_slot(int8_t slot) {
                 } else if (target->connections[s].polar_mode == MOD_SLOT_UNI_CENTERED) {
                     mode = "uni_centered";
                 }
-                p += snprintf(p, end - p, "%s%s,%.6g,%s,%s,%s",
+                const int written = snprintf(p, end - p, "%s%s,%.6g,%s,%s,%s",
                     s == 0 ? "" : ";",
                     name ? name : "",
                     (double)amount,
                     mode,
                     get_sh_mode_save_string(target->connections[s].sh_mode),
                     target->connections[s].operation_mode == MOD_SLOT_MULT ? "mult" : "sum");
+                if (written < 0 || written >= end - p) break;
+                p += written;
             }
             return linebuf;
         }
         bool parse_key_value(const char* key, const char* value) override {
             if (strcmp(key, "modslots") != 0) return false;
-            // parse semicolon-separated tuples
             char buf[SL_MAX_LINE];
             strncpy(buf, value, sizeof(buf) - 1);
             buf[sizeof(buf)-1] = '\0';
+            #ifdef ENABLE_PARAMETERS_MIDI_LEARN
+                if (parameter_manager && parameter_manager->awaiting_midi_learn == target)
+                    parameter_manager->stop_midi_learn();
+            #endif
+            for (int s = 0; s < MAX_SLOT_CONNECTIONS; ++s)
+                target->connections[s] = ParameterToInputConnection{};
             char* cursor = buf;
-            for (uint_fast8_t s = 0; s < MAX_SLOT_CONNECTIONS; ++s) {
+            for (uint_fast8_t s = 0; s < MAX_SLOT_CONNECTIONS && *cursor; ++s) {
                 char* semi = strchr(cursor, ';');
                 if (semi) *semi = '\0';
-                // parse "name,amount,mode[,sh_mode[,operation_mode]]"
-                char* comma1 = strchr(cursor, ',');
-                if (!comma1) break;
-                *comma1 = '\0';
-                char* comma2 = strchr(comma1 + 1, ',');
-                float amount = 0.0f;
-                uint8_t mode = MOD_SLOT_UNI_RAW;
-                uint8_t operation_mode = MOD_SLOT_SUM;
-                SHMode sh_mode = SH_OFF;
-                if (comma2) {
-                    *comma2 = '\0';
-                    amount = atof(comma1 + 1);
-                    const char* mode_str = comma2 + 1;
-                    // Optional 4th token: sh_mode (backwards compat: missing = SH_OFF)
-                    char* comma3 = strchr(comma2 + 1, ',');
-                    if (comma3) {
-                        *comma3 = '\0';
-                        // Optional 5th token: operation_mode (missing = sum)
-                        char *comma4 = strchr(comma3 + 1, ',');
-                        if (comma4) {
-                            *comma4 = '\0';
-                            if (strcmp(comma4 + 1, "mult") == 0) {
-                                operation_mode = MOD_SLOT_MULT;
-                            }
-                        }
-                        sh_mode = get_sh_mode_from_save_string(comma3 + 1);
-                    }
-                    // Backward compatibility:
-                    // - legacy: "bipolar" / "unipolar"
-                    // - current: "bi_native" / "uni_raw" / "uni_centered"
-                    if (strcmp(mode_str, "bi_native") == 0 || strcmp(mode_str, "bipolar") == 0) {
-                        mode = MOD_SLOT_BI_NATIVE;
-                    } else if (strcmp(mode_str, "uni_centered") == 0) {
-                        mode = MOD_SLOT_UNI_CENTERED;
-                    } else if (strcmp(mode_str, "uni_raw") == 0 || strcmp(mode_str, "unipolar") == 0) {
-                        mode = MOD_SLOT_UNI_RAW;
-                    } else {
-                        mode = MOD_SLOT_UNI_RAW;
-                    }
+                char* tokens[5] = { cursor, nullptr, nullptr, nullptr, nullptr };
+                for (int token = 1; token < 5; ++token) {
+                    char* comma = strchr(tokens[token - 1], ',');
+                    if (!comma) break;
+                    *comma = '\0';
+                    tokens[token] = comma + 1;
                 }
-                // set input
-                if (cursor[0] != '\0') {
-                    BaseParameterInput* inp = parameter_manager->getInputForGroupAndName(cursor);
-                    target->set_slot_input(s, inp);
-                }
-                target->connections[s].amount = amount;
-                target->connections[s].polar_mode = mode;
-                target->connections[s].sh_mode = sh_mode;
-                target->connections[s].sh_last_sample = 0.0f;  // reset runtime state on load
-                target->connections[s].sh_last_tick = UINT32_MAX;  // UINT32_MAX = never sampled
-                target->connections[s].operation_mode = operation_mode;  // default to sum
+                if (!tokens[1]) break;
+                auto &connection = target->connections[s];
+                if (*tokens[0])
+                    connection.parameter_input = parameter_manager->getInputForGroupAndName(tokens[0]);
+                connection.amount = atof(tokens[1]);
+                if (tokens[2] && (strcmp(tokens[2], "bi_native") == 0 || strcmp(tokens[2], "bipolar") == 0))
+                    connection.polar_mode = MOD_SLOT_BI_NATIVE;
+                else if (tokens[2] && strcmp(tokens[2], "uni_centered") == 0)
+                    connection.polar_mode = MOD_SLOT_UNI_CENTERED;
+                if (tokens[3]) connection.sh_mode = get_sh_mode_from_save_string(tokens[3]);
+                if (tokens[4] && strcmp(tokens[4], "mult") == 0) connection.operation_mode = MOD_SLOT_MULT;
                 if (!semi) break;
                 cursor = semi + 1;
             }

@@ -57,7 +57,9 @@ class BaseParameter;
     //, ParameterInputSelectorControl;
 #endif
 
-#define MAX_SLOT_CONNECTIONS 3
+#ifndef MAX_SLOT_CONNECTIONS
+    #define MAX_SLOT_CONNECTIONS 3
+#endif
 
 #define MOD_SLOT_SUM 0
 #define MOD_SLOT_MULT 1
@@ -462,10 +464,12 @@ class FloatParameter : public BaseParameter {
 
 
     virtual void reset_mappings() {
-        this->set_slot_0_amount(0.0f);
-        this->set_slot_1_amount(0.0f);
-        this->set_slot_2_amount(0.0f);
+        for (int i = 0; i < MAX_SLOT_CONNECTIONS; i++)
+            this->set_slot_amount(i, 0.0f);
     }
+
+    bool swap_slots(int from, int to);
+    bool move_slot(int from, int to);
 
     // account for rounding errors that are causing spurious modulation
     virtual bool is_modulation_slot_active(int slot);

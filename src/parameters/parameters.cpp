@@ -58,10 +58,14 @@ FLASHMEM MenuItemList *FloatParameter::makeControls() {
     controls->add(fullmenuitem);
 
     // One row per modulation slot — added as separate top-level items for direct navigation
+    ParameterModSlotRow *previous_row = nullptr;
     for (uint_fast8_t i = 0; i < MAX_SLOT_CONNECTIONS; i++) {
         char slot_label[8];
         snprintf(slot_label, sizeof(slot_label), "Slt%i", i + 1);
-        controls->add(new ParameterModSlotRow(slot_label, &this->self, i));
+        ParameterModSlotRow *row = new ParameterModSlotRow(slot_label, &this->self, i);
+        if (previous_row != nullptr) previous_row->link_next(row);
+        previous_row = row;
+        controls->add(row);
     }
 
     //ToggleControl<bool> *debug = new ToggleControl<bool>("Debug", &this->debug, nullptr);
@@ -112,8 +116,6 @@ FLASHMEM MenuItemList *FloatParameter::makeControls() {
     float FloatParameter::get_modulation_value() {
         float modulation = 0.0f;
         int_fast8_t number_of_modulations = 0;
-        if (!is_modulation_slot_active(0) && !is_modulation_slot_active(1) && !is_modulation_slot_active(2))
-            return 0.0f;
             
         for (uint_fast8_t i = 0 ; i < MAX_SLOT_CONNECTIONS ; i++) {
             if (is_modulation_slot_active(i)) {

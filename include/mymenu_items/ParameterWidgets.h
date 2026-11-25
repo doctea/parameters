@@ -48,7 +48,7 @@ class ParameterWidget : public MenuItems_Widget {
             if (this->parameter!=nullptr) {
                 tft_print_column((char*)"%s\n", (char*)this->parameter->getFormattedLastOutputValue());
 
-                for (int i = 0 ; i < 3 ; i++) {
+                for (int i = 0 ; i < MAX_SLOT_CONNECTIONS ; i++) {
                     ParameterToInputConnection connection = this->parameter->connections[i];
                     BaseParameterInput *input = connection.parameter_input;
                     if (input == nullptr || connection.amount == 0.0f) {

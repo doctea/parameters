@@ -51,12 +51,20 @@ class ParameterInputSelectorControl : public SelectorControl<int_least16_t> {
         return this->proxy_target_object!=nullptr ? *this->proxy_target_object : nullptr;
     }
 
+protected:
+    virtual BaseParameterInput *read_target_input(TargetClass *target) {
+        return target != nullptr && getter_func != nullptr ? (target->*getter_func)() : nullptr;
+    }
+
+    virtual void write_target_input(TargetClass *target, BaseParameterInput *input) {
+        if (target != nullptr && setter_func != nullptr)
+            (target->*setter_func)(input);
+    }
+
+private:
     int get_index_for_current_target_value() {
         TargetClass *current_target = this->get_current_target_object();
-        if (current_target==nullptr || this->getter_func==nullptr)
-            return this->get_none_index();
-
-        BaseParameterInput *current_input = (current_target->*this->getter_func)();
+        BaseParameterInput *current_input = this->read_target_input(current_target);
         if (current_input==nullptr)
             return this->get_none_index();
 
@@ -226,12 +234,8 @@ class ParameterInputSelectorControl : public SelectorControl<int_least16_t> {
     virtual void setter (int_least16_t new_value) {
         //if (this->debug) Serial.printf(F("ParameterSelectorControl changing from %i to %i\n"), this->actual_value_index, new_value);
         selected_value_index = actual_value_index = new_value;
-        if(new_value>=0 && (*this->proxy_target_object)!=nullptr && this->setter_func!=nullptr) {
-            if (new_value < (int)this->available_parameter_inputs->size())
-                ((*this->proxy_target_object)->*this->setter_func)(this->available_parameter_inputs->get(new_value));
-            else
-                ((*this->proxy_target_object)->*this->setter_func)(nullptr);
-        }
+        if (new_value >= 0)
+            this->write_target_input(this->get_current_target_object(), this->get_parameter_for_index(new_value));
     }
     virtual int_least16_t getter () {
         return selected_value_index;
@@ -357,4 +361,23 @@ class ParameterInputSelectorControl : public SelectorControl<int_least16_t> {
         return flags.go_back_on_select;
     }
 
+};
+
+class ParameterSlotInputSelectorControl : public ParameterInputSelectorControl<FloatParameter> {
+    int slot_number;
+
+protected:
+    BaseParameterInput *read_target_input(FloatParameter *target) override {
+        return target != nullptr && target->is_valid_slot(slot_number) ? target->get_slot_input(slot_number) : nullptr;
+    }
+
+    void write_target_input(FloatParameter *target, BaseParameterInput *input) override {
+        if (target != nullptr && target->is_valid_slot(slot_number))
+            target->set_slot_input(slot_number, input);
+    }
+
+public:
+    ParameterSlotInputSelectorControl(const char *label, FloatParameter **parameter, int slot,
+                                      GenericList<BaseParameterInput*> *inputs, BaseParameterInput *initial = nullptr)
+        : ParameterInputSelectorControl<FloatParameter>(label, parameter, nullptr, nullptr, inputs, initial), slot_number(slot) {}
 };

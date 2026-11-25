@@ -21,6 +21,7 @@ void create_low_memory_parameter_controls_actual() {
             snprintf(slot_label, sizeof(slot_label), "Slt%i", i + 1);
             lowmemory_controls.slot_rows[i] = new ParameterModSlotRow(slot_label, &lowmemory_controls.parameter, i);
         }
+        if (i > 0) lowmemory_controls.slot_rows[i - 1]->link_next(lowmemory_controls.slot_rows[i]);
         menu->add(lowmemory_controls.slot_rows[i]);
     }
 

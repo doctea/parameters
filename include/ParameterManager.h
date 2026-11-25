@@ -326,12 +326,8 @@ class ParameterManager
             //Debug_printf(F("ParameterManager#setDefaultParameterConnections() has %i parameters to map to %i inputs..\n"), this->available_parameters->size(), this->available_inputs->size());
             for (auto* param : *this->available_parameters) {
                 // todo: make this configurable dynamically / load defaults from save file
-                param->set_slot_0_input(available_inputs->get(0));
-                param->set_slot_1_input(available_inputs->get(1));
-                param->set_slot_2_input(available_inputs->get(2));
-                /*for (unsigned int i = 0 ; i < MAX_SLOT_CONNECTIONS ; i++) {
-                    available_parameters->get(i)->connections[i].parameter_input = available_inputs->get(i);
-                }*/
+                for (unsigned int i = 0; i < MAX_SLOT_CONNECTIONS; i++)
+                    param->set_slot_input(i, available_inputs->get(i));
             }
         }
 

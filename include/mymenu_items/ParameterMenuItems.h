@@ -10,6 +10,7 @@
 #include "../parameters/Parameter.h"
 
 #include <LinkedList.h>
+#include <new>
 
 // direct control over a Parameter Value from menu
 class ParameterValueMenuItem : public DirectNumberControl<float> {
@@ -177,6 +178,94 @@ class ParameterValueMenuItem : public DirectNumberControl<float> {
         }
 };
 
+class ParameterOutputMenuItem : public ParameterValueMenuItem {
+    uint8_t *history = nullptr;
+    uint16_t capacity = 0;
+    uint16_t head = 0;
+    uint16_t count = 0;
+    enum DisplayMode : uint8_t { VALUE_ONLY, GRAPH_ONLY, VALUE_AND_GRAPH };
+    DisplayMode display_mode = VALUE_AND_GRAPH;
+    FloatParameter *sampled_parameter = nullptr;
+
+public:
+    ParameterOutputMenuItem(FloatParameter **parameter) : ParameterValueMenuItem((char *)"Output", parameter) {
+        set_show_output_mode();
+    }
+
+    ~ParameterOutputMenuItem() { delete[] history; }
+
+    bool action_opened() override {
+        display_mode = (DisplayMode)((display_mode + 1) % 3);
+        if (display_mode == VALUE_ONLY) on_hidden();
+        IF_MENU_PERF_PARTIAL_UPDATES(this->request_redraw();)
+        return false;
+    }
+
+    void on_hidden() override {
+        delete[] history;
+        history = nullptr;
+        capacity = head = count = 0;
+        sampled_parameter = nullptr;
+    }
+
+    void update_ticks(unsigned long) override {
+        if (display_mode == VALUE_ONLY || history == nullptr || parameter == nullptr || *parameter == nullptr)
+            return;
+        if (sampled_parameter != *parameter) {
+            sampled_parameter = *parameter;
+            head = count = 0;
+        }
+        float value = sampled_parameter->getLastOutputNormalValue();
+        if (!(value >= 0.0f)) value = 0.0f;
+        if (value > 1.0f) value = 1.0f;
+        history[head] = (uint8_t)(value * 255.0f + 0.5f);
+        head = (head + 1) % capacity;
+        if (count < capacity) ++count;
+        IF_MENU_PERF_PARTIAL_UPDATES(this->request_redraw();)
+    }
+
+    int renderValue(bool selected, bool opened, uint16_t max_character_width) override {
+        if (display_mode == VALUE_ONLY) return ParameterValueMenuItem::renderValue(selected, opened, max_character_width);
+        if (tft->getCursorY() >= tft->height()) {
+            on_hidden();
+            return tft->getCursorY() + tft->getSingleRowHeight() * 2;
+        }
+        const uint16_t width = max_character_width * tft->characterWidth();
+        if (width == 0) return ParameterValueMenuItem::renderValue(selected, opened, max_character_width);
+        const int x = tft->getCursorX();
+        const int y = tft->getCursorY();
+        const bool overlay_text = display_mode == VALUE_AND_GRAPH;
+        const int text_end_y = overlay_text ? ParameterValueMenuItem::renderValue(selected, opened, max_character_width) : y;
+        tft->setCursor(x, y);
+        if (capacity != width) {
+            delete[] history;
+            history = new (std::nothrow) uint8_t[width];
+            capacity = history != nullptr ? width : 0;
+            head = count = 0;
+        }
+        if (history == nullptr)
+            return overlay_text ? text_end_y : ParameterValueMenuItem::renderValue(selected, opened, max_character_width);
+        if (sampled_parameter != (parameter != nullptr ? *parameter : nullptr)) {
+            sampled_parameter = parameter != nullptr ? *parameter : nullptr;
+            head = count = 0;
+        }
+        const int height = tft->getSingleRowHeight() * 2;
+        const uint16_t fg = overlay_text ? (selected ? RED : GREEN) : (selected ? BLACK : C_WHITE);
+        if (!overlay_text) tft->fillRect(x, y, width, height, selected ? C_WHITE : BLACK);
+        int previous_y = 0;
+        for (uint16_t index = 0; index < count; ++index) {
+            const uint16_t position = (head + capacity - count + index) % capacity;
+            const int plot_x = x + width - count + index;
+            const int plot_y = y + height - 1 - (history[position] * (height - 1) / 255);
+            if (index > 0) tft->drawLine(plot_x - 1, previous_y, plot_x, plot_y, fg);
+            else tft->drawLine(plot_x, plot_y, plot_x, plot_y, fg);
+            previous_y = plot_y;
+        }
+        tft->setCursor(x, y + height);
+        return tft->getCursorY();
+    }
+};
+
 #include "submenuitem_bar.h"
 #include "parameter_inputs/ParameterInput.h"
 #include "ParameterInputMenuItems.h"
@@ -206,8 +295,9 @@ class ParameterSlotControlMixins {
                 && *parameter != nullptr 
                 && (*parameter)->is_valid_slot(slot_number) 
                 #ifdef ENABLE_PARAMETERS_MIDI_LEARN
-                    &&(*parameter)->connections[slot_number].midi_learn_active;
+                    &&(*parameter)->connections[slot_number].midi_learn_active
                 #endif
+                ;
         }
 
         float get_slot_amount() {
@@ -658,51 +748,62 @@ class ParameterOperationModeControl : public ParameterSlotControlMixins, public 
 };
 
 
-// One row for a single modulation slot: [source selector | amount % | mode selector | S&H]
+class ParameterModSlotRow;
+
+class ParameterSlotReorderControl : public MenuItem {
+    ParameterModSlotRow *row;
+
+public:
+    ParameterSlotReorderControl(ParameterModSlotRow *row) : MenuItem("Move"), row(row) {}
+    int renderValue(bool selected, bool opened, uint16_t) override {
+        colours(selected, opened ? GREEN : C_WHITE, BLACK);
+        tft->setTextSize(1);
+        tft->print("#");
+        return tft->getCursorY();
+    }
+    bool knob_left() override;
+    bool knob_right() override;
+    bool button_select() override { return true; }
+};
+
 class ParameterModSlotRow : public ParameterSlotControlMixins, public SubMenuItemBarCustomProportions {
 public:
+    ParameterModSlotRow *previous_row = nullptr;
+    ParameterModSlotRow *next_row = nullptr;
+
     ParameterModSlotRow(const char *label, FloatParameter **parameter, int slot_number)
         : ParameterSlotControlMixins(parameter, slot_number),
           SubMenuItemBarCustomProportions(label,
           #ifdef ENABLE_PARAMETERS_MIDI_LEARN
-              5,
+              7,
           #else
-              4,
+              6,
           #endif
           false, false)
     {
-        // Source stays at 49%; learn takes 8% from amount when enabled.
-        // Source bumped +3% (one extra textsize-1 char) so 11-char names like "Ride Cymbal"
-        // fit without auto-downscaling; the amount column absorbs the difference.
-        this->set_column_proportion(0, 0.49f);          // Source column
-        this->set_column_proportion(1, 0.27f);          // Amount column
-        float individual_widths = 1.0f-(0.49f+0.27f);
+        this->set_column_proportion(0, 0.06f);
+        this->set_column_proportion(1, 0.45f);
+        this->set_column_proportion(2, 0.25f);
+        float individual_widths = 1.0f-(0.06f+0.45f+0.25f);
         #ifdef ENABLE_PARAMETERS_MIDI_LEARN
-            this->set_column_proportion(2, individual_widths / 4.0);  // Operation mode
-            this->set_column_proportion(3, individual_widths / 4.0);  // Mode column
-            this->set_column_proportion(4, individual_widths / 4.0);  // S&H column
-            this->set_column_proportion(5, individual_widths / 4.0);  // Learn column
+            this->set_column_proportion(3, individual_widths / 4.0f);
+            this->set_column_proportion(4, individual_widths / 4.0f);
+            this->set_column_proportion(5, individual_widths / 4.0f);
+            this->set_column_proportion(6, individual_widths / 4.0f);
         #else
-            this->set_column_proportion(2, individual_widths / 3.0f);  // Operation mode
-            this->set_column_proportion(3, individual_widths / 3.0f);  // Mode column
-            this->set_column_proportion(4, individual_widths / 3.0f);  // S&H column
+            this->set_column_proportion(3, individual_widths / 3.0f);
+            this->set_column_proportion(4, individual_widths / 3.0f);
+            this->set_column_proportion(5, individual_widths / 3.0f);
         #endif
 
+        this->add(new ParameterSlotReorderControl(this));
         BaseParameterInput *initial_input = nullptr;
         initial_input = get_slot_parameter_input();
 
-        // Source selector — slot-specific setter/getter function pointers
-        void(FloatParameter::*setter)(BaseParameterInput*) = nullptr;
-        BaseParameterInput*(FloatParameter::*getter)() = nullptr;
-        switch (slot_number) {
-            case 0: setter = &FloatParameter::set_slot_0_input; getter = &FloatParameter::get_slot_0_input; break;
-            case 1: setter = &FloatParameter::set_slot_1_input; getter = &FloatParameter::get_slot_1_input; break;
-            default: setter = &FloatParameter::set_slot_2_input; getter = &FloatParameter::get_slot_2_input; break;
-        }
-        ParameterInputSelectorControl<FloatParameter> *source = new ParameterInputSelectorControl<FloatParameter>(
+        ParameterSlotInputSelectorControl *source = new ParameterSlotInputSelectorControl(
             "Source",
             parameter,
-            setter, getter,
+            slot_number,
             parameter_manager->available_inputs,
             initial_input
         );
@@ -736,6 +837,27 @@ public:
         this->add(new ParameterModSlotSHControl("SH", parameter, slot_number));
     }
 
+    void link_next(ParameterModSlotRow *next) {
+        next_row = next;
+        if (next != nullptr) next->previous_row = this;
+    }
+
+    bool move_grabbed_slot(ParameterModSlotRow *destination) {
+        if (destination == nullptr || parameter == nullptr || *parameter == nullptr || menu == nullptr ||
+            destination->parameter != parameter || !(*parameter)->is_valid_slot(slot_number) ||
+            !(*parameter)->is_valid_slot(destination->slot_number))
+            return false;
+        if (!menu->transfer_opened_item(this, destination)) return false;
+        if (!(*parameter)->move_slot(slot_number, destination->slot_number)) {
+            menu->transfer_opened_item(destination, this);
+            return false;
+        }
+        currently_selected = 0;
+        currently_opened = -1;
+        destination->currently_selected = destination->currently_opened = 0;
+        return true;
+    }
+
     virtual int small_display(int index, int x, int y, int width_in_pixels, bool is_selected, bool is_opened, bool outer_selected) override {
         int end_y = SubMenuItemBarCustomProportions::small_display(index, x, y, width_in_pixels, is_selected, is_opened, outer_selected);
         // if (is_opened) {
@@ -748,6 +870,16 @@ public:
         return end_y;
     }
 };
+
+inline bool ParameterSlotReorderControl::knob_left() {
+    row->move_grabbed_slot(row->previous_row);
+    return true;
+}
+
+inline bool ParameterSlotReorderControl::knob_right() {
+    row->move_grabbed_slot(row->next_row);
+    return true;
+}
 
 
 // Redesigned compound menu item: Value | Minimum | Maximum | Output in one row
@@ -770,10 +902,7 @@ class ParameterMenuItem : public SubMenuItemBarCustomProportions {
         this->add(new ParameterValueMenuItem((char*)"Value", this->proxy_parameter));
         this->add(new ParameterRangeMenuItem("Min", this->proxy_parameter, MINIMUM));
         this->add(new ParameterRangeMenuItem("Max", this->proxy_parameter, MAXIMUM));
-        ParameterValueMenuItem *output = new ParameterValueMenuItem((char*)"Output", this->proxy_parameter);
-        output->setReadOnly();
-        output->flags.selectable = false;
-        output->set_show_output_mode();
+        ParameterOutputMenuItem *output = new ParameterOutputMenuItem(this->proxy_parameter);
         this->add(output);
     }
 

@@ -67,6 +67,8 @@ class BaseParameterInput
     }
     virtual ~BaseParameterInput() = default;
 
+    virtual class VirtualMixerParameterInput *as_virtual_mixer() { return nullptr; }
+
     const char *get_name() {
       return this->name;
     }
