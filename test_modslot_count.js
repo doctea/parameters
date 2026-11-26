@@ -155,11 +155,14 @@ const graphSource = `
 static int allocations = 0;
 void *operator new[](size_t size, const std::nothrow_t &) noexcept { ++allocations; return std::malloc(size); }
 void operator delete[](void *memory) noexcept { if (memory) { --allocations; std::free(memory); } }
+#define MENU_PERF_PARTIAL_UPDATES 1
 #define IF_MENU_PERF_PARTIAL_UPDATES(body) body
 #define BLACK 0
 #define C_WHITE 1
 #define RED 2
 #define GREEN 3
+static uint32_t now_ms = 0;
+uint32_t millis() { return now_ms; }
 struct FloatParameter { float value = 0; float getLastOutputNormalValue() { return value; } };
 struct Display {
     int x = 20, y = 30, lines = 0, fills = 0, order = 0, text_order = 0, line_order = 0, last_color = 0;
@@ -187,6 +190,7 @@ public:
     void set_show_output_mode() {}
     void request_redraw() {}
     virtual bool action_opened() { return true; }
+    virtual bool check_needs_redraw_custom(bool, bool) { return false; }
     virtual void update_ticks(unsigned long) {}
     virtual void on_hidden() {}
     virtual int renderValue(bool, bool, uint16_t) { ++text_calls; display.text_order = ++display.order; return 34; }
@@ -198,17 +202,21 @@ int main() {
     {
         ParameterOutputMenuItem output(&current);
         assert(allocations == 0 && output.renderValue(false, false, 3) == 38 && allocations == 1);
-        assert(output.text_calls == 1 && display.fills == 0 && display.lines == 0);
-        first.value = -1; output.update_ticks(1);
-        first.value = 2; output.update_ticks(2);
+        assert(output.text_calls == 1 && display.fills == 0 && display.lines == 1);
+        assert(!output.check_needs_redraw_custom(false, false));
+        now_ms = 50; first.value = -1;
+        assert(output.check_needs_redraw_custom(false, false));
+        display.x = 20; display.y = 30;
+        output.renderValue(false, false, 3);
+        now_ms = 100; first.value = 2;
         display.x = 20; display.y = 30; display.order = display.lines = 0;
         output.renderValue(false, false, 3);
-        assert(display.lines == 2 && display.fills == 0 && display.last_color == GREEN);
+        assert(display.lines == 3 && display.fills == 0 && display.last_color == GREEN);
         assert(display.text_order < display.line_order);
         current = &second;
         display.lines = 0; display.x = 20; display.y = 30;
         output.renderValue(false, false, 3);
-        assert(display.lines == 0);
+        assert(display.lines == 1);
         output.on_hidden();
         assert(allocations == 0);
         display.x = 20; display.y = 100;

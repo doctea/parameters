@@ -186,6 +186,12 @@ class ParameterOutputMenuItem : public ParameterValueMenuItem {
     enum DisplayMode : uint8_t { VALUE_ONLY, GRAPH_ONLY, VALUE_AND_GRAPH };
     DisplayMode display_mode = VALUE_AND_GRAPH;
     FloatParameter *sampled_parameter = nullptr;
+    uint32_t last_sample_ms = 0;
+    bool has_sample_time = false;
+
+    bool sample_due() const {
+        return !has_sample_time || (uint32_t)(millis() - last_sample_ms) >= 50;
+    }
 
 public:
     ParameterOutputMenuItem(FloatParameter **parameter) : ParameterValueMenuItem((char *)"Output", parameter) {
@@ -206,23 +212,15 @@ public:
         history = nullptr;
         capacity = head = count = 0;
         sampled_parameter = nullptr;
+        has_sample_time = false;
     }
 
-    void update_ticks(unsigned long) override {
-        if (display_mode == VALUE_ONLY || history == nullptr || parameter == nullptr || *parameter == nullptr)
-            return;
-        if (sampled_parameter != *parameter) {
-            sampled_parameter = *parameter;
-            head = count = 0;
+    #if MENU_PERF_PARTIAL_UPDATES
+        bool check_needs_redraw_custom(bool selected, bool opened) override {
+            return (display_mode != VALUE_ONLY && history != nullptr && sample_due()) ||
+                ParameterValueMenuItem::check_needs_redraw_custom(selected, opened);
         }
-        float value = sampled_parameter->getLastOutputNormalValue();
-        if (!(value >= 0.0f)) value = 0.0f;
-        if (value > 1.0f) value = 1.0f;
-        history[head] = (uint8_t)(value * 255.0f + 0.5f);
-        head = (head + 1) % capacity;
-        if (count < capacity) ++count;
-        IF_MENU_PERF_PARTIAL_UPDATES(this->request_redraw();)
-    }
+    #endif
 
     int renderValue(bool selected, bool opened, uint16_t max_character_width) override {
         if (display_mode == VALUE_ONLY) return ParameterValueMenuItem::renderValue(selected, opened, max_character_width);
@@ -248,6 +246,17 @@ public:
         if (sampled_parameter != (parameter != nullptr ? *parameter : nullptr)) {
             sampled_parameter = parameter != nullptr ? *parameter : nullptr;
             head = count = 0;
+            has_sample_time = false;
+        }
+        if (sampled_parameter != nullptr && sample_due()) {
+            float value = sampled_parameter->getLastOutputNormalValue();
+            if (!(value >= 0.0f)) value = 0.0f;
+            if (value > 1.0f) value = 1.0f;
+            history[head] = (uint8_t)(value * 255.0f + 0.5f);
+            head = (head + 1) % capacity;
+            if (count < capacity) ++count;
+            last_sample_ms = millis();
+            has_sample_time = true;
         }
         const int height = tft->getSingleRowHeight() * 2;
         const uint16_t fg = overlay_text ? (selected ? RED : GREEN) : (selected ? BLACK : C_WHITE);
